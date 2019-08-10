@@ -43,6 +43,9 @@
     <ClCompile Include="Source\Private\Core\Name.cpp">
       <Filter>Source\Private\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Log\Log.cpp">
+      <Filter>Source\Private\Core\Log</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">

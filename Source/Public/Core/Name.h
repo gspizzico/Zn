@@ -20,8 +20,23 @@ namespace Zn
         
         size_t Value() const { return m_StringCode; }
 
+        Zn::String ToString() const;
+
     private:
 
         size_t m_StringCode = 0;
+    };
+
+    static const Name NO_NAME;
+}
+
+namespace std
+{
+    template<> struct hash<Zn::Name>
+    {
+        size_t operator()(const Zn::Name& name) const noexcept
+        {
+            return name.Value();
+        }
     };
 }

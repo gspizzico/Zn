@@ -12,12 +12,15 @@ namespace Zn
 
     Name::Name(Zn::String string)
     {
-        Zn::String ToHash = string;
+        std::transform(string.begin(), string.end(), string.begin(), ::toupper);
 
-        std::transform(ToHash.begin(), ToHash.end(), ToHash.begin(), ::toupper);
-
-        m_StringCode = std::hash<Zn::String>{}(ToHash);
+        m_StringCode = std::hash<Zn::String>{}(string);
 
         Zn::Names().try_emplace(m_StringCode, string);
+    }
+
+    Zn::String Name::ToString() const
+    {
+        return Zn::Names().at(m_StringCode);
     }
 }
