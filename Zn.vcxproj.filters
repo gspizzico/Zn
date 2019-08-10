@@ -14,10 +14,60 @@
     <Filter Include="Source\Private">
       <UniqueIdentifier>{490daf2d-47db-4d1c-bfe2-2dee112ff1be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core">
+      <UniqueIdentifier>{6d3c8c0e-ea04-464c-8262-30f86c4cc7c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Core\Log">
+      <UniqueIdentifier>{e0b4d1a9-9a3f-4823-ae95-f62f1e96e402}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Core\HAL">
+      <UniqueIdentifier>{68be810a-a26a-425b-9743-835d059b267a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Core\Windows">
+      <UniqueIdentifier>{84257e48-df55-41cf-9e4b-40d73dd5b4c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Core\Containers">
+      <UniqueIdentifier>{864690bd-91ce-462f-81fe-53f49d5c599e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Core">
+      <UniqueIdentifier>{a9bf75b9-1e59-47e9-ab6e-ece595ff0e01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Core\Log">
+      <UniqueIdentifier>{73ddd38c-9e3c-4195-b473-da1a2def9b24}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
       <Filter>Source\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Name.cpp">
+      <Filter>Source\Private\Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Public\Core\Log\Log.h">
+      <Filter>Source\Public\Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h">
+      <Filter>Source\Public\Core\HAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsTypes.h">
+      <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Containers\Map.h">
+      <Filter>Source\Public\Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Name.h">
+      <Filter>Source\Public\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Build.h">
+      <Filter>Source\Public\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Containers\Vector.h">
+      <Filter>Source\Public\Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Containers\Set.h">
+      <Filter>Source\Public\Core\Containers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
