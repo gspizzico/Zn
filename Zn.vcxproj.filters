@@ -44,6 +44,9 @@
     <Filter Include="Source\Private\Core\Time">
       <UniqueIdentifier>{7924712d-f235-4628-8517-765b2c775cb7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core\Memory">
+      <UniqueIdentifier>{df1ffad5-5936-40fa-bb66-9a99da319b2c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -63,6 +66,12 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Time\Time.cpp">
       <Filter>Source\Private\Core\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Windows\WindowsMemory.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Memory.cpp">
+      <Filter>Source\Private\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +113,12 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Time\Time.h">
       <Filter>Source\Public\Core\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Memory.h">
+      <Filter>Source\Public\Core\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsMemory.h">
+      <Filter>Source\Public\Core\Windows</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

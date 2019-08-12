@@ -165,9 +165,11 @@
   <ItemGroup>
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />
     <ClCompile Include="Source\Private\Core\Name.cpp" />
     <ClCompile Include="Source\Private\Core\Time\Time.cpp" />
     <ClCompile Include="Source\Private\Core\Windows\WindowsDebugOutput.cpp" />
+    <ClCompile Include="Source\Private\Core\Windows\WindowsMemory.cpp" />
     <ClCompile Include="Source\Private\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -180,9 +182,11 @@
     <ClInclude Include="Source\Public\Core\Log\LogMacros.h" />
     <ClInclude Include="Source\Public\Core\Log\OutputDevice.h" />
     <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Memory.h" />
     <ClInclude Include="Source\Public\Core\Name.h" />
     <ClInclude Include="Source\Public\Core\Time\Time.h" />
     <ClInclude Include="Source\Public\Core\Windows\WindowsDebugOutput.h" />
+    <ClInclude Include="Source\Public\Core\Windows\WindowsMemory.h" />
     <ClInclude Include="Source\Public\Core\Windows\WindowsTypes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
