@@ -166,6 +166,7 @@
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
     <ClCompile Include="Source\Private\Core\Name.cpp" />
+    <ClCompile Include="Source\Private\Core\Time\Time.cpp" />
     <ClCompile Include="Source\Private\Core\Windows\WindowsDebugOutput.cpp" />
     <ClCompile Include="Source\Private\Main.cpp" />
   </ItemGroup>

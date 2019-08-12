@@ -7,6 +7,7 @@
 
 namespace Zn
 {
+    // Manager of output devices. Holds their references and is used as passthrough for messages.
     class OutputDeviceManager
     {
     public:

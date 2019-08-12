@@ -8,6 +8,7 @@
 
 namespace Zn
 {
+    // Defines the verbosity of the message.
     enum class ELogVerbosity : uint8
     {
         Verbose = 0,
@@ -17,34 +18,40 @@ namespace Zn
         MAX     = 4
     };
 
+    // Utility struct that wraps a log category.
     struct LogCategory
     {
         Name            m_Name;
         ELogVerbosity   m_Verbosity;
     };
 
+    // Utility class for logging functionalities.
     class Log
     {
     public:
-
+        
+        // It provides only static methods, does not need a constructor.
         Log() = delete;
 
         static void DefineLogCategory(const Name& name, ELogVerbosity verbosity);
 
         static bool ModifyVerbosity(const Name& name, ELogVerbosity verbosity);
 
+        // Variadic function used to log a message.
         template<typename ... Args>
         static void LogMsg(const Name& category, ELogVerbosity verbosity, const char* format, Args&& ... args);
     
-        static std::optional<LogCategory> GetLogCategory(const Name& name);
-
     private:
+
+        // Log Category getter
+        static std::optional<LogCategory> GetLogCategory(const Name& name);
 
         static void LogMsgInternal(const Name& category, ELogVerbosity verbosity, const char* message);
 
         static const char* ToCString(ELogVerbosity verbosity);
     };
 
+    // Utility struct that autoregisters a log category.
     struct AutoLogCategory
     {
         AutoLogCategory(Name name, ELogVerbosity verbosity)
@@ -69,6 +76,7 @@ namespace Zn
     }
 }
 
+// Log declarations/definitions macros.
 #define DECLARE_LOG_CATEGORY (Name) \
 namespace Zn::LogCategories\
 {\
@@ -79,4 +87,10 @@ namespace Zn::LogCategories\
 namespace Zn::LogCategories\
 {\
     Zn::AutoLogCategory LC_##Name{#Name, Verbosity};\
+}
+
+#define DECLARE_STATIC_LOG_CATEGORY(Name, Verbosity) \
+namespace Zn::GetLogCategories\
+{\
+    static Zn::AutoLogCategory SLC_##Name{#Name, Verbosity};\
 }

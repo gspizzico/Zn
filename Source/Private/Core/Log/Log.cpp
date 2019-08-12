@@ -4,6 +4,7 @@
 
 namespace Zn
 {
+    // Internal use only. Map of registered log categories.
     UnorderedMap<Name, ELogVerbosity>& GetLogCategories()
     {
         static UnorderedMap<Name, ELogVerbosity> s_LogCategories;
@@ -40,22 +41,23 @@ namespace Zn
 
     void Log::LogMsgInternal(const Name & category, ELogVerbosity verbosity, const char* message)
     {   
-        constexpr auto LogFormat = "[%s]\t[%s]\t%s:\t%s\n";
+        // Printf wrapper, since it's called two times, the first one to get the size of the buffer, the second one to write to it.
+        auto ExecPrintf = [TimeString = Time::Now(), pLogCategory = category.CString(), pLogVerbosity = ToCString(verbosity), message] 
+            (char* buffer, size_t size) -> size_t
+        {
+            // Log Format -> [TimeStamp]    [LogCategory]   [LogVerbosity]: Message \n
+            constexpr auto LogFormat = "[%s]\t[%s]\t%s:\t%s\n";
 
-        auto Now = SystemClock::now();
-        auto TimeString = Time::ToString(Now);
-        const auto TimeCString = TimeString.c_str();
+            return std::snprintf(buffer, size, LogFormat, TimeString.c_str(), pLogCategory, pLogVerbosity, message);
+        };
 
-        auto LogCategoryCString = category.CString();
-        auto LogVerbosityCString = ToCString(verbosity);
+        const auto BufferSize = ExecPrintf(nullptr, 0);
 
-        const auto LogFormatSize = std::snprintf(nullptr, 0, LogFormat, TimeCString, LogCategoryCString, LogVerbosityCString, message);
+        Vector<char> Buffer (BufferSize + 1); // note +1 for null terminator
 
-        Vector<char> LogMessageBuffer(LogFormatSize + 1); // note +1 for null terminator
+        ExecPrintf(&Buffer[0], Buffer.size());
 
-        std::snprintf(&LogMessageBuffer[0], LogMessageBuffer.size(), LogFormat, TimeCString, LogCategoryCString, LogVerbosityCString, message);
-
-        OutputDeviceManager::Get().OutputMessage(&LogMessageBuffer[0]);
+        OutputDeviceManager::Get().OutputMessage(&Buffer[0]);
     }
 
     const char* Log::ToCString(ELogVerbosity verbosity)
