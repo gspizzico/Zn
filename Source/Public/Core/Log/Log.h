@@ -35,9 +35,12 @@ namespace Zn
         static bool ModifyVerbosity(const Name& name, ELogVerbosity verbosity);
 
         template<typename ... Args>
-        static void LogMsg(const Name& name, ELogVerbosity verbosity, const char* format, Args&& ... args);
-
+        static void LogMsg(const Name& category, ELogVerbosity verbosity, const char* format, Args&& ... args);
+    
         static std::optional<LogCategory> GetLogCategory(const Name& name);
+
+    private:
+        static void LogMsgInternal(const Name& category, const char* message);
     };
 
     struct AutoLogCategory
@@ -49,9 +52,9 @@ namespace Zn
     };
 
     template<typename ...Args>
-    inline void Log::LogMsg(const Name& name, ELogVerbosity verbosity, const char* format, Args&& ... args)
+    inline void Log::LogMsg(const Name& category, ELogVerbosity verbosity, const char* format, Args&& ... args)
     {
-        if (auto LogCategory = GetLogCategory(name); LogCategory.has_value() && verbosity >= LogCategory.value().m_Verbosity)
+        if (auto LogCategory = GetLogCategory(category); LogCategory.has_value() && verbosity >= LogCategory.value().m_Verbosity)
         {   
             const auto MessageBufferSize = std::snprintf(nullptr, 0, format, std::forward<Args>(args)...);
             
@@ -59,17 +62,7 @@ namespace Zn
             Vector<char> MessageBuffer(MessageBufferSize + 1); // note +1 for null terminator
             std::snprintf(&MessageBuffer[0], MessageBuffer.size(), format, std::forward<Args>(args)...);
 
-            constexpr auto LogFormat = "[%s] : %s \n";
-
-            auto LogCategoryCString = name.CString();
-
-            const auto LogFormatSize = std::snprintf(nullptr, 0, LogFormat, LogCategoryCString, &MessageBuffer[0]);
-
-            Vector<char> LogMessageBuffer(LogFormatSize + 1); // note +1 for null terminator
-
-            std::snprintf(&LogMessageBuffer[0], LogMessageBuffer.size(), LogFormat, LogCategoryCString, &MessageBuffer[0]);
-
-            OutputDeviceManager::Get().OutputMessage(&LogMessageBuffer[0]);
+            LogMsgInternal(category, &MessageBuffer[0]);
         }
     }
 }

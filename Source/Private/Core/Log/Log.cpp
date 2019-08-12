@@ -36,4 +36,19 @@ namespace Zn
 
         return Result;
     }
+    void Log::LogMsgInternal(const Name & category, const char* message)
+    {
+        //#todo [Time] - Add TimeStamp
+        constexpr auto LogFormat = "[%s] : %s \n";
+
+        auto LogCategoryCString = category.CString();
+
+        const auto LogFormatSize = std::snprintf(nullptr, 0, LogFormat, LogCategoryCString, message);
+
+        Vector<char> LogMessageBuffer(LogFormatSize + 1); // note +1 for null terminator
+
+        std::snprintf(&LogMessageBuffer[0], LogMessageBuffer.size(), LogFormat, LogCategoryCString, message);
+
+        OutputDeviceManager::Get().OutputMessage(&LogMessageBuffer[0]);
+    }
 }
