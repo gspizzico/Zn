@@ -38,6 +38,9 @@
     <Filter Include="Source\Private\Windows">
       <UniqueIdentifier>{d67f41ee-ac11-495a-a755-5269490359f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core\Time">
+      <UniqueIdentifier>{3a1fcdca-7c11-4ee3-bc07-ff341259b92a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -92,6 +95,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Log\LogMacros.h">
       <Filter>Source\Public\Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Time\Time.h">
+      <Filter>Source\Public\Core\Time</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

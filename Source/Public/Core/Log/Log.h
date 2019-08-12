@@ -6,7 +6,6 @@
 #include "Core/Log/OutputDeviceManager.h"
 #include <optional>
 
-
 namespace Zn
 {
     enum class ELogVerbosity : uint8
@@ -40,7 +39,10 @@ namespace Zn
         static std::optional<LogCategory> GetLogCategory(const Name& name);
 
     private:
-        static void LogMsgInternal(const Name& category, const char* message);
+
+        static void LogMsgInternal(const Name& category, ELogVerbosity verbosity, const char* message);
+
+        static const char* ToCString(ELogVerbosity verbosity);
     };
 
     struct AutoLogCategory
@@ -62,7 +64,7 @@ namespace Zn
             Vector<char> MessageBuffer(MessageBufferSize + 1); // note +1 for null terminator
             std::snprintf(&MessageBuffer[0], MessageBuffer.size(), format, std::forward<Args>(args)...);
 
-            LogMsgInternal(category, &MessageBuffer[0]);
+            LogMsgInternal(category, verbosity, &MessageBuffer[0]);
         }
     }
 }

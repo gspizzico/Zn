@@ -5,3 +5,5 @@
     #error "Build macros have not been defined!"
     #endif
 #endif
+
+#define ZN_LOGGING (ZN_DEBUG)
