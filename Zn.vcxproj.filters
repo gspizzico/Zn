@@ -35,6 +35,9 @@
     <Filter Include="Source\Private\Core\Log">
       <UniqueIdentifier>{73ddd38c-9e3c-4195-b473-da1a2def9b24}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Private\Windows">
+      <UniqueIdentifier>{d67f41ee-ac11-495a-a755-5269490359f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -45,6 +48,12 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Log\Log.cpp">
       <Filter>Source\Private\Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp">
+      <Filter>Source\Private\Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Windows\WindowsDebugOutput.cpp">
+      <Filter>Source\Private\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +80,18 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Containers\Set.h">
       <Filter>Source\Public\Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h">
+      <Filter>Source\Public\Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Log\OutputDevice.h">
+      <Filter>Source\Public\Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsDebugOutput.h">
+      <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Log\LogMacros.h">
+      <Filter>Source\Public\Core\Log</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

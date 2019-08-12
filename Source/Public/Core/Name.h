@@ -10,7 +10,7 @@ namespace Zn
 
         Name(Zn::String string);
 
-        //Name(const char* chars) : Name(String(chars)) {}
+        Name(const char* chars) : Name(String(chars)) {}
 
         bool operator==(const Name& other) const { return m_StringCode == other.m_StringCode; }
         
@@ -21,6 +21,8 @@ namespace Zn
         size_t Value() const { return m_StringCode; }
 
         Zn::String ToString() const;
+
+        const char* const CString() const;
 
     private:
 

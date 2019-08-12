@@ -3,18 +3,18 @@
 
 namespace Zn
 {
-    UnorderedMap<Name, uint8>& GetLogCategories()
+    UnorderedMap<Name, ELogVerbosity>& GetLogCategories()
     {
-        static UnorderedMap<Name, uint8> s_LogCategories;
+        static UnorderedMap<Name, ELogVerbosity> s_LogCategories;
         return s_LogCategories;
     }
 
-    void Log::DefineLogCategory(const Name& name, uint8 verbosity)
+    void Log::DefineLogCategory(const Name& name, ELogVerbosity verbosity)
     {
         GetLogCategories().try_emplace(name, verbosity);
     }
 
-    bool Log::ModifyVerbosity(const Name& name, uint8 verbosity)
+    bool Log::ModifyVerbosity(const Name& name, ELogVerbosity verbosity)
     {
         if (auto It = GetLogCategories().find(name); It != GetLogCategories().end())
         {

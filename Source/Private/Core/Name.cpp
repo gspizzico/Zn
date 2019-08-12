@@ -23,4 +23,9 @@ namespace Zn
     {
         return Zn::Names().at(m_StringCode);
     }
+
+    const char* const Name::CString() const
+    {
+        return Zn::Names().at(m_StringCode).c_str();
+    }
 }

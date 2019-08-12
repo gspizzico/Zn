@@ -1,17 +1,37 @@
-#include <iostream>
-#include <string>
-#include <windows.h>
-
 #include "Core/Log/Log.h"
+#include "Core/Log/OutputDeviceManager.h"
 #include "Core/Name.h"
 #include "Core/HAL/PlatformTypes.h"
+#include "Core/Windows/WindowsDebugOutput.h"
+#include "Core/Log/LogMacros.h"
+
+using namespace Zn;
+
+class Engine
+{
+public:
+    
+    void Initialize()
+    {
+        OutputDeviceManager::Get().RegisterOutputDevice<WindowsDebugOutput>();
+    }
+    bool DoWork()
+    {
+        AutoLogCategory("TestCategory", ELogVerbosity::Verbose);
+        ZN_LOG(TestCategory, ELogVerbosity::Verbose, "%s string", "ll");
+        return false;
+    }
+    void Shutdown()
+    {
+
+    }
+};
 
 int main()
 {   
-    //Zn::Log::DefineLogCategory(Zn::Name("Test"), 5);
-    for (int32 Index = 0; Index < 1000; Index++)
-    {
-        auto vn = Zn::Name(std::to_string(Index));
-    }
+    Engine engine;
+    engine.Initialize();
+    while (engine.DoWork());
+    engine.Shutdown();
     return 0;
 }

@@ -164,7 +164,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
+    <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
     <ClCompile Include="Source\Private\Core\Name.cpp" />
+    <ClCompile Include="Source\Private\Core\Windows\WindowsDebugOutput.cpp" />
     <ClCompile Include="Source\Private\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -174,7 +176,11 @@
     <ClInclude Include="Source\Public\Core\Containers\Vector.h" />
     <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h" />
     <ClInclude Include="Source\Public\Core\Log\Log.h" />
+    <ClInclude Include="Source\Public\Core\Log\LogMacros.h" />
+    <ClInclude Include="Source\Public\Core\Log\OutputDevice.h" />
+    <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h" />
     <ClInclude Include="Source\Public\Core\Name.h" />
+    <ClInclude Include="Source\Public\Core\Windows\WindowsDebugOutput.h" />
     <ClInclude Include="Source\Public\Core\Windows\WindowsTypes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
