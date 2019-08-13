@@ -50,6 +50,15 @@
     <Filter Include="Source\Private\Core\Memory">
       <UniqueIdentifier>{1ededc4f-9ff7-488b-a37b-dde9c2bcaf11}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core\Memory\Allocators">
+      <UniqueIdentifier>{77cd16e3-7a9e-449a-86ab-f7aad1218b97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Core\Memory\Allocators">
+      <UniqueIdentifier>{d2bece37-6f5c-4aff-bb16-2d4b6e712367}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Core\HAL">
+      <UniqueIdentifier>{3db15413-a897-4b79-9ee2-743a4241dd39}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -78,6 +87,15 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp">
       <Filter>Source\Private\Core\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Windows\WindowsMisc.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\HAL\Misc.cpp">
+      <Filter>Source\Private\Core\HAL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +148,18 @@
       <Filter>Source\Public\Core\Memory</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Core\HAL\BasicTypes.h">
+      <Filter>Source\Public\Core\HAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h">
+      <Filter>Source\Public\Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Math\Math.h">
+      <Filter>Source\Public\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsMisc.h">
+      <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\HAL\Misc.h">
       <Filter>Source\Public\Core\HAL</Filter>
     </ClInclude>
   </ItemGroup>

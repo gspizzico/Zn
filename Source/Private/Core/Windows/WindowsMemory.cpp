@@ -1,4 +1,5 @@
 #include "Core/Windows/WindowsMemory.h"
+#include "Core/Windows/WindowsMisc.h"
 #include <windows.h>
 #include <memoryapi.h>
 #include <sysinfoapi.h>
@@ -44,6 +45,6 @@ namespace Zn
     }
     size_t WindowsVirtualMemory::GetPageSize()
     {
-        return size_t();
+        return WindowsMisc::GetSystemInfo().m_PageSize;
     }
 }

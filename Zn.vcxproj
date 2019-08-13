@@ -163,14 +163,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Private\Core\HAL\Misc.cpp" />
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp" />
     <ClCompile Include="Source\Private\Core\Name.cpp" />
     <ClCompile Include="Source\Private\Core\Time\Time.cpp" />
     <ClCompile Include="Source\Private\Core\Windows\WindowsDebugOutput.cpp" />
     <ClCompile Include="Source\Private\Core\Windows\WindowsMemory.cpp" />
+    <ClCompile Include="Source\Private\Core\Windows\WindowsMisc.cpp" />
     <ClCompile Include="Source\Private\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -179,17 +182,21 @@
     <ClInclude Include="Source\Public\Core\Containers\Set.h" />
     <ClInclude Include="Source\Public\Core\Containers\Vector.h" />
     <ClInclude Include="Source\Public\Core\HAL\BasicTypes.h" />
+    <ClInclude Include="Source\Public\Core\HAL\Misc.h" />
     <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h" />
     <ClInclude Include="Source\Public\Core\Log\Log.h" />
     <ClInclude Include="Source\Public\Core\Log\LogMacros.h" />
     <ClInclude Include="Source\Public\Core\Log\OutputDevice.h" />
     <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h" />
+    <ClInclude Include="Source\Public\Core\Math\Math.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Memory.h" />
     <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h" />
     <ClInclude Include="Source\Public\Core\Name.h" />
     <ClInclude Include="Source\Public\Core\Time\Time.h" />
     <ClInclude Include="Source\Public\Core\Windows\WindowsDebugOutput.h" />
     <ClInclude Include="Source\Public\Core\Windows\WindowsMemory.h" />
+    <ClInclude Include="Source\Public\Core\Windows\WindowsMisc.h" />
     <ClInclude Include="Source\Public\Core\Windows\WindowsTypes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

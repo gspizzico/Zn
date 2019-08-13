@@ -4,6 +4,7 @@ namespace Zn
 {
     class VirtualMemory
     {
+    public:
         static void* Reserve(size_t size);
 
         static void* Allocate(size_t size);

@@ -28,5 +28,30 @@ namespace Zn
     public:
 
         static MemoryStatus GetMemoryStatus();
+
+        static void* Align(void* address, size_t alignment);
+
+        static bool IsAligned(void* address, size_t alignment);
+
+        static void* AddOffset(void* address, size_t offset);
+
+        static void* SubOffset(void* address, size_t offset);
+
+        static ptrdiff_t GetOffset(const void* first, const void* second);
+    };
+
+    class MemoryDebug
+    {
+    public:
+
+        static void MarkUninitialized(void* begin, void* end);
+
+        static void MarkFree(void* begin, void* end);
+
+    private:
+
+        static constexpr int8_t kUninitializedMemoryPattern = 0x23;
+        
+        static constexpr int8_t kFreeMemoryPattern          = 0x5F;
     };
 }

@@ -31,6 +31,6 @@ namespace Zn
     size_t VirtualMemory::AlignToPageSize(size_t size)
     {
         auto PageSize = GetPageSize();
-        return glm::ceil<size_t>((size + PageSize - 1) / PageSize) * PageSize;
+        return (size_t) glm::ceil<size_t>((size + PageSize - 1) / PageSize) * PageSize;
     }
 }
