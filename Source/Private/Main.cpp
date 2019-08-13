@@ -19,15 +19,10 @@ public:
     }
     bool DoWork()
     {
-       LinearAllocator Allocator(64, 1);
-       constexpr auto namesize = sizeof(Name);
-       auto Ptr1 = Allocator.Allocate(namesize);
-       Name* MyName = new (Ptr1) Name("MyName");
+       LinearAllocator Allocator(1024*2, 256);
+       for(int index = 0; index < 4; ++index)
+        Allocator.Allocate(512);
        
-       auto Ptr2 = Allocator.Allocate(16);
-       auto Ptr3 = Allocator.Allocate(4);
-       auto Ptr4 = Allocator.Allocate(1);
-       MyName->~Name();
        Allocator.Free();
 
        /* AutoLogCategory("TestCategory", ELogVerbosity::Verbose);

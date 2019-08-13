@@ -10,8 +10,9 @@ namespace Zn
     }
 
     void* Memory::Align(void * address, size_t alignment)
-    {
-        return reinterpret_cast<void*>(Math::Ceil(reinterpret_cast<uintptr_t>(address), alignment));
+    {   
+        const size_t mask = alignment - 1;
+        return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(address) + mask) & ~mask);
     }
     bool Memory::IsAligned(void * address, size_t alignment)
     {

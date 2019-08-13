@@ -4,10 +4,10 @@
 
 Zn::LinearAllocator::LinearAllocator(size_t capacity, size_t alignment)
 {
-    m_MaxAllocatableSize = capacity + alignment - 1;
+    m_MaxAllocatableSize = capacity + (alignment - 1) & ~(alignment -1);
     m_BaseAddress = VirtualMemory::Reserve(m_MaxAllocatableSize);
     m_Address = m_NextPageAddress = m_BaseAddress;
-    m_LastAddress = Memory::AddOffset(Memory::Align(m_BaseAddress, alignment), VirtualMemory::GetPageSize());
+    m_LastAddress = Memory::AddOffset(Memory::Align(m_BaseAddress, alignment), m_MaxAllocatableSize);
 }
 
 Zn::LinearAllocator::~LinearAllocator()

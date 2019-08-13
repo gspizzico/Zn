@@ -50,7 +50,7 @@ namespace Zn
 
     private:
 
-        static constexpr int8_t kUninitializedMemoryPattern = 0x23;
+        static constexpr int8_t kUninitializedMemoryPattern = 0x5C;
         
         static constexpr int8_t kFreeMemoryPattern          = 0x5F;
     };
