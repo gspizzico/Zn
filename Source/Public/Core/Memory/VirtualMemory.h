@@ -1,17 +1,9 @@
 #pragma once
-#include "Core/Memory/Memory.h"
 
 namespace Zn
 {
-    class WindowsMemory
+    class VirtualMemory
     {
-    public:
-        static MemoryStatus GetMemoryStatus();
-    };
-
-    class WindowsVirtualMemory
-    {
-    public:
         static void* Reserve(size_t size);
 
         static void* Allocate(size_t size);
@@ -23,5 +15,7 @@ namespace Zn
         static bool Decommit(void* address, size_t size);
 
         static size_t GetPageSize();
+
+        static size_t AlignToPageSize(size_t size);
     };
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-#include "Core/HAL/PlatformTypes.h"
+#include "Core/HAL/BasicTypes.h"
 
 namespace Zn
 {

@@ -2,7 +2,7 @@
 #include <chrono>
 #include <ctime>
 #include <time.h>
-#include "Core/HAL/PlatformTypes.h"
+#include "Core/HAL/BasicTypes.h"
 
 namespace Zn
 {

@@ -1,18 +1,30 @@
 #include "Core/Memory/Memory.h"
+#include "Core/HAL/PlatformTypes.h"
 
-namespace Zn::Memory
+namespace Zn
 {
-    UniquePtr<IMemory> IMemory::s_Memory = nullptr;
-
-    void IMemory::Register(IMemory * memory_handler)
+    MemoryStatus Memory::GetMemoryStatus()
     {
-        _ASSERT(!s_Memory);
-        s_Memory = std::unique_ptr<IMemory>(memory_handler);
+        return PlatformMemory::GetMemoryStatus();
     }
+}
 
-    const IMemory* IMemory::Get()
-    {
-        _ASSERT(s_Memory);
-        return s_Memory.get();
-    }
+void* operator new(size_t size)
+{
+    return malloc(size);
+}
+
+void* operator new[](size_t size)
+{
+    return malloc(size);
+}
+
+void operator delete (void* mem)
+{
+    free(mem);
+}
+
+void operator delete[](void* mem)
+{
+    free(mem);
 }

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
-#include <functional>
+#include "Core/Windows/WindowsMemory.h"
 
 namespace Zn
 {
-    
+    typedef WindowsMemory PlatformMemory;
+    typedef WindowsVirtualMemory PlatformVirtualMemory;
 }

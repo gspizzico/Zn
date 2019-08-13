@@ -47,6 +47,9 @@
     <Filter Include="Source\Public\Core\Memory">
       <UniqueIdentifier>{df1ffad5-5936-40fa-bb66-9a99da319b2c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Private\Core\Memory">
+      <UniqueIdentifier>{1ededc4f-9ff7-488b-a37b-dde9c2bcaf11}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -71,7 +74,10 @@
       <Filter>Source\Private\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp">
-      <Filter>Source\Private\Core</Filter>
+      <Filter>Source\Private\Core\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp">
+      <Filter>Source\Private\Core\Memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +125,12 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Windows\WindowsMemory.h">
       <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h">
+      <Filter>Source\Public\Core\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\HAL\BasicTypes.h">
+      <Filter>Source\Public\Core\HAL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

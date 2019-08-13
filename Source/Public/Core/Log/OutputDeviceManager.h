@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/HAL/PlatformTypes.h"
+#include "Core/HAL/BasicTypes.h"
 #include "Core/Containers/Vector.h"
 #include "Core/Log/OutputDevice.h"
 #include <utility>

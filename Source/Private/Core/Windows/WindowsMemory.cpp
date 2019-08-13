@@ -1,10 +1,11 @@
 #include "Core/Windows/WindowsMemory.h"
 #include <windows.h>
+#include <memoryapi.h>
 #include <sysinfoapi.h>
 
-namespace Zn::Memory
+namespace Zn
 {
-    MemoryStatus WindowsMemory::GetMemoryStatus() const
+    MemoryStatus WindowsMemory::GetMemoryStatus()
     {
         _MEMORYSTATUSEX WinMemStatus;
         WinMemStatus.dwLength = sizeof(WinMemStatus);
@@ -19,5 +20,30 @@ namespace Zn::Memory
             (uint64)WinMemStatus.ullTotalVirtual,           (uint64)WinMemStatus.ullAvailVirtual,
             (uint64)WinMemStatus.ullAvailExtendedVirtual
         };
+    }
+
+    void* WindowsVirtualMemory::Reserve(size_t size)
+    {
+        return VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_READWRITE);
+    }
+    void* WindowsVirtualMemory::Allocate(size_t size)
+    {
+        return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    }
+    bool WindowsVirtualMemory::Release(void * address)
+    {
+        return VirtualFree(address, 0, MEM_RELEASE);
+    }
+    bool WindowsVirtualMemory::Commit(void * address, size_t size)
+    {
+        return VirtualAlloc(address, size, MEM_COMMIT, PAGE_READWRITE);
+    }
+    bool WindowsVirtualMemory::Decommit(void * address, size_t size)
+    {
+        return VirtualFree(address, size, MEM_DECOMMIT);
+    }
+    size_t WindowsVirtualMemory::GetPageSize()
+    {
+        return size_t();
     }
 }
