@@ -11,7 +11,7 @@ namespace Zn
         SystemInfo SystemInfo;
         SystemInfo.m_PageSize = WinSystemInfo.dwPageSize;
         SystemInfo.m_AllocationGranularity = WinSystemInfo.dwAllocationGranularity;
-        SystemInfo.m_NumOfProcessors = WinSystemInfo.dwNumberOfProcessors;
+        SystemInfo.m_NumOfProcessors = (uint8) WinSystemInfo.dwNumberOfProcessors;
         SystemInfo.m_Architecture = 
             [&WinSystemInfo]() ->ProcessorArchitecture
         {

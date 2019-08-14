@@ -97,6 +97,9 @@
     <ClCompile Include="Source\Private\Core\HAL\Misc.cpp">
       <Filter>Source\Private\Core\HAL</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -161,6 +164,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\HAL\Misc.h">
       <Filter>Source\Public\Core\HAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h">
+      <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -5,7 +5,7 @@
 #include "Core/Memory/Memory.h"
 #include "Core/Windows/WindowsDebugOutput.h"
 #include "Core/Log/LogMacros.h"
-#include "Core/Memory/Allocators/LinearAllocator.h"
+#include "Core/Memory/Allocators/StackAllocator.h"
 
 using namespace Zn;
 
@@ -19,18 +19,32 @@ public:
     }
     bool DoWork()
     {
-       LinearAllocator Allocator(1024*2, 256);
-       for(int index = 0; index < 4; ++index)
-        Allocator.Allocate(512);
-       
-       Allocator.Free();
 
-       /* AutoLogCategory("TestCategory", ELogVerbosity::Verbose);
-        ZN_LOG(TestCategory, ELogVerbosity::Verbose, "%s string", "ll");
+		auto Allocator = StackAllocator(4096 * 10, 8);
+		//
+		auto First = Allocator.Allocate(2048);
+		auto Second = Allocator.Allocate(2048);
+		//
 
-        auto memStatus  = Memory::GetMemoryStatus();*/
-       
-        return false;
+		//
+		auto Third = Allocator.Allocate(2048);
+		auto Fourth = Allocator.Allocate(2048);
+		Allocator.Free(Fourth);
+		//
+
+		//
+		Allocator.Allocate(2048);
+		
+		Allocator.Allocate(2048);
+		Allocator.Allocate(2048);
+		Allocator.Free(First);
+		Allocator.Allocate(2048);
+
+		//
+
+		Allocator.Free();
+
+		return false;
     }
     void Shutdown()
     {

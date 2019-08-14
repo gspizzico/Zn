@@ -44,6 +44,8 @@ namespace Zn
     {
     public:
 
+		static void MarkMemory(void* begin, void* end, int8_t pattern);
+
         static void MarkUninitialized(void* begin, void* end);
 
         static void MarkFree(void* begin, void* end);

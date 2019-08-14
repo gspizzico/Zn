@@ -31,20 +31,23 @@ namespace Zn
         return reinterpret_cast<intptr_t>(first) - reinterpret_cast<intptr_t>(second);
     }
 
+	void MemoryDebug::MarkMemory(void* begin, void* end, int8_t pattern)
+	{
+		std::fill(
+			reinterpret_cast<int8_t*>(begin),
+			reinterpret_cast<int8_t*>(end),
+			pattern);
+	}
+
     void MemoryDebug::MarkUninitialized(void * begin, void * end)
     {
-        std::fill(
-            reinterpret_cast<int8_t*>(begin),
-            reinterpret_cast<int8_t*>(end),
-            kUninitializedMemoryPattern);
+		MarkMemory(begin, end, kUninitializedMemoryPattern);
     }
     void MemoryDebug::MarkFree(void * begin, void * end)
     {
-        std::fill(
-            reinterpret_cast<int8_t*>(begin),
-            reinterpret_cast<int8_t*>(end),
-            kFreeMemoryPattern);
+		MarkMemory(begin, end, kFreeMemoryPattern);
     }
+
 }
 
 void* operator new(size_t size)
