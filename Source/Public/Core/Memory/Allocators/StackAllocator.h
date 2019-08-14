@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Memory/VirtualMemory.h"
 
 namespace Zn
 {
@@ -26,7 +27,7 @@ namespace Zn
 		~StackAllocator();
 
 		// Allocates n @bytes in the stack.
-		void* Allocate(size_t bytes);
+		void* Allocate(size_t bytes, size_t alignment = 1);
 
 		// Frees the stack at @address. The new top stack ptr will be @address.
 		bool Free(void* address);
@@ -34,16 +35,20 @@ namespace Zn
 		// Wipes out the stack.
 		bool Free();
 
+		// Sets a restore point to which is possible to rewind.
+		void SaveStatus();
+
+		// Restores the previous set restore point. Multiple call to this function will restore previous restore points.
+		void RestoreStatus();
+
 	private:
 
-		size_t m_MaxAllocatableSize		= 0;
-
-		void* m_BaseAddress				= nullptr;
-
-		void* m_LastAddress				= nullptr;
+		MemoryResource m_Memory;
 		
 		void* m_NextPageAddress			= nullptr;
 
 		void* m_TopAddress				= nullptr;
+
+		void* m_LastSavedStatus			= nullptr;
 	};
 }

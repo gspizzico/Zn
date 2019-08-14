@@ -3,11 +3,10 @@
 #include "Core/Memory/VirtualMemory.h"
 
 Zn::LinearAllocator::LinearAllocator(size_t capacity, size_t alignment)
+	: m_Memory(capacity, alignment)
+	, m_NextPageAddress(*m_Memory)
+	, m_Address(*m_Memory)
 {
-    m_MaxAllocatableSize = capacity + (alignment - 1) & ~(alignment -1);
-    m_BaseAddress = VirtualMemory::Reserve(m_MaxAllocatableSize);
-    m_Address = m_NextPageAddress = m_BaseAddress;
-    m_LastAddress = Memory::AddOffset(Memory::Align(m_BaseAddress, alignment), m_MaxAllocatableSize);
 }
 
 Zn::LinearAllocator::~LinearAllocator()
@@ -23,11 +22,11 @@ void* Zn::LinearAllocator::Allocate(size_t size, size_t alignment)
 
     m_Address = Memory::AddOffset(AlignedAddress, size);
 
-    _ASSERT(Memory::GetOffset(m_Address, m_LastAddress) <= 0);
+	_ASSERT(m_Memory.Range().Contains(m_Address));
 
     auto NextPage = Memory::Align(m_Address, VirtualMemory::GetPageSize());
 
-    if (auto AllocationSize = Memory::GetOffset(NextPage, m_NextPageAddress); AllocationSize > 0)
+    if (auto AllocationSize = Memory::GetDistance(NextPage, m_NextPageAddress); AllocationSize > 0)
     {
         VirtualMemory::Commit(m_NextPageAddress, static_cast<size_t>(AllocationSize));
 
@@ -41,17 +40,12 @@ void* Zn::LinearAllocator::Allocate(size_t size, size_t alignment)
 
 bool Zn::LinearAllocator::Free()
 {
-    if (m_BaseAddress == nullptr)
+    if (m_Memory)
         return false;
 
-    VirtualMemory::Decommit(m_BaseAddress, static_cast<size_t>(Memory::GetOffset(m_NextPageAddress, m_BaseAddress)));
-    m_Address = m_BaseAddress;
+    VirtualMemory::Decommit(*m_Memory, static_cast<size_t>(Memory::GetDistance(m_NextPageAddress, *m_Memory)));
+    m_Address = *m_Memory;
     m_NextPageAddress = m_Address;
     
     return true;
-}
-
-bool Zn::LinearAllocator::IsValidAddress(void * address)
-{
-    return address > m_BaseAddress && address < m_Address;
 }

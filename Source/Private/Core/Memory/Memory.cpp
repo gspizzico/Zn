@@ -8,12 +8,18 @@ namespace Zn
     {
         return PlatformMemory::GetMemoryStatus();
     }
+	
+	uintptr_t Memory::Align(uintptr_t bytes, size_t alignment)
+	{
+		const size_t mask = alignment - 1;
+		return (bytes + mask) & ~mask;
+	}
 
-    void* Memory::Align(void * address, size_t alignment)
+    void* Memory::Align(void* address, size_t alignment)
     {   
-        const size_t mask = alignment - 1;
-        return reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(address) + mask) & ~mask);
+		return reinterpret_cast<void*>(Memory::Align(reinterpret_cast<uintptr_t>(address), alignment));
     }
+
     bool Memory::IsAligned(void * address, size_t alignment)
     {
         return reinterpret_cast<uintptr_t>(address) % alignment == 0;
@@ -26,7 +32,7 @@ namespace Zn
     {
         return reinterpret_cast<int8_t*>(address) - offset;
     }
-    ptrdiff_t Memory::GetOffset(const void * first, const void * second)
+    ptrdiff_t Memory::GetDistance(const void * first, const void * second)
     {
         return reinterpret_cast<intptr_t>(first) - reinterpret_cast<intptr_t>(second);
     }
@@ -47,7 +53,13 @@ namespace Zn
     {
 		MarkMemory(begin, end, kFreeMemoryPattern);
     }
-
+	MemoryRange::MemoryRange(MemoryRange&& other)
+		: m_Begin(other.m_Begin)
+		, m_End(other.m_End)
+	{
+		other.m_Begin	= nullptr;
+		other.m_End		= nullptr;
+	}
 }
 
 void* operator new(size_t size)

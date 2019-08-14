@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Memory/Memory.h"
 
 namespace Zn
 {
@@ -19,4 +20,35 @@ namespace Zn
 
         static size_t AlignToPageSize(size_t size);
     };
+
+	struct MemoryResource
+	{
+	public:
+
+		MemoryResource()		= default;
+
+		MemoryResource(size_t capacity, size_t alignment);
+
+		MemoryResource(MemoryResource&& other);
+
+		~MemoryResource();
+
+		MemoryResource(const MemoryResource&) = delete;
+
+		MemoryResource& operator=(const MemoryResource&) = delete;
+		
+		void* operator*() const { return m_Resource; }
+
+		operator bool() const { return m_Resource != nullptr; }
+
+		size_t Size() const		{ return m_Range.Size(); }
+
+		const MemoryRange& Range() const { return m_Range; }
+
+	private:
+
+		void* m_Resource		= nullptr;
+
+		MemoryRange m_Range;
+	};
 }

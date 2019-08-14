@@ -21,27 +21,25 @@ public:
     {
 
 		auto Allocator = StackAllocator(4096 * 10, 8);
-		//
-		auto First = Allocator.Allocate(2048);
-		auto Second = Allocator.Allocate(2048);
-		//
-
-		//
-		auto Third = Allocator.Allocate(2048);
-		auto Fourth = Allocator.Allocate(2048);
-		Allocator.Free(Fourth);
-		//
-
-		//
-		Allocator.Allocate(2048);
 		
-		Allocator.Allocate(2048);
-		Allocator.Allocate(2048);
-		Allocator.Free(First);
-		Allocator.Allocate(2048);
-
-		//
-
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.SaveStatus();
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.SaveStatus();
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.RestoreStatus();
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.Allocate(16);
+		Allocator.RestoreStatus();
+		Allocator.RestoreStatus();
 		Allocator.Free();
 
 		return false;

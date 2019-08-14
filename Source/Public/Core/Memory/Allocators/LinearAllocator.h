@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Memory/VirtualMemory.h"
+
 namespace Zn
 {
     class LinearAllocator
@@ -18,16 +20,10 @@ namespace Zn
 
     private:
 
-        bool IsValidAddress(void* address);
+		MemoryResource m_Memory;
 
         void*   m_Address             = nullptr;
 
         void*   m_NextPageAddress     = nullptr;
-
-        void*   m_BaseAddress         = nullptr;
-
-        void*   m_LastAddress         = nullptr;
-
-        size_t  m_MaxAllocatableSize  = 0;
     };
 }

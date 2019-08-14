@@ -23,32 +23,32 @@
     <ProjectGuid>{88E8F8FD-DB7D-4A2B-9A1F-EA08F98DE77E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Zn</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -167,6 +167,7 @@
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp" />
     <ClCompile Include="Source\Private\Core\Name.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h" />
     <ClInclude Include="Source\Public\Core\Math\Math.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Memory.h" />
     <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h" />
     <ClInclude Include="Source\Public\Core\Name.h" />

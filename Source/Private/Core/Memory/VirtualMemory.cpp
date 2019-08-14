@@ -30,7 +30,27 @@ namespace Zn
     }
     size_t VirtualMemory::AlignToPageSize(size_t size)
     {
-        auto PageSize = GetPageSize();
-        return (size_t) glm::ceil<size_t>((size + PageSize - 1) / PageSize) * PageSize;
+		return Memory::Align(size, GetPageSize());
     }
+
+	MemoryResource::MemoryResource(size_t capacity, size_t alignment)
+		: m_Resource(VirtualMemory::Reserve(Memory::Align(capacity, alignment)))
+		, m_Range(m_Resource, Memory::Align(capacity, alignment))
+	{
+	}
+
+	MemoryResource::MemoryResource(MemoryResource&& other)
+		: m_Resource(other.m_Resource)
+		, m_Range(std::move(other.m_Range))
+	{
+		other.m_Resource = nullptr;
+	}
+
+	MemoryResource::~MemoryResource()
+	{
+		if (m_Resource)
+		{
+			VirtualMemory::Release(m_Resource);
+		}
+	}
 }
