@@ -19,7 +19,7 @@ namespace Zn
 
 	private:
 
-		bool AllocatePage();
+		bool CommitMemory();
 
 		static constexpr size_t kMinBlockNum = 10;
 
