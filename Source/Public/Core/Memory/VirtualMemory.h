@@ -29,7 +29,7 @@ namespace Zn
 
 		MemoryResource(size_t capacity, size_t alignment);
 
-		MemoryResource(MemoryResource&& other);
+		MemoryResource(MemoryResource&& other) noexcept;
 
 		~MemoryResource();
 

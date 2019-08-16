@@ -14,7 +14,7 @@ namespace Zn
 		VirtualMemory::Commit(*m_Memory, m_Memory.Size());
 	}
 
-	StackAllocator::StackAllocator(StackAllocator&& allocator)
+	StackAllocator::StackAllocator(StackAllocator&& allocator) noexcept
 		: m_Memory(std::move(allocator.m_Memory))
 		, m_NextPageAddress(allocator.m_NextPageAddress)
 		, m_TopAddress(allocator.m_TopAddress)

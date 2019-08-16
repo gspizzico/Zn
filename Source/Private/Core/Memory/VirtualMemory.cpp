@@ -39,7 +39,7 @@ namespace Zn
 	{
 	}
 
-	MemoryResource::MemoryResource(MemoryResource&& other)
+	MemoryResource::MemoryResource(MemoryResource&& other) noexcept
 		: m_Resource(other.m_Resource)
 		, m_Range(std::move(other.m_Range))
 	{

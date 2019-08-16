@@ -167,6 +167,7 @@
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\PoolAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h" />
     <ClInclude Include="Source\Public\Core\Math\Math.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\PoolAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Memory.h" />
     <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h" />

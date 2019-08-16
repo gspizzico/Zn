@@ -22,7 +22,7 @@ namespace Zn
 
 		StackAllocator(size_t capacity, size_t alignment = 1);
 
-		StackAllocator(StackAllocator&&);
+		StackAllocator(StackAllocator&&) noexcept;
 
 		~StackAllocator();
 
