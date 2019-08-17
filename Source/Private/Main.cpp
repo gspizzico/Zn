@@ -7,6 +7,7 @@
 #include "Core/Log/LogMacros.h"
 #include "Core/Memory/Allocators/StackAllocator.h"
 #include "Core/Memory/Allocators/PoolAllocator.h"
+#include "Core/Memory/Allocators/TLSFAllocator.h"
 #include "Core/HAL/Misc.h"
 #include <algorithm>
 #include <utility>
@@ -46,6 +47,57 @@ public:
 		Allocator.RestoreStatus();
 		Allocator.RestoreStatus();
 		Allocator.Free();
+	}
+
+	void TestTLSFAllocator()
+	{
+		AutoLogCategory("TestTLSFAllocator", ELogVerbosity::Log);
+
+		auto Allocator = TLSFAllocator();
+
+		for (auto size = 32; size < 1024; size = size + 2)
+		{
+			TLSFAllocator::index_type fl = 0, sl = 0;
+			Allocator.MappingInsert(size, fl, sl);
+		}
+		/*Allocator.MappingSearch(64, fl, sl);
+
+		Allocator.MappingInsert(8, fl, sl);
+		Allocator.MappingSearch(8, fl, sl);
+
+		Allocator.MappingInsert(128, fl, sl);
+		Allocator.MappingSearch(128, fl, sl);
+
+		Allocator.MappingInsert(1024, fl, sl);
+		Allocator.MappingSearch(1024, fl, sl);
+
+		Allocator.MappingInsert(256, fl, sl);
+		Allocator.MappingSearch(256, fl, sl);
+
+		Allocator.MappingInsert(270, fl, sl);
+		Allocator.MappingSearch(270, fl, sl);*/
+
+	}
+
+	void TestFreeBlock()
+	{
+		static constexpr size_t kBlockSize = 32;
+		MemoryPool Pool(kBlockSize);
+
+		AutoLogCategory("TestFreeBlock", ELogVerbosity::Log);
+
+		void* First  = Pool.Allocate();
+		void* Second = Pool.Allocate();
+		void* Third	 = Pool.Allocate();
+
+		auto first_block =	new (First) TLSFAllocator::FreeBlock(kBlockSize, nullptr, nullptr);
+		auto second_block = new (Second) TLSFAllocator::FreeBlock(kBlockSize, first_block, nullptr);
+		auto third_block =	new (Third) TLSFAllocator::FreeBlock(kBlockSize, second_block, nullptr);
+		second_block->GetFooter()->m_Next = third_block;
+		first_block->GetFooter()->m_Next = second_block;
+
+		first_block->~FreeBlock();
+		Pool.Free(first_block);
 	}
 
 	void TestMemoryPool()
@@ -105,8 +157,8 @@ public:
     bool DoWork()
     {
 		auto m = Memory::GetMemoryStatus();
-		
-		TestMemoryPool();
+		TestTLSFAllocator();
+		//TestMemoryPool();
 		return false;
     }
     void Shutdown()
