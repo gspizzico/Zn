@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include "Core/Memory/Allocators/LinearAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
 
 namespace Zn
@@ -22,6 +23,8 @@ namespace Zn
 				size_t		m_Size;
 				FreeBlock*	m_Previous;
 				FreeBlock*	m_Next;
+
+				FreeBlock* GetBlock() const;
 			};
 
 			FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next);
@@ -51,22 +54,31 @@ namespace Zn
 
 		static constexpr size_t kExponentNumberOfList = 4;
 
+
 		TLSFAllocator();
 
 		void* Allocate(size_t size, size_t alignment = 1);
 
-		//bool Free(void* address);
+		bool Free(void* address);
 
 		using index_type = unsigned long;
 
 		bool MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
 		bool MappingSearch(size_t size, index_type& o_fl, index_type& o_sl);
+
+		FreeBlock* FindSuitableBlock(const index_type fl, const index_type sl);
 	private:
 
+		//void* MergePrevious(FreeBlock* block);
+		
+		static constexpr index_type kFlIndexOffset = 5;
 
-		MemoryResource m_SmallMemory;
+		LinearAllocator m_SmallMemory;
 
 		std::array<std::array<FreeBlock*, kNumberOfLists> , kNumberOfPools> m_SmallMemoryPools;
+
+		uint16_t							 FL_Bitmap;
+		std::array<uint16_t, kNumberOfPools> SL_Bitmap;
 
 		//~TLSFAllocator();
 	};

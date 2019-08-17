@@ -54,12 +54,44 @@ public:
 		AutoLogCategory("TestTLSFAllocator", ELogVerbosity::Log);
 
 		auto Allocator = TLSFAllocator();
+		
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(32, 2056);
 
-		for (auto size = 32; size < 1024; size = size + 2)
+		std::vector<void*> MemoryBlocks;
+		MemoryBlocks.reserve(80);
+
+		for (int i = 0; i < 80; ++i)
+		{
+			MemoryBlocks.emplace_back(Allocator.Allocate(dis(gen)));
+		}
+
+		for (auto& ptr : MemoryBlocks)
+		{
+			Allocator.Free(ptr);
+		}
+		
+		MemoryBlocks.empty();
+		MemoryBlocks.reserve(80);
+
+		for (int i = 0; i < 80; ++i)
+		{
+			MemoryBlocks.emplace_back(Allocator.Allocate(dis(gen)));
+		}
+
+		for (auto& ptr : MemoryBlocks)
+		{
+			Allocator.Free(ptr);
+			ptr = nullptr;
+		}
+		/*for (auto size = 32; size < 1024; size = size + 2)
 		{
 			TLSFAllocator::index_type fl = 0, sl = 0;
 			Allocator.MappingInsert(size, fl, sl);
-		}
+			Allocator.FindSuitableBlock(fl, sl);
+		}*/
+
 		/*Allocator.MappingSearch(64, fl, sl);
 
 		Allocator.MappingInsert(8, fl, sl);
