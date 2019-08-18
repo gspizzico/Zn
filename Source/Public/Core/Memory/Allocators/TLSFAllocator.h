@@ -2,6 +2,7 @@
 #include <array>
 #include "Core/Memory/Allocators/LinearAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
+#include "Core/Math/Math.h"
 
 namespace Zn
 {
@@ -41,6 +42,8 @@ namespace Zn
 
 			static Footer* GetPreviousBlockFooter(void* next);
 
+			void DumpChain();
+
 		private:
 
 			static constexpr bool kMarkFreeOnDelete = false;
@@ -54,6 +57,11 @@ namespace Zn
 
 		static constexpr size_t kExponentNumberOfList = 4;
 
+		static constexpr size_t kStartFl = 5;			// log2 of kMinBlockSize
+
+		static constexpr size_t kJ = 4;
+
+		void DumpArrays();
 
 		TLSFAllocator();
 
@@ -64,9 +72,9 @@ namespace Zn
 		using index_type = unsigned long;
 
 		bool MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
-		bool MappingSearch(size_t size, index_type& o_fl, index_type& o_sl);
+		bool MappingSearch(size_t& size, index_type& o_fl, index_type& o_sl);
 
-		FreeBlock* FindSuitableBlock(const index_type fl, const index_type sl);
+		bool FindSuitableBlock(index_type& fl, index_type& sl);
 	private:
 
 		//void* MergePrevious(FreeBlock* block);

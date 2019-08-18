@@ -59,6 +59,9 @@
     <Filter Include="Source\Private\Core\HAL">
       <UniqueIdentifier>{3db15413-a897-4b79-9ee2-743a4241dd39}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core\Math">
+      <UniqueIdentifier>{d75860d8-f77a-408a-a990-bb1f466d2177}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -162,9 +165,6 @@
     <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Core\Math\Math.h">
-      <Filter>Source\Public\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\Core\Windows\WindowsMisc.h">
       <Filter>Source\Public\Core\Windows</Filter>
     </ClInclude>
@@ -179,6 +179,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\TLSFAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Math\Math.h">
+      <Filter>Source\Public\Core\Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

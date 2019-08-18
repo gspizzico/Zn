@@ -55,35 +55,38 @@ public:
 
 		auto Allocator = TLSFAllocator();
 		
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(32, 2056);
-
-		std::vector<void*> MemoryBlocks;
-		MemoryBlocks.reserve(80);
-
-		for (int i = 0; i < 80; ++i)
+		for (int k = 0; k < 10; k++)
 		{
-			MemoryBlocks.emplace_back(Allocator.Allocate(dis(gen)));
-		}
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_int_distribution<> dis(32, 4096);
 
-		for (auto& ptr : MemoryBlocks)
-		{
-			Allocator.Free(ptr);
-		}
-		
-		MemoryBlocks.empty();
-		MemoryBlocks.reserve(80);
+			std::vector<void*> MemoryBlocks;
+			MemoryBlocks.reserve(80);
 
-		for (int i = 0; i < 80; ++i)
-		{
-			MemoryBlocks.emplace_back(Allocator.Allocate(dis(gen)));
-		}
+			for (int i = 0; i < 80; ++i)
+			{
+				auto Size = Memory::Align(dis(gen), sizeof(unsigned long));
+				MemoryBlocks.emplace_back(Allocator.Allocate(Size));
+			}
 
-		for (auto& ptr : MemoryBlocks)
-		{
-			Allocator.Free(ptr);
-			ptr = nullptr;
+			for (auto& ptr : MemoryBlocks)
+			{
+				Allocator.Free(ptr);
+				ptr = nullptr;
+			}
+
+			for (int i = 0; i < 80; ++i)
+			{
+				auto Size = Memory::Align(dis(gen), sizeof(unsigned long));
+				MemoryBlocks[i] = Allocator.Allocate(Size);
+			}
+
+			for (auto& ptr : MemoryBlocks)
+			{
+				Allocator.Free(ptr);
+				ptr = nullptr;
+			}
 		}
 		/*for (auto size = 32; size < 1024; size = size + 2)
 		{
