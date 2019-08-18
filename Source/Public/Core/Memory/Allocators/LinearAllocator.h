@@ -18,7 +18,13 @@ namespace Zn
         
         bool Free();
 
-		bool Contains(void* address) const;
+		bool IsAllocated(void* address) const;
+
+		const MemoryResource& GetMemory() const { return m_Memory; }
+
+		size_t GetAllocatedMemory() const;
+
+		size_t GetRemainingMemory() const;
 
     private:
 

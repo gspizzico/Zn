@@ -31,7 +31,7 @@ void* Zn::LinearAllocator::Allocate(size_t size, size_t alignment)
 	
     if (auto AllocationSize = Memory::GetDistance(NextPage, m_NextPageAddress); AllocationSize > 0)
     {	
-		ZN_LOG(LogLinearAllocator, ELogVerbosity::Log, "Committing %i bytes. %i bytes left", AllocationSize, Memory::GetDistance(m_Memory.Range().End(), NextPage));
+		ZN_LOG(LogLinearAllocator, ELogVerbosity::Log, "Committing %i bytes. %i bytes left. Usage %.4f", AllocationSize, Memory::GetDistance(m_Memory.Range().End(), NextPage), (float) GetAllocatedMemory() / (float) m_Memory.Size());
 		VirtualMemory::Commit(m_NextPageAddress, static_cast<size_t>(AllocationSize));
 
         m_NextPageAddress = NextPage;
@@ -54,7 +54,17 @@ bool Zn::LinearAllocator::Free()
     return true;
 }
 
-bool Zn::LinearAllocator::Contains(void* address) const
+bool Zn::LinearAllocator::IsAllocated(void* address) const
 {
-	return m_Memory.Range().Contains(address);
+	return m_Memory.Range().Contains(address) && Memory::GetDistance(m_NextPageAddress, address) > 0;
+}
+
+size_t Zn::LinearAllocator::GetAllocatedMemory() const
+{
+	return Memory::GetDistance(m_Address, *m_Memory);
+}
+
+size_t Zn::LinearAllocator::GetRemainingMemory() const
+{
+	return Memory::GetDistance(m_Memory.Range().End(), m_Address);
 }

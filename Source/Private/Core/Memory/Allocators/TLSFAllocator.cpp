@@ -2,7 +2,16 @@
 #include "Core/Memory/Memory.h"
 
 #include "Core/Log/LogMacros.h"
+
 DECLARE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
+
+#define ENABLE_MEM_VERIFY 0
+
+#if ENABLE_MEM_VERIFY
+#define VERIFY() Verify();
+#else
+#define VERIFY();
+#endif
 
 namespace Zn
 {
@@ -74,15 +83,13 @@ namespace Zn
 		}
 	}
 
-	size_t CalculateMemoryToReserve()
+	bool TLSFAllocator::FreeBlock::Verify(size_t max_block_size)
 	{
-		size_t Total = 0;
-		for (size_t i = TLSFAllocator::kExponentNumberOfList; i < TLSFAllocator::kNumberOfPools + TLSFAllocator::kExponentNumberOfList; ++i)
-		{
-			Total += static_cast<size_t>(pow(2, i));
-		}
-		return Total;
-	}
+		_ASSERT(m_BlockSize > 0 && m_BlockSize <= max_block_size);
+		_ASSERT(GetFooter()->IsValid());
+		_ASSERT(GetFooter()->m_Next ? GetFooter()->m_Next->Verify(max_block_size) : true);
+		return true;
+	}	
 
 	void TLSFAllocator::DumpArrays()
 	{
@@ -100,8 +107,23 @@ namespace Zn
 		}
 	}
 
-	TLSFAllocator::TLSFAllocator()
-		: m_SmallMemory(1000 * 1000 * 2, FreeBlock::kMinBlockSize)
+	void TLSFAllocator::Verify()
+	{
+		for (int fl = 0; fl < kNumberOfPools; ++fl)
+		{
+			for (int sl = 0; sl < kNumberOfLists; ++sl)
+			{
+				auto Size = pow(2, fl + kFlIndexOffset) + (pow(2, fl + kFlIndexOffset) / kNumberOfLists) * (sl + 1);
+				if (auto FreeBlock = m_SmallMemoryPools[fl][sl])
+				{
+					FreeBlock->Verify(Size);
+				}
+			}
+		}
+	}
+
+	TLSFAllocator::TLSFAllocator(size_t capacity)
+		: m_SmallMemory(capacity, FreeBlock::kMinBlockSize)
 		, m_SmallMemoryPools()
 		, FL_Bitmap(0)
 		, SL_Bitmap()
@@ -111,7 +133,9 @@ namespace Zn
 
 	void* TLSFAllocator::Allocate(size_t size, size_t alignment)
 	{
-		size_t AllocationSize = Memory::Align(size + sizeof(uintptr_t), FreeBlock::kMinBlockSize);			// RequestedSize + Sizeof header
+		//size_t AllocationSize = Memory::Align(size + sizeof(uintptr_t), FreeBlock::kMinBlockSize);			// RequestedSize + Sizeof header
+		size_t AllocationSize = Memory::Align(size + sizeof(uintptr_t), sizeof(uintptr_t));			// RequestedSize + Sizeof header
+		//size_t AllocationSize = size + sizeof(uintptr_t);			// RequestedSize + Sizeof header
 		
 		index_type fl = 0, sl = 0;
 		{
@@ -123,8 +147,9 @@ namespace Zn
 
 		if (!FindSuitableBlock(fl, sl))
 		{
-			void* AllocatedMemory = m_SmallMemory.Allocate(AllocationSize, Memory::Align(alignment, sizeof(uintptr_t)));
-			FreeBlock = new (AllocatedMemory) TLSFAllocator::FreeBlock(AllocationSize, nullptr, nullptr);
+			auto BlockSize = VirtualMemory::AlignToPageSize(AllocationSize);
+			void* AllocatedMemory = m_SmallMemory.Allocate(BlockSize);
+			FreeBlock = new (AllocatedMemory) TLSFAllocator::FreeBlock(BlockSize, nullptr, nullptr);
 		}
 		else
 		{	
@@ -140,10 +165,10 @@ namespace Zn
 		if (auto NewBlockSize = BlockSize - AllocationSize; NewBlockSize >= (FreeBlock::kMinBlockSize))
 		{
 			BlockSize = AllocationSize;
-
+			MemoryDebug::MarkFree(Memory::AddOffset(FreeBlock, BlockSize), Memory::AddOffset(FreeBlock, BlockSize + NewBlockSize));
 			TLSFAllocator::FreeBlock* NewBlock = new(Memory::AddOffset(FreeBlock, BlockSize)) TLSFAllocator::FreeBlock{ NewBlockSize , nullptr, nullptr };
 
-			AddBlock(NewBlock);			
+			AddBlock(NewBlock);		
 		}
 		
 		MemoryDebug::MarkUninitialized(FreeBlock, Memory::AddOffset(FreeBlock, BlockSize));
@@ -160,13 +185,15 @@ namespace Zn
 		uintptr_t BlockSize = *reinterpret_cast<uintptr_t*>(BlockAddress);
 
 		MemoryDebug::MarkFree(BlockAddress, Memory::AddOffset(BlockAddress, BlockSize));
-		
+
 		FreeBlock* NewBlock = new (BlockAddress) TLSFAllocator::FreeBlock(BlockSize, nullptr, nullptr);
 
 		NewBlock = MergePrevious(NewBlock);
-
+		
 		NewBlock = MergeNext(NewBlock);
 
+		VERIFY();
+		
 		AddBlock(NewBlock);
 
 		return true;
@@ -178,7 +205,7 @@ namespace Zn
 		o_sl = size < FreeBlock::kMinBlockSize ? 0ul : static_cast<index_type>((size >> (o_fl - kJ)) - pow(2, kJ));
 		o_fl -= kStartFl;
 		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Size %u \t fl %u \t sl %u", size, o_fl, o_sl);
-		return true;
+		return o_fl < m_SmallMemoryPools.size() && o_sl < m_SmallMemoryPools[o_fl].size();
 	}
 
 	bool TLSFAllocator::MappingSearch(size_t& size, index_type& o_fl, index_type& o_sl)
@@ -221,18 +248,21 @@ namespace Zn
 
 	TLSFAllocator::FreeBlock* TLSFAllocator::MergePrevious(FreeBlock* block)
 	{	
-		if (auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousBlockFooter(block); m_SmallMemory.Contains(PreviousPhysicalBlockFooter) && PreviousPhysicalBlockFooter->IsValid())
+		if (auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousBlockFooter(block); m_SmallMemory.IsAllocated(PreviousPhysicalBlockFooter) && PreviousPhysicalBlockFooter->IsValid())
 		{
 			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->GetSize();
 			const auto MergedBlockSize = PreviousBlockSize + block->Size();
 			
+			if (MergedBlockSize > pow(2, kStartFl + kNumberOfPools) - 1)
+				return block;
+
 			FreeBlock* PreviousPhysicalBlock = static_cast<FreeBlock*>(Memory::SubOffset(block, PreviousBlockSize));
 			
 			RemoveBlock(PreviousPhysicalBlock);
 
 			MemoryDebug::MarkMemory(PreviousPhysicalBlock, Memory::AddOffset(PreviousPhysicalBlock, MergedBlockSize), 0);
 
-			return new(Memory::Align(PreviousPhysicalBlock, TLSFAllocator::FreeBlock::kFooterSize)) TLSFAllocator::FreeBlock(MergedBlockSize, nullptr, nullptr);
+			return new(PreviousPhysicalBlock) TLSFAllocator::FreeBlock(MergedBlockSize, nullptr, nullptr);
 		}
 		else
 		{
@@ -242,10 +272,13 @@ namespace Zn
 
 	TLSFAllocator::FreeBlock* TLSFAllocator::MergeNext(FreeBlock* block)
 	{
-		if (FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size())); m_SmallMemory.Contains(NextPhysicalBlock) && NextPhysicalBlock->GetFooter()->IsValid())
+		if (FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size())); m_SmallMemory.IsAllocated(NextPhysicalBlock) && NextPhysicalBlock->GetFooter()->IsValid())
 		{
 			auto NextBlockSize = NextPhysicalBlock->Size();
 			auto MergedBlockSize = block->Size() + NextBlockSize;
+
+			if (MergedBlockSize > pow(2, kStartFl + kNumberOfPools) - 1)
+				return block;
 
 			RemoveBlock(NextPhysicalBlock);
 
@@ -279,9 +312,23 @@ namespace Zn
 				m_SmallMemoryPools[fl][sl]->GetFooter()->m_Previous = nullptr;
 			}
 		}
-		else if(block->Previous())
+		else 
 		{
-			block->Previous()->GetFooter()->m_Next = block->Next();			    //Remap previous block to next block
+			_ASSERT(block->Previous());
+
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Removing %p from %i fl, %i sl.", block, fl, sl);
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Previous -> %p", block->Previous());
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t Previous Footer -> %p", block->Previous()->GetFooter());
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t Previous Footer Next -> %p", block->Previous()->GetFooter()->m_Next);
+			
+			if (block->Next())
+			{
+				block->Next()->GetFooter()->m_Previous = block->Previous();
+			}
+
+			block->Previous()->GetFooter()->m_Next = block->Next();			    //Remap previous block to next block			
+
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t Previous Footer Next AFTER-> %p", block->Previous()->GetFooter()->m_Next);
 		}
 	}
 
@@ -304,3 +351,5 @@ namespace Zn
 		m_SmallMemoryPools[fl][sl] = block;
 	}
 }
+
+#undef ENABLE_MEM_VERIFY
