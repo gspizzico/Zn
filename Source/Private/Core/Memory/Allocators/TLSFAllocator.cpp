@@ -39,8 +39,29 @@ namespace Zn
 
 	TLSFAllocator::FreeBlock::Footer* TLSFAllocator::FreeBlock::GetPreviousBlockFooter(void* next)
 	{
-		auto FooterPtr = reinterpret_cast<Footer*>(Memory::SubOffset(next, kFooterSize));
-		return FooterPtr->m_Size > 0 ? FooterPtr : nullptr;
+		return reinterpret_cast<Footer*>(Memory::SubOffset(next, kFooterSize));
+	}
+
+	TLSFAllocator::FreeBlock::Footer::Footer(size_t size, FreeBlock* const previous, FreeBlock* const next)
+		: m_Pattern(Footer::kValidationPattern | size)
+		, m_Previous(previous)
+		, m_Next(next)
+	{
+	}
+
+	TLSFAllocator::FreeBlock* TLSFAllocator::FreeBlock::Footer::GetBlock() const
+	{
+		return reinterpret_cast<TLSFAllocator::FreeBlock*>(Memory::SubOffset(const_cast<TLSFAllocator::FreeBlock::Footer*>(this), GetSize() - sizeof(Footer)));
+	}
+
+	size_t TLSFAllocator::FreeBlock::Footer::GetSize() const
+	{
+		return m_Pattern & kValidationMask;
+	}
+
+	bool TLSFAllocator::FreeBlock::Footer::IsValid() const
+	{
+		return (m_Pattern & ~kValidationMask) == kValidationPattern;
 	}
 
 	void TLSFAllocator::FreeBlock::DumpChain()
@@ -90,13 +111,12 @@ namespace Zn
 
 	void* TLSFAllocator::Allocate(size_t size, size_t alignment)
 	{
-		const size_t AllocationSize = size + sizeof(uintptr_t);			// RequestedSize + Sizeof header
+		size_t AllocationSize = Memory::Align(size + sizeof(uintptr_t), FreeBlock::kMinBlockSize);			// RequestedSize + Sizeof header
 		
 		index_type fl = 0, sl = 0;
-		
 		{
-			size_t BlockSize = AllocationSize;
-			MappingSearch(BlockSize, fl, sl);
+			size_t block_size = AllocationSize;
+			MappingSearch(block_size, fl, sl);
 		}
 
 		FreeBlock* FreeBlock = nullptr;
@@ -110,55 +130,24 @@ namespace Zn
 		{	
 			FreeBlock = m_SmallMemoryPools[fl][sl];
 
-			_ASSERT(FreeBlock != FreeBlock->GetFooter()->m_Next);
-
-			m_SmallMemoryPools[fl][sl] = FreeBlock->GetFooter()->m_Next;
-
-			if (FreeBlock->GetFooter()->m_Next == nullptr)
-			{
-				// Remove Block
-				SL_Bitmap[fl] &= ~(1ull << sl);
-				if (SL_Bitmap[fl] == 0)
-				{
-					FL_Bitmap &= ~(1ull << fl);
-				}
-			}
-			else
-			{
-				m_SmallMemoryPools[fl][sl]->GetFooter()->m_Previous = nullptr;
-			}
-			//
+			RemoveBlock(FreeBlock);
 		}
 
 		size_t BlockSize = FreeBlock->Size();
+
 		_ASSERT(BlockSize >= AllocationSize);
 
-		int64_t NewBlockSize = (int64_t)BlockSize - (int64_t)AllocationSize;
-
-		if (NewBlockSize >= (FreeBlock::kMinBlockSize))
+		if (auto NewBlockSize = BlockSize - AllocationSize; NewBlockSize >= (FreeBlock::kMinBlockSize))
 		{
 			BlockSize = AllocationSize;
 
-			TLSFAllocator::FreeBlock* NewBlock = new(Memory::AddOffset(FreeBlock, BlockSize)) TLSFAllocator::FreeBlock{ (size_t) NewBlockSize , nullptr, nullptr };
+			TLSFAllocator::FreeBlock* NewBlock = new(Memory::AddOffset(FreeBlock, BlockSize)) TLSFAllocator::FreeBlock{ NewBlockSize , nullptr, nullptr };
 
-			index_type in_fl = 0, in_sl = 0;
-			MappingInsert(NewBlock->Size(), in_fl, in_sl);
-
-			FL_Bitmap |= (1ull << in_fl);
-			SL_Bitmap[in_fl] |= (1ull << in_sl);
-
-			TLSFAllocator::FreeBlock* LastFreeBlock = m_SmallMemoryPools[in_fl][in_sl];
-
-			if (LastFreeBlock != nullptr)
-			{
-				LastFreeBlock->GetFooter()->m_Previous = NewBlock;
-				NewBlock->GetFooter()->m_Next = LastFreeBlock;
-			}
-
-			m_SmallMemoryPools[in_fl][in_sl] = NewBlock;
+			AddBlock(NewBlock);			
 		}
 		
 		MemoryDebug::MarkUninitialized(FreeBlock, Memory::AddOffset(FreeBlock, BlockSize));
+
 		new(FreeBlock) uintptr_t(BlockSize);
 
 		return Memory::AddOffset(FreeBlock, sizeof(uintptr_t));
@@ -171,24 +160,14 @@ namespace Zn
 		uintptr_t BlockSize = *reinterpret_cast<uintptr_t*>(BlockAddress);
 
 		MemoryDebug::MarkFree(BlockAddress, Memory::AddOffset(BlockAddress, BlockSize));
-
-		index_type fl = 0, sl = 0;
-		MappingInsert(BlockSize, fl, sl);
-
-		TLSFAllocator::FreeBlock* LastFreeBlock = m_SmallMemoryPools[fl][sl];
-
-		auto NewFreeBlock = new (BlockAddress) TLSFAllocator::FreeBlock(BlockSize, nullptr, nullptr);
-
-		if (LastFreeBlock)
-		{
-			LastFreeBlock->GetFooter()->m_Previous = NewFreeBlock;
-			NewFreeBlock->GetFooter()->m_Next = LastFreeBlock;
-		}
-
-		m_SmallMemoryPools[fl][sl] = NewFreeBlock;
 		
-		FL_Bitmap |= (1ull << fl);
-		SL_Bitmap[fl] |= (1ull << sl);
+		FreeBlock* NewBlock = new (BlockAddress) TLSFAllocator::FreeBlock(BlockSize, nullptr, nullptr);
+
+		NewBlock = MergePrevious(NewBlock);
+
+		NewBlock = MergeNext(NewBlock);
+
+		AddBlock(NewBlock);
 
 		return true;
 	}
@@ -239,17 +218,89 @@ namespace Zn
 
 		return true;
 	}
-	/*void* TLSFAllocator::MergePrevious(FreeBlock* block)
-	{
-		if (TLSFAllocator::FreeBlock::Footer* PreviousBlockFooter = TLSFAllocator::FreeBlock::GetPreviousBlockFooter(block))
+
+	TLSFAllocator::FreeBlock* TLSFAllocator::MergePrevious(FreeBlock* block)
+	{	
+		if (auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousBlockFooter(block); m_SmallMemory.Contains(PreviousPhysicalBlockFooter) && PreviousPhysicalBlockFooter->IsValid())
 		{
-			TLSFAllocator::FreeBlock* PreviousBlock = PreviousBlockFooter->GetBlock();
+			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->GetSize();
+			const auto MergedBlockSize = PreviousBlockSize + block->Size();
+			
+			FreeBlock* PreviousPhysicalBlock = static_cast<FreeBlock*>(Memory::SubOffset(block, PreviousBlockSize));
+			
+			RemoveBlock(PreviousPhysicalBlock);
 
+			MemoryDebug::MarkMemory(PreviousPhysicalBlock, Memory::AddOffset(PreviousPhysicalBlock, MergedBlockSize), 0);
+
+			return new(Memory::Align(PreviousPhysicalBlock, TLSFAllocator::FreeBlock::kFooterSize)) TLSFAllocator::FreeBlock(MergedBlockSize, nullptr, nullptr);
 		}
-	}*/
+		else
+		{
+			return block;
+		}
+	}
 
-	TLSFAllocator::FreeBlock* TLSFAllocator::FreeBlock::Footer::GetBlock() const
+	TLSFAllocator::FreeBlock* TLSFAllocator::MergeNext(FreeBlock* block)
 	{
-		return reinterpret_cast<TLSFAllocator::FreeBlock*>(Memory::SubOffset(const_cast<TLSFAllocator::FreeBlock::Footer*>(this), m_Size - sizeof(Footer)));
+		if (FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size())); m_SmallMemory.Contains(NextPhysicalBlock) && NextPhysicalBlock->GetFooter()->IsValid())
+		{
+			auto NextBlockSize = NextPhysicalBlock->Size();
+			auto MergedBlockSize = block->Size() + NextBlockSize;
+
+			RemoveBlock(NextPhysicalBlock);
+
+			MemoryDebug::MarkMemory(block, Memory::AddOffset(block, MergedBlockSize), 0);
+
+			return new (block) TLSFAllocator::FreeBlock(MergedBlockSize, nullptr, nullptr);
+		}
+		return block;
+	}
+
+	void TLSFAllocator::RemoveBlock(FreeBlock* block)
+	{	
+		index_type fl = 0, sl = 0;
+
+		MappingInsert(block->Size(), fl, sl);
+
+		if (m_SmallMemoryPools[fl][sl] == block)
+		{
+			m_SmallMemoryPools[fl][sl] = block->Next();
+
+			if (m_SmallMemoryPools[fl][sl] == nullptr)							// Since we are replacing the head, make sure that if it's null we remove this block from FL/SL.
+			{
+				SL_Bitmap[fl] &= ~(1ull << sl);
+				if (SL_Bitmap[fl] == 0)
+				{
+					FL_Bitmap &= ~(1ull << fl);
+				}
+			}
+			else
+			{
+				m_SmallMemoryPools[fl][sl]->GetFooter()->m_Previous = nullptr;
+			}
+		}
+		else if(block->Previous())
+		{
+			block->Previous()->GetFooter()->m_Next = block->Next();			    //Remap previous block to next block
+		}
+	}
+
+	void TLSFAllocator::AddBlock(FreeBlock* block)
+	{	
+		index_type fl = 0, sl = 0;
+
+		MappingInsert(block->Size(), fl, sl);
+
+		FL_Bitmap |= (1ull << fl);
+		SL_Bitmap[fl] |= (1ull << sl);
+
+		if (auto Head = m_SmallMemoryPools[fl][sl]; Head != nullptr)
+		{
+			block->GetFooter()->m_Next = Head;
+
+			Head->GetFooter()->m_Previous = block;
+		}
+
+		m_SmallMemoryPools[fl][sl] = block;
 	}
 }

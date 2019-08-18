@@ -15,8 +15,10 @@ namespace Zn
         ~LinearAllocator();
 
         void* Allocate(size_t size, size_t alignment = 1);
-
+        
         bool Free();
+
+		bool Contains(void* address) const;
 
     private:
 

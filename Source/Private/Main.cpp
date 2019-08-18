@@ -55,11 +55,11 @@ public:
 
 		auto Allocator = TLSFAllocator();
 		
-		for (int k = 0; k < 10; k++)
+		for (int k = 0; k < 400; k++)
 		{
 			std::random_device rd;
 			std::mt19937 gen(rd());
-			std::uniform_int_distribution<> dis(32, 4096);
+			std::uniform_int_distribution<> dis(7500, 7900);
 
 			std::vector<void*> MemoryBlocks;
 			MemoryBlocks.reserve(80);

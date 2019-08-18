@@ -13,20 +13,32 @@ namespace Zn
 		struct FreeBlock
 		{
 		public:
-
-			static constexpr size_t kFooterSize = sizeof(size_t) + sizeof(uintptr_t) * 2;
-
-			static constexpr size_t kMinBlockSize = kFooterSize + sizeof(size_t);
 			
 			// The footer contains the size of the block and a pointer to the previous and the next physical block.
 			struct Footer
 			{
-				size_t		m_Size;
+				static constexpr int64_t kValidationPattern = int64_t(0xff5aff5a) << 32ull;
+				static constexpr int64_t kValidationMask = 0xffffffff;
+
+			private:
+				int64_t		m_Pattern;
+
+			public:
+				Footer(size_t size, FreeBlock* const previous, FreeBlock* const next);
+
 				FreeBlock*	m_Previous;
 				FreeBlock*	m_Next;
 
-				FreeBlock* GetBlock() const;
+				FreeBlock*	GetBlock() const;
+
+				size_t		GetSize() const;
+
+				bool		IsValid() const;
 			};
+
+			static constexpr size_t kFooterSize = sizeof(Footer);
+
+			static constexpr size_t kMinBlockSize = kFooterSize + sizeof(size_t);
 
 			FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next);
 
@@ -72,12 +84,18 @@ namespace Zn
 		using index_type = unsigned long;
 
 		bool MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
+		
 		bool MappingSearch(size_t& size, index_type& o_fl, index_type& o_sl);
 
 		bool FindSuitableBlock(index_type& fl, index_type& sl);
+
+		FreeBlock* MergePrevious(FreeBlock* block);
+		FreeBlock* MergeNext(FreeBlock* block);
+
 	private:
 
-		//void* MergePrevious(FreeBlock* block);
+		void RemoveBlock(FreeBlock* block);
+		void AddBlock(FreeBlock* block);
 		
 		static constexpr index_type kFlIndexOffset = 5;
 
