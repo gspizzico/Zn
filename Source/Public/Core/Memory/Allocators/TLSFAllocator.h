@@ -6,6 +6,7 @@
 
 namespace Zn
 {
+
 	class TLSFAllocator
 	{
 	public:
@@ -17,100 +18,110 @@ namespace Zn
 			// The footer contains the size of the block and a pointer to the previous and the next physical block.
 			struct Footer
 			{
-				static constexpr int64_t kValidationPattern = int64_t(0xff5aff5a) << 32ull;
-				static constexpr int64_t kValidationMask = 0xffffffff;
-
 			private:
-				int64_t		m_Pattern;
+				
+				static constexpr int64_t	kValidationPattern	= (int64_t) 0xff5aff5a << 32ull;
+
+				static constexpr int64_t	kValidationMask		= 0xffffffff;
+
+				int64_t						m_Pattern;
 
 			public:
-				Footer(size_t size, FreeBlock* const previous, FreeBlock* const next);
 
-				FreeBlock*	m_Previous;
-				FreeBlock*	m_Next;
+				Footer(size_t size, FreeBlock* const previous, FreeBlock* const next);
 
 				FreeBlock*	GetBlock() const;
 
 				size_t		GetSize() const;
 
 				bool		IsValid() const;
+
+				FreeBlock*					m_Previous;
+
+				FreeBlock*					m_Next;
 			};
 
-			static constexpr size_t kFooterSize = sizeof(Footer);
+			static constexpr size_t			kFooterSize			= sizeof(Footer);
 
-			static constexpr size_t kMinBlockSize = std::max(kFooterSize + sizeof(size_t), 128ull);
+			static constexpr size_t			kMinBlockSize		= std::max(kFooterSize + sizeof(size_t), 128ull);
 
 			FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next);
 
 			~FreeBlock();
 
-			Footer* GetFooter();
+			Footer*			GetFooter();
 
-			FreeBlock* Previous();
+			FreeBlock*		Previous();
 
-			FreeBlock* Next();
+			FreeBlock*		Next();
 
-			size_t Size() const { return m_BlockSize; }
+			size_t			Size() const { return m_BlockSize; }
 
-			static Footer* GetPreviousBlockFooter(void* next);
+			static Footer*	GetPreviousPhysicalFooter(void* block);
 
-			void DumpChain();
+#if ZN_DEBUG
+			void			LogDebugInfo(bool recursive) const;
 
-			bool Verify(size_t max_block_size);
-
+			void			Verify(size_t max_block_size) const;
+#endif
 		private:
 
-			static constexpr bool kMarkFreeOnDelete = false;
+			static constexpr bool			kMarkFreeOnDelete	= false;
 			
-			size_t m_BlockSize;
+			size_t							m_BlockSize;
 		};
 
-		static constexpr size_t kNumberOfPools = 7;
+		static constexpr size_t				kJ = 3;
 
-		static constexpr size_t kNumberOfLists = 8;
+		static constexpr size_t				kNumberOfPools		= 7;
 
-		static constexpr size_t kStartFl = 7;			// log2 of kMinBlockSize
+		static constexpr size_t				kNumberOfLists		= 8;			// pow(2, kJ)
 
-		static constexpr size_t kJ = 3;
+		static constexpr size_t				kStartFl			= 7;			// log2(kMinBlockSize)
 
-		void DumpArrays();
-
-		void Verify();
 
 		TLSFAllocator(size_t capacity);
 
-		void* Allocate(size_t size, size_t alignment = 1);
+		void*				Allocate(size_t size, size_t alignment = 1);
 
-		bool Free(void* address);
+		bool				Free(void* address);		
 
-		using index_type = unsigned long;
+		size_t				GetAllocatedMemory() const { return m_InternalAllocator.GetAllocatedMemory(); }
 
-		bool MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
-		
-		bool MappingSearch(size_t& size, index_type& o_fl, index_type& o_sl);
+		size_t				GetCapacity()		 const { return m_InternalAllocator.GetMemory().Size(); }
 
-		bool FindSuitableBlock(index_type& fl, index_type& sl);
+		static size_t		GetMaxAllocatableBlockSize();
 
-		FreeBlock* MergePrevious(FreeBlock* block);
-		FreeBlock* MergeNext(FreeBlock* block);
+#if ZN_DEBUG
+		void				LogDebugInfo() const;
 
-		size_t GetAllocatedMemory() const { return m_SmallMemory.GetAllocatedMemory(); }
-		size_t GetCapacity() const { return m_SmallMemory.GetMemory().Size(); };
+		void				Verify() const;
+#endif
 
 	private:
 
-		void RemoveBlock(FreeBlock* block);
-		void AddBlock(FreeBlock* block);
-		
-		static constexpr index_type kFlIndexOffset = 5;
+		using index_type = unsigned long;
 
-		LinearAllocator m_SmallMemory;
+		bool				MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
 
-		std::array<std::array<FreeBlock*, kNumberOfLists> , kNumberOfPools> m_SmallMemoryPools;
+		bool				MappingSearch(size_t size, index_type& o_fl, index_type& o_sl);
 
-		uint16_t							 FL_Bitmap;
-		std::array<uint16_t, kNumberOfPools> SL_Bitmap;
+		bool				FindSuitableBlock(index_type& o_fl, index_type& o_sl);
 
-		//~TLSFAllocator();
+		FreeBlock*			MergePrevious(FreeBlock* block);
+
+		FreeBlock*			MergeNext(FreeBlock* block);
+
+		void				RemoveBlock(FreeBlock* block);
+
+		void				AddBlock(FreeBlock* block);
+
+		LinearAllocator						m_InternalAllocator;
+
+		std::array<std::array<FreeBlock*, kNumberOfLists> , kNumberOfPools> m_FreeLists;
+
+		uint16_t							 m_FL;
+
+		std::array<uint16_t, kNumberOfPools> m_SL;
 	};
 }
