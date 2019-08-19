@@ -7,3 +7,5 @@
 #endif
 
 #define ZN_LOGGING (ZN_DEBUG)
+
+#define ZN_TRACK_MEMORY (ZN_DEBUG)

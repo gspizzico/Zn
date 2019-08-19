@@ -7,6 +7,10 @@ namespace Zn
     {
     public:
         static MemoryStatus GetMemoryStatus();
+
+		static void TrackAllocation(void* address, size_t size);
+
+		static void TrackDeallocation(void* address);
     };
 
     class WindowsVirtualMemory

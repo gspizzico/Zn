@@ -52,6 +52,10 @@ namespace Zn
 
         static void MarkFree(void* begin, void* end);
 
+		static void TrackAllocation(void* address, size_t size);
+		
+		static void TrackDeallocation(void* address);
+
     private:
 
         static constexpr int8_t kUninitializedMemoryPattern = 0x5C;

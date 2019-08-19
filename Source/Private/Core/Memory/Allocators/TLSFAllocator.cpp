@@ -160,6 +160,8 @@ namespace Zn
 		MemoryDebug::MarkUninitialized(FreeBlock, Memory::AddOffset(FreeBlock, BlockSize));
 
 		new(FreeBlock) uintptr_t(BlockSize);																// Write at the beginning of the block its size in order to safely free the memory when requested.
+		
+		MemoryDebug::TrackAllocation(FreeBlock, BlockSize);
 
 		return Memory::AddOffset(FreeBlock, sizeof(uintptr_t));
 	}
@@ -173,6 +175,8 @@ namespace Zn
 		MemoryDebug::MarkFree(BlockAddress, Memory::AddOffset(BlockAddress, BlockSize));
 
 		FreeBlock* NewBlock = new (BlockAddress) TLSFAllocator::FreeBlock(BlockSize, nullptr, nullptr);		// Make a new block
+
+		MemoryDebug::TrackDeallocation(BlockAddress);
 
 		NewBlock = MergePrevious(NewBlock);																	// Try merge the previous physical block
 		

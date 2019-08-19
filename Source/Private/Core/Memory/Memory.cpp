@@ -39,10 +39,12 @@ namespace Zn
 
 	void MemoryDebug::MarkMemory(void* begin, void* end, int8_t pattern)
 	{
+#if ZN_DEBUG
 		std::fill(
 			reinterpret_cast<int8_t*>(begin),
 			reinterpret_cast<int8_t*>(end),
 			pattern);
+#endif
 	}
 
     void MemoryDebug::MarkUninitialized(void * begin, void * end)
@@ -53,6 +55,16 @@ namespace Zn
     {
 		MarkMemory(begin, end, kFreeMemoryPattern);
     }
+	void MemoryDebug::TrackAllocation(void* address, size_t size)
+	{
+		PlatformMemory::TrackAllocation(address, size);
+	}
+	
+	void MemoryDebug::TrackDeallocation(void* address)
+	{
+		PlatformMemory::TrackDeallocation(address);
+	}
+
 	MemoryRange::MemoryRange(MemoryRange&& other)
 		: m_Begin(other.m_Begin)
 		, m_End(other.m_End)

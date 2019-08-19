@@ -82,7 +82,7 @@ namespace Zn
 
 		TLSFAllocator(size_t capacity);
 
-		void*				Allocate(size_t size, size_t alignment = 1);
+		__declspec(allocator)void*				Allocate(size_t size, size_t alignment = 1);
 
 		bool				Free(void* address);		
 

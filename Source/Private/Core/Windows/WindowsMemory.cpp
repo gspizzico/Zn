@@ -1,8 +1,15 @@
 #include "Core/Windows/WindowsMemory.h"
 #include "Core/Windows/WindowsMisc.h"
+#include "Core/Build.h"
 #include <windows.h>
 #include <memoryapi.h>
 #include <sysinfoapi.h>
+
+#define ZN_WINDOWS_TRACK_MEMORY (ZN_TRACK_MEMORY && !ZN_RELEASE) && 0
+
+#if ZN_WINDOWS_TRACK_MEMORY 
+#include <VSCustomNativeHeapEtwProvider.h>
+#endif
 
 namespace Zn
 {
@@ -22,6 +29,23 @@ namespace Zn
             (uint64)WinMemStatus.ullAvailExtendedVirtual
         };
     }
+#if ZN_WINDOWS_TRACK_MEMORY 
+	auto HeapTracker = std::make_unique<VSHeapTracker::CHeapTracker>("Zn::WindowsMemory");
+#endif
+
+	void WindowsMemory::TrackAllocation(void* address, size_t size)
+	{
+#if ZN_WINDOWS_TRACK_MEMORY 
+		HeapTracker->AllocateEvent(address, (unsigned long) size);
+#endif
+	}
+
+	void WindowsMemory::TrackDeallocation(void* address)
+	{
+#if ZN_WINDOWS_TRACK_MEMORY 
+		HeapTracker->DeallocateEvent(address);
+#endif
+	}
 
     void* WindowsVirtualMemory::Reserve(size_t size)
     {
