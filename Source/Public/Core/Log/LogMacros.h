@@ -7,8 +7,8 @@
 #if FASTER_LOGGING 
 #define ZN_LOG(LogCategory, Verbosity, Format, ...)\
 {\
-	static Name NAME_##LogCategory = Name(#LogCategory);\
-	Zn::Log::LogMsg(NAME_##LogCategory, Verbosity, Format, __VA_ARGS__);\
+	if(GET_CATEGORY(LogCategory).Category().IsSuppressed(Verbosity) == false)\
+		Zn::Log::LogMsg(GET_CATEGORY(LogCategory).Category().m_Name, Verbosity, Format, __VA_ARGS__);\
 }
 #else
 	#define ZN_LOG(LogCategory, Verbosity, Format, ...)\

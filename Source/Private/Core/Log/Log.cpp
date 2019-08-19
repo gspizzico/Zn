@@ -5,38 +5,36 @@
 namespace Zn
 {
     // Internal use only. Map of registered log categories.
-    UnorderedMap<Name, ELogVerbosity>& GetLogCategories()
+    UnorderedMap<Name, SharedPtr<LogCategory>>& GetLogCategories()
     {
-        static UnorderedMap<Name, ELogVerbosity> s_LogCategories;
+        static UnorderedMap<Name, SharedPtr<LogCategory>> s_LogCategories;
         return s_LogCategories;
     }
 
-    void Log::DefineLogCategory(const Name& name, ELogVerbosity verbosity)
-    {
-        GetLogCategories().try_emplace(name, verbosity);
-    }
+	void Log::AddLogCategory(SharedPtr<LogCategory> category)
+	{
+		GetLogCategories().try_emplace(category->m_Name, category);
+	}
 
     bool Log::ModifyVerbosity(const Name& name, ELogVerbosity verbosity)
     {
         if (auto It = GetLogCategories().find(name); It != GetLogCategories().end())
         {
-            It->second = verbosity;
+            It->second->m_Verbosity = verbosity;
             return true;
         }
 
         return false;
     }
 
-    std::optional<LogCategory> Log::GetLogCategory(const Name& name)
+	SharedPtr<LogCategory> Log::GetLogCategory(const Name& name)
     {
-        std::optional<LogCategory> Result;
-
         if (auto It = GetLogCategories().find(name); It != GetLogCategories().end())
         {
-            Result = LogCategory{ It->first, It->second };
+			return It->second;
         }
 
-        return Result;
+        return nullptr;
     }
 
     void Log::LogMsgInternal(const Name & category, ELogVerbosity verbosity, const char* message)

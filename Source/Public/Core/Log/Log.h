@@ -21,8 +21,13 @@ namespace Zn
     // Utility struct that wraps a log category.
     struct LogCategory
     {
+	public:
+
         Name            m_Name;
+
         ELogVerbosity   m_Verbosity;
+
+		bool IsSuppressed(ELogVerbosity verbosity) const { return m_Verbosity > verbosity; }
     };
 
     // Utility class for logging functionalities.
@@ -33,7 +38,7 @@ namespace Zn
         // It provides only static methods, does not need a constructor.
         Log() = delete;
 
-        static void DefineLogCategory(const Name& name, ELogVerbosity verbosity);
+		static void AddLogCategory(SharedPtr<LogCategory> category);
 
         static bool ModifyVerbosity(const Name& name, ELogVerbosity verbosity);
 
@@ -44,7 +49,7 @@ namespace Zn
     private:
 
         // Log Category getter
-        static std::optional<LogCategory> GetLogCategory(const Name& name);
+        static SharedPtr<LogCategory> GetLogCategory(const Name& name);
 
         static void LogMsgInternal(const Name& category, ELogVerbosity verbosity, const char* message);
 
@@ -56,41 +61,51 @@ namespace Zn
     {
         AutoLogCategory(Name name, ELogVerbosity verbosity)
         {
-            Zn::Log::DefineLogCategory(name, verbosity);
+			m_LogCategory = std::make_shared<LogCategory>(LogCategory{ name, verbosity });
+
+            Zn::Log::AddLogCategory(m_LogCategory);
         }
+
+		SharedPtr<LogCategory> m_LogCategory;
+
+		LogCategory& Category() { return *m_LogCategory; }
     };
 
     template<typename ...Args>
     inline void Log::LogMsg(const Name& category, ELogVerbosity verbosity, const char* format, Args&& ... args)
     {
-        if (auto LogCategory = GetLogCategory(category); LogCategory.has_value() && verbosity >= LogCategory.value().m_Verbosity)
-        {   
-            const auto MessageBufferSize = std::snprintf(nullptr, 0, format, std::forward<Args>(args)...);
+        const auto MessageBufferSize = std::snprintf(nullptr, 0, format, std::forward<Args>(args)...);
             
-            //#todo [Memory] - use custom allocator
-            Vector<char> MessageBuffer(MessageBufferSize + 1); // note +1 for null terminator
-            std::snprintf(&MessageBuffer[0], MessageBuffer.size(), format, std::forward<Args>(args)...);
+        //#todo [Memory] - use custom allocator
+        Vector<char> MessageBuffer((size_t) MessageBufferSize + 1ull); // note +1 for null terminator
 
-            LogMsgInternal(category, verbosity, &MessageBuffer[0]);
-        }
+        std::snprintf(&MessageBuffer[0], MessageBuffer.size(), format, std::forward<Args>(args)...);
+
+		LogMsgInternal(category, verbosity, &MessageBuffer[0]);
     }
 }
+
+#define CONCAT(A, B) A##B
+
+#define CATEGORY_VAR_NAME(Name) CONCAT(Name, Category)
+
+#define GET_CATEGORY(Name) Zn::GetLogCategories::CATEGORY_VAR_NAME(Name)
 
 // Log declarations/definitions macros.
 #define DECLARE_LOG_CATEGORY (Name) \
 namespace Zn::LogCategories\
 {\
-    static Zn::AutoLogCategory LC_##Name;\
+    static Zn::AutoLogCategory CATEGORY_VAR_NAME(Name);\
 }
 
 #define DEFINE_LOG_CATEGORY(Name, Verbosity) \
 namespace Zn::LogCategories\
 {\
-    Zn::AutoLogCategory LC_##Name{#Name, Verbosity};\
+    Zn::AutoLogCategory CATEGORY_VAR_NAME(Name){#Name, Verbosity};\
 }
 
 #define DECLARE_STATIC_LOG_CATEGORY(Name, Verbosity) \
 namespace Zn::GetLogCategories\
 {\
-    static Zn::AutoLogCategory SLC_##Name{#Name, Verbosity};\
+    static Zn::AutoLogCategory CATEGORY_VAR_NAME(Name){#Name, Verbosity};\
 }
