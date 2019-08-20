@@ -43,7 +43,7 @@ namespace Zn
 
 	private:
 
-		MemoryResource m_Memory;
+		VirtualMemoryRegion m_Memory;
 		
 		void* m_NextPageAddress			= nullptr;
 

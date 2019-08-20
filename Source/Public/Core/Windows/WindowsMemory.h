@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Memory/Memory.h"
+#include "Core/Memory/VirtualMemory.h"
 
 namespace Zn
 {
@@ -27,5 +28,7 @@ namespace Zn
         static bool Decommit(void* address, size_t size);
 
         static size_t GetPageSize();
+
+		static VirtualMemoryInformation GetMemoryInformation(void* address, size_t size);
     };
 }

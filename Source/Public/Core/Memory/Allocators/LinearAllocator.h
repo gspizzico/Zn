@@ -10,7 +10,7 @@ namespace Zn
         
         LinearAllocator() = default;
 
-        LinearAllocator(size_t capacity, size_t alignment);
+        LinearAllocator(size_t capacity);
         
         ~LinearAllocator();
 
@@ -20,7 +20,7 @@ namespace Zn
 
 		bool IsAllocated(void* address) const;
 
-		const MemoryResource& GetMemory() const { return m_Memory; }
+		const VirtualMemoryRegion& GetMemory() const { return m_Memory; }
 
 		size_t GetAllocatedMemory() const;
 
@@ -28,7 +28,7 @@ namespace Zn
 
     private:
 
-		MemoryResource m_Memory;
+		VirtualMemoryRegion m_Memory;
 
         void*   m_Address             = nullptr;
 

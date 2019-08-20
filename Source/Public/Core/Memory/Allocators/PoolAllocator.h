@@ -23,7 +23,7 @@ namespace Zn
 
 		static constexpr size_t kMinBlockNum = 10;
 
-		MemoryResource m_Memory;
+		VirtualMemoryRegion m_Memory;
 
 		size_t m_BlockSize;
 

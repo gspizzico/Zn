@@ -6,7 +6,7 @@
 namespace Zn
 {	
 	StackAllocator::StackAllocator(size_t capacity, size_t alignment)
-		: m_Memory(capacity, alignment)
+		: m_Memory(capacity)
 		, m_NextPageAddress(*m_Memory)
 		, m_TopAddress(*m_Memory)
 		, m_LastSavedStatus(nullptr)

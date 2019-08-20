@@ -5,8 +5,8 @@
 
 DECLARE_STATIC_LOG_CATEGORY(LogLinearAllocator, ELogVerbosity::Log);
 
-Zn::LinearAllocator::LinearAllocator(size_t capacity, size_t alignment)
-	: m_Memory(capacity, alignment)
+Zn::LinearAllocator::LinearAllocator(size_t capacity)
+	: m_Memory(capacity)
 	, m_NextPageAddress(*m_Memory)
 	, m_Address(*m_Memory)
 {

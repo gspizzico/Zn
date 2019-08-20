@@ -4,7 +4,7 @@
 namespace Zn
 {
 	MemoryPool::MemoryPool(size_t blockSize, size_t alignment)
-		: m_Memory(Memory::GetMemoryStatus().m_TotalPhys, alignment)
+		: m_Memory(Memory::GetMemoryStatus().m_TotalPhys)
 		, m_BlockSize(Memory::Align(blockSize, std::max(sizeof(uintptr_t), alignment)))
 		, m_CommittedMemory(0)
 		, m_MinMemoryCommitSize(Memory::Align(blockSize * kMinBlockNum, VirtualMemory::GetPageSize()))

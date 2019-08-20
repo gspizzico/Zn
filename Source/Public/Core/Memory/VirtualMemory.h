@@ -1,11 +1,26 @@
 #pragma once
+
 #include "Core/Memory/Memory.h"
+#include "Core/Log/Log.h"
+#include <vector>
+
+DECLARE_LOG_CATEGORY(LogMemory);
 
 namespace Zn
 {
+	struct VirtualMemoryInformation;
+
     class VirtualMemory
     {
     public:
+
+		enum class State
+		{
+			kReserved	= 0,	// Indicates reserved pages where a range of the process's virtual address space is reserved without any physical storage being allocated. 
+			kCommitted	= 1,	// Indicates committed pages for which physical storage has been allocated, either in memory or in the paging file on disk.
+			kFree		= 2		// Indicates free pages not accessible to the calling process and available to be allocated.
+		};
+
         static void* Reserve(size_t size);
 
         static void* Allocate(size_t size);
@@ -19,27 +34,36 @@ namespace Zn
         static size_t GetPageSize();
 
         static size_t AlignToPageSize(size_t size);
+
+		static VirtualMemoryInformation GetMemoryInformation(void* address, size_t size);
     };
 
-	struct MemoryResource
+	struct VirtualMemoryInformation
+	{
+		MemoryRange m_Range;
+
+		VirtualMemory::State m_State;		// Note: State::kFree -> m_Range is undefined.
+	};
+
+	struct VirtualMemoryRegion
 	{
 	public:
 
-		MemoryResource()		= default;
+		VirtualMemoryRegion()		= default;
 
-		MemoryResource(size_t capacity, size_t alignment);
+		VirtualMemoryRegion(size_t capacity);
 
-		MemoryResource(MemoryResource&& other) noexcept;
+		VirtualMemoryRegion(VirtualMemoryRegion&& other) noexcept;
 
-		~MemoryResource();
+		~VirtualMemoryRegion();
 
-		MemoryResource(const MemoryResource&) = delete;
+		VirtualMemoryRegion(const VirtualMemoryRegion&) = delete;
 
-		MemoryResource& operator=(const MemoryResource&) = delete;
+		VirtualMemoryRegion& operator=(const VirtualMemoryRegion&) = delete;
 		
-		void* operator*() const { return m_Resource; }
+		void* operator*() const { return m_Address; }
 
-		operator bool() const { return m_Resource != nullptr; }
+		operator bool() const { return m_Address != nullptr; }
 
 		size_t Size() const		{ return m_Range.Size(); }
 
@@ -47,8 +71,40 @@ namespace Zn
 
 	private:
 
-		void* m_Resource		= nullptr;
+		void* m_Address		= nullptr;
 
 		MemoryRange m_Range;
+	};	
+
+	struct VirtualMemoryHeap
+	{
+	public:
+
+		VirtualMemoryHeap()			= default;
+
+		VirtualMemoryHeap(size_t region_size);
+
+		VirtualMemoryHeap(VirtualMemoryHeap&& other) noexcept;
+
+		VirtualMemoryHeap(const VirtualMemoryHeap&) = delete;
+
+		VirtualMemoryHeap& operator=(const VirtualMemoryHeap&) = delete;
+
+		const auto& Regions() const { return m_Regions; }
+
+		bool  IsValidAddress(void* address) const;
+
+		void* AllocateRegion();
+
+		bool FreeRegion(size_t region_index);
+		
+	private:
+
+		size_t m_RegionSize			= 0;
+		
+		std::vector<SharedPtr<VirtualMemoryRegion>> m_Regions;
+
+		//std::vector<size_t> m_FreeRegions;
+
 	};
 }

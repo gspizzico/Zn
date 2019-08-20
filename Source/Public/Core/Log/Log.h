@@ -59,6 +59,8 @@ namespace Zn
     // Utility struct that autoregisters a log category.
     struct AutoLogCategory
     {
+		AutoLogCategory() = default;
+
         AutoLogCategory(Name name, ELogVerbosity verbosity)
         {
 			m_LogCategory = std::make_shared<LogCategory>(LogCategory{ name, verbosity });
@@ -89,23 +91,20 @@ namespace Zn
 
 #define CATEGORY_VAR_NAME(Name) CONCAT(Name, Category)
 
-#define GET_CATEGORY(Name) Zn::GetLogCategories::CATEGORY_VAR_NAME(Name)
+#define GET_CATEGORY(Name) Zn::LogCategories::CATEGORY_VAR_NAME(Name)
 
 // Log declarations/definitions macros.
-#define DECLARE_LOG_CATEGORY (Name) \
+#define DECLARE_LOG_CATEGORY(Name) \
 namespace Zn::LogCategories\
 {\
-    static Zn::AutoLogCategory CATEGORY_VAR_NAME(Name);\
+    extern Zn::AutoLogCategory CATEGORY_VAR_NAME(Name);\
 }
 
 #define DEFINE_LOG_CATEGORY(Name, Verbosity) \
-namespace Zn::LogCategories\
-{\
-    Zn::AutoLogCategory CATEGORY_VAR_NAME(Name){#Name, Verbosity};\
-}
+Zn::AutoLogCategory Zn::LogCategories::CATEGORY_VAR_NAME(Name){#Name, Verbosity};
 
 #define DECLARE_STATIC_LOG_CATEGORY(Name, Verbosity) \
-namespace Zn::GetLogCategories\
+namespace Zn::LogCategories\
 {\
     static Zn::AutoLogCategory CATEGORY_VAR_NAME(Name){#Name, Verbosity};\
 }

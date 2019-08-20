@@ -110,7 +110,7 @@ namespace Zn
 	//	===	TLSFAllocator ===
 
 	TLSFAllocator::TLSFAllocator(size_t capacity)
-		: m_InternalAllocator(capacity, FreeBlock::kMinBlockSize)
+		: m_InternalAllocator(capacity)
 		, m_FreeLists()
 		, m_FL(0)
 		, m_SL()
@@ -191,7 +191,7 @@ namespace Zn
 
 	size_t TLSFAllocator::GetMaxAllocatableBlockSize()
 	{
-		static const size_t kMaxBlockSize = pow(2, kStartFl + kNumberOfPools) - 1;
+		static const size_t kMaxBlockSize = static_cast<size_t>(pow(2, kStartFl + kNumberOfPools)) - 1ull;
 		return kMaxBlockSize;
 	}
 

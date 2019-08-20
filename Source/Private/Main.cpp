@@ -178,7 +178,7 @@ public:
 	{
 		MemoryPool Pool(1024);
 
-		AutoLogCategory("PoolAllocator", ELogVerbosity::Log);
+		//AutoLogCategory("PoolAllocator", ELogVerbosity::Log);
 
 		for (int reps = 10; reps > 0; --reps)
 		{
@@ -231,6 +231,7 @@ public:
     bool DoWork()
     {
 		auto m = Memory::GetMemoryStatus();
+
 		TestTLSFAllocator();
 		//TestMemoryPool();
 		return false;
