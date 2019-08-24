@@ -62,6 +62,12 @@
     <Filter Include="Source\Public\Core\Math">
       <UniqueIdentifier>{d75860d8-f77a-408a-a990-bb1f466d2177}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Automation">
+      <UniqueIdentifier>{0b35452c-84aa-4f23-8114-6249bd8b2375}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Automation">
+      <UniqueIdentifier>{b761ad88-ad98-4751-b849-a60ca5087c02}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -111,6 +117,15 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Memory\Allocators\HeapAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp">
+      <Filter>Source\Private\Automation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Automation\AutomationTest.cpp">
+      <Filter>Source\Private\Automation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Automation\AutomationTestExample.cpp">
+      <Filter>Source\Private\Automation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -188,6 +203,12 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\HeapAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Automation\AutomationTest.h">
+      <Filter>Source\Public\Automation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Automation\AutomationTestManager.h">
+      <Filter>Source\Public\Automation</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

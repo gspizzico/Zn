@@ -7,4 +7,9 @@ namespace Zn
     {
         return PlatformMisc::GetSystemInfo();
     }
+
+	void Misc::Exit(bool bWithErrors)
+	{
+		PlatformMisc::Exit(bWithErrors);
+	}
 }

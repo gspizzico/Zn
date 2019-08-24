@@ -26,5 +26,7 @@ namespace Zn
     public:
 
         static SystemInfo GetSystemInfo();
+
+		static void Exit(bool bWithErrors = false);
     };
 }

@@ -1,5 +1,6 @@
 #include "Core/Windows/WindowsMisc.h"
 #include <windows.h>
+#include <stdlib.h>
 
 namespace Zn
 {
@@ -33,4 +34,9 @@ namespace Zn
 
         return SystemInfo;
     }
+
+	void WindowsMisc::Exit(bool bWithErrors)
+	{
+		exit(bWithErrors ? EXIT_FAILURE : EXIT_SUCCESS);
+	}
 }

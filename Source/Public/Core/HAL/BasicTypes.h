@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include "Core/Containers/Vector.h"
 
 using int8 = char;
 using int16 = short;

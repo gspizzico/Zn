@@ -2,7 +2,7 @@
 
 #include "Core/Memory/Memory.h"
 #include "Core/Log/Log.h"
-#include <vector>
+#include "Core/HAL/BasicTypes.h"
 
 DECLARE_LOG_CATEGORY(LogMemory);
 
@@ -121,6 +121,6 @@ namespace Zn
 
 		size_t m_RegionSize			= 0;
 		
-		std::vector<SharedPtr<VirtualMemoryRegion>> m_Regions;
+		Vector<SharedPtr<VirtualMemoryRegion>> m_Regions;
 	};
 }
