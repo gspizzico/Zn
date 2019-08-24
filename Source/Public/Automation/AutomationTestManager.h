@@ -45,4 +45,4 @@ namespace Zn::Automation
 	};
 }
 
-#define DEFINE_AUTOMATION_STARTUP_TEST(Type, ...) namespace { Zn::Automation::AutoStartupTest<Type> TestInstance{__VA_ARGS__};}
+#define DEFINE_AUTOMATION_STARTUP_TEST(Name, Type, ...) namespace { Zn::Automation::AutoStartupTest<Type> Name##TestInstance{__VA_ARGS__};}

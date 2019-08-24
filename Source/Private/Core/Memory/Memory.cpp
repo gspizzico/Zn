@@ -48,13 +48,13 @@ namespace Zn
     void MemoryDebug::MarkUninitialized(void * begin, void * end)
     {
 #if ZN_DEBUG
-		//Memory::MarkMemory(begin, end, kUninitializedMemoryPattern);
+		Memory::MarkMemory(begin, end, kUninitializedMemoryPattern);
 #endif
     }
     void MemoryDebug::MarkFree(void * begin, void * end)
     {
 #if ZN_DEBUG
-		//Memory::MarkMemory(begin, end, kFreeMemoryPattern);
+		Memory::MarkMemory(begin, end, kFreeMemoryPattern);
 #endif
     }
 	void MemoryDebug::TrackAllocation(void* address, size_t size)

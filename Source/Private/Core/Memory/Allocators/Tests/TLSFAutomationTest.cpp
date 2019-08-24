@@ -14,7 +14,7 @@ namespace Zn::Automation
 	class TLSFAutomationTest : public AutomationTest
 	{
 	public:
-		
+
 		TLSFAutomationTest()
 			: m_Iterations(2)
 			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
@@ -22,20 +22,27 @@ namespace Zn::Automation
 		{
 		}
 
-		TLSFAutomationTest(size_t iterations, size_t max_allocation_size)
+		TLSFAutomationTest(size_t iterations)
 			: m_Iterations(iterations)
-			, m_MaxAllocationSize(std::clamp(max_allocation_size, 128ull, TLSFAllocator::kMaxAllocationSize))
+			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
 			, m_TestName(String("TLSFAutomationTest_").append(std::to_string(m_Iterations)))
 		{
 		}
-		
+
+		TLSFAutomationTest(size_t iterations, size_t max_allocation_size)
+			: m_Iterations(iterations)
+			, m_MaxAllocationSize(std::clamp<size_t>(max_allocation_size, 128ull, TLSFAllocator::kMaxAllocationSize))
+			, m_TestName(String("TLSFAutomationTest_").append(std::to_string(m_Iterations)))
+		{
+		}
+
 		virtual void Execute() override
 		{
 			auto Allocator = TLSFAllocator();
 
 			std::array<std::vector<void*>, 2> Pointers;
 
-			std::array<std::vector<size_t>, 2> SizesArray;			
+			std::array<std::vector<size_t>, 2> SizesArray;
 
 			Pointers[0] = std::vector<void*>(m_Iterations, 0);
 			Pointers[1] = std::vector<void*>(m_Iterations, 0);
@@ -45,11 +52,12 @@ namespace Zn::Automation
 
 			uint8 flip_flop = 0;
 
-			for (int k = m_Iterations - 1; k >= 0; k--)
+			for (int32 k = m_Iterations - 1; k >= 0; k--)
 			{
 				std::random_device rd;
 				std::mt19937 gen(rd());
-				std::uniform_int_distribution<> dis(128ull, m_MaxAllocationSize);
+				std::uniform_int_distribution<> creator(128, (int)m_MaxAllocationSize);
+				std::uniform_int_distribution<> dis(creator(gen), (int)m_MaxAllocationSize);
 
 				auto& MemoryBlocks = Pointers[flip_flop];
 
@@ -63,15 +71,14 @@ namespace Zn::Automation
 				}
 
 
-				for (int i = 0; i < m_Iterations; ++i)
+				for (size_t i = 0; i < m_Iterations; ++i)
 				{
 					if (PreviousIterationAllocations)
 					{
 						Allocator.Free((*PreviousIterationAllocations)[i]);
 					}
 
-					//auto Size = Memory::Align(dis(gen), sizeof(unsigned long));
-					auto Size = Memory::Align(dis(gen), 128ull);
+					auto Size = Memory::Align(dis(gen), sizeof(unsigned long));
 					Sizes[i] = (Size);
 					MemoryBlocks[i] = (Allocator.Allocate(Size));
 				}
@@ -112,6 +119,6 @@ namespace Zn::Automation
 	};
 }
 
-DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_100,	Zn::Automation::TLSFAutomationTest, 100, 64);
-DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000,	Zn::Automation::TLSFAutomationTest, 1000, 64);
-DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000,Zn::Automation::TLSFAutomationTest, 10000, 64);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_100, Zn::Automation::TLSFAutomationTest, 100);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000, Zn::Automation::TLSFAutomationTest, 1000);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000);

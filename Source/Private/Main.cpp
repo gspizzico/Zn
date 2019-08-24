@@ -8,21 +8,39 @@
 #include "Core/Memory/Allocators/StackAllocator.h"
 #include "Core/Memory/Allocators/PoolAllocator.h"
 #include "Core/Memory/Allocators/TLSFAllocator.h"
+#include "Core/Memory/Allocators/HeapAllocator.h"
+#include "Automation/AutomationTestManager.h"
 #include "Core/HAL/Misc.h"
 #include <algorithm>
 #include <utility>
 #include <random>
+#include <numeric>
+
+DECLARE_STATIC_LOG_CATEGORY(LogMainCpp, ELogVerbosity::Verbose);
 
 using namespace Zn;
 
 class Engine
 {
 public:
-    
-    void Initialize()
-    {
-        OutputDeviceManager::Get().RegisterOutputDevice<WindowsDebugOutput>();
-    }
+
+	void Initialize()
+	{
+		OutputDeviceManager::Get().RegisterOutputDevice<WindowsDebugOutput>();
+	}
+
+	void TestHeapAllocator()
+	{
+		VirtualMemoryHeap Heap(VirtualMemory::GetPageSize() * 5);
+		auto Region = Heap.AllocateRegion();
+		VirtualMemory::Commit(Region->Begin(), VirtualMemory::GetPageSize() * 3);
+
+		auto Allocator = HeapAllocator(std::move(Heap), VirtualMemory::GetPageSize());
+		for (int i = 0; i < 100; ++i)
+		{
+			Allocator.AllocatePage();
+		}
+	}
 
 	void TestStackAllocator()
 	{
@@ -49,124 +67,18 @@ public:
 		Allocator.Free();
 	}
 
-	void TestTLSFAllocator()
-	{
-		//AutoLogCategory("TestTLSFAllocator", ELogVerbosity::Log);
-
-		constexpr size_t kReps = 2000;
-		auto Allocator = TLSFAllocator(8192 * kReps);
-		std::array<std::vector<void*>, 2> Pointers;
-
-		std::array<std::vector<size_t>, 2> SizesArray;
-
-		/*for (int k = 0; k < kReps; k++)
-		{
-			std::random_device rd;
-			std::mt19937 gen(rd());
-			std::uniform_int_distribution<> dis(128, 4096);
-
-			auto& MemoryBlocks = Pointers[k];
-			auto& Sizes = SizesArray[k];
-			MemoryBlocks.reserve(kReps);
-			Sizes.reserve(kReps);
-
-			for (int i = 0; i < kReps; ++i)
-			{
-				auto Size = Memory::Align(dis(gen), sizeof(unsigned long));
-				Sizes.emplace_back(Size);
-				MemoryBlocks.emplace_back(Allocator.Allocate(Size));
-			}
-
-			for (int i = 0; i < kReps; ++i)
-			{
-				auto& ptr = MemoryBlocks[i];
-				Allocator.Free(ptr);
-			}
-		}*/
-
-		Pointers[0] = std::vector<void*>(kReps, 0);
-		Pointers[1] = std::vector<void*>(kReps, 0);
-
-		SizesArray[0] = std::vector<size_t>(kReps, 0);
-		SizesArray[1] = std::vector<size_t>(kReps, 0);
-
-		uint8 flip_flop = 0;
-
-		//for (int k = 0; k < kReps; k++)
-		for (int k = kReps - 1; k >= 0 ; k--)
-		{
-			//std::vector<void*> PreviousIterationAllocations = k > 0 ? Pointers[k - 1] : std::vector<void*>();
-			
-			std::random_device rd;
-			std::mt19937 gen(rd());
-			std::uniform_int_distribution<> dis(std::clamp(128ull * (unsigned long long) k, 128ull, 4096ull), 4096ull);
-			
-			auto& MemoryBlocks = Pointers[flip_flop];
-
-			auto& Sizes = SizesArray[flip_flop];
-			
-			auto PreviousIterationAllocations = (k < (kReps - 1)) ? &Pointers[!flip_flop] : nullptr;
-
-			if (PreviousIterationAllocations)
-			{
-				std::shuffle(PreviousIterationAllocations->begin(), PreviousIterationAllocations->end(), std::default_random_engine(5932));
-			}
-			
-
-			for (int i = 0; i < kReps; ++i)
-			{
-				//if (k > 0)
-				if (PreviousIterationAllocations)
-				{
-					Allocator.Free((*PreviousIterationAllocations)[i]);
-				}
-
-				auto Size = Memory::Align(dis(gen), sizeof(unsigned long));
-				Sizes[i] = (Size);
-				MemoryBlocks[i] = (Allocator.Allocate(Size));
-			}
-			flip_flop = !flip_flop;
-		}
-		
-		
-		/*for (auto size = 32; size < 1024; size = size + 2)
-		{
-			TLSFAllocator::index_type fl = 0, sl = 0;
-			Allocator.MappingInsert(size, fl, sl);
-			Allocator.FindSuitableBlock(fl, sl);
-		}*/
-
-		/*Allocator.MappingSearch(64, fl, sl);
-
-		Allocator.MappingInsert(8, fl, sl);
-		Allocator.MappingSearch(8, fl, sl);
-
-		Allocator.MappingInsert(128, fl, sl);
-		Allocator.MappingSearch(128, fl, sl);
-
-		Allocator.MappingInsert(1024, fl, sl);
-		Allocator.MappingSearch(1024, fl, sl);
-
-		Allocator.MappingInsert(256, fl, sl);
-		Allocator.MappingSearch(256, fl, sl);
-
-		Allocator.MappingInsert(270, fl, sl);
-		Allocator.MappingSearch(270, fl, sl);*/
-
-	}
-
 	void TestFreeBlock()
 	{
 		static constexpr size_t kBlockSize = 32;
 		MemoryPool Pool(kBlockSize);
 
-		void* First  = Pool.Allocate();
+		void* First = Pool.Allocate();
 		void* Second = Pool.Allocate();
-		void* Third	 = Pool.Allocate();
+		void* Third = Pool.Allocate();
 
-		auto first_block =	new (First) TLSFAllocator::FreeBlock(kBlockSize, nullptr, nullptr);
+		auto first_block = new (First) TLSFAllocator::FreeBlock(kBlockSize, nullptr, nullptr);
 		auto second_block = new (Second) TLSFAllocator::FreeBlock(kBlockSize, first_block, nullptr);
-		auto third_block =	new (Third) TLSFAllocator::FreeBlock(kBlockSize, second_block, nullptr);
+		auto third_block = new (Third) TLSFAllocator::FreeBlock(kBlockSize, second_block, nullptr);
 		second_block->GetFooter()->m_Next = third_block;
 		first_block->GetFooter()->m_Next = second_block;
 
@@ -228,25 +140,23 @@ public:
 		}
 
 	}
-    bool DoWork()
-    {
-		auto m = Memory::GetMemoryStatus();
-
-		TestTLSFAllocator();
-		//TestMemoryPool();
+	bool DoWork()
+	{
+		Automation::AutomationTestManager::Get().ExecuteStartupTests();
+		TestHeapAllocator();
 		return false;
-    }
-    void Shutdown()
-    {
+	}
+	void Shutdown()
+	{
 
-    }
+	}
 };
 
 int main()
-{   
-    Engine engine;
-    engine.Initialize();
-    while (engine.DoWork());
-    engine.Shutdown();
-    return 0;
+{
+	Engine engine;
+	engine.Initialize();
+	while (engine.DoWork());
+	engine.Shutdown();
+	return 0;
 }

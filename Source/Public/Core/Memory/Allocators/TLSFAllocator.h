@@ -73,13 +73,13 @@ namespace Zn
 
 		static constexpr size_t				kJ = 3;
 
-		static constexpr size_t				kNumberOfPools		= 8;
+		static constexpr size_t				kNumberOfPools		= 9;
 
 		static constexpr size_t				kNumberOfLists		= 1 << kJ;		// pow(2, kJ)
 
 		static constexpr size_t				kStartFl			= 7;			// log2(kMinBlockSize)
 
-		static constexpr size_t				kMaxAllocationSize  = (1 << (kStartFl + kNumberOfPools)) - 1;  // 32k
+		static constexpr size_t				kMaxAllocationSize  = (1 << (kStartFl + kNumberOfPools - 1));  // 32k
 
 		TLSFAllocator();
 

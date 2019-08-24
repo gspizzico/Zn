@@ -115,7 +115,7 @@ namespace Zn
 
 	size_t HeapAllocator::GetAllocatedMemory() const
 	{
-		return (m_MemoryHeap.GetRegionSize() * m_MemoryHeap.Regions().size() - 1 + Memory::GetDistance(m_NextPageAddress, m_MemoryHeap.GetRegion(m_RegionIndex)->Begin()));	// Region Size * (Regions Num - 1) + (Next Page Address - Region Start Address)
+		return (m_MemoryHeap.GetRegionSize() * (m_MemoryHeap.Regions().size() - 1) + Memory::GetDistance(m_NextPageAddress, m_MemoryHeap.GetRegion(m_RegionIndex)->Begin()));	// Region Size * (Regions Num - 1) + (Next Page Address - Region Start Address)
 	}
 
 	bool HeapAllocator::IsAllocated(void* address) const

@@ -63,4 +63,4 @@ namespace Zn::Automation
 	};
 }
 
-DEFINE_AUTOMATION_STARTUP_TEST(Zn::Automation::AutomationTestExample, 5)
+DEFINE_AUTOMATION_STARTUP_TEST(AutomationTestExample, Zn::Automation::AutomationTestExample, 5)

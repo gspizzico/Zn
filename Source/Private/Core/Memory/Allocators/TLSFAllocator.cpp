@@ -93,9 +93,7 @@ namespace Zn
 	}
 
 	void FreeBlock::Verify(size_t max_block_size) const
-	{
-		_ASSERT(m_BlockSize > 0 && m_BlockSize <= max_block_size);
-		
+	{	
 		const auto Footer = const_cast<FreeBlock*>(this)->GetFooter();
 
 		_ASSERT(Footer->IsValid());
@@ -127,20 +125,22 @@ namespace Zn
 
 		FreeBlock* FreeBlock = nullptr;
 
+		size_t BlockSize = 0;
+
 		if (!FindSuitableBlock(fl, sl))																// Allocate page aligned memory if there is no available block for the requested size.
 		{
-			auto BlockSize = m_HeapAllocator.GetPageSize();
+			BlockSize = m_HeapAllocator.GetPageSize();
 			void* AllocatedMemory = m_HeapAllocator.AllocatePage();
 			FreeBlock = new (AllocatedMemory) TLSFAllocator::FreeBlock(BlockSize, nullptr, nullptr);
 		}
 		else
-		{	
+		{
 			FreeBlock = m_FreeLists[fl][sl];														// Pop the block from the list.
 
 			RemoveBlock(FreeBlock);
-		}
 
-		size_t BlockSize = FreeBlock->Size();
+			BlockSize = FreeBlock->Size();
+		}
 
 		_ASSERT(BlockSize >= AllocationSize);
 
@@ -155,16 +155,21 @@ namespace Zn
 			TLSFAllocator::FreeBlock* NewBlock = new(NewBlockAddress) TLSFAllocator::FreeBlock{ NewBlockSize , nullptr, nullptr };
 
 			AddBlock(NewBlock);		
-		}
-		
-		Memory::MarkMemory(FreeBlock, Memory::AddOffset(FreeBlock, BlockSize), 0);							// Clear memory before returning it. Leaving it as it is might leave footer info even when not needed
-																											// because the allocated memory is always more than the exact request.
-
+		}		
+	
 		new(FreeBlock) uintptr_t(BlockSize);																// Write at the beginning of the block its size in order to safely free the memory when requested.
 		
 		MemoryDebug::TrackAllocation(FreeBlock, BlockSize);
 
-		return Memory::AddOffset(FreeBlock, sizeof(uintptr_t));
+		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Allocate \t %p, Size: %i", FreeBlock, BlockSize);
+
+		auto Address = Memory::AddOffset(FreeBlock, sizeof(uintptr_t));
+
+		MemoryDebug::MarkUninitialized(Address, Memory::AddOffset(FreeBlock, BlockSize));
+
+		Memory::MarkMemory(FreeBlock->GetFooter(), Memory::AddOffset(FreeBlock->GetFooter(), FreeBlock::kFooterSize), 0);  // It's not a free block anymore, footer is unnecessary.
+
+		return Address;
 	}
 
 	bool TLSFAllocator::Free(void* address)
@@ -172,6 +177,8 @@ namespace Zn
 		void* BlockAddress = Memory::SubOffset(address, sizeof(uintptr_t));									// Recover this block size
 
 		uintptr_t BlockSize = *reinterpret_cast<uintptr_t*>(BlockAddress);
+
+		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Free\t %p, Size: %i", BlockAddress, BlockSize);
 
 		MemoryDebug::MarkFree(BlockAddress, Memory::AddOffset(BlockAddress, BlockSize));
 
@@ -306,13 +313,13 @@ namespace Zn
 		{
 			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->GetSize();
 
-			const auto MergedBlockSize = PreviousBlockSize + block->Size();
-
 			FreeBlock* PreviousPhysicalBlock = static_cast<FreeBlock*>(Memory::SubOffset(block, PreviousBlockSize));
-			
+
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "MergePrevious \t Block: %p \t Previous: %p", block, PreviousPhysicalBlock);
+
 			RemoveBlock(PreviousPhysicalBlock);
 
-			MemoryDebug::MarkFree(PreviousPhysicalBlock, Memory::AddOffset(PreviousPhysicalBlock, MergedBlockSize));
+			const auto MergedBlockSize = PreviousBlockSize + block->Size();
 
 			return new(PreviousPhysicalBlock) TLSFAllocator::FreeBlock(MergedBlockSize, nullptr, nullptr);
 		}
@@ -328,11 +335,13 @@ namespace Zn
 		{
 			auto NextBlockSize = NextPhysicalBlock->Size();
 
-			auto MergedBlockSize = block->Size() + NextBlockSize;			
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "MergeNext \t Block: %p \t Next: %p", block, NextPhysicalBlock);
 
 			RemoveBlock(NextPhysicalBlock);
 
-			MemoryDebug::MarkFree(block, Memory::AddOffset(block, MergedBlockSize));
+			new (NextPhysicalBlock) (uintptr_t)(0);
+
+			auto MergedBlockSize = block->Size() + NextBlockSize;
 
 			return new (block) TLSFAllocator::FreeBlock(MergedBlockSize, nullptr, nullptr);
 		}
@@ -344,6 +353,9 @@ namespace Zn
 		index_type fl = 0, sl = 0;
 
 		MappingInsert(block->Size(), fl, sl);
+
+		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "RemoveBlock \t Block: %p\t  Size: %i, fl %i, sl %i", block, block->Size(), fl, sl);
+
 
 		if (m_FreeLists[fl][sl] == block)
 		{
@@ -368,20 +380,21 @@ namespace Zn
 		{
 			_ASSERT(block->Previous());
 
-			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Removing %p from %i fl, %i sl.", block, fl, sl);
 			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Previous -> %p", block->Previous());
 			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t Previous Footer -> %p", block->Previous()->GetFooter());
-			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t Previous Footer Next -> %p", block->Previous()->GetFooter()->m_Next);
-			
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t (Previous Footer).Next -> %p", block->Previous()->GetFooter()->m_Next);
+
+			block->Previous()->GetFooter()->m_Next = block->Next();			    //Remap previous block to next block			
+
 			if (block->Next())
 			{
 				block->Next()->GetFooter()->m_Previous = block->Previous();
 			}
 
-			block->Previous()->GetFooter()->m_Next = block->Next();			    //Remap previous block to next block			
-
-			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t Previous Footer Next AFTER-> %p", block->Previous()->GetFooter()->m_Next);
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t New (Previous Footer).Next -> %p", block->Previous()->GetFooter()->m_Next);
 		}
+
+		Memory::MarkMemory(block->GetFooter(), Memory::AddOffset(block->GetFooter(), FreeBlock::kFooterSize), 0);			// Removing it from the map, footer is unnecessary.
 	}
 
 	void TLSFAllocator::AddBlock(FreeBlock* block)
@@ -390,26 +403,26 @@ namespace Zn
 
 		MappingInsert(block->Size(), fl, sl);
 
-		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Adding %p to %i fl, %i sl.", block, fl, sl);
+		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "AddBlock \t Block: %p\t  Size: %i, fl %i, sl %i", block, block->Size(), fl, sl);
 
 		m_FL |= (1ull << fl);
 		m_SL[fl] |= (1ull << sl);
 
 		if (auto Head = m_FreeLists[fl][sl]; Head != nullptr)
 		{
-			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Head -> %p", Head);
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Previous Head -> %p", Head);
 
 			block->GetFooter()->m_Next = Head;
 
 			Head->GetFooter()->m_Previous = block;
 
-			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t Head Previous AFTER -> %p", Head->Previous());
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t (Previous Head).Previous -> %p", Head->Previous());
 
 		}
 
 		m_FreeLists[fl][sl] = block;
 
-		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Next -> %p", block->Next());
+		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t Next -> %p", block->Next());
 	}
 }
 
