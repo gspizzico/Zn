@@ -57,7 +57,7 @@ namespace Zn
 	{
 		if constexpr (kMarkFreeOnDelete)
 		{
-			MemoryDebug::MarkMemory(this, Memory::AddOffset(this, m_BlockSize), 0);
+			Memory::MarkMemory(this, Memory::AddOffset(this, m_BlockSize), 0);
 		}
 	}
 
@@ -109,8 +109,8 @@ namespace Zn
 
 	//	===	TLSFAllocator ===
 
-	TLSFAllocator::TLSFAllocator(size_t capacity)
-		: m_InternalAllocator(capacity)
+	TLSFAllocator::TLSFAllocator()
+		: m_HeapAllocator()
 		, m_FreeLists()
 		, m_FL(0)
 		, m_SL()
@@ -129,8 +129,8 @@ namespace Zn
 
 		if (!FindSuitableBlock(fl, sl))																// Allocate page aligned memory if there is no available block for the requested size.
 		{
-			auto BlockSize = VirtualMemory::AlignToPageSize(AllocationSize);
-			void* AllocatedMemory = m_InternalAllocator.Allocate(BlockSize);
+			auto BlockSize = m_HeapAllocator.GetPageSize();
+			void* AllocatedMemory = m_HeapAllocator.AllocatePage();
 			FreeBlock = new (AllocatedMemory) TLSFAllocator::FreeBlock(BlockSize, nullptr, nullptr);
 		}
 		else
@@ -157,7 +157,8 @@ namespace Zn
 			AddBlock(NewBlock);		
 		}
 		
-		MemoryDebug::MarkUninitialized(FreeBlock, Memory::AddOffset(FreeBlock, BlockSize));
+		Memory::MarkMemory(FreeBlock, Memory::AddOffset(FreeBlock, BlockSize), 0);							// Clear memory before returning it. Leaving it as it is might leave footer info even when not needed
+																											// because the allocated memory is always more than the exact request.
 
 		new(FreeBlock) uintptr_t(BlockSize);																// Write at the beginning of the block its size in order to safely free the memory when requested.
 		
@@ -187,12 +188,6 @@ namespace Zn
 		AddBlock(NewBlock);
 
 		return true;
-	}
-
-	size_t TLSFAllocator::GetMaxAllocatableBlockSize()
-	{
-		static const size_t kMaxBlockSize = static_cast<size_t>(pow(2, kStartFl + kNumberOfPools)) - 1ull;
-		return kMaxBlockSize;
 	}
 
 #if ZN_DEBUG
@@ -233,11 +228,7 @@ namespace Zn
 
 	bool TLSFAllocator::MappingInsert(size_t size, index_type& o_fl, index_type& o_sl)
 	{
-#if ZN_DEBUG
-		static auto kAssert = []() { _ASSERT(pow(2, kJ) == kNumberOfLists); return true; }();
-#endif
-
-		if (size <= GetMaxAllocatableBlockSize())
+		if (size <= kMaxAllocationSize)
 		{
 			_BitScanReverse64(&o_fl, size);																					// FLS -> Find most significant bit and returns log2 of it -> (2^o_fl);
 
@@ -258,6 +249,9 @@ namespace Zn
 
 	bool TLSFAllocator::MappingSearch(size_t size, index_type& o_fl, index_type& o_sl)
 	{	
+		o_fl = 0;
+		o_sl = 0;
+
 		if (size >= FreeBlock::kMinBlockSize)			// For blocks smaller than the minimum block, use always the minimum block
 		{
 			index_type fl = 0;
@@ -269,7 +263,7 @@ namespace Zn
 			return MappingInsert(size, o_fl, o_sl);
 		}
 
-		return MappingInsert(size, o_fl, o_sl);			// This should always return 0, 0.
+		return true;									// This should always return 0, 0.
 	}
 
 	bool TLSFAllocator::FindSuitableBlock(index_type& o_fl, index_type& o_sl)
@@ -308,7 +302,7 @@ namespace Zn
 	{	
 		auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousPhysicalFooter(block);
 
-		if (m_InternalAllocator.IsAllocated(PreviousPhysicalBlockFooter) && PreviousPhysicalBlockFooter->IsValid())
+		if (m_HeapAllocator.IsAllocated(PreviousPhysicalBlockFooter) && PreviousPhysicalBlockFooter->IsValid())
 		{
 			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->GetSize();
 
@@ -318,7 +312,7 @@ namespace Zn
 			
 			RemoveBlock(PreviousPhysicalBlock);
 
-			MemoryDebug::MarkMemory(PreviousPhysicalBlock, Memory::AddOffset(PreviousPhysicalBlock, MergedBlockSize), 0);
+			MemoryDebug::MarkFree(PreviousPhysicalBlock, Memory::AddOffset(PreviousPhysicalBlock, MergedBlockSize));
 
 			return new(PreviousPhysicalBlock) TLSFAllocator::FreeBlock(MergedBlockSize, nullptr, nullptr);
 		}
@@ -330,7 +324,7 @@ namespace Zn
 
 	TLSFAllocator::FreeBlock* TLSFAllocator::MergeNext(FreeBlock* block)
 	{
-		if (FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size())); m_InternalAllocator.IsAllocated(NextPhysicalBlock) && NextPhysicalBlock->GetFooter()->IsValid())
+		if (FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size())); m_HeapAllocator.IsAllocated(NextPhysicalBlock) && NextPhysicalBlock->GetFooter()->IsValid())
 		{
 			auto NextBlockSize = NextPhysicalBlock->Size();
 
@@ -338,7 +332,7 @@ namespace Zn
 
 			RemoveBlock(NextPhysicalBlock);
 
-			MemoryDebug::MarkMemory(block, Memory::AddOffset(block, MergedBlockSize), 0);
+			MemoryDebug::MarkFree(block, Memory::AddOffset(block, MergedBlockSize));
 
 			return new (block) TLSFAllocator::FreeBlock(MergedBlockSize, nullptr, nullptr);
 		}
@@ -365,6 +359,8 @@ namespace Zn
 			}
 			else
 			{
+				_ASSERT(block == m_FreeLists[fl][sl]->GetFooter()->m_Previous);
+
 				m_FreeLists[fl][sl]->GetFooter()->m_Previous = nullptr;
 			}
 		}
@@ -394,17 +390,26 @@ namespace Zn
 
 		MappingInsert(block->Size(), fl, sl);
 
+		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Adding %p to %i fl, %i sl.", block, fl, sl);
+
 		m_FL |= (1ull << fl);
 		m_SL[fl] |= (1ull << sl);
 
 		if (auto Head = m_FreeLists[fl][sl]; Head != nullptr)
 		{
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Head -> %p", Head);
+
 			block->GetFooter()->m_Next = Head;
 
 			Head->GetFooter()->m_Previous = block;
+
+			ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t Head Previous AFTER -> %p", Head->Previous());
+
 		}
 
 		m_FreeLists[fl][sl] = block;
+
+		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Next -> %p", block->Next());
 	}
 }
 

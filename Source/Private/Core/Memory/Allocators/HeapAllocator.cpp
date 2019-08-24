@@ -10,35 +10,41 @@ namespace Zn
 		: m_MemoryHeap(kDefaultRegionSize)
 		, m_PageSize(kDefaultPageSize)
 		, m_RegionIndex(0)
-		, m_Address(m_MemoryHeap.GetRegion(0))
+		, m_NextPageAddress(m_MemoryHeap.GetRegion(0)->Begin())
 	{
 	}
 
 	HeapAllocator::HeapAllocator(size_t memory_region_size, size_t page_size)
 		: m_MemoryHeap(memory_region_size)
-		, m_PageSize(page_size)
+		, m_PageSize(VirtualMemory::AlignToPageSize(page_size))
 		, m_RegionIndex(0)
-		, m_Address(m_MemoryHeap.GetRegion(0))
+		, m_NextPageAddress(m_MemoryHeap.GetRegion(0)->Begin())
 	{
 	}
 
 	HeapAllocator::HeapAllocator(VirtualMemoryHeap&& heap, size_t page_size)
 		: m_MemoryHeap(std::move(heap))
-		, m_PageSize(page_size)
+		, m_PageSize(VirtualMemory::AlignToPageSize(page_size))
 		, m_RegionIndex(m_MemoryHeap.Regions().size() - 1)
-		, m_Address(m_MemoryHeap.GetRegion(m_RegionIndex))
+		, m_NextPageAddress(m_MemoryHeap.GetRegion(m_RegionIndex)->Begin())			// By default, assume that the next page address is the start of the region.
 	{
+		auto MemoryInformation = VirtualMemory::GetMemoryInformation(m_MemoryHeap.GetRegion(m_RegionIndex)->Begin(), m_MemoryHeap.GetRegionSize());
+
+		if (MemoryInformation.m_State == VirtualMemory::State::kCommitted)			// Check if there is committed memory in the range. If that's the case, reassign the next page address.
+		{
+			m_NextPageAddress = MemoryInformation.m_Range.End();
+		}
 	}
 
 	HeapAllocator::HeapAllocator(HeapAllocator&& other)
 		: m_MemoryHeap(std::move(other.m_MemoryHeap))
 		, m_PageSize(other.m_PageSize)
 		, m_RegionIndex(other.m_RegionIndex)
-		, m_Address(other.m_Address)
+		, m_NextPageAddress(other.m_NextPageAddress)
 	{
 		other.m_PageSize = 0;
 		other.m_RegionIndex = 0;
-		other.m_Address = nullptr;
+		other.m_NextPageAddress = nullptr;
 	}
 
 	HeapAllocator::~HeapAllocator()
@@ -49,29 +55,33 @@ namespace Zn
 	{
 		_ASSERT(m_PageSize > 0);
 
-		auto RegionStartAddress = m_MemoryHeap.GetRegion(m_RegionIndex);
+		auto Region = m_MemoryHeap.GetRegion(m_RegionIndex);
+		
+		auto RegionEndAddress = Region->End();
 
-		auto RegionEndAddress = Memory::AddOffset(RegionStartAddress, m_MemoryHeap.GetRegionSize());
-
-		//if (Memory::AddOffset(m_Address, m_PageSize) >= RegionEndAddress)
-		if(m_Address == RegionEndAddress)
+		if(m_NextPageAddress == RegionEndAddress)
 		{
-			m_Address = m_MemoryHeap.AllocateRegion();
+			m_NextPageAddress = m_MemoryHeap.AllocateRegion();
+
 			m_RegionIndex++;
+
+			Region = m_MemoryHeap.GetRegion(m_RegionIndex);
 		}
 
-		auto PageAddress = m_Address;
+		auto PageAddress = m_NextPageAddress;
 
-		m_Address = Memory::AddOffset(m_Address, m_PageSize);
+		m_NextPageAddress = Memory::AddOffset(m_NextPageAddress, m_PageSize);
 
-		ZN_LOG(LogHeapAllocator, ELogVerbosity::Log, "Committing %i bytes on region %i. %i bytes left. \t Total committed memory: %i bytes. \t Region committed memory %i bytes", m_PageSize, m_RegionIndex
-			, Memory::GetDistance(Memory::AddOffset(m_MemoryHeap.GetRegion(m_RegionIndex), m_MemoryHeap.GetRegionSize()), m_Address)	// Region Last Address - Next Page Address
-			, (m_MemoryHeap.GetRegionSize() * m_RegionIndex + Memory::GetDistance(m_Address, m_MemoryHeap.GetRegion(m_RegionIndex)))	// Region Size * (Regions Num - 1) + (Next Page Address - Region Start Address)
-			, Memory::GetDistance(m_Address, m_MemoryHeap.GetRegion(m_RegionIndex)));													// Next Page Address - Region Start Address
+		ZN_LOG(LogHeapAllocator, ELogVerbosity::Log, "Committing %i bytes on region %i. %i bytes left. \t Total committed memory: %i bytes. \t Region committed memory %i bytes"
+			, m_PageSize
+			, m_RegionIndex
+			, Memory::GetDistance(Region->End(), m_NextPageAddress)
+			, GetAllocatedMemory()
+			, Memory::GetDistance(m_NextPageAddress, Region->Begin()));
 		
 		ZN_VM_CHECK(VirtualMemory::Commit(PageAddress, m_PageSize));
 
-		MemoryDebug::MarkUninitialized(PageAddress, m_Address);
+		MemoryDebug::MarkUninitialized(PageAddress, m_NextPageAddress);
 
 		return PageAddress;
 	}
@@ -82,14 +92,40 @@ namespace Zn
 		
 		if (m_MemoryHeap.GetRegionIndex(RegionIndex, address))
 		{
-			auto Region = m_MemoryHeap.Regions()[RegionIndex];
-			if (**Region != address)
+			auto Region = m_MemoryHeap.GetRegion(RegionIndex);
+
+			if (Region->Begin() != address)
 			{
 				ZN_LOG(LogHeapAllocator, ELogVerbosity::Error, "Cannot free address %p because it's not a region address.", address);
+
 				return false;
 			}
 
 			return m_MemoryHeap.FreeRegion(RegionIndex);
+		}
+
+		return false;
+	}
+
+	size_t HeapAllocator::GetAllocatedMemory() const
+	{
+		return (m_MemoryHeap.GetRegionSize() * m_MemoryHeap.Regions().size() - 1 + Memory::GetDistance(m_NextPageAddress, m_MemoryHeap.GetRegion(m_RegionIndex)->Begin()));	// Region Size * (Regions Num - 1) + (Next Page Address - Region Start Address)
+	}
+
+	bool HeapAllocator::IsAllocated(void* address) const
+	{
+		size_t RegionIndex = 0;
+
+		if (m_MemoryHeap.GetRegionIndex(RegionIndex, address))
+		{
+			auto LastAllocatedAddress = m_NextPageAddress;
+
+			if (RegionIndex != m_RegionIndex)
+			{
+				LastAllocatedAddress = m_MemoryHeap.GetRegion(RegionIndex)->End();			// If is different, the memory is all committed.
+			}
+
+			return Memory::GetDistance(address, LastAllocatedAddress) < 0;
 		}
 
 		return false;

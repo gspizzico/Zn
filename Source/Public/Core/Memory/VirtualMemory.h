@@ -72,11 +72,13 @@ namespace Zn
 
 		VirtualMemoryRegion& operator=(const VirtualMemoryRegion&) = delete;
 		
-		void* operator*() const { return m_Address; }
-
 		operator bool() const { return m_Address != nullptr; }
 
 		size_t Size() const		{ return m_Range.Size(); }
+		
+		void* Begin() const { return m_Range.Begin(); }
+		
+		void* End() const { return m_Range.End(); }
 
 		const MemoryRange& Range() const { return m_Range; }
 
@@ -109,7 +111,7 @@ namespace Zn
 
 		bool FreeRegion(size_t region_index);
 
-		void* GetRegion(size_t region_index) const { return IsValidIndex(region_index) ? **m_Regions[region_index] : nullptr; }
+		SharedPtr<VirtualMemoryRegion> GetRegion(size_t region_index) const { return IsValidIndex(region_index) ? m_Regions[region_index] : nullptr; }
 
 		bool GetRegionIndex(size_t& out_region_index, void* address) const;
 
@@ -122,8 +124,5 @@ namespace Zn
 		size_t m_RegionSize			= 0;
 		
 		std::vector<SharedPtr<VirtualMemoryRegion>> m_Regions;
-
-		//std::vector<size_t> m_FreeRegions;
-
 	};
 }

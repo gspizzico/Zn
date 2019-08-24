@@ -9,8 +9,8 @@ namespace Zn
 		, m_CommittedMemory(0)
 		, m_MinMemoryCommitSize(Memory::Align(blockSize * kMinBlockNum, VirtualMemory::GetPageSize()))
 		, m_AllocatedBlocks(0)
-		, m_NextFreeBlock(*m_Memory)
-		, m_NextPage(*m_Memory)
+		, m_NextFreeBlock(m_Memory.Begin())
+		, m_NextPage(m_Memory.Begin())
 	{	
 		VirtualMemory::Commit(m_NextPage, m_MinMemoryCommitSize);															// Commit an initial set of memory. Eventually it's going to be used.
 		m_CommittedMemory += m_MinMemoryCommitSize;

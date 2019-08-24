@@ -37,23 +37,25 @@ namespace Zn
         return reinterpret_cast<intptr_t>(first) - reinterpret_cast<intptr_t>(second);
     }
 
-	void MemoryDebug::MarkMemory(void* begin, void* end, int8_t pattern)
+	void Memory::MarkMemory(void* begin, void* end, int8_t pattern)
 	{
-#if ZN_DEBUG
 		std::fill(
 			reinterpret_cast<int8_t*>(begin),
 			reinterpret_cast<int8_t*>(end),
 			pattern);
-#endif
 	}
 
     void MemoryDebug::MarkUninitialized(void * begin, void * end)
     {
-		MarkMemory(begin, end, kUninitializedMemoryPattern);
+#if ZN_DEBUG
+		//Memory::MarkMemory(begin, end, kUninitializedMemoryPattern);
+#endif
     }
     void MemoryDebug::MarkFree(void * begin, void * end)
     {
-		MarkMemory(begin, end, kFreeMemoryPattern);
+#if ZN_DEBUG
+		//Memory::MarkMemory(begin, end, kFreeMemoryPattern);
+#endif
     }
 	void MemoryDebug::TrackAllocation(void* address, size_t size)
 	{

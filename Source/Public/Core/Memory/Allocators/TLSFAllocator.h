@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "Core/Memory/Allocators/LinearAllocator.h"
+#include "Core/Memory/Allocators/HeapAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
 #include "Core/Math/Math.h"
 
@@ -73,24 +73,21 @@ namespace Zn
 
 		static constexpr size_t				kJ = 3;
 
-		static constexpr size_t				kNumberOfPools		= 7;
+		static constexpr size_t				kNumberOfPools		= 8;
 
-		static constexpr size_t				kNumberOfLists		= 8;			// pow(2, kJ)
+		static constexpr size_t				kNumberOfLists		= 1 << kJ;		// pow(2, kJ)
 
 		static constexpr size_t				kStartFl			= 7;			// log2(kMinBlockSize)
 
+		static constexpr size_t				kMaxAllocationSize  = (1 << (kStartFl + kNumberOfPools)) - 1;  // 32k
 
-		TLSFAllocator(size_t capacity);
+		TLSFAllocator();
 
 		__declspec(allocator)void*				Allocate(size_t size, size_t alignment = 1);
 
 		bool				Free(void* address);		
 
-		size_t				GetAllocatedMemory() const { return m_InternalAllocator.GetAllocatedMemory(); }
-
-		size_t				GetCapacity()		 const { return m_InternalAllocator.GetMemory().Size(); }
-
-		static size_t		GetMaxAllocatableBlockSize();
+		size_t				GetAllocatedMemory() const { return m_HeapAllocator.GetAllocatedMemory(); }
 
 #if ZN_DEBUG
 		void				LogDebugInfo() const;
@@ -101,6 +98,8 @@ namespace Zn
 	private:
 
 		using index_type = unsigned long;
+		
+		using FreeListMatrix = std::array<std::array<FreeBlock*, kNumberOfLists>, kNumberOfPools>;
 
 		bool				MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
 
@@ -116,12 +115,12 @@ namespace Zn
 
 		void				AddBlock(FreeBlock* block);
 
-		LinearAllocator						m_InternalAllocator;
+		HeapAllocator							m_HeapAllocator;		
 
-		std::array<std::array<FreeBlock*, kNumberOfLists> , kNumberOfPools> m_FreeLists;
+		FreeListMatrix							m_FreeLists;
 
-		uint16_t							 m_FL;
+		uint16_t								m_FL;
 
-		std::array<uint16_t, kNumberOfPools> m_SL;
+		std::array<uint16_t, kNumberOfPools>	m_SL;
 	};
 }

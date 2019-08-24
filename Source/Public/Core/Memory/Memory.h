@@ -40,13 +40,13 @@ namespace Zn
 		static void* SubOffset(void* address, size_t offset);
 
         static ptrdiff_t GetDistance(const void* first, const void* second);
+
+		static void MarkMemory(void* begin, void* end, int8_t pattern);
     };
 
     class MemoryDebug
     {
     public:
-
-		static void MarkMemory(void* begin, void* end, int8_t pattern);
 
         static void MarkUninitialized(void* begin, void* end);
 

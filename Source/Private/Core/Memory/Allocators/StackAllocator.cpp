@@ -7,11 +7,11 @@ namespace Zn
 {	
 	StackAllocator::StackAllocator(size_t capacity, size_t alignment)
 		: m_Memory(capacity)
-		, m_NextPageAddress(*m_Memory)
-		, m_TopAddress(*m_Memory)
+		, m_NextPageAddress(m_Memory.Begin())
+		, m_TopAddress(m_Memory.Begin())
 		, m_LastSavedStatus(nullptr)
 	{
-		VirtualMemory::Commit(*m_Memory, m_Memory.Size());
+		VirtualMemory::Commit(m_Memory.Begin(), m_Memory.Size());
 	}
 
 	StackAllocator::StackAllocator(StackAllocator&& allocator) noexcept
@@ -62,9 +62,9 @@ namespace Zn
 		if (!m_Memory)
 			return false;
 
-		MemoryDebug::MarkFree(*m_Memory, m_TopAddress);													// Decommit all pages.
+		MemoryDebug::MarkFree(m_Memory.Begin(), m_TopAddress);													// Decommit all pages.
 
-		m_NextPageAddress = m_TopAddress = *m_Memory;
+		m_NextPageAddress = m_TopAddress = m_Memory.Begin();
 
 		return true;
 	}

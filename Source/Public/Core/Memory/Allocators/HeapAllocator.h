@@ -26,6 +26,14 @@ namespace Zn
 
 		bool Free(void* address);
 
+		size_t GetPageSize() const { return m_PageSize; }
+
+		size_t GetAllocatedMemory() const;
+
+		bool IsValidAddress(void* address) const { return m_MemoryHeap.IsValidAddress(address); }
+
+		bool IsAllocated(void* address) const;
+
 	private:
 
 		VirtualMemoryHeap		m_MemoryHeap;
@@ -34,7 +42,7 @@ namespace Zn
 
 		size_t					m_RegionIndex;
 
-		void*					m_Address;
+		void*					m_NextPageAddress;
 
 		static constexpr size_t		kDefaultPageSize	= 1 << 16;			// 64k
 

@@ -65,7 +65,6 @@ namespace Zn
 	VirtualMemoryHeap::VirtualMemoryHeap(size_t region_size)
 		: m_RegionSize(VirtualMemory::AlignToPageSize(region_size))
 		, m_Regions({ std::make_shared<VirtualMemoryRegion>(m_RegionSize) })
-		//, m_FreeRegions()
 	{
 	}
 
@@ -73,7 +72,6 @@ namespace Zn
 	{
 		m_RegionSize = other.m_RegionSize;
 		m_Regions = std::move(other.m_Regions);
-		//m_FreeRegions = std::move(other.m_FreeRegions);
 	}
 
 	bool VirtualMemoryHeap::IsValidAddress(void* address) const
@@ -85,18 +83,14 @@ namespace Zn
 
 	void* VirtualMemoryHeap::AllocateRegion()
 	{
-		return **m_Regions.emplace_back(std::make_shared<VirtualMemoryRegion>(VirtualMemoryRegion(m_RegionSize)));
-		
-		//m_FreeRegions.emplace_back(m_Regions.size() - 1);
+		return m_Regions.emplace_back(std::make_shared<VirtualMemoryRegion>(VirtualMemoryRegion(m_RegionSize)))->Begin();
 	}
 
 	bool VirtualMemoryHeap::FreeRegion(size_t region_index)
 	{	
-		//auto IsFreeBlock = [this](size_t index) { return std::find(m_Regions.cbegin(), m_Regions.cend(), index) != m_Regions.cend(); };
-		
-		if (IsValidIndex(region_index)) //&& IsFreeBlock(region_index))
+		if (IsValidIndex(region_index))
 		{	
-			auto MemoryInformation = VirtualMemory::GetMemoryInformation(**m_Regions[region_index], m_RegionSize);
+			auto MemoryInformation = VirtualMemory::GetMemoryInformation(GetRegion(region_index)->Begin(), m_RegionSize);
 
 			if (MemoryInformation.m_State > VirtualMemory::State::kReserved)
 			{
