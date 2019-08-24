@@ -15,12 +15,12 @@ namespace Zn
         uint64 m_AvailExtendedVirtual = 0;
     };
 
-    enum class StorageUnit
+    enum class StorageUnit : uint64_t
     {
         Byte = 1,
-        KiloByte = 1024,
-        MegaByte = KiloByte * KiloByte,
-        GigaByte = KiloByte * KiloByte * KiloByte
+        KiloByte = Byte << 10,
+        MegaByte = Byte << 20,
+        GigaByte = Byte << 30
     };
 
     class Memory

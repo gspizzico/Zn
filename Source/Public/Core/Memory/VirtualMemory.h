@@ -6,6 +6,17 @@
 
 DECLARE_LOG_CATEGORY(LogMemory);
 
+#if ZN_DEBUG
+#define ZN_VM_CHECK(FunctionCall)\
+if(!FunctionCall) \
+{\
+	ZN_LOG(LogMemory, ELogVerbosity::Error, #FunctionCall);\
+	_ASSERT(false);\
+}
+#else
+#define ZN_VM_CHECK(FunctionCall) FunctionCall
+#endif
+
 namespace Zn
 {
 	struct VirtualMemoryInformation;
@@ -97,8 +108,16 @@ namespace Zn
 		void* AllocateRegion();
 
 		bool FreeRegion(size_t region_index);
+
+		void* GetRegion(size_t region_index) const { return IsValidIndex(region_index) ? **m_Regions[region_index] : nullptr; }
+
+		bool GetRegionIndex(size_t& out_region_index, void* address) const;
+
+		size_t GetRegionSize() const { return m_RegionSize; }
 		
 	private:
+
+		bool IsValidIndex(size_t index) const { return index >= 0 && index < m_Regions.size(); }
 
 		size_t m_RegionSize			= 0;
 		

@@ -109,6 +109,9 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\TLSFAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\HeapAllocator.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -182,6 +185,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Math\Math.h">
       <Filter>Source\Public\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\HeapAllocator.h">
+      <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

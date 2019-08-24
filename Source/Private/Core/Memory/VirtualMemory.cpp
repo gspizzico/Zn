@@ -91,8 +91,7 @@ namespace Zn
 	}
 
 	bool VirtualMemoryHeap::FreeRegion(size_t region_index)
-	{
-		auto IsValidIndex = [this](size_t index) { return index >= 0 && index < m_Regions.size(); };
+	{	
 		//auto IsFreeBlock = [this](size_t index) { return std::find(m_Regions.cbegin(), m_Regions.cend(), index) != m_Regions.cend(); };
 		
 		if (IsValidIndex(region_index)) //&& IsFreeBlock(region_index))
@@ -101,7 +100,7 @@ namespace Zn
 
 			if (MemoryInformation.m_State > VirtualMemory::State::kReserved)
 			{
-				ZN_LOG(LogMemory, ELogVerbosity::Error, "VirtualMemoryHeap::FreeRegion has failed. Trying to free a region that is committed or freed.");
+				ZN_LOG(LogMemory, ELogVerbosity::Error, "VirtualMemoryHeap::FreeRegion has failed. Trying to free a region that is committed or already freed.");
 				return false;
 			}
 			
@@ -111,5 +110,21 @@ namespace Zn
 		}
 
 		return false;
+	}
+
+	bool VirtualMemoryHeap::GetRegionIndex(size_t& out_region_index, void* address) const
+	{
+		auto Predicate = [address_ = address](const SharedPtr<VirtualMemoryRegion>& Region) { return Region->Range().Contains(address_); };
+
+		auto It = std::find_if(m_Regions.cbegin(), m_Regions.cend(), Predicate);
+
+		const bool IsValidIterator = It != m_Regions.cend();
+		
+		if(IsValidIterator)
+		{
+			out_region_index = std::distance(m_Regions.begin(), It);
+		}
+
+		return IsValidIterator;
 	}
 }
