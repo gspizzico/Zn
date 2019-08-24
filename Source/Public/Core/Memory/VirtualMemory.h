@@ -72,7 +72,7 @@ namespace Zn
 
 		VirtualMemoryRegion& operator=(const VirtualMemoryRegion&) = delete;
 		
-		operator bool() const { return m_Address != nullptr; }
+		operator bool() const { return m_Range.Begin() != nullptr; }
 
 		size_t Size() const		{ return m_Range.Size(); }
 		
@@ -83,8 +83,6 @@ namespace Zn
 		const MemoryRange& Range() const { return m_Range; }
 
 	private:
-
-		void* m_Address		= nullptr;
 
 		MemoryRange m_Range;
 	};	

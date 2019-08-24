@@ -42,23 +42,20 @@ namespace Zn
 	}
 
 	VirtualMemoryRegion::VirtualMemoryRegion(size_t capacity)
-		: m_Address(VirtualMemory::Reserve(VirtualMemory::AlignToPageSize(capacity)))
-		, m_Range(m_Address, Memory::Align(capacity, VirtualMemory::GetPageSize()))
+		: m_Range(VirtualMemory::Reserve(VirtualMemory::AlignToPageSize(capacity)), Memory::Align(capacity, VirtualMemory::GetPageSize()))
 	{
 	}
 
 	VirtualMemoryRegion::VirtualMemoryRegion(VirtualMemoryRegion&& other) noexcept
-		: m_Address(other.m_Address)
-		, m_Range(std::move(other.m_Range))
+		: m_Range(std::move(other.m_Range))
 	{
-		other.m_Address = nullptr;
 	}
 
 	VirtualMemoryRegion::~VirtualMemoryRegion()
 	{
-		if (m_Address)
+		if (auto BaseAddress = m_Range.Begin())
 		{
-			VirtualMemory::Release(m_Address);
+			VirtualMemory::Release(BaseAddress);
 		}
 	}
 	
@@ -69,9 +66,10 @@ namespace Zn
 	}
 
 	VirtualMemoryHeap::VirtualMemoryHeap(VirtualMemoryHeap&& other) noexcept
+		: m_RegionSize(other.m_RegionSize)
+		, m_Regions(std::move(other.m_Regions))
 	{
-		m_RegionSize = other.m_RegionSize;
-		m_Regions = std::move(other.m_Regions);
+		other.m_RegionSize = 0;
 	}
 
 	bool VirtualMemoryHeap::IsValidAddress(void* address) const
@@ -95,6 +93,7 @@ namespace Zn
 			if (MemoryInformation.m_State > VirtualMemory::State::kReserved)
 			{
 				ZN_LOG(LogMemory, ELogVerbosity::Error, "VirtualMemoryHeap::FreeRegion has failed. Trying to free a region that is committed or already freed.");
+
 				return false;
 			}
 			
