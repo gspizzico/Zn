@@ -79,9 +79,9 @@ namespace Zn
 		return std::any_of(m_Regions.cbegin(), m_Regions.cend(), Predicate);
 	}
 
-	void* VirtualMemoryHeap::AllocateRegion()
+	SharedPtr<VirtualMemoryRegion> VirtualMemoryHeap::AllocateRegion()
 	{
-		return m_Regions.emplace_back(std::make_shared<VirtualMemoryRegion>(VirtualMemoryRegion(m_RegionSize)))->Begin();
+		return m_Regions.emplace_back(std::make_shared<VirtualMemoryRegion>(VirtualMemoryRegion(m_RegionSize)));
 	}
 
 	bool VirtualMemoryHeap::FreeRegion(size_t region_index)

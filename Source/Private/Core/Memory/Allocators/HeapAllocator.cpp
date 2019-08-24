@@ -57,15 +57,17 @@ namespace Zn
 
 		auto Region = m_MemoryHeap.GetRegion(m_RegionIndex);
 		
+		_ASSERT(Region);
+
 		auto RegionEndAddress = Region->End();
 
-		if(m_NextPageAddress == RegionEndAddress)
+		if(m_NextPageAddress == RegionEndAddress)								// Space is exhausted, reserve a new region
 		{
-			m_NextPageAddress = m_MemoryHeap.AllocateRegion();
+			Region = m_MemoryHeap.AllocateRegion();
+
+			m_NextPageAddress = Region->Begin();
 
 			m_RegionIndex++;
-
-			Region = m_MemoryHeap.GetRegion(m_RegionIndex);
 		}
 
 		auto PageAddress = m_NextPageAddress;
@@ -103,6 +105,10 @@ namespace Zn
 
 			return m_MemoryHeap.FreeRegion(RegionIndex);
 		}
+		else
+		{
+			ZN_LOG(LogHeapAllocator, ELogVerbosity::Error, "Trying to free address %p, but it has not been allocated with this allocator.", address);
+		}
 
 		return false;
 	}
@@ -118,12 +124,7 @@ namespace Zn
 
 		if (m_MemoryHeap.GetRegionIndex(RegionIndex, address))
 		{
-			auto LastAllocatedAddress = m_NextPageAddress;
-
-			if (RegionIndex != m_RegionIndex)
-			{
-				LastAllocatedAddress = m_MemoryHeap.GetRegion(RegionIndex)->End();			// If is different, the memory is all committed.
-			}
+			auto LastAllocatedAddress = RegionIndex == m_RegionIndex ? m_NextPageAddress : m_MemoryHeap.GetRegion(RegionIndex)->End();	// If is different, the memory should all committed.
 
 			return Memory::GetDistance(address, LastAllocatedAddress) < 0;
 		}

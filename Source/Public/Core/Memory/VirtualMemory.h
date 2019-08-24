@@ -105,7 +105,7 @@ namespace Zn
 
 		bool  IsValidAddress(void* address) const;
 
-		void* AllocateRegion();
+		SharedPtr<VirtualMemoryRegion> AllocateRegion();
 
 		bool FreeRegion(size_t region_index);
 
