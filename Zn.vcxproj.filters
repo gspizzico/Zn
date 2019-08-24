@@ -68,6 +68,9 @@
     <Filter Include="Source\Private\Automation">
       <UniqueIdentifier>{b761ad88-ad98-4751-b849-a60ca5087c02}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Private\Core\Memory\Allocators\Tests">
+      <UniqueIdentifier>{a442219f-ab23-4efc-95d2-53f0e2dd3efa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -126,6 +129,9 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Automation\AutomationTestExample.cpp">
       <Filter>Source\Private\Automation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

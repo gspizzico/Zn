@@ -173,6 +173,7 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\PoolAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\TLSFAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp" />
