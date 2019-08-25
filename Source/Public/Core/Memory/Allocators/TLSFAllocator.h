@@ -32,7 +32,7 @@ namespace Zn
 
 				FreeBlock*	GetBlock() const;
 
-				size_t		GetSize() const;
+				size_t		BlockSize() const;
 
 				bool		IsValid() const;
 
@@ -44,6 +44,8 @@ namespace Zn
 			static constexpr size_t			kFooterSize			= sizeof(Footer);
 
 			static constexpr size_t			kMinBlockSize		= std::max(kFooterSize + sizeof(size_t), 128ull);
+
+			static FreeBlock* New(const MemoryRange& block_range);
 
 			FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next);
 
@@ -63,6 +65,8 @@ namespace Zn
 			void			LogDebugInfo(bool recursive) const;
 
 			void			Verify(size_t max_block_size) const;
+
+			void			VerifyWrite(MemoryRange range) const;
 #endif
 		private:
 
@@ -87,12 +91,14 @@ namespace Zn
 
 		bool				Free(void* address);		
 
-		size_t				GetAllocatedMemory() const { return m_HeapAllocator.GetAllocatedMemory(); }
+		size_t				GetAllocatedMemory() const { return m_HeapAllocator.GetReservedMemory(); }
 
 #if ZN_DEBUG
 		void				LogDebugInfo() const;
 
 		void				Verify() const;
+
+		void				VerifyWrite(MemoryRange range) const;
 #endif
 
 	private:
@@ -114,6 +120,8 @@ namespace Zn
 		void				RemoveBlock(FreeBlock* block);
 
 		void				AddBlock(FreeBlock* block);
+
+		bool				Decommit(FreeBlock* block);
 
 		HeapAllocator							m_HeapAllocator;		
 

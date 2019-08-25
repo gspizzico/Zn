@@ -109,7 +109,9 @@ namespace Zn
 
 		bool FreeRegion(size_t region_index);
 
-		SharedPtr<VirtualMemoryRegion> GetRegion(size_t region_index) const { return IsValidIndex(region_index) ? m_Regions[region_index] : nullptr; }
+		SharedPtr<VirtualMemoryRegion> GetRegion(size_t region_index) const { return IsValidIndex(region_index) ? GetRegionUnsafe(region_index) : nullptr; }
+		
+		SharedPtr<VirtualMemoryRegion> GetRegionUnsafe(size_t region_index) const { return m_Regions[region_index]; }
 
 		bool GetRegionIndex(size_t& out_region_index, void* address) const;
 

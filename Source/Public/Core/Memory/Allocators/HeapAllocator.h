@@ -1,12 +1,17 @@
 #pragma once
 
 #include "Core/Memory/VirtualMemory.h"
+#include "Core/Containers/Map.h"
 
 namespace Zn
 {
 	class HeapAllocator
 	{
 	public:
+
+		static constexpr size_t		kDefaultPageSize	= 1 << 16;				// 64k
+
+		static constexpr size_t		kDefaultRegionSize	= 32 * (1 << 20);		// 32Mb
 
 		HeapAllocator();
 
@@ -28,13 +33,17 @@ namespace Zn
 
 		size_t GetPageSize() const { return m_PageSize; }
 
-		size_t GetAllocatedMemory() const;
+		size_t GetReservedMemory() const;
 
 		bool IsValidAddress(void* address) const { return m_MemoryHeap.IsValidAddress(address); }
 
 		bool IsAllocated(void* address) const;
 
+		bool Free(MemoryRange pages);
+
 	private:
+
+		UnorderedMap<size_t, Vector<void*>>			m_FreePageList;
 
 		VirtualMemoryHeap		m_MemoryHeap;
 
@@ -43,9 +52,5 @@ namespace Zn
 		size_t					m_RegionIndex;
 
 		void*					m_NextPageAddress;
-
-		static constexpr size_t		kDefaultPageSize	= 1 << 16;			// 64k
-
-		static constexpr size_t		kDefaultRegionSize	= 32 * (1 << 20);	// 32Mb
 	};
 }

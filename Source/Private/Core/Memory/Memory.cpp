@@ -45,6 +45,11 @@ namespace Zn
 			pattern);
 	}
 
+	void Memory::Memzero(void* begin, void* end)
+	{
+		Memory::MarkMemory(begin, end, 0);
+	}
+
     void MemoryDebug::MarkUninitialized(void * begin, void * end)
     {
 #if ZN_DEBUG
@@ -73,6 +78,11 @@ namespace Zn
 	{
 		other.m_Begin	= nullptr;
 		other.m_End		= nullptr;
+	}
+
+	bool MemoryRange::operator==(const MemoryRange& other) const
+	{
+		return m_Begin == other.m_Begin && m_End == other.m_End;
 	}
 }
 

@@ -6,6 +6,7 @@
 #include <utility>
 #include <random>
 #include <numeric>
+#include <chrono>
 
 DECLARE_STATIC_LOG_CATEGORY(LogAutomationTest_TLSFAllocator, ELogVerbosity::Log)
 
@@ -17,6 +18,7 @@ namespace Zn::Automation
 
 		TLSFAutomationTest()
 			: m_Iterations(2)
+			, m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
 			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
 			, m_TestName(String("TLSFAutomationTest_").append(std::to_string(m_Iterations)))
 		{
@@ -24,14 +26,16 @@ namespace Zn::Automation
 
 		TLSFAutomationTest(size_t iterations)
 			: m_Iterations(iterations)
+			, m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
 			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
 			, m_TestName(String("TLSFAutomationTest_").append(std::to_string(m_Iterations)))
 		{
 		}
 
-		TLSFAutomationTest(size_t iterations, size_t max_allocation_size)
+		TLSFAutomationTest(size_t iterations, size_t min_allocation_size, size_t max_allocation_size)
 			: m_Iterations(iterations)
-			, m_MaxAllocationSize(std::clamp<size_t>(max_allocation_size, 128ull, TLSFAllocator::kMaxAllocationSize))
+			, m_MinAllocationSize(std::clamp<size_t>(min_allocation_size, sizeof(uintptr_t), TLSFAllocator::kMaxAllocationSize))
+			, m_MaxAllocationSize(std::clamp<size_t>(max_allocation_size, m_MinAllocationSize, TLSFAllocator::kMaxAllocationSize))
 			, m_TestName(String("TLSFAutomationTest_").append(std::to_string(m_Iterations)))
 		{
 		}
@@ -54,10 +58,10 @@ namespace Zn::Automation
 
 			for (int32 k = m_Iterations - 1; k >= 0; k--)
 			{
+				std::chrono::high_resolution_clock hrc;
 				std::random_device rd;
 				std::mt19937 gen(rd());
-				std::uniform_int_distribution<> creator(128, (int)m_MaxAllocationSize);
-				std::uniform_int_distribution<> dis(creator(gen), (int)m_MaxAllocationSize);
+				std::uniform_int_distribution<> dis(m_MinAllocationSize, (int)m_MaxAllocationSize);
 
 				auto& MemoryBlocks = Pointers[flip_flop];
 
@@ -67,7 +71,7 @@ namespace Zn::Automation
 
 				if (PreviousIterationAllocations)
 				{
-					std::shuffle(PreviousIterationAllocations->begin(), PreviousIterationAllocations->end(), std::default_random_engine(5932));
+					std::shuffle(PreviousIterationAllocations->begin(), PreviousIterationAllocations->end(), std::default_random_engine(hrc.now().time_since_epoch().count()));
 				}
 
 
@@ -112,6 +116,8 @@ namespace Zn::Automation
 	private:
 
 		size_t m_Iterations;
+		
+		size_t m_MinAllocationSize;
 
 		size_t m_MaxAllocationSize;
 
@@ -121,4 +127,4 @@ namespace Zn::Automation
 
 DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_100, Zn::Automation::TLSFAutomationTest, 100);
 DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000, Zn::Automation::TLSFAutomationTest, 1000);
-DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000, 4096, Zn::TLSFAllocator::kMaxAllocationSize);
