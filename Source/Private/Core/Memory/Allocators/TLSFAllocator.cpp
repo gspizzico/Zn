@@ -62,7 +62,7 @@ namespace Zn
 
 	FreeBlock* TLSFAllocator::FreeBlock::New(const MemoryRange& block_range)
 	{
-		VERIFY_WRITE(block_range.Begin(), block_range.Size(), MemoryDebug::MarkFree);
+		MemoryDebug::MarkFree(block_range.Begin(), block_range.End());
 
 		return new (block_range.Begin()) FreeBlock(block_range.Size(), nullptr, nullptr);
 	}
@@ -154,7 +154,7 @@ namespace Zn
 
 	void* TLSFAllocator::Allocate(size_t size, size_t alignment)
 	{	
-		size_t AllocationSize = Memory::Align(size + sizeof(uintptr_t), sizeof(uintptr_t));			// FREEBLOCK -> {[BLOCK_SIZE][STORAGE|FOOTER]}
+		size_t AllocationSize = Memory::Align(size + sizeof(uintptr_t), FreeBlock::kMinBlockSize);	// FREEBLOCK -> {[BLOCK_SIZE][STORAGE|FOOTER]}
 		
 		index_type fl = 0, sl = 0;
 		MappingSearch(AllocationSize, fl, sl);
