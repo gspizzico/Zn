@@ -169,14 +169,21 @@ namespace Zn
 
 			if (Memory::GetDistance(address, LastAllocatedAddress) < 0)
 			{
-				if(auto It = m_FreePageList.find(RegionIndex); It != m_FreePageList.cend())
+				auto PageAlignedAddress = Memory::Align(address, m_PageSize);
+
+				if (PageAlignedAddress != address)
 				{
-					auto Predicate = [&](const auto PageAddress) { return MemoryRange(PageAddress, m_PageSize).Contains(address); };
-					
-					return std::none_of(It->second.begin(), It->second.end(), Predicate);
+					_ASSERT(Memory::GetDistance(PageAlignedAddress, address) > 0);
+					PageAlignedAddress = Memory::SubOffset(PageAlignedAddress, m_PageSize);
+				}
+				
+				if (auto It = m_FreePageList.find(RegionIndex); It == m_FreePageList.end())
+				{
+					return true;
 				}
 
-				return true;
+				auto MemoryInformation = VirtualMemory::GetMemoryInformation(PageAlignedAddress, m_PageSize);
+				return MemoryInformation.m_State == VirtualMemory::State::kCommitted;
 			}
 		}
 

@@ -6,7 +6,7 @@
 DECLARE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
 
 #define ENABLE_MEM_VERIFY 0
-#define TLSF_ENABLE_DECOMMIT 0
+#define TLSF_ENABLE_DECOMMIT 1
 
 #if ENABLE_MEM_VERIFY
 #define VERIFY() Verify();
@@ -362,7 +362,8 @@ namespace Zn
 	{	
 		auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousPhysicalFooter(block);
 
-		if (m_HeapAllocator.IsAllocated(PreviousPhysicalBlockFooter) && PreviousPhysicalBlockFooter->IsValid())
+		if ((!Memory::IsAligned(block, m_HeapAllocator.GetPageSize()) || m_HeapAllocator.IsAllocated(PreviousPhysicalBlockFooter)) 
+			&& PreviousPhysicalBlockFooter->IsValid())									// If the block is not aligned, the previous can never be not committed.
 		{
 			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->BlockSize();
 
@@ -384,7 +385,10 @@ namespace Zn
 
 	TLSFAllocator::FreeBlock* TLSFAllocator::MergeNext(FreeBlock* block)
 	{
-		if (FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size())); m_HeapAllocator.IsAllocated(NextPhysicalBlock) && NextPhysicalBlock->GetFooter()->IsValid())
+		FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size()));
+
+		if ((!Memory::IsAligned(NextPhysicalBlock, m_HeapAllocator.GetPageSize()) || m_HeapAllocator.IsAllocated(NextPhysicalBlock)) 
+			&& NextPhysicalBlock->GetFooter()->IsValid())								// If the block is not aligned, the next can never be not committed.
 		{
 			auto NextBlockSize = NextPhysicalBlock->Size();
 
