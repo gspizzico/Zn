@@ -32,6 +32,8 @@ namespace Zn
 		static uintptr_t Align(uintptr_t bytes, size_t alignment);
 
         static void* Align(void* address, size_t alignment);
+        
+		static void* AlignDown(void* address, size_t alignment);
 
 		static bool IsAligned(void* address, size_t alignment);
 
@@ -57,8 +59,6 @@ namespace Zn
 		static void TrackAllocation(void* address, size_t size);
 		
 		static void TrackDeallocation(void* address);
-
-    private:
 
         static constexpr int8_t kUninitializedMemoryPattern = 0x5C;
         

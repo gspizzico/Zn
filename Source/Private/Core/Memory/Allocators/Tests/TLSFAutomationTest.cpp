@@ -23,7 +23,6 @@ namespace Zn::Automation
 			: m_Iterations(2)
 			, m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
 			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
-			, m_TestName(String("TLSFAutomationTest_").append(std::to_string(m_Iterations)))
 		{
 		}
 
@@ -31,7 +30,6 @@ namespace Zn::Automation
 			: m_Iterations(iterations)
 			, m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
 			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
-			, m_TestName(String("TLSFAutomationTest_").append(std::to_string(m_Iterations)))
 		{
 		}
 
@@ -39,7 +37,6 @@ namespace Zn::Automation
 			: m_Iterations(iterations)
 			, m_MinAllocationSize(std::clamp<size_t>(min_allocation_size, sizeof(uintptr_t), TLSFAllocator::kMaxAllocationSize))
 			, m_MaxAllocationSize(std::clamp<size_t>(max_allocation_size, m_MinAllocationSize, TLSFAllocator::kMaxAllocationSize))
-			, m_TestName(String("TLSFAutomationTest_").append(std::to_string(m_Iterations)))
 		{
 		}
 
@@ -104,12 +101,7 @@ namespace Zn::Automation
 			}
 
 			m_Result = Result::kOk;
-		}
-
-		virtual Name GetName() const override
-		{
-			return m_TestName;
-		}
+		}	
 
 		virtual bool ShouldQuitWhenCriticalError() const override
 		{
@@ -123,8 +115,6 @@ namespace Zn::Automation
 		size_t m_MinAllocationSize;
 
 		size_t m_MaxAllocationSize;
-
-		Name m_TestName;
 	};
 
 	class TLSFAutomationTest2 : public AutomationTest
@@ -173,9 +163,7 @@ namespace Zn::Automation
 
 		size_t m_CurrentFrameSpikeIndex;
 
-		size_t m_NextSpikeIndex;
-		
-		Name m_TestName = "TLSFAutomationTest2";
+		size_t m_NextSpikeIndex;		
 
 	public:
 
@@ -336,11 +324,6 @@ namespace Zn::Automation
 			m_Result = Result::kOk;
 		}
 
-		virtual Name GetName() const override
-		{
-			return m_TestName;
-		}
-
 		virtual void Cleanup(bool bForce) override 
 		{
 			m_AllocationData = nullptr;
@@ -354,7 +337,7 @@ namespace Zn::Automation
 	};
 }
 
-DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_100, Zn::Automation::TLSFAutomationTest, 100);
-DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest2_, Zn::Automation::TLSFAutomationTest2);
-//DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000, Zn::Automation::TLSFAutomationTest, 1000);
+//DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_100, Zn::Automation::TLSFAutomationTest, 100);
+//DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest2_, Zn::Automation::TLSFAutomationTest2);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000, Zn::Automation::TLSFAutomationTest, 1000);
 //DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000, 4096, Zn::TLSFAllocator::kMaxAllocationSize);

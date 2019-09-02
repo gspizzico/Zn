@@ -3,18 +3,23 @@
 
 namespace Zn
 {
-	MemoryPool::MemoryPool(size_t blockSize, size_t alignment)
-		: m_Memory(Memory::GetMemoryStatus().m_TotalPhys)
+	MemoryPool::MemoryPool(size_t poolSize, size_t blockSize, size_t alignment)
+		: m_Memory(poolSize)
 		, m_BlockSize(Memory::Align(blockSize, std::max(sizeof(uintptr_t), alignment)))
 		, m_CommittedMemory(0)
-		, m_MinMemoryCommitSize(Memory::Align(blockSize * kMinBlockNum, VirtualMemory::GetPageSize()))
+		, m_MinMemoryCommitSize(Memory::Align(blockSize* kMinBlockNum, VirtualMemory::GetPageSize()))
 		, m_AllocatedBlocks(0)
 		, m_NextFreeBlock(m_Memory.Begin())
 		, m_NextPage(m_Memory.Begin())
-	{	
+	{
 		VirtualMemory::Commit(m_NextPage, m_MinMemoryCommitSize);															// Commit an initial set of memory. Eventually it's going to be used.
 		m_CommittedMemory += m_MinMemoryCommitSize;
 		m_NextPage = Memory::AddOffset(m_NextPage, m_MinMemoryCommitSize);
+	}
+
+	MemoryPool::MemoryPool(size_t blockSize, size_t alignment)
+		: MemoryPool(Memory::GetMemoryStatus().m_TotalPhys, blockSize, alignment)
+	{
 	}
 
 	void* MemoryPool::Allocate()

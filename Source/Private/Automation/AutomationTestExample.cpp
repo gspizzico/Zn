@@ -45,12 +45,6 @@ namespace Zn::Automation
 			ZN_LOG(LogAutomationTestExample, ELogVerbosity::Verbose, "AutomationTestExample... cleanup.");
 		}
 
-		virtual Name GetName() const override
-		{
-			static Name TestName{ "AutomationTestExample" };
-			return TestName;
-		}
-
 		virtual bool ShouldQuitWhenCriticalError() const override
 		{ 
 			static bool s_ForceQuit = false;

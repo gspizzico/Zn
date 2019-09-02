@@ -133,6 +133,12 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp">
       <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\FixedSizeAllocator.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -215,6 +221,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Automation\AutomationTestManager.h">
       <Filter>Source\Public\Automation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\FixedSizeAllocator.h">
+      <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

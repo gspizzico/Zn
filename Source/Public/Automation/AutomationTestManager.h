@@ -12,7 +12,7 @@ namespace Zn::Automation
 		static AutomationTestManager& Get();
 
 		template<typename TTestType, typename... Args>
-		static void RegisterStartupTest(Args... arguments);
+		static void RegisterStartupTest(Name name, Args... arguments);
 
 		void ExecuteStartupTests();
 
@@ -26,10 +26,12 @@ namespace Zn::Automation
 	};
 
 	template<typename TTestType, typename ...Args>
-	inline void AutomationTestManager::RegisterStartupTest(Args ...arguments)
+	inline void AutomationTestManager::RegisterStartupTest(Name name, Args ...arguments)
 	{
 		auto& Manager = AutomationTestManager::Get();
-		Manager.m_StartupTests.emplace_back(std::make_shared<TTestType>(TTestType(std::forward<Args>(arguments)...)));
+		auto Test = std::make_shared<TTestType>(TTestType(std::forward<Args>(arguments)...));
+		Test->m_Name = name;
+		Manager.m_StartupTests.emplace_back(Test);
 	}
 	
 	template<typename TTestType>
@@ -38,11 +40,11 @@ namespace Zn::Automation
 	public:
 
 		template<typename ...Args>
-		AutoStartupTest(Args ...arguments)
+		AutoStartupTest(Name name, Args ...arguments)
 		{
-			AutomationTestManager::RegisterStartupTest<TTestType>(std::forward<Args>(arguments)...);
+			AutomationTestManager::RegisterStartupTest<TTestType>(name, std::forward<Args>(arguments)...);
 		}
 	};
 }
 
-#define DEFINE_AUTOMATION_STARTUP_TEST(Name, Type, ...) namespace { Zn::Automation::AutoStartupTest<Type> Name##TestInstance{__VA_ARGS__};}
+#define DEFINE_AUTOMATION_STARTUP_TEST(Name, Type, ...) namespace { Zn::Automation::AutoStartupTest<Type> Name##TestInstance{#Name, __VA_ARGS__};}

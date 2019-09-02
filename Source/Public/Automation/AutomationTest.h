@@ -44,7 +44,7 @@ namespace Zn::Automation
 
 		virtual void Cleanup(bool bForce) {};
 
-		virtual Name GetName() const { return Name(); };
+		Name GetName() const { return m_Name; };
 
 		virtual String GetErrorMessage() const { return String(); };
 
@@ -57,6 +57,10 @@ namespace Zn::Automation
 		virtual void Sync() { };
 
 	protected:
+
+		friend class AutomationTestManager;
+
+		Name m_Name;
 
 		std::mutex	mtx_State;
 
