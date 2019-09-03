@@ -11,13 +11,13 @@ namespace Zn
 
 		MemoryPool(size_t blockSize, size_t alignment = sizeof(uintptr_t));
 
-		size_t	GetUsedMemory() const { return m_AllocatedBlocks * m_BlockSize; }
+		size_t GetUsedMemory() const { return m_AllocatedBlocks * m_BlockSize; }
 
 		float GetMemoryUtilization() const { return (float)GetUsedMemory() / (float) m_CommittedMemory; }
 
-		void*	Allocate();
+		void* Allocate();
 
-		bool	Free(void* address);
+		bool Free(void* address);
 
 		size_t BlockSize() const { return m_BlockSize; }
 
@@ -25,7 +25,9 @@ namespace Zn
 
 		bool CommitMemory();
 
-		static constexpr size_t kMinBlockNum = 1;
+		static constexpr float kStartDecommitThreshold	= .4f;
+		
+		static constexpr float kEndDecommitThreshold	= .8f;
 
 		VirtualMemoryRegion m_Memory;
 
@@ -33,17 +35,10 @@ namespace Zn
 
 		size_t m_CommittedMemory;
 
-		const size_t m_MinMemoryCommitSize;
-
 		size_t m_AllocatedBlocks;
 
 		void* m_NextFreeBlock;
 		
 		void* m_NextPage;
-	};
-
-	class PoolAllocator
-	{
-
 	};
 }

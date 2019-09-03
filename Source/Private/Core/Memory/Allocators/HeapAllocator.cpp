@@ -40,7 +40,7 @@ namespace Zn
 		}
 	}
 
-	HeapAllocator::HeapAllocator(HeapAllocator&& other)
+	HeapAllocator::HeapAllocator(HeapAllocator&& other) noexcept
 		: m_FreePageList(std::move(other.m_FreePageList))
 		, m_MemoryHeap(std::move(other.m_MemoryHeap))
 		, m_PageSize(other.m_PageSize)

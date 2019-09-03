@@ -19,7 +19,7 @@ namespace Zn
 		
 		HeapAllocator(VirtualMemoryHeap&& heap, size_t page_size);
 		
-		HeapAllocator(HeapAllocator&&);
+		HeapAllocator(HeapAllocator&&) noexcept;
 		
 		virtual ~HeapAllocator();
 
