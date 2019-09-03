@@ -3,7 +3,7 @@
 #include "Core/Log/LogMacros.h"
 #include <algorithm>
 
-DECLARE_STATIC_LOG_CATEGORY(LogHeapAllocator, ELogVerbosity::Log);
+DEFINE_STATIC_LOG_CATEGORY(LogHeapAllocator, ELogVerbosity::Log);
 
 namespace Zn
 {

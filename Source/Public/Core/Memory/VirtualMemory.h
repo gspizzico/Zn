@@ -2,6 +2,7 @@
 
 #include "Core/Memory/Memory.h"
 #include "Core/Log/Log.h"
+#include "Core/Log/LogMacros.h"
 #include "Core/HAL/BasicTypes.h"
 
 DECLARE_LOG_CATEGORY(LogMemory);

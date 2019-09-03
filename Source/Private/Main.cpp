@@ -16,7 +16,7 @@
 #include <random>
 #include <numeric>
 
-DECLARE_STATIC_LOG_CATEGORY(LogMainCpp, ELogVerbosity::Verbose);
+DEFINE_STATIC_LOG_CATEGORY(LogMainCpp, ELogVerbosity::Verbose);
 
 using namespace Zn;
 

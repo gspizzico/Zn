@@ -3,7 +3,7 @@
 #include "Core/Memory/VirtualMemory.h"
 #include "Core/Log/LogMacros.h"
 
-DECLARE_STATIC_LOG_CATEGORY(LogLinearAllocator, ELogVerbosity::Log);
+DEFINE_STATIC_LOG_CATEGORY(LogLinearAllocator, ELogVerbosity::Log);
 
 Zn::LinearAllocator::LinearAllocator(size_t capacity)
 	: m_Memory(capacity)

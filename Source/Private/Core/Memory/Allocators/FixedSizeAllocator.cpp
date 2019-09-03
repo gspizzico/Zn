@@ -3,7 +3,7 @@
 #include "Core/Log/LogMacros.h"
 #include <algorithm>
 
-DECLARE_STATIC_LOG_CATEGORY(LogFixedSizeAllocator, ELogVerbosity::Log);
+DEFINE_STATIC_LOG_CATEGORY(LogFixedSizeAllocator, ELogVerbosity::Log);
 
 namespace Zn
 {
@@ -144,8 +144,6 @@ namespace Zn
 	void FixedSizeAllocator::FSAPage::Free(void* address)
 	{
 		m_AllocatedBlocks--;
-
-		uintptr_t BeforeFree = *reinterpret_cast<uintptr_t*>(address);
 
 		MemoryDebug::MarkFree(address, Memory::AddOffset(address, m_AllocationSize));
 

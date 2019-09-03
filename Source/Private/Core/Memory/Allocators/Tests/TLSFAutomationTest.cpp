@@ -10,8 +10,8 @@
 #include <iostream>
 #include "Core/Time/Time.h"
 
-DECLARE_STATIC_LOG_CATEGORY(LogAutomationTest_TLSFAllocator, ELogVerbosity::Log)
-DECLARE_STATIC_LOG_CATEGORY(LogAutomationTest_TLSFAllocator2, ELogVerbosity::Log)
+DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_TLSFAllocator, ELogVerbosity::Log)
+DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_TLSFAllocator2, ELogVerbosity::Log)
 
 namespace Zn::Automation
 {

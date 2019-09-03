@@ -3,7 +3,7 @@
 
 #include "Core/Log/LogMacros.h"
 
-DECLARE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
+DEFINE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
 
 #define ENABLE_MEM_VERIFY 0
 #define TLSF_ENABLE_DECOMMIT 1

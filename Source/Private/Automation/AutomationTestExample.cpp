@@ -2,7 +2,7 @@
 #include "Automation/AutomationTestManager.h"
 #include "Core/Log/LogMacros.h"
 
-DECLARE_STATIC_LOG_CATEGORY(LogAutomationTestExample, ELogVerbosity::Log)
+DEFINE_STATIC_LOG_CATEGORY(LogAutomationTestExample, ELogVerbosity::Log)
 
 namespace Zn::Automation
 {

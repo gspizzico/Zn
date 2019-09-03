@@ -9,7 +9,7 @@
 #include <array>
 #include <chrono>
 
-DECLARE_STATIC_LOG_CATEGORY(LogAutomationTest_FSAAutomationTest, ELogVerbosity::Log)
+DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_FSAAutomationTest, ELogVerbosity::Log)
 
 namespace Zn::Automation
 {
@@ -67,7 +67,7 @@ namespace Zn::Automation
 
 					ToDeallocate += RollDice(gen);
 
-					//std::shuffle(PreviousAllocations.begin(), PreviousAllocations.end(), std::default_random_engine(hrc.now().time_since_epoch().count()));
+					std::shuffle(PreviousAllocations.begin(), PreviousAllocations.end(), std::default_random_engine(hrc.now().time_since_epoch().count()));
 				}
 
 				std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);

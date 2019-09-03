@@ -103,7 +103,7 @@ namespace Zn::LogCategories\
 #define DEFINE_LOG_CATEGORY(Name, Verbosity) \
 Zn::AutoLogCategory Zn::LogCategories::CATEGORY_VAR_NAME(Name){#Name, Verbosity};
 
-#define DECLARE_STATIC_LOG_CATEGORY(Name, Verbosity) \
+#define DEFINE_STATIC_LOG_CATEGORY(Name, Verbosity) \
 namespace Zn::LogCategories\
 {\
     static Zn::AutoLogCategory CATEGORY_VAR_NAME(Name){#Name, Verbosity};\
