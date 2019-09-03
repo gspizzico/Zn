@@ -2,7 +2,7 @@
 #include "Core/Memory/Allocators/PoolAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
 #include <array>
-#include <map>
+#include <set>
 #include <list>
 
 namespace Zn
@@ -16,25 +16,31 @@ namespace Zn
 			uint32_t m_NextBlockOffset;
 			
 			static constexpr uint32_t kValidationToken = 0xfbaf;		//FreeBlockAllocationFlag
-		};
+		};		
 
-		struct Page
+		struct FSAPage
 		{
-			Page();
+			FSAPage(size_t page_size, size_t allocation_size);
 
-			Page(MemoryRange pageRange, size_t allocationSize);
-			
-			Page(Page&& other) noexcept;
-		
-			VirtualMemoryPage						m_Page;
+			size_t m_Size;
 
-			size_t									m_AllocationSize;
+			size_t m_AllocationSize;
 
-			FixedSizeAllocator::FreeBlock*			m_NextFreeBlock;
+			size_t m_AllocatedBlocks;
+
+			FixedSizeAllocator::FreeBlock* m_NextFreeBlock;
+
+			bool IsFull() const;
+
+			size_t MaxAllocations() const;
 
 			void* Allocate();
 
 			void Free(void* address);
+		
+		private:
+
+			FixedSizeAllocator::FreeBlock* StartAddress() const;
 		};
 
 		static constexpr size_t	kMinAllocationSize = sizeof(uintptr_t);							// Each block stores the address to the next block.
@@ -59,8 +65,8 @@ namespace Zn
 
 		// Book keeping data
 
-		std::map<uintptr_t, Page>	m_Pages;
-
 		std::list<uintptr_t>		m_FreePageList;
+		
+		std::set<uintptr_t>			m_FullPageList;
 	};
 }

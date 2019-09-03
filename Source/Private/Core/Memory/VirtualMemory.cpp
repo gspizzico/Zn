@@ -119,27 +119,5 @@ namespace Zn
 		}
 
 		return IsValidIterator;
-	}
-	VirtualMemoryPage::VirtualMemoryPage(MemoryRange range)
-		: m_Range(range)
-		, m_AllocatedSize(0)
-	{
-	}
-	VirtualMemoryPage::VirtualMemoryPage(VirtualMemoryPage&& other) noexcept
-		: m_Range(std::move(other.m_Range))
-		, m_AllocatedSize(other.m_AllocatedSize)
-	{
-		other.m_AllocatedSize = 0;
-	}
-	
-	void VirtualMemoryPage::TrackAllocation(size_t size)
-	{
-		m_AllocatedSize += size;
-		_ASSERT(m_AllocatedSize <= Size());
-	}
-	void VirtualMemoryPage::TrackFree(size_t size)
-	{
-		m_AllocatedSize -= size;
-		_ASSERT(m_AllocatedSize <= Size());
-	}
+	}	
 }

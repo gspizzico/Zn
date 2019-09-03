@@ -54,42 +54,7 @@ namespace Zn
 		MemoryRange m_Range;
 
 		VirtualMemory::State m_State;		// Note: State::kFree -> m_Range is undefined.
-	};
-
-	struct VirtualMemoryPage
-	{
-		VirtualMemoryPage() = default;
-
-		VirtualMemoryPage(MemoryRange range);
-
-		VirtualMemoryPage(VirtualMemoryPage&& other) noexcept;
-
-		VirtualMemoryPage(const VirtualMemoryPage&) = default;
-
-		VirtualMemoryPage& operator=(const VirtualMemoryPage&) = default;
-
-		operator bool() const { return m_Range.Begin() != nullptr; }
-
-		size_t Size() const { return m_Range.Size(); }
-
-		void* Begin() const { return m_Range.Begin(); }
-
-		void* End() const { return m_Range.End(); }
-
-		const MemoryRange& Range() const { return m_Range; }
-
-		void TrackAllocation(size_t size);
-		
-		void TrackFree(size_t size);
-
-		size_t AllocatedSize() const { return m_AllocatedSize; }
-
-	private:
-
-		MemoryRange m_Range;
-
-		size_t		m_AllocatedSize;
-	};
+	};	
 
 	struct VirtualMemoryRegion
 	{

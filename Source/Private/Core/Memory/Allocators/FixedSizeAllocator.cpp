@@ -11,8 +11,8 @@ namespace Zn
 		: m_MemoryPool(memoryPool)
 		, m_AllocationSize(std::max(Memory::Align(allocationSize, 2), kMinAllocationSize))
 		, m_NextFreeBlock(nullptr)
-		, m_Pages()
 		, m_FreePageList()
+		, m_FullPageList()
 	{	
 	}
 
@@ -31,15 +31,14 @@ namespace Zn
 
 		auto Top = m_FreePageList.front();
 
-		auto& CurrentPage = m_Pages[Top];
+		auto CurrentPage = reinterpret_cast<FSAPage*>(Top);
 
-		auto Block = CurrentPage.Allocate();
+		auto Block = CurrentPage->Allocate();
 
-		const auto MaxAllocableSize = m_MemoryPool->BlockSize() - m_MemoryPool->BlockSize() % m_AllocationSize;
-
-		if (CurrentPage.m_Page.AllocatedSize() == MaxAllocableSize)
+		if (CurrentPage->IsFull())
 		{
 			m_FreePageList.pop_front();
+			m_FullPageList.emplace(reinterpret_cast<uintptr_t>(CurrentPage));
 		}
 
 		return Block;		
@@ -47,25 +46,24 @@ namespace Zn
 
 	void FixedSizeAllocator::Free(void* address)
 	{
-		auto PageAddress = Memory::AlignDown(address, m_MemoryPool->BlockSize());
+		auto PageAddress = reinterpret_cast<FSAPage*>(Memory::AlignDown(address, m_MemoryPool->BlockSize()));
+		
+		_ASSERT(PageAddress != NULL && PageAddress->m_AllocationSize == m_AllocationSize);
+
+		PageAddress->Free(address);
 		
 		uintptr_t PageKey = reinterpret_cast<uintptr_t>(PageAddress);
 
-		auto& Page = m_Pages[PageKey];
-		Page.Free(address);
-
-		if (Page.m_Page.AllocatedSize() == m_MemoryPool->BlockSize() - m_AllocationSize)
+		if (PageAddress->m_AllocatedBlocks == PageAddress->MaxAllocations() - 1)
 		{
 			ZN_LOG(LogFixedSizeAllocator, ELogVerbosity::Verbose, "A slot on page %i has been freed. This page is added back to the FreePageList.", PageKey);
+
 			m_FreePageList.push_back(PageKey);
+			m_FullPageList.erase(PageKey);
 		}
-		else if (Page.m_Page.AllocatedSize() == 0)
+		else if (PageAddress->m_AllocatedBlocks == 0)
 		{
 			m_FreePageList.remove(PageKey);
-
-			auto PageAddress = Page.m_Page.Begin();
-
-			m_Pages.erase(PageKey);
 
 			m_MemoryPool->Free(PageAddress);
 
@@ -77,55 +75,51 @@ namespace Zn
 	{
 		if (m_MemoryPool)
 		{
-			auto Range = MemoryRange{ m_MemoryPool->Allocate(), m_MemoryPool->BlockSize() };
+			auto NewPage = new (m_MemoryPool->Allocate()) FSAPage(m_MemoryPool->BlockSize(), m_AllocationSize);
 
-			auto PageKey = reinterpret_cast<uintptr_t>(Range.Begin());
-
-			auto AddedValue = m_Pages.try_emplace(PageKey, Page(Range, m_AllocationSize));
+			auto PageKey = reinterpret_cast<uintptr_t>(NewPage);
 
 			m_FreePageList.push_back(PageKey);
 
 			ZN_LOG(LogFixedSizeAllocator, ELogVerbosity::Verbose, "Requested a page of size \t%i from the pool.", m_MemoryPool->BlockSize());
 		}
-	}
+	}	
 
-	FixedSizeAllocator::Page::Page()
-		: m_Page()
-		, m_AllocationSize(0)
-		, m_NextFreeBlock(nullptr)
+	FixedSizeAllocator::FSAPage::FSAPage(size_t page_size, size_t allocation_size)
+		: m_Size(page_size)
+		, m_AllocationSize(allocation_size)
+		, m_AllocatedBlocks(0)
+		, m_NextFreeBlock(StartAddress())
 	{
-	}
+		const auto NumBlocks = MaxAllocations();
 
-	FixedSizeAllocator::Page::Page(MemoryRange pageRange, size_t allocationSize)
-		: m_Page(pageRange)
-		, m_AllocationSize(allocationSize)
-		, m_NextFreeBlock(reinterpret_cast<FreeBlock*>(pageRange.Begin()))
-	{
-		const auto NumBlocks = pageRange.Size() / m_AllocationSize;
+		const auto PageHeaderSize = Memory::GetDistance(StartAddress(), this);
 
-		_ASSERT(NumBlocks - 1 <= (size_t) std::numeric_limits<uint16_t>::max());
+		_ASSERT(NumBlocks - 1 <= (size_t)std::numeric_limits<uint16_t>::max());
 
 		for (uint16_t BlockIndex = 0; BlockIndex < NumBlocks; BlockIndex++)					// for every block, create a free block which points to the next one.
 		{
-			const auto Offset = BlockIndex * m_AllocationSize;
+			const auto Offset = PageHeaderSize + (BlockIndex * m_AllocationSize);
 
-			auto BlockAddress = Memory::AddOffset(pageRange.Begin(), Offset);
-			
+			auto BlockAddress = Memory::AddOffset(this, Offset);
+
 			uint16_t NextBlockOffset = BlockIndex < NumBlocks - 1 ? (uint16_t)(Offset + m_AllocationSize) : std::numeric_limits<uint16_t>::max();
 
 			new (BlockAddress) FreeBlock{ FreeBlock::kValidationToken, NextBlockOffset };
 		}
 	}
 
-	FixedSizeAllocator::Page::Page(Page&& other) noexcept
-		: m_Page(std::move(other.m_Page))
-		, m_AllocationSize(other.m_AllocationSize)
-		, m_NextFreeBlock(other.m_NextFreeBlock)
-	{
-		other.m_NextFreeBlock = nullptr;
+	bool FixedSizeAllocator::FSAPage::IsFull() const
+	{	
+		return MaxAllocations() == m_AllocatedBlocks;
 	}
 
-	void* FixedSizeAllocator::Page::Allocate()
+	size_t FixedSizeAllocator::FSAPage::MaxAllocations() const
+	{
+		return Memory::GetDistance(Memory::AddOffset(const_cast<FSAPage*>(this), m_Size), StartAddress()) / m_AllocationSize;
+	}
+
+	void* FixedSizeAllocator::FSAPage::Allocate()
 	{
 		auto Block = m_NextFreeBlock;
 
@@ -134,22 +128,22 @@ namespace Zn
 			_ASSERT(m_NextFreeBlock->m_AllocationToken == FreeBlock::kValidationToken);
 
 			m_NextFreeBlock = m_NextFreeBlock->m_NextBlockOffset != std::numeric_limits<uint16_t>::max()							// If the next block offset is valid, the next block ptr is replaced.
-				? (FixedSizeAllocator::FreeBlock*) (Memory::AddOffset(m_Page.Begin(), m_NextFreeBlock->m_NextBlockOffset)) 
+				? (FixedSizeAllocator::FreeBlock*) (Memory::AddOffset(this, m_NextFreeBlock->m_NextBlockOffset))
 				: nullptr;
-					
-			m_Page.TrackAllocation(m_AllocationSize);
+
+			m_AllocatedBlocks++;
 
 			Memory::Memzero(Block, Memory::AddOffset(Block, sizeof(FreeBlock)));
-			
+
 			MemoryDebug::MarkUninitialized(Block, Memory::AddOffset(Block, m_AllocationSize));
-		}		
+		}
 
 		return Block;
 	}
 
-	void FixedSizeAllocator::Page::Free(void* address)
+	void FixedSizeAllocator::FSAPage::Free(void* address)
 	{
-		m_Page.TrackFree(m_AllocationSize);
+		m_AllocatedBlocks--;
 
 		uintptr_t BeforeFree = *reinterpret_cast<uintptr_t*>(address);
 
@@ -161,9 +155,14 @@ namespace Zn
 		{
 			_ASSERT(m_NextFreeBlock->m_AllocationToken == FreeBlock::kValidationToken);
 
-			NewBlock->m_NextBlockOffset = Memory::GetDistance(m_NextFreeBlock, m_Page.Begin());
+			NewBlock->m_NextBlockOffset = Memory::GetDistance(m_NextFreeBlock, this);
 		}
 
 		m_NextFreeBlock = NewBlock;
-	}	
+	}
+
+	inline FixedSizeAllocator::FreeBlock* FixedSizeAllocator::FSAPage::StartAddress() const
+	{
+		return reinterpret_cast<FixedSizeAllocator::FreeBlock*>(Memory::Align(Memory::AddOffset(const_cast<FSAPage*>(this), sizeof(FSAPage)), m_AllocationSize));
+	}
 }
