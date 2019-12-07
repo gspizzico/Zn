@@ -42,7 +42,7 @@ namespace Zn::Automation
 
 		virtual void Execute() override
 		{
-			auto Allocator = TLSFAllocator();
+			auto Allocator = TLSFAllocator(1ull << 36ull);
 
 			std::array<std::vector<void*>, 2> Pointers;
 
@@ -337,7 +337,6 @@ namespace Zn::Automation
 	};
 }
 
-//DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_100, Zn::Automation::TLSFAutomationTest, 100);
-//DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest2_, Zn::Automation::TLSFAutomationTest2);
 DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000, Zn::Automation::TLSFAutomationTest, 1000);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest2_, Zn::Automation::TLSFAutomationTest2);
 //DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000, 4096, Zn::TLSFAllocator::kMaxAllocationSize);

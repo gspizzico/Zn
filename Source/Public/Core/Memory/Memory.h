@@ -3,9 +3,10 @@
 
 namespace Zn
 {
+	// Similar to MEMORYSTATUSEX structure.
     struct MemoryStatus
     {
-        uint64 m_UsedMemory = 0;
+        uint64 m_MemoryLoad = 0;
         uint64 m_TotalPhys = 0;
         uint64 m_AvailPhys = 0;
         uint64 m_TotalPageFile = 0;

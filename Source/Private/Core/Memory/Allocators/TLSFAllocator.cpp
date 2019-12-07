@@ -144,11 +144,17 @@ namespace Zn
 	//	===	TLSFAllocator ===
 
 	TLSFAllocator::TLSFAllocator()
-		: m_HeapAllocator(HeapAllocator::kDefaultRegionSize, TLSFAllocator::kMaxAllocationSize << 1)
+		:TLSFAllocator(Memory::GetMemoryStatus().m_TotalPhys, kMaxAllocationSize)
+	{	
+	}
+
+	TLSFAllocator::TLSFAllocator(size_t capacity, size_t page_size)
+		: m_Memory(capacity, VirtualMemory::AlignToPageSize(Memory::Align(page_size, kBlockSize)), FreeBlock::kMinBlockSize)
 		, m_FreeLists()
 		, m_FL(0)
 		, m_SL()
 	{
+		_ASSERT(capacity > kMaxAllocationSize);
 		std::fill(m_SL.begin(), m_SL.end(), 0);
 	}
 
@@ -165,8 +171,8 @@ namespace Zn
 
 		if (!FindSuitableBlock(fl, sl))
 		{
-			BlockSize = m_HeapAllocator.GetPageSize();
-			void* AllocatedMemory = m_HeapAllocator.AllocatePage();									// Allocate a new page if there is no available block for the requested size.
+			BlockSize = m_Memory.BlockSize();
+			void* AllocatedMemory = m_Memory.Allocate();											// Allocate a new page if there is no available block for the requested size.
 			FreeBlock = FreeBlock::New({ AllocatedMemory, BlockSize });
 		}
 		else
@@ -362,7 +368,7 @@ namespace Zn
 	{	
 		auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousPhysicalFooter(block);
 
-		if ((!Memory::IsAligned(block, m_HeapAllocator.GetPageSize()) || m_HeapAllocator.IsAllocated(PreviousPhysicalBlockFooter)) 
+		if ((!Memory::IsAligned(block, m_Memory.BlockSize()) || m_Memory.IsAllocated(PreviousPhysicalBlockFooter)) 
 			&& PreviousPhysicalBlockFooter->IsValid())									// If the block is not aligned, the previous can never be not committed.
 		{
 			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->BlockSize();
@@ -387,7 +393,7 @@ namespace Zn
 	{
 		FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size()));
 
-		if ((!Memory::IsAligned(NextPhysicalBlock, m_HeapAllocator.GetPageSize()) || m_HeapAllocator.IsAllocated(NextPhysicalBlock)) 
+		if ((!Memory::IsAligned(NextPhysicalBlock, m_Memory.BlockSize()) || m_Memory.IsAllocated(NextPhysicalBlock)) 
 			&& NextPhysicalBlock->GetFooter()->IsValid())								// If the block is not aligned, the next can never be not committed.
 		{
 			auto NextBlockSize = NextPhysicalBlock->Size();
@@ -492,20 +498,20 @@ namespace Zn
 #if TLSF_ENABLE_DECOMMIT
 		const auto BlockSize = block->Size();
 
-		if (BlockSize >= (m_HeapAllocator.GetPageSize() + (FreeBlock::kMinBlockSize * 2)))
+		if (BlockSize >= (m_Memory.BlockSize() + (FreeBlock::kMinBlockSize * 2)))
 		{
-			auto SPA = Memory::Align(block, m_HeapAllocator.GetPageSize());
+			auto SPA = Memory::Align(block, m_Memory.BlockSize());
 
 			auto NextPhysicalBlockAddress = Memory::AddOffset(block, BlockSize);
 
 			auto SPA_Alignment = Memory::GetDistance(SPA, block);
 			
-			if (BlockSize - SPA_Alignment < m_HeapAllocator.GetPageSize())
+			if (BlockSize - SPA_Alignment < m_Memory.BlockSize())
 			{
 				return false;
 			}
 
-			auto EPA = Memory::SubOffset(NextPhysicalBlockAddress, (BlockSize - SPA_Alignment) % m_HeapAllocator.GetPageSize());
+			auto EPA = Memory::AddOffset(SPA, m_Memory.BlockSize());
 			
 			auto LastBlockSize = Memory::GetDistance(NextPhysicalBlockAddress, EPA);
 
@@ -515,8 +521,14 @@ namespace Zn
 			auto DeallocationRange = MemoryRange{ SPA,EPA };
 			
 			VERIFY_WRITE_CALL(DeallocationRange);
+			
+			{// dbg
+				auto pFooter = block->GetFooter();
+				_ASSERT(pFooter->m_Next == nullptr);
+				_ASSERT(pFooter->m_Previous == nullptr);
+			}
 
-			if (m_HeapAllocator.Free(DeallocationRange))
+			if (m_Memory.Free(DeallocationRange.Begin()))
 			{
 				if (SPA_Alignment >= FreeBlock::kMinBlockSize)
 				{

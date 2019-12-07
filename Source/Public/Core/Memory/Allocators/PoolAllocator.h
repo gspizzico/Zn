@@ -1,11 +1,14 @@
 #pragma once
 #include "Core/Memory/VirtualMemory.h"
+#include "Core/Containers/Set.h"
 
 namespace Zn
 {
 	class MemoryPool
 	{
 	public:
+
+		static constexpr uint64_t kFreeBlockPattern = 0xfb;
 
 		MemoryPool(size_t poolSize, size_t blockSize, size_t alignment = sizeof(uintptr_t));
 
@@ -20,6 +23,8 @@ namespace Zn
 		bool Free(void* address);
 
 		size_t BlockSize() const { return m_BlockSize; }
+
+		bool IsAllocated(void* address) const;
 
 	private:
 
@@ -40,5 +45,7 @@ namespace Zn
 		void* m_NextFreeBlock;
 		
 		void* m_NextPage;
+
+		UnorderedSet<uintptr_t> m_CommittedPages;
 	};
 }

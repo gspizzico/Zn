@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "Core/Memory/Allocators/HeapAllocator.h"
+#include "Core/Memory/Allocators/PoolAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
 #include "Core/Math/Math.h"
 
@@ -10,6 +10,18 @@ namespace Zn
 	class TLSFAllocator
 	{
 	public:
+
+		static constexpr size_t				kJ = 3;
+
+		static constexpr size_t				kNumberOfPools = 9;
+
+		static constexpr size_t				kNumberOfLists = 1 << kJ;		// pow(2, kJ)
+
+		static constexpr size_t				kStartFl = 8;			// log2(kMinBlockSize)
+
+		static constexpr size_t				kMaxAllocationSize = (1 << (kStartFl + kNumberOfPools - 2));  // 64k is block size, 32 is max allocation size.
+
+		static constexpr size_t				kBlockSize = kMaxAllocationSize * 2;
 
 		struct FreeBlock
 		{
@@ -43,7 +55,7 @@ namespace Zn
 
 			static constexpr size_t			kFooterSize			= sizeof(Footer);
 
-			static constexpr size_t			kMinBlockSize		= std::max(kFooterSize + sizeof(size_t), 128ull);
+			static constexpr size_t			kMinBlockSize		= std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
 
 			static FreeBlock* New(const MemoryRange& block_range);
 
@@ -75,23 +87,15 @@ namespace Zn
 			size_t							m_BlockSize;
 		};
 
-		static constexpr size_t				kJ = 3;
-
-		static constexpr size_t				kNumberOfPools		= 9;
-
-		static constexpr size_t				kNumberOfLists		= 1 << kJ;		// pow(2, kJ)
-
-		static constexpr size_t				kStartFl			= 7;			// log2(kMinBlockSize)
-
-		static constexpr size_t				kMaxAllocationSize  = (1 << (kStartFl + kNumberOfPools - 1));  // 32k
-
 		TLSFAllocator();
+		
+		TLSFAllocator(size_t capacity, size_t page_size = kMaxAllocationSize);
 
 		__declspec(allocator)void*				Allocate(size_t size, size_t alignment = 1);
 
 		bool				Free(void* address);		
 
-		size_t				GetAllocatedMemory() const { return m_HeapAllocator.GetReservedMemory(); }
+		size_t				GetAllocatedMemory() const { return m_Memory.GetUsedMemory(); }
 
 #if ZN_DEBUG
 		void				LogDebugInfo() const;
@@ -123,7 +127,7 @@ namespace Zn
 
 		bool				Decommit(FreeBlock* block);
 
-		HeapAllocator							m_HeapAllocator;		
+		MemoryPool								m_Memory;
 
 		FreeListMatrix							m_FreeLists;
 
