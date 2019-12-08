@@ -169,7 +169,7 @@ namespace Zn
 
 			if (Memory::GetDistance(address, LastAllocatedAddress) < 0)
 			{
-				auto PageAlignedAddress = Memory::AlignDown(address, m_PageSize);
+				auto PageAlignedAddress = Memory::AlignToAddress(address, m_MemoryHeap.GetRegionUnsafe(RegionIndex)->Begin(), m_PageSize);
 
 				if (auto It = m_FreePageList.find(RegionIndex); It == m_FreePageList.end())
 				{

@@ -20,10 +20,16 @@ namespace Zn
 		return reinterpret_cast<void*>(Memory::Align(reinterpret_cast<uintptr_t>(address), alignment));
     }
 
-	void* Memory::AlignDown(void* address, size_t alignment)
+	void* Memory::AlignToAddress(void* address, void* start_address, size_t alignment)
 	{
-		return IsAligned(address, alignment) ? address : Memory::SubOffset(Memory::Align(address, alignment), alignment);
+		auto Distance = GetDistance(address, start_address);
+		return AddOffset(start_address, (Distance - Distance % alignment));
 	}
+
+	//void* Memory::AlignDown(void* address, size_t alignment)
+	//{
+	//	return IsAligned(address, alignment) ? address : Memory::SubOffset(Memory::Align(address, alignment), alignment);
+	//}
 
     bool Memory::IsAligned(void * address, size_t alignment)
     {

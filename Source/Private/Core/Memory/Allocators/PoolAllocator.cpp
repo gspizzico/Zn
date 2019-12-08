@@ -51,6 +51,7 @@ namespace Zn
 	bool MemoryPool::Free(void* address)
 	{
 		_ASSERT(m_Memory.Range().Contains(address));
+		_ASSERT(address == Memory::AlignToAddress(address, m_Memory.Range().Begin(), m_BlockSize));
 
 		MemoryDebug::MarkFree(address, Memory::AddOffset(address, m_BlockSize));
 
@@ -90,9 +91,9 @@ namespace Zn
 
 	bool MemoryPool::IsAllocated(void* address) const
 	{
-		if (!m_Memory.Range().Contains(address)) return false;
+		if (!Range().Contains(address)) return false;
 
-		auto PageAddress = Memory::AlignDown(address, BlockSize());
+		auto PageAddress = Memory::AlignToAddress(address, m_Memory.Begin(), m_BlockSize);
 
 		if(m_CommittedPages.count(uintptr_t(PageAddress)))
 		{
@@ -104,17 +105,18 @@ namespace Zn
 		}
 	}
 
+	MemoryRange MemoryPool::Range() const
+	{
+		return m_Memory.Range();
+	}
+
 	bool MemoryPool::CommitMemory()
 	{
-		auto NextPageAddress = Memory::AddOffset(m_NextPage, m_BlockSize);
-
-		_ASSERT(m_Memory.Range().Contains(NextPageAddress));
-
-		const bool CommitResult = VirtualMemory::Commit(m_NextPage, m_BlockSize);
+		const bool CommitResult = Range().Contains(m_NextPage) ? VirtualMemory::Commit(m_NextPage, m_BlockSize) : false;
 		if (CommitResult)
 		{
 			m_CommittedPages.emplace((uintptr_t)m_NextPage);
-			m_NextPage = NextPageAddress;
+			m_NextPage = Memory::AddOffset(m_NextPage, m_BlockSize);
 			m_CommittedMemory += m_BlockSize;
 		}
 

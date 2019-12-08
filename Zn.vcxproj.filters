@@ -139,6 +139,12 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp">
       <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\MultipoolAutomationTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\MultipoolAllocator.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -223,6 +229,9 @@
       <Filter>Source\Public\Automation</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\FixedSizeAllocator.h">
+      <Filter>Source\Public\Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\MultipoolAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
   </ItemGroup>

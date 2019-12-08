@@ -46,7 +46,7 @@ namespace Zn
 
 	void FixedSizeAllocator::Free(void* address)
 	{
-		auto PageAddress = reinterpret_cast<FSAPage*>(Memory::AlignDown(address, m_MemoryPool->BlockSize()));
+		auto PageAddress = reinterpret_cast<FSAPage*>(Memory::AlignToAddress(address, m_MemoryPool->Range().Begin(), m_MemoryPool->BlockSize()));
 		
 		_ASSERT(PageAddress != NULL && PageAddress->m_AllocationSize == m_AllocationSize);
 

@@ -33,8 +33,10 @@ namespace Zn
 		static uintptr_t Align(uintptr_t bytes, size_t alignment);
 
         static void* Align(void* address, size_t alignment);
+
+		static void* AlignToAddress(void* address, void* start_address, size_t alignment);
         
-		static void* AlignDown(void* address, size_t alignment);
+//		static void* AlignDown(void* address, size_t alignment);
 
 		static bool IsAligned(void* address, size_t alignment);
 

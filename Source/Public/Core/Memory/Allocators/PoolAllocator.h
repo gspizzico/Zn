@@ -26,6 +26,8 @@ namespace Zn
 
 		bool IsAllocated(void* address) const;
 
+		MemoryRange Range() const;
+
 	private:
 
 		bool CommitMemory();

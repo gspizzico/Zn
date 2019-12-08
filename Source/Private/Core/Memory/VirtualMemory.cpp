@@ -21,6 +21,12 @@ namespace Zn
     }
     bool VirtualMemory::Commit(void * address, size_t size)
     {
+		_ASSERT(Memory::GetMemoryStatus().m_AvailPhys >= size);
+
+		if (Memory::GetMemoryStatus().m_AvailPhys < size)
+		{
+			abort(); // OOM
+		}
         return PlatformVirtualMemory::Commit(address, size);
     }
     bool VirtualMemory::Decommit(void * address, size_t size)
