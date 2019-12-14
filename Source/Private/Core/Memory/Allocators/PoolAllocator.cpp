@@ -7,14 +7,12 @@ DEFINE_STATIC_LOG_CATEGORY(LogPoolAllocator, ELogVerbosity::Log)
 namespace Zn
 {
 	MemoryPool::MemoryPool(size_t poolSize, size_t blockSize, size_t alignment)
-		: m_Memory(poolSize)
-		, m_BlockSize(Memory::Align(blockSize, VirtualMemory::GetPageSize()))
-		, m_CommittedMemory(0)
+		: m_Memory(VirtualMemory::AlignToPageSize(poolSize))
 		, m_AllocatedBlocks(0)
 		, m_NextFreeBlock(m_Memory.Begin())
-		, m_NextPage(m_Memory.Begin())
-	{	
-		CommitMemory();								// Commit an initial set of memory. Eventually it's going to be used.
+		, m_Tracker(m_Memory.Range(), VirtualMemory::AlignToPageSize(blockSize))
+	{
+		CommitMemory();									// Commit an initial set of memory. Eventually it's going to be used.
 	}
 
 	MemoryPool::MemoryPool(size_t blockSize, size_t alignment)
@@ -24,7 +22,7 @@ namespace Zn
 
 	void* MemoryPool::Allocate()
 	{
-		if (static_cast<int64>(Memory::GetDistance(m_NextPage, m_NextFreeBlock)) < static_cast<int64>(m_BlockSize))		// Check if we need to commit memory
+		if(!m_Tracker.IsCommitted(m_NextFreeBlock))		// Check if we need to commit memory
 		{
 			if (!CommitMemory())
 			{
@@ -32,16 +30,16 @@ namespace Zn
 			}
 		}
 
-		auto BlockAddress = m_NextFreeBlock;
+		FreeBlock* BlockAddress = reinterpret_cast<FreeBlock*>(m_NextFreeBlock);
 
-		m_NextFreeBlock = reinterpret_cast<void*>(*reinterpret_cast<uintptr_t*>(Memory::AddOffset(BlockAddress, sizeof(kFreeBlockPattern))));								// At the block address there is the address of the next free block
+		m_NextFreeBlock = BlockAddress->m_Next;										// At the block address there is the address of the next free block
 		
-		if (m_NextFreeBlock == nullptr)																						// If 0, then it means that the next free block is contiguous to this block.
+		if (m_NextFreeBlock == nullptr)												// If 0, then it means that the next free block is contiguous to this block.
 		{
-			m_NextFreeBlock = Memory::AddOffset(BlockAddress, m_BlockSize);
+			m_NextFreeBlock = m_Tracker.GetNextPageToCommit();
 		}
 
-		MemoryDebug::MarkUninitialized(BlockAddress, Memory::AddOffset(BlockAddress, m_BlockSize));
+		MemoryDebug::MarkUninitialized(BlockAddress, Memory::AddOffset(BlockAddress, BlockSize()));
 
 		m_AllocatedBlocks++;
 
@@ -51,38 +49,40 @@ namespace Zn
 	bool MemoryPool::Free(void* address)
 	{
 		_ASSERT(m_Memory.Range().Contains(address));
-		_ASSERT(address == Memory::AlignToAddress(address, m_Memory.Range().Begin(), m_BlockSize));
+		_ASSERT(address == Memory::AlignToAddress(address, m_Memory.Range().Begin(), BlockSize()));
 
-		MemoryDebug::MarkFree(address, Memory::AddOffset(address, m_BlockSize));
+		MemoryDebug::MarkFree(address, Memory::AddOffset(address, BlockSize()));
 
-		auto& AtAddress = *reinterpret_cast<uintptr_t*>(address);
-
-		AtAddress = kFreeBlockPattern;
-
-		auto& AtNextAddress = *reinterpret_cast<uintptr_t*>(Memory::AddOffset(address, sizeof(kFreeBlockPattern)));
-
-		AtNextAddress = reinterpret_cast<uintptr_t>(m_NextFreeBlock);														// Write at the freed block, the address of the current free block
-
-		m_NextFreeBlock = address;																							// The current free block it's the freed block
+		m_NextFreeBlock = new(address) FreeBlock(m_NextFreeBlock);					// Write at the freed block, the address of the current free block. The current free block it's the freed block
 
 		m_AllocatedBlocks--;
 
-		if (m_NextFreeBlock != nullptr && GetMemoryUtilization() < kStartDecommitThreshold)									// Attempt to decommit some blocks since mem utilization is low
+		if (GetMemoryUtilization() < kStartDecommitThreshold)						// Attempt to decommit some blocks since mem utilization is low
 		{
-			ZN_LOG(LogPoolAllocator, ELogVerbosity::Verbose, "Memory utilization %.2f, decommitting some pages.", GetMemoryUtilization());
-
-			while (m_NextFreeBlock != nullptr && m_NextFreeBlock != m_NextPage && GetMemoryUtilization() < kEndDecommitThreshold)
+			ZN_LOG(LogPoolAllocator, ELogVerbosity::Log, "Memory utilization %.2f, decommitting some pages.", GetMemoryUtilization());
+			
+			while (m_Tracker.IsCommitted(m_NextFreeBlock) && GetMemoryUtilization() < kEndDecommitThreshold)
 			{
-				auto ToFree = m_NextFreeBlock;
+				FreeBlock* ToFree = reinterpret_cast<FreeBlock*>(m_NextFreeBlock);
+				_ASSERT(ToFree->IsValid());
 
-				m_NextFreeBlock = reinterpret_cast<void*>(*(uintptr_t*) Memory::AddOffset(m_NextFreeBlock, sizeof(kFreeBlockPattern)));
+				m_NextFreeBlock = ToFree->m_Next;
+				
+				_ASSERT(m_Memory.Range().Contains(m_NextFreeBlock));
 
-				ZN_VM_CHECK(VirtualMemory::Decommit(ToFree, m_BlockSize));
+				ZN_LOG(LogPoolAllocator, ELogVerbosity::Verbose, "%p \t %x \t %p"
+					, ToFree
+					, *reinterpret_cast<uint64_t*>(ToFree)
+					, m_NextFreeBlock);
 
-				if (auto It = m_CommittedPages.find(uintptr_t(ToFree)); It != m_CommittedPages.end())
-				{
-					m_CommittedPages.erase(It);
-				}
+				ZN_VM_CHECK(VirtualMemory::Decommit(ToFree, BlockSize()));
+
+				m_Tracker.OnFree(ToFree);
+			}
+
+			if (!m_Tracker.IsCommitted(m_NextFreeBlock))
+			{
+				m_NextFreeBlock = m_Tracker.GetNextPageToCommit();
 			}
 		}
 
@@ -93,11 +93,11 @@ namespace Zn
 	{
 		if (!Range().Contains(address)) return false;
 
-		auto PageAddress = Memory::AlignToAddress(address, m_Memory.Begin(), m_BlockSize);
+		FreeBlock* PageAddress = reinterpret_cast<FreeBlock*>(Memory::AlignToAddress(address, m_Memory.Begin(), BlockSize()));
 
-		if(m_CommittedPages.count(uintptr_t(PageAddress)))
+		if(m_Tracker.IsCommitted(PageAddress))
 		{
-			return *(uint64_t*)(PageAddress) != kFreeBlockPattern;
+			return !PageAddress->IsValid();
 		}
 		else
 		{
@@ -112,14 +112,113 @@ namespace Zn
 
 	bool MemoryPool::CommitMemory()
 	{
-		const bool CommitResult = Range().Contains(m_NextPage) ? VirtualMemory::Commit(m_NextPage, m_BlockSize) : false;
+		const bool CommitResult = Range().Contains(m_NextFreeBlock) ? VirtualMemory::Commit(m_NextFreeBlock, BlockSize()) : false;
 		if (CommitResult)
 		{
-			m_CommittedPages.emplace((uintptr_t)m_NextPage);
-			m_NextPage = Memory::AddOffset(m_NextPage, m_BlockSize);
-			m_CommittedMemory += m_BlockSize;
+			m_Tracker.OnCommit(m_NextFreeBlock);						// Keep track of committed pages.
 		}
 
 		return CommitResult;
+	}
+
+	MemoryPool::CommittedMemoryTracker::CommittedMemoryTracker(MemoryRange range, size_t blockSize)
+		: m_AddressRange(range)
+		, m_BlockSize(VirtualMemory::AlignToPageSize(blockSize))
+		, m_CommittedBlocks(0)
+	{
+		uint64_t NumBlocks = m_AddressRange.Size() / m_BlockSize;		// Number of allocable blocks.
+		uint64_t NumMasks = NumBlocks / (kMaskSize);					// Number of masks. Each mask covers kMaskSize (64) blocks.
+
+		m_CommittedIndexMasks.resize(NumMasks / kMaskSize);
+		m_CommittedPagesMasks.resize(NumMasks);
+	}
+
+	void MemoryPool::CommittedMemoryTracker::OnCommit(void* address)
+	{	
+		size_t BlockNum = BlockNumber(address);
+
+		size_t PagesMaskIndex = BlockNum / (kMaskSize);					// Index of mask containing committed pages
+		size_t PageIndex = BlockNum % (kMaskSize);						// Index of page in 64bit mask
+		
+		m_CommittedPagesMasks[PagesMaskIndex] |= (1ull << PageIndex);
+
+		bool IsFullyCommitted = (m_CommittedPagesMasks[PagesMaskIndex] == kFullCommittedMask);
+
+		if (IsFullyCommitted)											// If fully committed, flag this mask as full.
+		{
+			size_t CIMIndex = PagesMaskIndex / (kMaskSize);
+			size_t CIMValue = PagesMaskIndex % (kMaskSize);
+			
+			m_CommittedIndexMasks[CIMIndex] |= (1ull << CIMValue);
+		}
+
+		m_CommittedBlocks++;
+	}
+
+	void MemoryPool::CommittedMemoryTracker::OnFree(void* address)
+	{	
+		_ASSERT(m_AddressRange.Contains(address));
+
+		size_t BlockNum = BlockNumber(address);
+
+		size_t PagesMaskIndex = BlockNum / (kMaskSize);					// Index of mask containing committed pages
+		size_t PageIndex = BlockNum % (kMaskSize);						// Index of page in 64bit mask
+
+		m_CommittedPagesMasks[PagesMaskIndex] &= ~(1ull << PageIndex);
+
+		size_t CIMIndex = PagesMaskIndex / (kMaskSize);
+		size_t CIMValue = PagesMaskIndex % (kMaskSize);
+
+		m_CommittedIndexMasks[CIMIndex] &= ~(1ull << CIMValue);
+
+		m_CommittedBlocks--;
+	}
+
+	bool MemoryPool::CommittedMemoryTracker::IsCommitted(void* address) const
+	{
+		if (!m_AddressRange.Contains(address)) return false;
+
+		size_t BlockNum = BlockNumber(address);
+
+		size_t PagesMaskIndex = BlockNum / (kMaskSize);					// Index of mask containing committed pages
+		size_t PageIndex = BlockNum % (kMaskSize);						// Index of page in 64bit mask
+
+		const uint64_t BitValue = (1ull << PageIndex);
+
+		return (m_CommittedPagesMasks[PagesMaskIndex] & BitValue) == BitValue;
+	}
+
+	void* MemoryPool::CommittedMemoryTracker::GetNextPageToCommit() const
+	{
+		if (GetCommittedMemory() == m_AddressRange.Size()) return nullptr;
+
+		for (size_t i = 0; i < m_CommittedIndexMasks.size(); ++i)
+		{
+			const auto& Mask = m_CommittedIndexMasks[i];
+
+			if (Mask != kFullCommittedMask)
+			{
+				unsigned long PagesMaskIndex;
+				_BitScanForward64(&PagesMaskIndex, ~Mask);
+
+				PagesMaskIndex += (i * kMaskSize);
+
+				unsigned long BlockIndex;
+				_BitScanForward64(&BlockIndex, ~m_CommittedPagesMasks[PagesMaskIndex]); 	// Biased towards lower addresses.
+
+				void* MaskStartAddress = Memory::AddOffset(m_AddressRange.Begin(), (m_BlockSize * PagesMaskIndex * kMaskSize));
+				return Memory::AddOffset(MaskStartAddress, m_BlockSize * BlockIndex);
+			}
+		}
+
+		return nullptr;
+	}
+
+	size_t MemoryPool::CommittedMemoryTracker::BlockNumber(void* address) const
+	{
+		_ASSERT(m_AddressRange.Contains(address));
+
+		auto Distance = Memory::GetDistance(address, m_AddressRange.Begin());				// Distance from memory range begin
+		return static_cast<size_t>(float(Distance) / float(m_BlockSize));					// Index of block in 1 dimensional space
 	}
 }
