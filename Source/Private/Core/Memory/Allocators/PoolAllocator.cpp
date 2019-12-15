@@ -6,18 +6,29 @@ DEFINE_STATIC_LOG_CATEGORY(LogPoolAllocator, ELogVerbosity::Log)
 
 namespace Zn
 {
-	MemoryPool::MemoryPool(size_t poolSize, size_t blockSize, size_t alignment)
-		: m_Memory(VirtualMemory::AlignToPageSize(poolSize))
+	MemoryPool::MemoryPool(size_t poolSize, size_t block_size)
+		: m_Memory(nullptr)
 		, m_AllocatedBlocks(0)
-		, m_NextFreeBlock(m_Memory.Begin())
-		, m_Tracker(m_Memory.Range(), VirtualMemory::AlignToPageSize(blockSize))
+		, m_NextFreeBlock(nullptr)
+		, m_Tracker()
 	{
-		CommitMemory();									// Commit an initial set of memory. Eventually it's going to be used.
+		size_t RangeSize = VirtualMemory::AlignToPageSize(poolSize);
+		m_Memory = std::make_shared<VirtualMemoryRegion>(RangeSize);
+		m_Tracker = CommittedMemoryTracker(Range(), block_size);
+		m_NextFreeBlock = Range().Begin();
 	}
 
-	MemoryPool::MemoryPool(size_t blockSize, size_t alignment)
-		: MemoryPool(Memory::GetMemoryStatus().m_TotalPhys, blockSize, alignment)
+	MemoryPool::MemoryPool(size_t block_size)
+		: MemoryPool(Memory::GetMemoryStatus().m_TotalPhys, block_size)
 	{
+	}
+
+	MemoryPool::MemoryPool(SharedPtr<VirtualMemoryRegion> region, size_t block_size)
+		: m_Memory(region)
+		, m_Tracker(Range(), VirtualMemory::AlignToPageSize(block_size))
+		, m_AllocatedBlocks(0)
+		, m_NextFreeBlock(m_Tracker.GetNextPageToCommit())
+	{	
 	}
 
 	void* MemoryPool::Allocate()
@@ -48,8 +59,8 @@ namespace Zn
 
 	bool MemoryPool::Free(void* address)
 	{
-		_ASSERT(m_Memory.Range().Contains(address));
-		_ASSERT(address == Memory::AlignToAddress(address, m_Memory.Range().Begin(), BlockSize()));
+		_ASSERT(Range().Contains(address));
+		_ASSERT(address == Memory::AlignToAddress(address, Range().Begin(), BlockSize()));
 
 		MemoryDebug::MarkFree(address, Memory::AddOffset(address, BlockSize()));
 
@@ -59,7 +70,7 @@ namespace Zn
 
 		if (GetMemoryUtilization() < kStartDecommitThreshold)						// Attempt to decommit some blocks since mem utilization is low
 		{
-			ZN_LOG(LogPoolAllocator, ELogVerbosity::Log, "Memory utilization %.2f, decommitting some pages.", GetMemoryUtilization());
+			ZN_LOG(LogPoolAllocator, ELogVerbosity::Verbose, "Memory utilization %.2f, decommitting some pages.", GetMemoryUtilization());
 			
 			while (m_Tracker.IsCommitted(m_NextFreeBlock) && GetMemoryUtilization() < kEndDecommitThreshold)
 			{
@@ -68,7 +79,7 @@ namespace Zn
 
 				m_NextFreeBlock = ToFree->m_Next;
 				
-				_ASSERT(m_Memory.Range().Contains(m_NextFreeBlock));
+				_ASSERT(Range().Contains(m_NextFreeBlock));
 
 				ZN_LOG(LogPoolAllocator, ELogVerbosity::Verbose, "%p \t %x \t %p"
 					, ToFree
@@ -93,7 +104,7 @@ namespace Zn
 	{
 		if (!Range().Contains(address)) return false;
 
-		FreeBlock* PageAddress = reinterpret_cast<FreeBlock*>(Memory::AlignToAddress(address, m_Memory.Begin(), BlockSize()));
+		FreeBlock* PageAddress = reinterpret_cast<FreeBlock*>(Memory::AlignToAddress(address, Range().Begin(), BlockSize()));
 
 		if(m_Tracker.IsCommitted(PageAddress))
 		{
@@ -103,11 +114,6 @@ namespace Zn
 		{
 			return false;
 		}
-	}
-
-	MemoryRange MemoryPool::Range() const
-	{
-		return m_Memory.Range();
 	}
 
 	bool MemoryPool::CommitMemory()
@@ -121,9 +127,9 @@ namespace Zn
 		return CommitResult;
 	}
 
-	MemoryPool::CommittedMemoryTracker::CommittedMemoryTracker(MemoryRange range, size_t blockSize)
+	MemoryPool::CommittedMemoryTracker::CommittedMemoryTracker(MemoryRange range, size_t block_size)
 		: m_AddressRange(range)
-		, m_BlockSize(VirtualMemory::AlignToPageSize(blockSize))
+		, m_BlockSize(VirtualMemory::AlignToPageSize(block_size))
 		, m_CommittedBlocks(0)
 	{
 		uint64_t NumBlocks = m_AddressRange.Size() / m_BlockSize;		// Number of allocable blocks.

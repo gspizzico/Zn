@@ -12,6 +12,8 @@ namespace Zn
 
         LinearAllocator(size_t capacity);
         
+		LinearAllocator(SharedPtr<VirtualMemoryRegion> region);
+        
         ~LinearAllocator();
 
         void* Allocate(size_t size, size_t alignment = 1);
@@ -20,15 +22,13 @@ namespace Zn
 
 		bool IsAllocated(void* address) const;
 
-		const VirtualMemoryRegion& GetMemory() const { return m_Memory; }
-
 		size_t GetAllocatedMemory() const;
 
 		size_t GetRemainingMemory() const;
 
     private:
 
-		VirtualMemoryRegion m_Memory;
+		SharedPtr<VirtualMemoryRegion> m_Memory;
 
         void*   m_Address             = nullptr;
 

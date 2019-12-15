@@ -44,7 +44,7 @@ public:
 
 	void TestStackAllocator()
 	{
-		auto Allocator = StackAllocator(4096 * 10, 8);
+		auto Allocator = StackAllocator(4096 * 10);
 
 		Allocator.Allocate(16);
 		Allocator.Allocate(16);

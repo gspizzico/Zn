@@ -47,6 +47,11 @@ namespace Zn
 		return PlatformVirtualMemory::GetMemoryInformation(address, size);
 	}
 
+	VirtualMemoryInformation VirtualMemory::GetMemoryInformation(MemoryRange range)
+	{
+		return VirtualMemory::GetMemoryInformation(range.Begin(), range.Size());
+	}
+
 	VirtualMemoryRegion::VirtualMemoryRegion(size_t capacity)
 		: m_Range(VirtualMemory::Reserve(VirtualMemory::AlignToPageSize(capacity)), Memory::Align(capacity, VirtualMemory::GetPageSize()))
 	{

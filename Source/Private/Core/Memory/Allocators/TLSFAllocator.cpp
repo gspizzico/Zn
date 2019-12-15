@@ -148,8 +148,17 @@ namespace Zn
 	{	
 	}
 
+	TLSFAllocator::TLSFAllocator(SharedPtr<VirtualMemoryRegion> region, size_t page_size)
+		: m_Memory(region, Memory::Align(page_size, kBlockSize))
+		, m_FreeLists()
+		, m_FL(0)
+		, m_SL()
+	{
+		std::fill(m_SL.begin(), m_SL.end(), 0);
+	}
+
 	TLSFAllocator::TLSFAllocator(size_t capacity, size_t page_size)
-		: m_Memory(capacity, VirtualMemory::AlignToPageSize(Memory::Align(page_size, kBlockSize)), FreeBlock::kMinBlockSize)
+		: m_Memory(capacity, VirtualMemory::AlignToPageSize(Memory::Align(page_size, kBlockSize)))
 		, m_FreeLists()
 		, m_FL(0)
 		, m_SL()

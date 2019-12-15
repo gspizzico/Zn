@@ -20,7 +20,9 @@ namespace Zn
 
 		StackAllocator& operator=(const StackAllocator&) = delete;
 
-		StackAllocator(size_t capacity, size_t alignment = 1);
+		StackAllocator(size_t capacity);
+
+		StackAllocator(SharedPtr<VirtualMemoryRegion> region);
 
 		StackAllocator(StackAllocator&&) noexcept;
 
@@ -43,7 +45,7 @@ namespace Zn
 
 	private:
 
-		VirtualMemoryRegion m_Memory;
+		SharedPtr<VirtualMemoryRegion>	m_Memory;
 		
 		void* m_NextPageAddress			= nullptr;
 

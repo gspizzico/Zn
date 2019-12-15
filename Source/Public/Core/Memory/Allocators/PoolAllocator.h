@@ -10,9 +10,11 @@ namespace Zn
 
 		static constexpr uint64_t kFreeBlockPattern = 0xfb;
 
-		MemoryPool(size_t poolSize, size_t blockSize, size_t alignment = sizeof(uintptr_t));
+		MemoryPool(size_t pool_size, size_t block_size);
 
-		MemoryPool(size_t blockSize, size_t alignment = sizeof(uintptr_t));
+		MemoryPool(size_t block_size);
+
+		MemoryPool(SharedPtr<VirtualMemoryRegion> region, size_t block_size);
 
 		size_t GetUsedMemory() const { return m_AllocatedBlocks * BlockSize(); }
 
@@ -26,7 +28,7 @@ namespace Zn
 
 		bool IsAllocated(void* address) const;
 
-		MemoryRange Range() const;
+		const MemoryRange& Range() const { _ASSERT(m_Memory); return m_Memory->Range(); }
 
 	private:
 
@@ -36,31 +38,14 @@ namespace Zn
 		
 		static constexpr float kEndDecommitThreshold	= .8f;
 
-		VirtualMemoryRegion m_Memory;
-
-		size_t m_AllocatedBlocks;
-
-		void* m_NextFreeBlock;
-
-		struct FreeBlock
-		{
-			FreeBlock(void* nextBlock)
-				: m_Pattern(kFreeBlockPattern)
-				, m_Next(nextBlock)
-			{}
-
-			uint64_t m_Pattern;
-			void* m_Next;
-
-			bool IsValid() const { return m_Pattern == kFreeBlockPattern; }
-		};
-
 		struct CommittedMemoryTracker
 		{
-			CommittedMemoryTracker(MemoryRange range, size_t blockSize);
+			CommittedMemoryTracker() = default;
+
+			CommittedMemoryTracker(MemoryRange range, size_t block_size);
 
 			void OnCommit(void* address);
-			
+
 			void OnFree(void* address);
 
 			bool IsCommitted(void* address) const;
@@ -73,9 +58,9 @@ namespace Zn
 
 			MemoryRange m_AddressRange;
 
-			size_t m_BlockSize;
+			size_t m_BlockSize = 0;
 
-			size_t m_CommittedBlocks;
+			size_t m_CommittedBlocks = 0;
 
 			Vector<uint64_t> m_CommittedPagesMasks;	// Each value is a mask that tells for each bit, if that block is committed. (bit == block)
 
@@ -86,6 +71,25 @@ namespace Zn
 			static constexpr uint64_t kFullCommittedMask = 0xFFFFFFFFFFFFFFFF;
 		};
 
+		SharedPtr<VirtualMemoryRegion> m_Memory;
+
 		CommittedMemoryTracker m_Tracker;
+
+		size_t m_AllocatedBlocks = 0;
+
+		void* m_NextFreeBlock = nullptr;
+
+		struct FreeBlock
+		{
+			FreeBlock(void* nextBlock)
+				: m_Pattern(kFreeBlockPattern)
+				, m_Next(nextBlock)
+			{}
+
+			uint64_t m_Pattern;
+			void* m_Next;
+
+			bool IsValid() const { return m_Pattern == kFreeBlockPattern; }
+		};		
 	};
 }

@@ -5,13 +5,22 @@
 
 namespace Zn
 {	
-	StackAllocator::StackAllocator(size_t capacity, size_t alignment)
-		: m_Memory(capacity)
-		, m_NextPageAddress(m_Memory.Begin())
-		, m_TopAddress(m_Memory.Begin())
+	StackAllocator::StackAllocator(size_t capacity)
+		: m_Memory(std::make_shared<VirtualMemoryRegion>(VirtualMemory::AlignToPageSize(capacity)))
+		, m_NextPageAddress(m_Memory->Begin())
+		, m_TopAddress(m_Memory->Begin())
 		, m_LastSavedStatus(nullptr)
 	{
-		VirtualMemory::Commit(m_Memory.Begin(), m_Memory.Size());
+		VirtualMemory::Commit(m_Memory->Begin(), m_Memory->Size());
+	}
+
+	StackAllocator::StackAllocator(SharedPtr<VirtualMemoryRegion> region)
+		: m_Memory(region)
+		, m_NextPageAddress(m_Memory->Begin())
+		, m_TopAddress(m_Memory->Begin())
+		, m_LastSavedStatus(nullptr)
+	{	
+		VirtualMemory::Commit(m_Memory->Begin(), m_Memory->Size());
 	}
 
 	StackAllocator::StackAllocator(StackAllocator&& allocator) noexcept
@@ -37,7 +46,7 @@ namespace Zn
 
 		m_TopAddress = Memory::AddOffset(CurrentAddress, bytes);										// Computes the new top stack address.
 
-		_ASSERT(m_Memory.Range().Contains(m_TopAddress));												// OOM guard.
+		_ASSERT(m_Memory->Range().Contains(m_TopAddress));												// OOM guard.
 
 		MemoryDebug::MarkUninitialized(CurrentAddress, m_TopAddress);
 
@@ -46,7 +55,7 @@ namespace Zn
 
 	bool StackAllocator::Free(void* address)
 	{
-		_ASSERT(m_Memory.Range().Contains(address));													// Verify that is a valid address
+		_ASSERT(m_Memory->Range().Contains(address));													// Verify that is a valid address
 
 		auto NewTopAddress = address;																	// New top of the stack ptr.
 
@@ -59,12 +68,9 @@ namespace Zn
 
 	bool StackAllocator::Free()
 	{
-		if (!m_Memory)
-			return false;
+		MemoryDebug::MarkFree(m_Memory->Begin(), m_TopAddress);													// Decommit all pages.
 
-		MemoryDebug::MarkFree(m_Memory.Begin(), m_TopAddress);													// Decommit all pages.
-
-		m_NextPageAddress = m_TopAddress = m_Memory.Begin();
+		m_NextPageAddress = m_TopAddress = m_Memory->Begin();
 
 		return true;
 	}

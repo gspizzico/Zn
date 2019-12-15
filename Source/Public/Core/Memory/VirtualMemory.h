@@ -48,6 +48,8 @@ namespace Zn
         static size_t AlignToPageSize(size_t size);
 
 		static VirtualMemoryInformation GetMemoryInformation(void* address, size_t size);
+
+		static VirtualMemoryInformation GetMemoryInformation(MemoryRange range);
     };
 
 	struct VirtualMemoryInformation

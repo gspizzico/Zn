@@ -88,6 +88,8 @@ namespace Zn
 		};
 
 		TLSFAllocator();
+
+		TLSFAllocator(SharedPtr<VirtualMemoryRegion> region, size_t page_size = kMaxAllocationSize);
 		
 		TLSFAllocator(size_t capacity, size_t page_size = kMaxAllocationSize);
 

@@ -20,7 +20,7 @@ namespace Zn
 		m_Pools.reserve(pools_num);
 		for (size_t Index = 0; Index < pools_num; Index++)
 		{
-			m_Pools.emplace_back(MemoryPool(pool_address_space, min_allocation_size << Index, sizeof(uintptr_t)));
+			m_Pools.emplace_back(MemoryPool(pool_address_space, min_allocation_size << Index));
 		}
 	}
 
