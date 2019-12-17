@@ -172,9 +172,13 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\FixedSizeAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\HeapAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\MultipoolAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\PageAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\SmallAllocationStrategy.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\MultipoolAutomationTest.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\SmallAllocationStrategyTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\TLSFAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />
@@ -204,8 +208,10 @@
     <ClInclude Include="Source\Public\Core\Memory\Allocators\FixedSizeAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\HeapAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\MultipoolAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\PageAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\SmallAllocationStrategy.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\TLSFAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Memory.h" />
     <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h" />

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/Memory/VirtualMemory.h"
-#include "Core/Memory/Allocators/PoolAllocator.h"
+#include "Core/Memory/Allocators/PageAllocator.h"
 #include "Core/Memory/Allocators/FixedSizeAllocator.h"
 
 /*
@@ -20,7 +20,7 @@ namespace Zn
 
 		static constexpr size_t kMinAllocationSize = sizeof(uintptr_t);
 
-		SmallAllocationStrategy(SharedPtr<MemoryPool> memory, size_t max_allocation_size);
+		SmallAllocationStrategy(SharedPtr<PageAllocator> memory, size_t max_allocation_size);
 
 		SmallAllocationStrategy(size_t reserve_memory_size, size_t max_allocation_size);
 
@@ -34,7 +34,7 @@ namespace Zn
 
 	private:
 
-		SharedPtr<MemoryPool> m_Memory;
+		SharedPtr<PageAllocator> m_Memory;
 
 		Vector<FixedSizeAllocator> m_Allocators;
 	};

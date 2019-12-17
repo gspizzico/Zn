@@ -36,7 +36,7 @@ namespace Zn::Automation
 
 		virtual void Execute()
 		{
-			SmallAllocationStrategy Strategy = SmallAllocationStrategy(1ull << 29ull, 1ull << 8ull);
+			Zn::SmallAllocationStrategy Strategy = SmallAllocationStrategy(1ull << 29ull, 1ull << 8ull);
 
 			std::chrono::high_resolution_clock hrc;
 
@@ -66,7 +66,7 @@ namespace Zn::Automation
 				std::random_device rd;
 				std::mt19937 gen(rd());
 
-				auto FrameAllocationDistribution = CreateIntDistribution({ sizeof(uintptr_t), Strategy.GetMaxAllocationSize() });
+				auto FrameAllocationDistribution = CreateIntDistribution({ sizeof(uintptr_t), 8/*Strategy.GetMaxAllocationSize()*/ });
 
 				for (;;)
 				{

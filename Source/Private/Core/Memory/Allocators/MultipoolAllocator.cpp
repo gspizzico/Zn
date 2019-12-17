@@ -10,7 +10,7 @@ namespace Zn
 		, m_Pools()
 	{
 		m_Pools.reserve(1);
-		m_Pools.emplace_back(MemoryPool(m_MinAllocationSize));
+		m_Pools.emplace_back(PageAllocator(m_MinAllocationSize));
 	}
 
 	MultipoolAllocator::MultipoolAllocator(size_t pools_num, size_t pool_address_space, size_t min_allocation_size)
@@ -20,7 +20,7 @@ namespace Zn
 		m_Pools.reserve(pools_num);
 		for (size_t Index = 0; Index < pools_num; Index++)
 		{
-			m_Pools.emplace_back(MemoryPool(pool_address_space, min_allocation_size << Index));
+			m_Pools.emplace_back(PageAllocator(pool_address_space, min_allocation_size << Index));
 		}
 	}
 
@@ -28,11 +28,11 @@ namespace Zn
 	{
 		size_t AlignedSize = Memory::Align(size, alignment);
 
-		MemoryPool* pPool = nullptr;
+		PageAllocator* pPool = nullptr;
 
 		for (auto& Pool : m_Pools)
 		{
-			if (AlignedSize <= Pool.BlockSize())
+			if (AlignedSize <= Pool.PageSize())
 			{
 				pPool = &Pool;
 				break;
@@ -41,7 +41,7 @@ namespace Zn
 
 		_ASSERT(pPool);
 
-		ZN_LOG(LogMultipoolAllocator, ELogVerbosity::Verbose, "Requesting allocation of size \t%i. Pool block size: \t%i.", size, pPool->BlockSize());
+		ZN_LOG(LogMultipoolAllocator, ELogVerbosity::Verbose, "Requesting allocation of size \t%i. Pool block size: \t%i.", size, pPool->PageSize());
 
 		return pPool->Allocate();
 	}
@@ -61,6 +61,6 @@ namespace Zn
 
 	size_t MultipoolAllocator::GetMaxAllocationSize() const
 	{
-		return (m_Pools.end() - 1)->BlockSize();
+		return (m_Pools.end() - 1)->PageSize();
 	}
 }

@@ -10,11 +10,11 @@ namespace Zn
 
 		static constexpr uint64_t kFreePagePattern = 0xfb;
 
-		PageAllocator(size_t pool_size, size_t block_size);
+		PageAllocator(size_t pool_size, size_t page_size);
 
-		PageAllocator(size_t block_size);
+		PageAllocator(size_t page_size);
 
-		PageAllocator(SharedPtr<VirtualMemoryRegion> region, size_t block_size);
+		PageAllocator(SharedPtr<VirtualMemoryRegion> region, size_t page_size);
 
 		size_t GetUsedMemory() const { return m_AllocatedPages * PageSize(); }
 

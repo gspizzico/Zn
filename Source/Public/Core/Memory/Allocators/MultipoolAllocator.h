@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Memory/Allocators/PoolAllocator.h"
+#include "Core/Memory/Allocators/PageAllocator.h"
 #include "Core/Containers/Vector.h"
 
 namespace Zn
@@ -23,6 +23,6 @@ namespace Zn
 
 		size_t m_MinAllocationSize;
 
-		Vector<MemoryPool> m_Pools;
+		Vector<PageAllocator> m_Pools;
 	};
 }

@@ -5,7 +5,7 @@ DEFINE_STATIC_LOG_CATEGORY(LogSmallAllocationStrategy, ELogVerbosity::Log);
 
 namespace Zn
 {
-	SmallAllocationStrategy::SmallAllocationStrategy(SharedPtr<MemoryPool> memory, size_t max_allocation_size)
+	SmallAllocationStrategy::SmallAllocationStrategy(SharedPtr<PageAllocator> memory, size_t max_allocation_size)
 		: m_Memory(memory)
 		, m_Allocators()
 	{
@@ -22,7 +22,7 @@ namespace Zn
 
 	SmallAllocationStrategy::SmallAllocationStrategy(size_t reserve_memory_size, size_t max_allocation_size)
 		: SmallAllocationStrategy(
-			  std::make_shared<MemoryPool>(MemoryPool(VirtualMemory::AlignToPageSize(reserve_memory_size), VirtualMemory::GetPageSize()))
+			  std::make_shared<PageAllocator>(PageAllocator(VirtualMemory::AlignToPageSize(reserve_memory_size), VirtualMemory::GetPageSize()))
 			, max_allocation_size)
 	{
 	}
@@ -46,7 +46,7 @@ namespace Zn
 	{
 		_ASSERT(m_Memory->Range().Contains(address));
 
-		auto PageAddress = FixedSizeAllocator::FSAPage::GetPageFromAnyAddress(address, m_Memory->Range().Begin(), m_Memory->BlockSize());
+		auto PageAddress = FixedSizeAllocator::FSAPage::GetPageFromAnyAddress(address, m_Memory->Range().Begin(), m_Memory->PageSize());
 
 		const size_t& AllocationSize = PageAddress->m_AllocationSize;
 
