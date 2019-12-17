@@ -37,6 +37,10 @@ namespace Zn
 			void* Allocate();
 
 			void Free(void* address);
+
+			size_t GetAllocatedMemory() const { return m_AllocatedBlocks * m_AllocationSize; }
+
+			static FSAPage* GetPageFromAnyAddress(void* address, void* start_address, size_t page_size);
 		
 		private:
 
@@ -51,7 +55,9 @@ namespace Zn
 
 		void* Allocate();
 
-		void Free(void* address);		
+		void Free(void* address);
+
+		const std::list<uintptr_t>& GetFreePageList() const { return m_FreePageList; }
 
 	private:		
 

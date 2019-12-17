@@ -46,7 +46,7 @@ namespace Zn
 
 	void FixedSizeAllocator::Free(void* address)
 	{
-		auto PageAddress = reinterpret_cast<FSAPage*>(Memory::AlignToAddress(address, m_MemoryPool->Range().Begin(), m_MemoryPool->BlockSize()));
+		auto PageAddress = FSAPage::GetPageFromAnyAddress(address, m_MemoryPool->Range().Begin(), m_MemoryPool->BlockSize());
 		
 		_ASSERT(PageAddress != NULL && PageAddress->m_AllocationSize == m_AllocationSize);
 
@@ -153,10 +153,19 @@ namespace Zn
 		{
 			_ASSERT(m_NextFreeBlock->m_AllocationToken == FreeBlock::kValidationToken);
 
-			NewBlock->m_NextBlockOffset = Memory::GetDistance(m_NextFreeBlock, this);
+			auto Offset = Memory::GetDistance(m_NextFreeBlock, this);
+
+			_ASSERT(Offset >= 0);
+
+			NewBlock->m_NextBlockOffset = static_cast<uint32_t>(Offset);
 		}
 
 		m_NextFreeBlock = NewBlock;
+	}
+
+	inline FixedSizeAllocator::FSAPage* FixedSizeAllocator::FSAPage::GetPageFromAnyAddress(void* address, void* start_address, size_t page_size)
+	{
+		return reinterpret_cast<FSAPage*>(Memory::AlignToAddress(address, start_address, page_size));
 	}
 
 	inline FixedSizeAllocator::FreeBlock* FixedSizeAllocator::FSAPage::StartAddress() const

@@ -34,7 +34,7 @@ namespace Zn
 
 		bool CommitMemory();
 
-		static constexpr float kStartDecommitThreshold	= .4f;
+		static constexpr float kStartDecommitThreshold	= .4f; 
 		
 		static constexpr float kEndDecommitThreshold	= .8f;
 
