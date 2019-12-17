@@ -207,7 +207,7 @@ namespace Zn
 				unsigned long PagesMaskIndex;
 				_BitScanForward64(&PagesMaskIndex, ~Mask);
 
-				PagesMaskIndex += (i * kMaskSize);
+				PagesMaskIndex += static_cast<unsigned long>(i * kMaskSize);
 
 				unsigned long BlockIndex;
 				_BitScanForward64(&BlockIndex, ~m_CommittedPagesMasks[PagesMaskIndex]); 	// Biased towards lower addresses.

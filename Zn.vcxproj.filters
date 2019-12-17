@@ -71,6 +71,12 @@
     <Filter Include="Source\Private\Core\Memory\Allocators\Tests">
       <UniqueIdentifier>{a442219f-ab23-4efc-95d2-53f0e2dd3efa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core\Memory\Allocators\Strategies">
+      <UniqueIdentifier>{609112c1-3b9e-4cb5-8797-9ab5c2c6d863}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Core\Memory\Allocators\Strategies">
+      <UniqueIdentifier>{25e0d0dd-4487-410c-9267-981b3cdac6b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -144,6 +150,12 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Memory\Allocators\MultipoolAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\SmallAllocationStrategyTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\SmallAllocationStrategy.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -233,6 +245,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\MultipoolAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\SmallAllocationStrategy.h">
+      <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
