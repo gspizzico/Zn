@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Memory/Allocators/PoolAllocator.h"
+#include "Core/Memory/Allocators/PageAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
 #include <array>
 #include <set>
@@ -49,7 +49,7 @@ namespace Zn
 
 		static constexpr size_t	kMinAllocationSize = sizeof(uintptr_t);							// Each block stores the address to the next block.
 
-		FixedSizeAllocator(size_t allocationSize, SharedPtr<MemoryPool> memoryPool);
+		FixedSizeAllocator(size_t allocationSize, SharedPtr<PageAllocator> memoryPool);
 
 		FixedSizeAllocator(size_t allocationSize, size_t pageSize);
 
@@ -63,7 +63,7 @@ namespace Zn
 
 		void AllocatePage();
 
-		SharedPtr<MemoryPool>	m_MemoryPool;
+		SharedPtr<PageAllocator>	m_MemoryPool;
 
 		size_t					m_AllocationSize;
 

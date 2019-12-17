@@ -4,19 +4,19 @@
 
 namespace Zn
 {
-	class MemoryPool
+	class PageAllocator
 	{
 	public:
 
-		static constexpr uint64_t kFreeBlockPattern = 0xfb;
+		static constexpr uint64_t kFreePagePattern = 0xfb;
 
-		MemoryPool(size_t pool_size, size_t block_size);
+		PageAllocator(size_t pool_size, size_t block_size);
 
-		MemoryPool(size_t block_size);
+		PageAllocator(size_t block_size);
 
-		MemoryPool(SharedPtr<VirtualMemoryRegion> region, size_t block_size);
+		PageAllocator(SharedPtr<VirtualMemoryRegion> region, size_t block_size);
 
-		size_t GetUsedMemory() const { return m_AllocatedBlocks * BlockSize(); }
+		size_t GetUsedMemory() const { return m_AllocatedPages * PageSize(); }
 
 		float GetMemoryUtilization() const { return (float)GetUsedMemory() / (float) m_Tracker.GetCommittedMemory(); }
 
@@ -24,7 +24,7 @@ namespace Zn
 
 		bool Free(void* address);
 
-		size_t BlockSize() const { return m_Tracker.m_BlockSize; }
+		size_t PageSize() const { return m_Tracker.m_PageSize; }
 
 		bool IsAllocated(void* address) const;
 
@@ -52,15 +52,15 @@ namespace Zn
 
 			void* GetNextPageToCommit() const;
 
-			size_t GetCommittedMemory() const { return m_CommittedBlocks * m_BlockSize; }
+			size_t GetCommittedMemory() const { return m_CommittedPages * m_PageSize; }
 
-			size_t BlockNumber(void* address) const;
+			size_t PageNumber(void* address) const;
 
 			MemoryRange m_AddressRange;
 
-			size_t m_BlockSize = 0;
+			size_t m_PageSize = 0;
 
-			size_t m_CommittedBlocks = 0;
+			size_t m_CommittedPages = 0;
 
 			Vector<uint64_t> m_CommittedPagesMasks;	// Each value is a mask that tells for each bit, if that block is committed. (bit == block)
 
@@ -75,21 +75,21 @@ namespace Zn
 
 		CommittedMemoryTracker m_Tracker;
 
-		size_t m_AllocatedBlocks = 0;
+		size_t m_AllocatedPages = 0;
 
-		void* m_NextFreeBlock = nullptr;
+		void* m_NextFreePage = nullptr;
 
-		struct FreeBlock
+		struct FreePage
 		{
-			FreeBlock(void* nextBlock)
-				: m_Pattern(kFreeBlockPattern)
-				, m_Next(nextBlock)
+			FreePage(void* nextPage)
+				: m_Pattern(kFreePagePattern)
+				, m_Next(nextPage)
 			{}
 
 			uint64_t m_Pattern;
 			void* m_Next;
 
-			bool IsValid() const { return m_Pattern == kFreeBlockPattern; }
+			bool IsValid() const { return m_Pattern == kFreePagePattern; }
 		};		
 	};
 }

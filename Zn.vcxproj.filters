@@ -118,9 +118,6 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\PoolAllocator.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Private\Core\Memory\Allocators\TLSFAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
     </ClCompile>
@@ -145,17 +142,8 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp">
       <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\MultipoolAutomationTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\MultipoolAllocator.cpp">
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\PageAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\SmallAllocationStrategyTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\SmallAllocationStrategy.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -222,9 +210,6 @@
     <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\PoolAllocator.h">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\TLSFAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
@@ -243,11 +228,8 @@
     <ClInclude Include="Source\Public\Core\Memory\Allocators\FixedSizeAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\MultipoolAllocator.h">
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\PageAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\SmallAllocationStrategy.h">
-      <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

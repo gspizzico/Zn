@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "Core/Memory/Allocators/PoolAllocator.h"
+#include "Core/Memory/Allocators/PageAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
 #include "Core/Math/Math.h"
 
@@ -129,7 +129,7 @@ namespace Zn
 
 		bool				Decommit(FreeBlock* block);
 
-		MemoryPool								m_Memory;
+		PageAllocator								m_Memory;
 
 		FreeListMatrix							m_FreeLists;
 

@@ -180,7 +180,7 @@ namespace Zn
 
 		if (!FindSuitableBlock(fl, sl))
 		{
-			BlockSize = m_Memory.BlockSize();
+			BlockSize = m_Memory.PageSize();
 			void* AllocatedMemory = m_Memory.Allocate();											// Allocate a new page if there is no available block for the requested size.
 			FreeBlock = FreeBlock::New({ AllocatedMemory, BlockSize });
 		}
@@ -377,7 +377,7 @@ namespace Zn
 	{	
 		auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousPhysicalFooter(block);
 
-		if ((!Memory::IsAligned(block, m_Memory.BlockSize()) || m_Memory.IsAllocated(PreviousPhysicalBlockFooter)) 
+		if ((!Memory::IsAligned(block, m_Memory.PageSize()) || m_Memory.IsAllocated(PreviousPhysicalBlockFooter)) 
 			&& PreviousPhysicalBlockFooter->IsValid())									// If the block is not aligned, the previous can never be not committed.
 		{
 			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->BlockSize();
@@ -402,7 +402,7 @@ namespace Zn
 	{
 		FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size()));
 
-		if ((!Memory::IsAligned(NextPhysicalBlock, m_Memory.BlockSize()) || m_Memory.IsAllocated(NextPhysicalBlock)) 
+		if ((!Memory::IsAligned(NextPhysicalBlock, m_Memory.PageSize()) || m_Memory.IsAllocated(NextPhysicalBlock)) 
 			&& NextPhysicalBlock->GetFooter()->IsValid())								// If the block is not aligned, the next can never be not committed.
 		{
 			auto NextBlockSize = NextPhysicalBlock->Size();
@@ -507,20 +507,20 @@ namespace Zn
 #if TLSF_ENABLE_DECOMMIT
 		const auto BlockSize = block->Size();
 
-		if (BlockSize >= (m_Memory.BlockSize() + (FreeBlock::kMinBlockSize * 2)))
+		if (BlockSize >= (m_Memory.PageSize() + (FreeBlock::kMinBlockSize * 2)))
 		{
-			auto SPA = Memory::Align(block, m_Memory.BlockSize());
+			auto SPA = Memory::Align(block, m_Memory.PageSize());
 
 			auto NextPhysicalBlockAddress = Memory::AddOffset(block, BlockSize);
 
 			auto SPA_Alignment = Memory::GetDistance(SPA, block);
 			
-			if (BlockSize - SPA_Alignment < m_Memory.BlockSize())
+			if (BlockSize - SPA_Alignment < m_Memory.PageSize())
 			{
 				return false;
 			}
 
-			auto EPA = Memory::AddOffset(SPA, m_Memory.BlockSize());
+			auto EPA = Memory::AddOffset(SPA, m_Memory.PageSize());
 			
 			auto LastBlockSize = Memory::GetDistance(NextPhysicalBlockAddress, EPA);
 

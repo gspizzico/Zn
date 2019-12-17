@@ -6,7 +6,7 @@
 #include "Core/Windows/WindowsDebugOutput.h"
 #include "Core/Log/LogMacros.h"
 #include "Core/Memory/Allocators/StackAllocator.h"
-#include "Core/Memory/Allocators/PoolAllocator.h"
+#include "Core/Memory/Allocators/PageAllocator.h"
 #include "Core/Memory/Allocators/TLSFAllocator.h"
 #include "Core/Memory/Allocators/HeapAllocator.h"
 #include "Automation/AutomationTestManager.h"
@@ -70,7 +70,7 @@ public:
 	void TestFreeBlock()
 	{
 		static constexpr size_t kBlockSize = 32;
-		MemoryPool Pool(kBlockSize);
+		PageAllocator Pool(kBlockSize);
 
 		void* First = Pool.Allocate();
 		void* Second = Pool.Allocate();
@@ -88,7 +88,7 @@ public:
 
 	void TestMemoryPool()
 	{
-		MemoryPool Pool(1024);
+		PageAllocator Pool(1024);
 
 		//AutoLogCategory("PoolAllocator", ELogVerbosity::Log);
 

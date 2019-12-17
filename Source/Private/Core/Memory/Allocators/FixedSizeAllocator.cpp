@@ -7,7 +7,7 @@ DEFINE_STATIC_LOG_CATEGORY(LogFixedSizeAllocator, ELogVerbosity::Log);
 
 namespace Zn
 {
-	FixedSizeAllocator::FixedSizeAllocator(size_t allocationSize, SharedPtr<MemoryPool> memoryPool)
+	FixedSizeAllocator::FixedSizeAllocator(size_t allocationSize, SharedPtr<PageAllocator> memoryPool)
 		: m_MemoryPool(memoryPool)
 		, m_AllocationSize(std::max(Memory::Align(allocationSize, 2), kMinAllocationSize))
 		, m_NextFreeBlock(nullptr)
@@ -19,7 +19,7 @@ namespace Zn
 	FixedSizeAllocator::FixedSizeAllocator(size_t allocationSize, size_t pageSize)
 		: FixedSizeAllocator(allocationSize, nullptr)
 	{
-		m_MemoryPool = std::make_shared<MemoryPool>(VirtualMemory::AlignToPageSize(pageSize));
+		m_MemoryPool = std::make_shared<PageAllocator>(VirtualMemory::AlignToPageSize(pageSize));
 	}
 
 	void* FixedSizeAllocator::Allocate()
@@ -46,7 +46,7 @@ namespace Zn
 
 	void FixedSizeAllocator::Free(void* address)
 	{
-		auto PageAddress = FSAPage::GetPageFromAnyAddress(address, m_MemoryPool->Range().Begin(), m_MemoryPool->BlockSize());
+		auto PageAddress = FSAPage::GetPageFromAnyAddress(address, m_MemoryPool->Range().Begin(), m_MemoryPool->PageSize());
 		
 		_ASSERT(PageAddress != NULL && PageAddress->m_AllocationSize == m_AllocationSize);
 
@@ -75,13 +75,13 @@ namespace Zn
 	{
 		if (m_MemoryPool)
 		{
-			auto NewPage = new (m_MemoryPool->Allocate()) FSAPage(m_MemoryPool->BlockSize(), m_AllocationSize);
+			auto NewPage = new (m_MemoryPool->Allocate()) FSAPage(m_MemoryPool->PageSize(), m_AllocationSize);
 
 			auto PageKey = reinterpret_cast<uintptr_t>(NewPage);
 
 			m_FreePageList.push_back(PageKey);
 
-			ZN_LOG(LogFixedSizeAllocator, ELogVerbosity::Verbose, "Requested a page of size \t%i from the pool.", m_MemoryPool->BlockSize());
+			ZN_LOG(LogFixedSizeAllocator, ELogVerbosity::Verbose, "Requested a page of size \t%i from the pool.", m_MemoryPool->PageSize());
 		}
 	}	
 
