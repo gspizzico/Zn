@@ -1,7 +1,7 @@
 #include "Automation/AutomationTest.h"
 #include "Automation/AutomationTestManager.h"
 #include "Core/Log/LogMacros.h"
-#include "Core/Memory/Allocators/Strategies/SmallAllocationStrategy.h"
+#include "Core/Memory/Allocators/Strategies/BucketsAllocationStrategy.h"
 #include <algorithm>
 #include <utility>
 #include <random>
@@ -9,11 +9,11 @@
 #include <array>
 #include <chrono>
 
-DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_SmallAllocationStrategy, ELogVerbosity::Log)
+DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_BucketsAllocationStrategy, ELogVerbosity::Log)
 
 namespace Zn::Automation
 {
-	class SmallAllocationStrategyAutomationTest : public AutomationTest
+	class BucketsAllocationStrategyAutomationTest : public AutomationTest
 	{
 	private:
 
@@ -28,7 +28,7 @@ namespace Zn::Automation
 
 	public:
 
-		SmallAllocationStrategyAutomationTest(size_t allocations, size_t frames)
+		BucketsAllocationStrategyAutomationTest(size_t allocations, size_t frames)
 			: m_Allocations(allocations)
 			, m_Frames(frames)
 		{
@@ -36,7 +36,7 @@ namespace Zn::Automation
 
 		virtual void Execute()
 		{
-			Zn::SmallAllocationStrategy Strategy = SmallAllocationStrategy(1ull << 29ull, 1ull << 8ull);
+			Zn::BucketsAllocationStrategy Strategy = BucketsAllocationStrategy(1ull << 29ull, 1ull << 8ull);
 
 			std::chrono::high_resolution_clock hrc;
 
@@ -90,7 +90,7 @@ namespace Zn::Automation
 
 				PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
 
-				ZN_LOG(LogAutomationTest_SmallAllocationStrategy, ELogVerbosity::Log, "Wasted Memory kB: %.f", float(Strategy.GetWastedMemory()) / float(StorageUnit::KiloByte));
+				ZN_LOG(LogAutomationTest_BucketsAllocationStrategy, ELogVerbosity::Log, "Wasted Memory kB: %.f", float(Strategy.GetWastedMemory()) / float(StorageUnit::KiloByte));
 			}
 
 			for (auto& address : PreviousAllocations)
@@ -107,4 +107,4 @@ namespace Zn::Automation
 	};
 }
 
-DEFINE_AUTOMATION_STARTUP_TEST(SmallAllocationStrategy, Zn::Automation::SmallAllocationStrategyAutomationTest, 5000, 60*20);
+DEFINE_AUTOMATION_STARTUP_TEST(BucketsAllocationStrategy, Zn::Automation::BucketsAllocationStrategyAutomationTest, 5000, 60*20);

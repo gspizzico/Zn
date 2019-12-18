@@ -5,7 +5,7 @@
 #include "Core/Memory/Allocators/FixedSizeAllocator.h"
 
 /*
-	Allocation Strategy for small allocations.
+	Allocation Strategy that uses buckets. Their size is incremental by m_AllocationStep.
 
 	Uses multiple FixedSizeAllocator that share the same reserved memory addresses.
 	Each allocator has a unique size of allocation.
@@ -14,15 +14,15 @@
 */
 namespace Zn
 {
-	class SmallAllocationStrategy
+	class BucketsAllocationStrategy
 	{
 	public:
 
 		static constexpr size_t kMinAllocationSize = sizeof(uintptr_t);
 
-		SmallAllocationStrategy(SharedPtr<PageAllocator> memory, size_t max_allocation_size);
+		BucketsAllocationStrategy(SharedPtr<PageAllocator> memory, size_t max_allocation_size, size_t allocation_step = sizeof(uintptr_t));
 
-		SmallAllocationStrategy(size_t reserve_memory_size, size_t max_allocation_size);
+		BucketsAllocationStrategy(size_t reserve_memory_size, size_t max_allocation_size, size_t allocation_step = sizeof(uintptr_t));
 
 		void* Allocate(size_t size, size_t alignment = sizeof(uintptr_t));
 
@@ -34,8 +34,10 @@ namespace Zn
 
 	private:
 
+		size_t m_AllocationStep;
+
 		SharedPtr<PageAllocator> m_Memory;
 
-		Vector<FixedSizeAllocator> m_Allocators;
+		Vector<FixedSizeAllocator> m_Buckets;
 	};
 }

@@ -142,11 +142,11 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\PageAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\SmallAllocationStrategyTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\SmallAllocationStrategy.cpp">
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.cpp">
       <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\BucketsAllocationStrategyTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -231,7 +231,7 @@
     <ClInclude Include="Source\Public\Core\Memory\Allocators\PageAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\SmallAllocationStrategy.h">
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.h">
       <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
     </ClInclude>
   </ItemGroup>
