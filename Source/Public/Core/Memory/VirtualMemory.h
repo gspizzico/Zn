@@ -89,43 +89,4 @@ namespace Zn
 
 		MemoryRange m_Range;
 	};	
-
-	struct VirtualMemoryHeap
-	{
-	public:
-
-		VirtualMemoryHeap()			= default;
-
-		VirtualMemoryHeap(size_t region_size);
-
-		VirtualMemoryHeap(VirtualMemoryHeap&& other) noexcept;
-
-		VirtualMemoryHeap(const VirtualMemoryHeap&) = delete;
-
-		VirtualMemoryHeap& operator=(const VirtualMemoryHeap&) = delete;
-
-		const auto& Regions() const { return m_Regions; }
-
-		bool  IsValidAddress(void* address) const;
-
-		SharedPtr<VirtualMemoryRegion> AllocateRegion();
-
-		bool FreeRegion(size_t region_index);
-
-		SharedPtr<VirtualMemoryRegion> GetRegion(size_t region_index) const { return IsValidIndex(region_index) ? GetRegionUnsafe(region_index) : nullptr; }
-		
-		SharedPtr<VirtualMemoryRegion> GetRegionUnsafe(size_t region_index) const { return m_Regions[region_index]; }
-
-		bool GetRegionIndex(size_t& out_region_index, void* address) const;
-
-		size_t GetRegionSize() const { return m_RegionSize; }
-		
-	private:
-
-		bool IsValidIndex(size_t index) const { return index >= 0 && index < m_Regions.size(); }
-
-		size_t m_RegionSize			= 0;
-		
-		Vector<SharedPtr<VirtualMemoryRegion>> m_Regions;
-	};
 }
