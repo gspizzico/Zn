@@ -61,6 +61,11 @@ namespace Zn
 		Memory::MarkMemory(begin, end, 0);
 	}
 
+	uint64_t Memory::Convert(uint64_t size, StorageUnit convert_to, StorageUnit convert_from)
+	{
+		return size * uint64_t(convert_from) / uint64_t(convert_to);
+	}
+
     void MemoryDebug::MarkUninitialized(void * begin, void * end)
     {
 #if ZN_DEBUG

@@ -49,6 +49,8 @@ namespace Zn
 		static void MarkMemory(void* begin, void* end, int8_t pattern);
 
 		static void Memzero(void* begin, void* end);
+
+		static uint64_t Convert(uint64_t size, StorageUnit convert_to, StorageUnit convert_from);
     };
 
     class MemoryDebug
