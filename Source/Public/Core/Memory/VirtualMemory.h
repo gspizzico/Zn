@@ -68,6 +68,8 @@ namespace Zn
 		VirtualMemoryRegion(size_t capacity);
 
 		VirtualMemoryRegion(VirtualMemoryRegion&& other) noexcept;
+		
+		VirtualMemoryRegion(MemoryRange range) noexcept;
 
 		~VirtualMemoryRegion();
 
