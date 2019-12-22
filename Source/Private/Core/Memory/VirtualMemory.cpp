@@ -62,6 +62,12 @@ namespace Zn
 	{
 	}
 
+	VirtualMemoryRegion::VirtualMemoryRegion(MemoryRange range)
+		: m_Range(range)
+	{
+		_ASSERT(VirtualMemory::GetMemoryInformation(m_Range).m_State == VirtualMemory::State::kReserved);
+	}
+
 	VirtualMemoryRegion::~VirtualMemoryRegion()
 	{
 		if (auto BaseAddress = m_Range.Begin())
