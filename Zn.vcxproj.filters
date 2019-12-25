@@ -148,6 +148,12 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\BucketsAllocationStrategyTest.cpp">
       <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\DirectAllocationStrategyTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -232,6 +238,9 @@
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.h">
+      <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.h">
       <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
     </ClInclude>
   </ItemGroup>
