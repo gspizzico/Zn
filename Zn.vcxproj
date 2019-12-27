@@ -166,6 +166,8 @@
     <ClCompile Include="Source\Private\Automation\AutomationTest.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestExample.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp" />
+    <ClCompile Include="Source\Private\Core\Async\TaskGraph.cpp" />
+    <ClCompile Include="Source\Private\Core\Async\Tests\TaskGraphAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Misc.cpp" />
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
@@ -192,6 +194,9 @@
   <ItemGroup>
     <ClInclude Include="Source\Public\Automation\AutomationTest.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTestManager.h" />
+    <ClInclude Include="Source\Public\Core\Async\ITaskGraphNode.h" />
+    <ClInclude Include="Source\Public\Core\Async\Task.h" />
+    <ClInclude Include="Source\Public\Core\Async\TaskGraph.h" />
     <ClInclude Include="Source\Public\Core\Build.h" />
     <ClInclude Include="Source\Public\Core\Containers\Map.h" />
     <ClInclude Include="Source\Public\Core\Containers\Set.h" />
