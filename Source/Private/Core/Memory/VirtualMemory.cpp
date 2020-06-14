@@ -62,7 +62,7 @@ namespace Zn
 	{
 	}
 
-	VirtualMemoryRegion::VirtualMemoryRegion(MemoryRange range)
+	VirtualMemoryRegion::VirtualMemoryRegion(MemoryRange range) noexcept
 		: m_Range(range)
 	{
 		_ASSERT(VirtualMemory::GetMemoryInformation(m_Range).m_State == VirtualMemory::State::kReserved);

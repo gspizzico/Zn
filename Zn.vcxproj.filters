@@ -77,6 +77,15 @@
     <Filter Include="Source\Private\Core\Memory\Allocators\Strategies">
       <UniqueIdentifier>{25e0d0dd-4487-410c-9267-981b3cdac6b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core\Async">
+      <UniqueIdentifier>{820a7f9d-043b-4dd3-a8f9-ee5ccc61b343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Core\Async">
+      <UniqueIdentifier>{8563138a-b9b7-45d1-ad7c-a5e4d5c5bed9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Core\Async\Tests">
+      <UniqueIdentifier>{c030cb69-9091-4546-b83c-6c6ff1d66548}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -147,6 +156,18 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\BucketsAllocationStrategyTest.cpp">
       <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\DirectAllocationStrategyTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Async\TaskGraph.cpp">
+      <Filter>Source\Private\Core\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Async\Tests\TaskGraphAutomationTest.cpp">
+      <Filter>Source\Private\Core\Async\Tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -233,6 +254,18 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.h">
       <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.h">
+      <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\Task.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\TaskGraph.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\ITaskGraphNode.h">
+      <Filter>Source\Public\Core\Async</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

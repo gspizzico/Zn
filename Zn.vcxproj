@@ -166,6 +166,8 @@
     <ClCompile Include="Source\Private\Automation\AutomationTest.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestExample.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp" />
+    <ClCompile Include="Source\Private\Core\Async\TaskGraph.cpp" />
+    <ClCompile Include="Source\Private\Core\Async\Tests\TaskGraphAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Misc.cpp" />
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
@@ -174,6 +176,8 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\PageAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\DirectAllocationStrategyTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\BucketsAllocationStrategyTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp" />
@@ -190,6 +194,9 @@
   <ItemGroup>
     <ClInclude Include="Source\Public\Automation\AutomationTest.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTestManager.h" />
+    <ClInclude Include="Source\Public\Core\Async\ITaskGraphNode.h" />
+    <ClInclude Include="Source\Public\Core\Async\Task.h" />
+    <ClInclude Include="Source\Public\Core\Async\TaskGraph.h" />
     <ClInclude Include="Source\Public\Core\Build.h" />
     <ClInclude Include="Source\Public\Core\Containers\Map.h" />
     <ClInclude Include="Source\Public\Core\Containers\Set.h" />
@@ -207,6 +214,7 @@
     <ClInclude Include="Source\Public\Core\Memory\Allocators\PageAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\TLSFAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Memory.h" />
     <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h" />
