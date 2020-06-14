@@ -3,6 +3,8 @@
 
 namespace Zn
 {
+	struct Guid;
+
     enum class ProcessorArchitecture
     {
         x64,
@@ -28,5 +30,7 @@ namespace Zn
         static SystemInfo GetSystemInfo();
 
 		static void Exit(bool bWithErrors = false);
+
+		static Guid GenerateGuid();
     };
 }

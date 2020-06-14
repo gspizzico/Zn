@@ -121,6 +121,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Rpcrt4.lib	;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -168,6 +169,7 @@
     <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp" />
     <ClCompile Include="Source\Private\Core\Async\TaskGraph.cpp" />
     <ClCompile Include="Source\Private\Core\Async\Tests\TaskGraphAutomationTest.cpp" />
+    <ClCompile Include="Source\Private\Core\HAL\Guid.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Misc.cpp" />
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
@@ -202,6 +204,7 @@
     <ClInclude Include="Source\Public\Core\Containers\Set.h" />
     <ClInclude Include="Source\Public\Core\Containers\Vector.h" />
     <ClInclude Include="Source\Public\Core\HAL\BasicTypes.h" />
+    <ClInclude Include="Source\Public\Core\HAL\Guid.h" />
     <ClInclude Include="Source\Public\Core\HAL\Misc.h" />
     <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h" />
     <ClInclude Include="Source\Public\Core\Log\Log.h" />

@@ -1,6 +1,11 @@
 #include "Core/Windows/WindowsMisc.h"
+#include "Core/HAL/Guid.h"
 #include <windows.h>
 #include <stdlib.h>
+// Guid
+#include <guiddef.h>
+#include <Rpcdce.h>
+//
 
 namespace Zn
 {
@@ -38,5 +43,29 @@ namespace Zn
 	void WindowsMisc::Exit(bool bWithErrors)
 	{
 		exit(bWithErrors ? EXIT_FAILURE : EXIT_SUCCESS);
+	}
+
+	Guid WindowsMisc::GenerateGuid()
+	{
+		UUID WindowsGuid;
+		auto Result = UuidCreateSequential(&WindowsGuid);
+
+		_ASSERT(Result != RPC_S_UUID_NO_ADDRESS);
+
+		Guid ZnGuid;
+		ZnGuid.A = WindowsGuid.Data1;
+		ZnGuid.B = WindowsGuid.Data3 | (WindowsGuid.Data2 << sizeof(WindowsGuid.Data2) * 8);
+		
+		for (size_t Index = 0; Index < 4; ++Index)
+		{
+			ZnGuid.C = (ZnGuid.C << 8) | WindowsGuid.Data4[Index];
+		}
+
+		for (size_t Index = 4; Index < 8; ++Index)
+		{
+			ZnGuid.D = (ZnGuid.D << 8) | WindowsGuid.Data4[Index];
+		}
+
+		return ZnGuid;
 	}
 }
