@@ -1,11 +1,6 @@
 #include "Core/Windows/WindowsMisc.h"
 #include "Core/HAL/Guid.h"
-#include <windows.h>
-#include <stdlib.h>
-// Guid
-#include <guiddef.h>
-#include <Rpcdce.h>
-//
+#include "Core/Windows/WindowsCommon.h"
 
 namespace Zn
 {
@@ -67,5 +62,10 @@ namespace Zn
 		}
 
 		return ZnGuid;
+	}
+	
+	uint32 WindowsMisc::GetLastError()
+	{
+		return ::GetLastError(); //#TODO Print last error message in a nice way.
 	}
 }

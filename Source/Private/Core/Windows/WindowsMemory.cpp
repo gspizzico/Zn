@@ -1,9 +1,7 @@
 #include "Core/Windows/WindowsMemory.h"
 #include "Core/Windows/WindowsMisc.h"
+#include "Core/Windows/WindowsCommon.h"
 #include "Core/Build.h"
-#include <windows.h>
-#include <memoryapi.h>
-#include <sysinfoapi.h>
 
 #define ZN_WINDOWS_TRACK_MEMORY (ZN_TRACK_MEMORY && !ZN_RELEASE) && 0
 

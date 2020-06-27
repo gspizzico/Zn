@@ -273,5 +273,8 @@
     <ClInclude Include="Source\Public\Core\HAL\Guid.h">
       <Filter>Source\Public\Core\HAL</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsCommon.h">
+      <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

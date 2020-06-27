@@ -13,5 +13,7 @@ namespace Zn
 		static void Exit(bool bWithErrors = false);
 
 		static Guid GenerateGuid();
+
+		static uint32 GetLastError();
     };
 }
