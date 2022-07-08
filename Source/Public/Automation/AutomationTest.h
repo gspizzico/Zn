@@ -10,7 +10,7 @@ namespace Zn::Automation
 	{
 	public:
 
-		enum Result : uint8_t
+		enum class Result : uint8_t
 		{
 			kOk			= 1,
 			kCannotRun	= 1 << 1,
@@ -19,7 +19,7 @@ namespace Zn::Automation
 			kNone		= 1 << 4
 		};
 
-		enum State
+		enum class State
 		{
 			kUninitialized,
 			kReady,
