@@ -21,11 +21,15 @@ namespace Zn
 
     Zn::String Name::ToString() const
     {
+		if (*this == NO_NAME) return "";
+
         return Zn::Names().at(m_StringCode);
     }
 
     const char* const Name::CString() const
     {
+		if (*this == NO_NAME) return "";
+
         return Zn::Names().at(m_StringCode).c_str();
     }
 }

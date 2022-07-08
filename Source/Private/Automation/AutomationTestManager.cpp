@@ -22,8 +22,6 @@ namespace Zn::Automation
 		{
 			auto&& Test = m_StartupTests[CurrentTestIndex];
 
-			Test->Prepare();
-
 			ZN_LOG(LogAutomationTestManager, ELogVerbosity::Log, "Executing test n.%i:\t%s", CurrentTestIndex, Test->GetName().CString());
 
 			do
