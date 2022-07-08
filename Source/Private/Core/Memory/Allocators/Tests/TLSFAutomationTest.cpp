@@ -56,12 +56,12 @@ namespace Zn::Automation
 
 			uint8 flip_flop = 0;
 
-			for (int32 k = m_Iterations - 1; k >= 0; k--)
+			for (int32 k = static_cast<int32>(m_Iterations - 1); k >= 0; k--)
 			{
 				std::chrono::high_resolution_clock hrc;
 				std::random_device rd;
 				std::mt19937 gen(rd());
-				std::uniform_int_distribution<> dis(m_MinAllocationSize, (int)m_MaxAllocationSize);
+				std::uniform_int_distribution<size_t> dis(m_MinAllocationSize, (int)m_MaxAllocationSize);
 
 				auto& MemoryBlocks = Pointers[flip_flop];
 
@@ -71,7 +71,7 @@ namespace Zn::Automation
 
 				if (PreviousIterationAllocations)
 				{
-					std::shuffle(PreviousIterationAllocations->begin(), PreviousIterationAllocations->end(), std::default_random_engine(hrc.now().time_since_epoch().count()));
+					std::shuffle(PreviousIterationAllocations->begin(), PreviousIterationAllocations->end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
 				}
 
 
@@ -87,17 +87,18 @@ namespace Zn::Automation
 					MemoryBlocks[i] = (Allocator.Allocate(Size));
 				}
 #if ZN_LOGGING
-				auto total_allocated = std::accumulate(Sizes.begin(), Sizes.end(), 0);
+				static constexpr size_t kZero = 0;
+				auto total_allocated = std::accumulate(Sizes.begin(), Sizes.end(), kZero);
 				ZN_LOG(LogAutomationTest_TLSFAllocator, ELogVerbosity::Verbose, "Allocated %i bytes", total_allocated);
 
 				if (auto PreviousIterationSizes = (k < (m_Iterations - 1)) ? &SizesArray[!flip_flop] : nullptr)
 				{
-					auto total_freed = std::accumulate(PreviousIterationSizes->begin(), PreviousIterationSizes->end(), 0);
+					auto total_freed = std::accumulate(PreviousIterationSizes->begin(), PreviousIterationSizes->end(), kZero);
 					ZN_LOG(LogAutomationTest_TLSFAllocator, ELogVerbosity::Verbose, "Freed %i bytes", total_freed);
 				}
 #endif
 
-				flip_flop = !flip_flop;
+				flip_flop = static_cast<uint8>(!flip_flop);
 			}
 
 			m_Result = Result::kOk;
@@ -178,7 +179,7 @@ namespace Zn::Automation
 
 			size_t ComputedFrames = 0;
 
-			auto IsDuplicate = [this, &ComputedFrames](const int Index) -> bool
+			auto IsDuplicate = [this, &ComputedFrames](const auto Index) -> bool
 			{
 				auto Predicate = [Index](const auto& Element) { return Index == Element; };
 				return std::any_of(m_MemorySpikeFramesIndices.cbegin(), m_MemorySpikeFramesIndices.cbegin() + ComputedFrames, Predicate);
@@ -188,10 +189,10 @@ namespace Zn::Automation
 
 			while (ComputedFrames < Data::kMemorySpikesNum)
 			{
-				int Index = SpikesDistribution(gen);
+				auto Index = SpikesDistribution(gen);
 				if (!IsDuplicate(Index))
 				{
-					m_MemorySpikeFramesIndices[ComputedFrames++] = Index;
+					m_MemorySpikeFramesIndices[ComputedFrames++] = static_cast<int>(Index);
 				}
 			}
 
@@ -201,9 +202,9 @@ namespace Zn::Automation
 			m_NextSpikeIndex = m_MemorySpikeFramesIndices[m_CurrentFrameSpikeIndex];
 		}
 
-		std::uniform_int_distribution<> CreateIntDistribution(const std::pair<size_t, size_t>& range)
+		std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
 		{
-			return std::uniform_int_distribution<> (range.first, range.second);
+			return std::uniform_int_distribution<size_t> (range.first, range.second);
 		}
 		
 		template<typename Array>
@@ -247,7 +248,7 @@ namespace Zn::Automation
 			std::random_device rd;
 			std::mt19937 gen(rd());
 
-			std::uniform_int_distribution<> dis = CreateIntDistribution(Data::kLargeMemoryAllocationRange);
+			std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kLargeMemoryAllocationRange);
 
 			for (int i = 0; i < Data::kLargeMemoryAllocations; ++i)
 			{
@@ -264,19 +265,19 @@ namespace Zn::Automation
 			using TFrameAllocations = decltype(Data::m_LastFrameAllocations);
 			std::unique_ptr<TFrameAllocations> CurrentFrameAllocations = std::make_unique<TFrameAllocations>();
 
-			std::uniform_int_distribution<> dis = CreateIntDistribution(Data::kFrameAllocationRange);
+			std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kFrameAllocationRange);
 			
 			std::chrono::high_resolution_clock hrc;
-			std::shuffle(m_AllocationData->m_LastFrameAllocations.begin(), m_AllocationData->m_LastFrameAllocations.end(), std::default_random_engine(hrc.now().time_since_epoch().count()));
+			std::shuffle(m_AllocationData->m_LastFrameAllocations.begin(), m_AllocationData->m_LastFrameAllocations.end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
 
 			std::random_device rd;
 			std::mt19937 gen(rd());
 
-			std::uniform_int_distribution<> RollDice = CreateIntDistribution({ 0, 100 });
+			std::uniform_int_distribution<size_t> RollDice = CreateIntDistribution({ 0, 100 });
 			
 			const bool CanDeallocate = frame > 0;
 
-			int RemainingDeallocations = CanDeallocate ? m_AllocationData->m_LastFrameAllocations.size() : 0;
+			int RemainingDeallocations = CanDeallocate ? static_cast<int>(m_AllocationData->m_LastFrameAllocations.size()) : 0;
 
 			for (int i = 0; i < max_frames; ++i)
 			{
