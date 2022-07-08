@@ -29,7 +29,7 @@ namespace Zn
 
         static SystemInfo GetSystemInfo();
 
-		static void Exit(bool bWithErrors = false);
+		static void Exit(bool with_errors = false);
 
 		static Guid GenerateGuid();
     };
