@@ -18,4 +18,8 @@ namespace Zn
 
         return { &Buffer[0], WrittenSize }; // Implicit String constructor.
     }
+	uint64 Time::GetTickCount()
+	{
+		return std::chrono::duration_cast<std::chrono::milliseconds>(SystemClock::now().time_since_epoch()).count();
+	}
 }

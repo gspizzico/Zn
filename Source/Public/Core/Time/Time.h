@@ -16,5 +16,7 @@ namespace Zn
         static String Now() { return ToString(SystemClock::now()); }
 
         static String ToString(std::chrono::time_point<SystemClock> time_point);
+
+		static uint64 GetTickCount();
     };
 }
