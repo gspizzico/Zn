@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <functional>
 #include "Core/Containers/Vector.h"
 
 using int8 = char;
@@ -21,4 +22,18 @@ namespace Zn
 
     template<typename T>
     using UniquePtr = std::unique_ptr<T>;
+
+	template<typename T>
+	using SharedFromThis = std::enable_shared_from_this<T>;
+
+	enum class ThreadPriority //#TODO move to approriate header
+	{
+		Idle,
+		Lowest,
+		Low,
+		Normal,
+		High,
+		Highest,
+		TimeCritical
+	};
 }

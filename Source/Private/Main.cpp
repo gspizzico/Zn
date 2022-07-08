@@ -10,6 +10,7 @@
 #include "Core/Memory/Allocators/TLSFAllocator.h"
 #include "Automation/AutomationTestManager.h"
 #include "Core/HAL/Misc.h"
+#include "Core/Async/ThreadManager.h"
 #include <algorithm>
 #include <utility>
 #include <random>
@@ -25,6 +26,7 @@ public:
 
 	void Initialize()
 	{
+		ThreadManager::Get().Startup();
 		OutputDeviceManager::Get().RegisterOutputDevice<WindowsDebugOutput>();
 	}
 

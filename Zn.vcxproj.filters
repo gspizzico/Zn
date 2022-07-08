@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -169,8 +169,35 @@
     <ClCompile Include="Source\Private\Core\Async\Tests\TaskGraphAutomationTest.cpp">
       <Filter>Source\Private\Core\Async\Tests</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Async\TaskManager.cpp">
+      <Filter>Source\Private\Core\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Async\Tests\TaskManagerAutomationTest.cpp">
+      <Filter>Source\Private\Core\Async\Tests</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Private\Core\HAL\Guid.cpp">
       <Filter>Source\Private\Core\HAL</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Async\Tests\ThreadsAutomationTest.cpp">
+      <Filter>Source\Private\Core\Async\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Windows\WindowsThreads.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Async\ThreadManager.cpp">
+      <Filter>Source\Private\Core\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Windows\WindowsCriticalSection.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Windows\WindowsAPI.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Async\Thread.cpp">
+      <Filter>Source\Private\Core\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Windows\WindowsThread.cpp">
+      <Filter>Source\Private\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -270,11 +297,41 @@
     <ClInclude Include="Source\Public\Core\Async\ITaskGraphNode.h">
       <Filter>Source\Public\Core\Async</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\TaskManager.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Public\Core\HAL\Guid.h">
       <Filter>Source\Public\Core\HAL</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\ThreadManager.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsThreads.h">
+      <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Public\Core\Windows\WindowsCommon.h">
       <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsCriticalSection.h">
+      <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\ScopedLock.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsAPI.h">
+      <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Windows\WindowsThread.h">
+      <Filter>Source\Public\Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\Thread.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\ThreadedJob.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\CallableJob.h">
+      <Filter>Source\Public\Core\Async</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
