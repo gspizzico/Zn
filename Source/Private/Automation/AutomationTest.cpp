@@ -69,22 +69,24 @@ namespace Zn::Automation
 
 		const auto TestNameString = GetName().CString();
 		
-		const auto ErrorMessage = GetErrorMessage().c_str();
+		const auto ErrorMessage = GetErrorMessage();
+
+		const auto ErrorMessageCString = ErrorMessage.c_str();
 
 		switch (m_Result)
 		{
 		case Result::kCannotRun:
-			ZN_LOG(LogAutomationTest, ELogVerbosity::Warning, "%s could not be run for the following reason: \n\t\t %s", TestNameString, ErrorMessage);
+			ZN_LOG(LogAutomationTest, ELogVerbosity::Warning, "%s could not be run for the following reason: \n\t\t %s", TestNameString, ErrorMessageCString);
 			break;
 		case Result::kFailed:
-			ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has failed for the following reason: \n\t\t %s", TestNameString, ErrorMessage);
+			ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has failed for the following reason: \n\t\t %s", TestNameString, ErrorMessageCString);
 			break;
 		case Result::kOk:
-			ZN_LOG(LogAutomationTest, ELogVerbosity::Log, "%s is successful.", TestNameString, ErrorMessage);
+			ZN_LOG(LogAutomationTest, ELogVerbosity::Log, "%s is successful.", TestNameString, ErrorMessageCString);
 			break;
 		case Result::kCritical:
 		{
-			ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has critically failed. Application will be closed. Reason: \n\t\t %s", TestNameString, ErrorMessage);
+			ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has critically failed. Application will be closed. Reason: \n\t\t %s", TestNameString, ErrorMessageCString);
 			
 			if (ShouldQuitWhenCriticalError())
 			{

@@ -17,9 +17,9 @@ namespace Zn::Automation
 	{
 	private:
 
-		std::uniform_int_distribution<> CreateIntDistribution(const std::pair<size_t, size_t>& range)
+		std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
 		{
-			return std::uniform_int_distribution<>(range.first, range.second);
+			return std::uniform_int_distribution<size_t>(range.first, range.second);
 		}
 
 		size_t m_Allocations;
@@ -44,7 +44,7 @@ namespace Zn::Automation
 
 			for (int frame = 0; frame < m_Frames; frame++)
 			{
-				int ToDeallocate = 0;
+				size_t ToDeallocate = 0;
 
 				if (frame > 0)
 				{
@@ -55,7 +55,7 @@ namespace Zn::Automation
 
 					ToDeallocate += RollDice(gen);
 
-					std::shuffle(PreviousAllocations.begin(), PreviousAllocations.end(), std::default_random_engine(hrc.now().time_since_epoch().count()));
+					std::shuffle(PreviousAllocations.begin(), PreviousAllocations.end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
 				}
 
 				std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);
