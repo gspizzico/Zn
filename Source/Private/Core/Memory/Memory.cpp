@@ -105,6 +105,17 @@ namespace Zn
 	{
 		return m_Begin == other.m_Begin && m_End == other.m_End;
 	}
+
+	bool MemoryRange::Contains(const MemoryRange& other) const
+	{
+		if (*this == other) return true;
+
+		const auto DistanceFromStart = Memory::GetDistance(other.Begin(), m_Begin);
+
+		const auto DistanceFromEnd = Memory::GetDistance(m_End, other.End());
+
+		return (DistanceFromStart >= 0 && DistanceFromEnd > 0) ||  (DistanceFromStart > 0 && DistanceFromEnd >= 0);
+	}
 }
 
 void* operator new(size_t size)

@@ -38,17 +38,19 @@ namespace Zn
 
 		auto CurrentAddress = Memory::Align(m_TopAddress, alignment);									// Address to be returned.
 
-		const MemoryRange Allocation(CurrentAddress, bytes);
-
 		m_TopAddress = Memory::AddOffset(CurrentAddress, bytes);										// Computes the new top stack address.
 
 		_ASSERT(m_Memory->Range().Contains(m_TopAddress));												// OOM guard.
 
+		const MemoryRange Allocation(CurrentAddress, bytes);
+
 		if (m_CommittedRange.Size() == 0)
 		{
-			if (VirtualMemory::Commit(CurrentAddress, bytes))
+			const size_t CommitSize = VirtualMemory::AlignToPageSize(bytes);
+
+			if (VirtualMemory::Commit(CurrentAddress, CommitSize))
 			{
-				m_CommittedRange = Allocation;
+				m_CommittedRange = MemoryRange(CurrentAddress, CommitSize);
 			}
 		}
 		else
@@ -59,13 +61,15 @@ namespace Zn
 			}
 			else
 			{
-				VirtualMemory::Commit(m_CommittedRange.End(), Memory::GetDistance(m_TopAddress, m_CommittedRange.End()));
+				const size_t CommitSize = VirtualMemory::AlignToPageSize(Memory::GetDistance(m_TopAddress, m_CommittedRange.End()));
+				
+				VirtualMemory::Commit(m_CommittedRange.End(), CommitSize);
 
-				m_CommittedRange = MemoryRange(m_CommittedRange.Begin(), m_TopAddress);
+				m_CommittedRange = MemoryRange(m_CommittedRange.Begin(), Memory::AddOffset(m_CommittedRange.End(), CommitSize));
 			}
 		}
 
-		_ASSERT(m_CommittedRange.Contains(MemoryRange(CurrentAddress, bytes)));
+		_ASSERT(m_CommittedRange.Contains(Allocation));
 
 		MemoryDebug::MarkUninitialized(CurrentAddress, m_TopAddress);
 
