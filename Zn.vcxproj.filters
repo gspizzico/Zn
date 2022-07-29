@@ -23,9 +23,6 @@
     <Filter Include="Source\Public\Core\HAL">
       <UniqueIdentifier>{68be810a-a26a-425b-9743-835d059b267a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Public\Core\Windows">
-      <UniqueIdentifier>{84257e48-df55-41cf-9e4b-40d73dd5b4c4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Public\Core\Containers">
       <UniqueIdentifier>{864690bd-91ce-462f-81fe-53f49d5c599e}</UniqueIdentifier>
     </Filter>
@@ -86,6 +83,51 @@
     <Filter Include="Source\Private\Core\Async\Tests">
       <UniqueIdentifier>{c030cb69-9091-4546-b83c-6c6ff1d66548}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Private\Core\HAL\SDL">
+      <UniqueIdentifier>{48ed124b-43ea-4807-9446-5b81264a66ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Core\HAL\SDL">
+      <UniqueIdentifier>{ddc5ae4c-5c93-4699-83b5-7efde2dde92c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Engine">
+      <UniqueIdentifier>{b09d64d9-3b96-49ab-8eb2-c0656e379eb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Engine">
+      <UniqueIdentifier>{3aa85fc2-703c-4bbe-9bd6-af651785437c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Windows">
+      <UniqueIdentifier>{22db1709-de3d-4ee2-840f-5f9573abcc61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Rendering">
+      <UniqueIdentifier>{8b5bcc7c-ff3a-4c14-b7a9-d8b252b1f037}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Rendering">
+      <UniqueIdentifier>{9a6897db-f1ea-4bc6-8a0b-9b8fd1f7c127}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Rendering\D3D11">
+      <UniqueIdentifier>{5ce66062-3b63-43cc-ae1d-9a0dd11f8df6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Rendering\D3D11">
+      <UniqueIdentifier>{c8e78631-22bc-4e9e-b329-6e51c0a02ae3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\ImGui">
+      <UniqueIdentifier>{bf543068-d3f4-4f28-9ac0-e05953542635}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\ImGui">
+      <UniqueIdentifier>{9985bd94-fe71-4a31-8a80-d346f7b4a6f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\External">
+      <UniqueIdentifier>{9c7933e8-9ead-424b-a738-80d9eced2b1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\External\ImGui">
+      <UniqueIdentifier>{de182027-ecb6-4dff-b933-3dd315136cfc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Public\Editor">
+      <UniqueIdentifier>{1b38f499-5acf-47eb-bce7-62b915568a1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Editor">
+      <UniqueIdentifier>{0f3336e1-8d64-4610-b6cc-4a09bcb50353}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -100,13 +142,13 @@
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp">
       <Filter>Source\Private\Core\Log</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Core\Windows\WindowsDebugOutput.cpp">
+    <ClCompile Include="Source\Private\Windows\WindowsDebugOutput.cpp">
       <Filter>Source\Private\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Time\Time.cpp">
       <Filter>Source\Private\Core\Time</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Core\Windows\WindowsMemory.cpp">
+    <ClCompile Include="Source\Private\Windows\WindowsMemory.cpp">
       <Filter>Source\Private\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp">
@@ -118,7 +160,7 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Core\Windows\WindowsMisc.cpp">
+    <ClCompile Include="Source\Private\Windows\WindowsMisc.cpp">
       <Filter>Source\Private\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Source\Private\Core\HAL\Misc.cpp">
@@ -172,6 +214,45 @@
     <ClCompile Include="Source\Private\Core\HAL\Guid.cpp">
       <Filter>Source\Private\Core\HAL</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\HAL\SDL\SDLWrapper.cpp">
+      <Filter>Source\Private\Core\HAL\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Engine\Engine.cpp">
+      <Filter>Source\Private\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Engine\Window.cpp">
+      <Filter>Source\Private\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Rendering\D3D11\D3D11.cpp">
+      <Filter>Source\Private\Rendering\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\ImGui\ImGuiWrapper.cpp">
+      <Filter>Source\Private\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\External\ImGui\imgui.cpp">
+      <Filter>Source\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\External\ImGui\imgui_demo.cpp">
+      <Filter>Source\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\External\ImGui\imgui_draw.cpp">
+      <Filter>Source\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\External\ImGui\imgui_impl_dx11.cpp">
+      <Filter>Source\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\External\ImGui\imgui_impl_sdl.cpp">
+      <Filter>Source\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\External\ImGui\imgui_tables.cpp">
+      <Filter>Source\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\External\ImGui\imgui_widgets.cpp">
+      <Filter>Source\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Editor\Editor.cpp">
+      <Filter>Source\Private\Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -179,9 +260,6 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h">
       <Filter>Source\Public\Core\HAL</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Windows\WindowsTypes.h">
-      <Filter>Source\Public\Core\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Containers\Map.h">
       <Filter>Source\Public\Core\Containers</Filter>
@@ -204,9 +282,6 @@
     <ClInclude Include="Source\Public\Core\Log\OutputDevice.h">
       <Filter>Source\Public\Core\Log</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Core\Windows\WindowsDebugOutput.h">
-      <Filter>Source\Public\Core\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\Core\Log\LogMacros.h">
       <Filter>Source\Public\Core\Log</Filter>
     </ClInclude>
@@ -216,9 +291,6 @@
     <ClInclude Include="Source\Public\Core\Memory\Memory.h">
       <Filter>Source\Public\Core\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Core\Windows\WindowsMemory.h">
-      <Filter>Source\Public\Core\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h">
       <Filter>Source\Public\Core\Memory</Filter>
     </ClInclude>
@@ -227,9 +299,6 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Windows\WindowsMisc.h">
-      <Filter>Source\Public\Core\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Core\HAL\Misc.h">
       <Filter>Source\Public\Core\HAL</Filter>
@@ -273,8 +342,62 @@
     <ClInclude Include="Source\Public\Core\HAL\Guid.h">
       <Filter>Source\Public\Core\HAL</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Core\Windows\WindowsCommon.h">
-      <Filter>Source\Public\Core\Windows</Filter>
+    <ClInclude Include="Source\Public\Core\HAL\SDL\SDLWrapper.h">
+      <Filter>Source\Public\Core\HAL\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Engine\Engine.h">
+      <Filter>Source\Public\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Engine\Window.h">
+      <Filter>Source\Public\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsCommon.h">
+      <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsDebugOutput.h">
+      <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsMemory.h">
+      <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsMisc.h">
+      <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsTypes.h">
+      <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Rendering\D3D11\D3D11.h">
+      <Filter>Source\Public\Rendering\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\ImGui\ImGuiWrapper.h">
+      <Filter>Source\Public\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\External\ImGui\imconfig.h">
+      <Filter>Source\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\External\ImGui\imgui.h">
+      <Filter>Source\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\External\ImGui\imgui_impl_dx11.h">
+      <Filter>Source\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\External\ImGui\imgui_impl_sdl.h">
+      <Filter>Source\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\External\ImGui\imgui_internal.h">
+      <Filter>Source\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\External\ImGui\imstb_rectpack.h">
+      <Filter>Source\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\External\ImGui\imstb_textedit.h">
+      <Filter>Source\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\External\ImGui\imstb_truetype.h">
+      <Filter>Source\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Editor\Editor.h">
+      <Filter>Source\Public\Editor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

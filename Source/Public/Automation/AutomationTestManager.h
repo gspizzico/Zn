@@ -14,13 +14,23 @@ namespace Zn::Automation
 		template<typename TTestType, typename... Args>
 		static void RegisterStartupTest(Name name, Args... arguments);
 
+		Vector<Name> GetStartupTestsNames() const;
+
 		void ExecuteStartupTests();
+
+		void EnqueueTests(const Vector<Name>& testNames);
+
+		void Tick(float deltaTime);
+
+		bool IsRunningTests() const { return m_PendingTests.size() > 0; }
 
 	private:
 
 		AutomationTestManager() = default;							// Private constructor for singleton.
 
 		Vector<SharedPtr<AutomationTest>>	m_StartupTests;			// These tests are executed only on engine startup.
+
+		Vector<SharedPtr<AutomationTest>>	m_PendingTests;			// Queue of pending tests to execute. Test at index 0 is current test.
 
 		//#todo Make a test_type or several vectors of tests to be executed in different moments.
 	};

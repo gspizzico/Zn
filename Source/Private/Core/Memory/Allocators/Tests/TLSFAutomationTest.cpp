@@ -325,8 +325,10 @@ namespace Zn::Automation
 			m_Result = Result::kOk;
 		}
 
-		virtual void Cleanup(bool bForce) override 
+		virtual void Cleanup() override 
 		{
+			AutomationTest::Cleanup();
+
 			m_AllocationData = nullptr;
 
 			m_MemorySpikeFramesIndices = { -1 };
@@ -339,5 +341,5 @@ namespace Zn::Automation
 }
 
 DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000, Zn::Automation::TLSFAutomationTest, 1000);
-DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest2_, Zn::Automation::TLSFAutomationTest2);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest2, Zn::Automation::TLSFAutomationTest2);
 //DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000, 4096, Zn::TLSFAllocator::kMaxAllocationSize);

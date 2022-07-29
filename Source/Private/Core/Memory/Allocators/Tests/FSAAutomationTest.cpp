@@ -105,15 +105,17 @@ namespace Zn::Automation
 			m_Result = Result::kOk;
 		}
 
-		virtual void Cleanup(bool bForce) override
+		virtual void Cleanup() override
 		{
+			AutomationTest::Cleanup();
+
 			m_Allocator = nullptr;
 		}
 	};
 }
 
-DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_8, Zn::Automation::FSAAutomationTest, 8,  1 << 14, 3000, 600);
+DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_8, Zn::Automation::FSAAutomationTest, 8,  1 << 14, 3000, 1);
 //DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_16, Zn::Automation::FSAAutomationTest, 16, 1 << 14, 3000, 600);
-DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_24, Zn::Automation::FSAAutomationTest, 24, 1 << 14, 3000, 600);
-//DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_32, Zn::Automation::FSAAutomationTest, 32, 1 << 14, 3000, 600);
+//DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_24, Zn::Automation::FSAAutomationTest, 24, 1 << 14, 3000, 1);
+DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_32, Zn::Automation::FSAAutomationTest, 32, 1 << 14, 3000, 1);
 //DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_38, Zn::Automation::FSAAutomationTest, 38, 1 << 14, 3000, 600);

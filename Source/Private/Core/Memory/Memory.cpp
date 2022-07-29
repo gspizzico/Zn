@@ -58,7 +58,12 @@ namespace Zn
 
 	void Memory::Memzero(void* begin, void* end)
 	{
-		Memory::MarkMemory(begin, end, 0);
+		std::memset(begin, 0, static_cast<size_t>(GetDistance(end, begin)));
+	}
+
+	void Memory::Memzero(void* begin, size_t size)
+	{
+		std::memset(begin, 0, size);
 	}
 
 	uint64_t Memory::Convert(uint64_t size, StorageUnit convert_to, StorageUnit convert_from)

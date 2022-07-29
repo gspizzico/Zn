@@ -1,3 +1,3 @@
 #pragma once
 
-#include "Core/Windows/WindowsTypes.h"
+#include "Windows/WindowsTypes.h"

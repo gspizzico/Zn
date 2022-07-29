@@ -46,9 +46,18 @@ namespace Zn
 
         static ptrdiff_t GetDistance(const void* first, const void* second);
 
+        // #todo call it memset?
 		static void MarkMemory(void* begin, void* end, int8_t pattern);
 
 		static void Memzero(void* begin, void* end);
+
+        static void Memzero(void* begin, size_t size);
+
+        template<typename T>
+        static void Memzero(T& data)
+        {
+            Memzero(&data, sizeof(T));
+        }
 
 		static uint64_t Convert(uint64_t size, StorageUnit convert_to, StorageUnit convert_from);
     };

@@ -99,11 +99,7 @@ namespace Zn::Automation
 
 			m_Result = Result::kOk;
 		}
-
-		virtual void Cleanup(bool bForce) override
-		{
-		}
 	};
 }
 
-DEFINE_AUTOMATION_STARTUP_TEST(DirectAllocationStrategy, Zn::Automation::DirectAllocationStrategyAutomationTest, 200, 60 * 20);
+DEFINE_AUTOMATION_STARTUP_TEST(DirectAllocationStrategy, Zn::Automation::DirectAllocationStrategyAutomationTest, 500, 1);

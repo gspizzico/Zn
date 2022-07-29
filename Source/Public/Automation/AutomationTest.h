@@ -38,11 +38,13 @@ namespace Zn::Automation
 
 		void Terminate(bool bForce);
 
+		void Reset();
+
 		virtual void Prepare() {};
 
 		virtual void Execute() {};
 
-		virtual void Cleanup(bool bForce) {};
+		virtual void Cleanup() {};
 
 		Name GetName() const { return m_Name; };
 
@@ -67,6 +69,8 @@ namespace Zn::Automation
 		State		m_State			= State::kUninitialized;
 
 		Result		m_Result		= Result::kNone;
+
+		double		m_StartTime		= 0.0;
 	};
 }
 
