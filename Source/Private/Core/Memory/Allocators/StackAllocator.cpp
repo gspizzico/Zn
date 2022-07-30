@@ -8,23 +8,21 @@ namespace Zn
 	StackAllocator::StackAllocator(size_t capacity)
 		: m_Memory(std::make_shared<VirtualMemoryRegion>(VirtualMemory::AlignToPageSize(capacity)))
 		, m_TopAddress(m_Memory->Begin())
+		, m_NextUncommitedAddress(m_TopAddress)
 		, m_LastSavedStatus(nullptr)
 	{
-	}
 
-	StackAllocator::StackAllocator(SharedPtr<VirtualMemoryRegion> region)
-		: m_Memory(region)
-		, m_TopAddress(m_Memory->Begin())
-		, m_LastSavedStatus(nullptr)
-	{	
 	}
 
 	StackAllocator::StackAllocator(StackAllocator&& allocator) noexcept
 		: m_Memory(std::move(allocator.m_Memory))
 		, m_TopAddress(allocator.m_TopAddress)
+		, m_NextUncommitedAddress(allocator.m_NextUncommitedAddress)
 		, m_LastSavedStatus(nullptr)
 	{	
 		allocator.m_TopAddress			= nullptr;
+		allocator.m_NextUncommitedAddress = nullptr;
+		allocator.m_LastSavedStatus = nullptr;
 	}
 
 	StackAllocator::~StackAllocator()
@@ -42,34 +40,14 @@ namespace Zn
 
 		_ASSERT(m_Memory->Range().Contains(m_TopAddress));												// OOM guard.
 
-		const MemoryRange Allocation(CurrentAddress, bytes);
-
-		if (m_CommittedRange.Size() == 0)
+		if (const auto UncommittedMemory = Memory::GetDistance(m_TopAddress, m_NextUncommitedAddress); UncommittedMemory > 0)
 		{
-			const size_t CommitSize = VirtualMemory::AlignToPageSize(bytes);
+			const size_t CommitSize = VirtualMemory::AlignToPageSize(UncommittedMemory);
 
-			if (VirtualMemory::Commit(CurrentAddress, CommitSize))
-			{
-				m_CommittedRange = MemoryRange(CurrentAddress, CommitSize);
-			}
+			VirtualMemory::Commit(m_NextUncommitedAddress, CommitSize);
+
+			m_NextUncommitedAddress = Memory::AddOffset(m_NextUncommitedAddress, CommitSize);
 		}
-		else
-		{
-			if (m_CommittedRange.Contains(Allocation))
-			{
-				return CurrentAddress;
-			}
-			else
-			{
-				const size_t CommitSize = VirtualMemory::AlignToPageSize(Memory::GetDistance(m_TopAddress, m_CommittedRange.End()));
-				
-				VirtualMemory::Commit(m_CommittedRange.End(), CommitSize);
-
-				m_CommittedRange = MemoryRange(m_CommittedRange.Begin(), Memory::AddOffset(m_CommittedRange.End(), CommitSize));
-			}
-		}
-
-		_ASSERT(m_CommittedRange.Contains(Allocation));
 
 		MemoryDebug::MarkUninitialized(CurrentAddress, m_TopAddress);
 
@@ -80,7 +58,7 @@ namespace Zn
 	{
 		_ASSERT(m_Memory->Range().Contains(address));													// Verify that is a valid address
 
-		if (Memory::GetDistance(address, m_TopAddress) > 0)
+		if (Memory::GetDistance(m_TopAddress, address) > 0)
 		{
 			MemoryDebug::MarkFree(address, m_TopAddress);
 
@@ -98,9 +76,7 @@ namespace Zn
 
 		m_TopAddress = m_Memory->Begin();
 
-		VirtualMemory::Decommit(m_CommittedRange.Begin(), m_CommittedRange.Size());
-
-		m_CommittedRange = MemoryRange();
+		VirtualMemory::Decommit(m_Memory->Begin(), Memory::GetDistance(m_NextUncommitedAddress, m_Memory->Begin()));
 
 		return true;
 	}
@@ -112,7 +88,7 @@ namespace Zn
 
 	size_t StackAllocator::GetCommittedMemory() const
 	{
-		return m_CommittedRange.Size();
+		return Memory::GetDistance(m_NextUncommitedAddress, m_Memory->Begin());
 	}
 
 	void StackAllocator::SaveStatus()

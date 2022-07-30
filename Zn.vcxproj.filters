@@ -253,6 +253,9 @@
     <ClCompile Include="Source\Private\Editor\Editor.cpp">
       <Filter>Source\Private\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\StackAllocatorTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">

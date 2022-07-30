@@ -198,6 +198,7 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\DirectAllocationStrategyTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\BucketsAllocationStrategyTest.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\StackAllocatorTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\TLSFAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />

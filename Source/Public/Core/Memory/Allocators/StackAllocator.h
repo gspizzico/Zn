@@ -22,8 +22,6 @@ namespace Zn
 
 		StackAllocator(size_t capacity);
 
-		StackAllocator(SharedPtr<VirtualMemoryRegion> region);
-
 		StackAllocator(StackAllocator&&) noexcept;
 
 		~StackAllocator();
@@ -55,8 +53,8 @@ namespace Zn
 
 		void* m_TopAddress				= nullptr;
 
-		void* m_LastSavedStatus			= nullptr;
+		void* m_NextUncommitedAddress	= nullptr;
 
-		MemoryRange m_CommittedRange;
+		void* m_LastSavedStatus			= nullptr;
 	};
 }
