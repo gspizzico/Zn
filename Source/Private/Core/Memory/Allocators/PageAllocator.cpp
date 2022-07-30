@@ -116,6 +116,20 @@ namespace Zn
 		}
 	}
 
+	void* PageAllocator::GetPageAddress(void* address) const
+	{	
+		if (Range().Contains(address))
+		{
+			auto StartAddress = Range().Begin();
+
+			auto PageIndex = m_Tracker.PageNumber(address);
+
+			return Memory::AddOffset(StartAddress, PageSize() * PageIndex);
+		}
+
+		return nullptr;
+	}
+
 	bool PageAllocator::CommitMemory()
 	{
 		const bool CommitResult = Range().Contains(m_NextFreePage) ? VirtualMemory::Commit(m_NextFreePage, PageSize()) : false;
@@ -130,6 +144,7 @@ namespace Zn
 	PageAllocator::CommittedMemoryTracker::CommittedMemoryTracker(MemoryRange range, size_t page_size)
 		: m_AddressRange(range)
 		, m_PageSize(VirtualMemory::AlignToPageSize(page_size))
+		, m_PageSizeMSB(0)
 		, m_CommittedPages(0)
 	{
 		uint64_t NumPages = m_AddressRange.Size() / m_PageSize;		// Number of allocable pages.
@@ -137,6 +152,11 @@ namespace Zn
 
 		m_CommittedIndexMasks.resize(NumMasks / kMaskSize);
 		m_CommittedPagesMasks.resize(NumMasks);
+
+		unsigned long MSB;
+		_BitScanReverse64(&MSB, m_PageSize);
+
+		m_PageSizeMSB = MSB;
 	}
 
 	void PageAllocator::CommittedMemoryTracker::OnCommit(void* address)
@@ -225,6 +245,7 @@ namespace Zn
 		_ASSERT(m_AddressRange.Contains(address));
 
 		auto Distance = Memory::GetDistance(address, m_AddressRange.Begin());				// Distance from memory range begin
-		return static_cast<size_t>(float(Distance) / float(m_PageSize));					// Index of page in 1 dimensional space
+
+		return  Distance >> m_PageSizeMSB;													// Index of page in 1 dimensional space
 	}
 }

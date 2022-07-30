@@ -28,6 +28,8 @@ namespace Zn
 
 		bool IsAllocated(void* address) const;
 
+		void* GetPageAddress(void* address) const;
+
 		const MemoryRange& Range() const { _ASSERT(m_Memory); return m_Memory->Range(); }
 
 	private:
@@ -59,6 +61,8 @@ namespace Zn
 			MemoryRange m_AddressRange;
 
 			size_t m_PageSize = 0;
+
+			size_t m_PageSizeMSB = 0;
 
 			size_t m_CommittedPages = 0;
 
