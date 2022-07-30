@@ -6,7 +6,7 @@
 DEFINE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
 
 #define ENABLE_MEM_VERIFY 0
-#define TLSF_ENABLE_DECOMMIT 1
+#define TLSF_ENABLE_DECOMMIT 0
 
 #if ENABLE_MEM_VERIFY
 #define VERIFY() Verify();
@@ -144,12 +144,12 @@ namespace Zn
 	//	===	TLSFAllocator ===
 
 	TLSFAllocator::TLSFAllocator()
-		:TLSFAllocator(Memory::GetMemoryStatus().m_TotalPhys, kMaxAllocationSize)
+		:TLSFAllocator(Memory::GetMemoryStatus().m_TotalPhys)
 	{	
 	}
 
-	TLSFAllocator::TLSFAllocator(SharedPtr<VirtualMemoryRegion> region, size_t page_size)
-		: m_Memory(region, Memory::Align(page_size, kBlockSize))
+	TLSFAllocator::TLSFAllocator(SharedPtr<VirtualMemoryRegion> region)
+		: m_Memory(region, VirtualMemory::AlignToPageSize(kBlockSize))
 		, m_FreeLists()
 		, m_FL(0)
 		, m_SL()
@@ -157,8 +157,8 @@ namespace Zn
 		std::fill(m_SL.begin(), m_SL.end(), 0);
 	}
 
-	TLSFAllocator::TLSFAllocator(size_t capacity, size_t page_size)
-		: m_Memory(capacity, VirtualMemory::AlignToPageSize(Memory::Align(page_size, kBlockSize)))
+	TLSFAllocator::TLSFAllocator(size_t capacity)
+		: m_Memory(capacity, VirtualMemory::AlignToPageSize(kBlockSize))
 		, m_FreeLists()
 		, m_FL(0)
 		, m_SL()
