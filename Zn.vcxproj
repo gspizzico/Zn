@@ -185,10 +185,12 @@
     <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp" />
     <ClCompile Include="Source\Private\Core\Async\TaskGraph.cpp" />
     <ClCompile Include="Source\Private\Core\Async\Tests\TaskGraphAutomationTest.cpp" />
+    <ClCompile Include="Source\Private\Core\CommandLine.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Guid.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Misc.cpp" />
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
+    <ClCompile Include="Source\Private\Core\Log\StdOutputDevice.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\FixedSizeAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\PageAllocator.cpp" />
@@ -231,6 +233,7 @@
     <ClInclude Include="Source\Public\Core\Async\Task.h" />
     <ClInclude Include="Source\Public\Core\Async\TaskGraph.h" />
     <ClInclude Include="Source\Public\Core\Build.h" />
+    <ClInclude Include="Source\Public\Core\CommandLine.h" />
     <ClInclude Include="Source\Public\Core\Containers\Map.h" />
     <ClInclude Include="Source\Public\Core\Containers\Set.h" />
     <ClInclude Include="Source\Public\Core\Containers\Vector.h" />
@@ -242,6 +245,7 @@
     <ClInclude Include="Source\Public\Core\Log\LogMacros.h" />
     <ClInclude Include="Source\Public\Core\Log\OutputDevice.h" />
     <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h" />
+    <ClInclude Include="Source\Public\Core\Log\StdOutputDevice.h" />
     <ClInclude Include="Source\Public\Core\Math\Math.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\FixedSizeAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h" />

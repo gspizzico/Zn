@@ -1,7 +1,9 @@
 #include <Engine/Engine.h>
 #include <Core/Log/OutputDeviceManager.h>
 #include <Windows/WindowsDebugOutput.h> // #TODO Move to somewhere not platform specific
+#include <Core/Log/StdOutputDevice.h>
 #include <Automation/AutomationTestManager.h>
+#include <Core/CommandLine.h>
 #include <Core/HAL/SDL/SDLWrapper.h>
 #include <Core/Time/Time.h>
 #include <Core/Log/Log.h>
@@ -17,6 +19,11 @@ using namespace Zn;
 void Engine::Initialize()
 {
 	OutputDeviceManager::Get().RegisterOutputDevice<WindowsDebugOutput>();
+
+	if (CommandLine::Get().Param("-std"))
+	{
+		OutputDeviceManager::Get().RegisterOutputDevice<StdOutputDevice>();
+	}
 
 	SDLWrapper::Initialize();
 

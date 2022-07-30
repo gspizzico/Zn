@@ -5,6 +5,7 @@
 #include "Core/Memory/Memory.h"
 #include "Windows/WindowsDebugOutput.h"
 #include "Core/Log/LogMacros.h"
+#include "Core/CommandLine.h"
 #include "Core/Memory/Allocators/StackAllocator.h"
 #include "Core/Memory/Allocators/PageAllocator.h"
 #include "Core/Memory/Allocators/TLSFAllocator.h"
@@ -27,6 +28,10 @@ const int SCREEN_HEIGHT = 480;
 
 int main(int argc, char* args[])
 {
+	CommandLine& Cmd = CommandLine::Get();
+
+	Cmd.Initialize(args, argc);
+
 	Engine engine{};
 
 	engine.Initialize();
