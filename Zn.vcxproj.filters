@@ -256,6 +256,18 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\StackAllocatorTest.cpp">
       <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TinyAllocatorStrategyTest.cpp">
+      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\Log\StdOutputDevice.cpp">
+      <Filter>Source\Private\Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\CommandLine.cpp">
+      <Filter>Source\Private\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -401,6 +413,15 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Editor\Editor.h">
       <Filter>Source\Public\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.h">
+      <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Log\StdOutputDevice.h">
+      <Filter>Source\Public\Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\CommandLine.h">
+      <Filter>Source\Public\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -169,7 +169,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;rpcrt4.lib;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -197,10 +197,12 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\DirectAllocationStrategyTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\BucketsAllocationStrategyTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\StackAllocatorTest.cpp" />
+    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TinyAllocatorStrategyTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Allocators\TLSFAllocator.cpp" />
     <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />
@@ -253,6 +255,7 @@
     <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.h" />
     <ClInclude Include="Source\Public\Core\Memory\Allocators\TLSFAllocator.h" />
     <ClInclude Include="Source\Public\Core\Memory\Memory.h" />
     <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h" />
