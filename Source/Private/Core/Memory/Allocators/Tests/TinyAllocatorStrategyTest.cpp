@@ -84,7 +84,7 @@ namespace Zn::Automation
 
 					if (deallocation < ToDeallocate)
 					{
-						m_Allocator->Free(PreviousAllocations[deallocation].first, PreviousAllocations[deallocation].second);
+						m_Allocator->Free(PreviousAllocations[deallocation].first);
 						deallocation++;
 					}
 					if (allocation < m_Allocations)

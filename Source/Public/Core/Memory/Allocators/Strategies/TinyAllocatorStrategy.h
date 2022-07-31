@@ -15,26 +15,30 @@ namespace Zn
 
 		void* Allocate(size_t size, size_t alignment = sizeof(void*));
 
-		void Free(void* address, size_t size);
+		void Free(void* address);
 
 	private:
 
 		struct FreeBlock
 		{
-			FreeBlock*	next_ = nullptr;
-			size_t		size_ = 0;
+			FreeBlock*	m_Next = nullptr;
+			size_t		m_FreeSlots = 0;
 		};
 
 		size_t GetFreeListIndex(size_t size) const;
 
+		size_t GetFreeListIndex(void* address) const;
+
+		size_t GetSlotSize(size_t freeListIndex) const;
+
 		static constexpr auto kFreeBlockSize = sizeof(FreeBlock);
 
-		PageAllocator memory_;
+		PageAllocator m_Memory;
 
-		std::array<FreeBlock*, 16> free_lists_;
-		std::array<size_t, 16> num_allocations_;
+		std::array<FreeBlock*, 16> m_FreeLists;
+		std::array<size_t, 16> m_NumAllocations;
 
-		size_t num_free_pages_;
+		size_t m_NumFreePages;
 
 		static constexpr size_t kMaxAllocationSize = 16 * 16;
 	};
