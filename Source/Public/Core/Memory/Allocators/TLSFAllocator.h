@@ -55,7 +55,7 @@ namespace Zn
 
 			static constexpr size_t			kFooterSize			= sizeof(Footer);
 
-			static constexpr size_t			kMinBlockSize		= std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
+			static constexpr size_t			kMinBlockSize = 256;// std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
 
 			static FreeBlock* New(const MemoryRange& block_range);
 
@@ -89,8 +89,6 @@ namespace Zn
 
 		TLSFAllocator();
 
-		TLSFAllocator(SharedPtr<VirtualMemoryRegion> region);
-		
 		TLSFAllocator(size_t capacity);
 
 		__declspec(allocator)void* Allocate(size_t size, size_t alignment = 1);
@@ -98,6 +96,10 @@ namespace Zn
 		bool				Free(void* address);
 
 		size_t				GetAllocatedMemory() const { return m_Memory.GetUsedMemory(); }
+
+		static constexpr size_t	MinAllocationSize() { return FreeBlock::kMinBlockSize; }
+
+		static constexpr size_t MaxAllocationSize() { return kMaxAllocationSize; }
 
 #if ZN_DEBUG
 		void				LogDebugInfo() const;

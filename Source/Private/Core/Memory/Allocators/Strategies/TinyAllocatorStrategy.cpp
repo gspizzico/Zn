@@ -71,18 +71,24 @@ void* TinyAllocatorStrategy::Allocate(size_t size, size_t alignment)
 		{
 			CurrentFreeList = new(Memory::AddOffset(Allocation, SlotSize)) FreeBlock();
 
+			CurrentFreeList->m_Next = nullptr;
 			CurrentFreeList->m_FreeSlots = Slot.m_FreeSlots - 1;
 		}
 	}
 
 	MemoryDebug::MarkUninitialized(Allocation, Memory::AddOffset(Allocation, SlotSize));
 
+	_ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t)0x00007FF000000000);
+
 	return Allocation;
 }
 
-void TinyAllocatorStrategy::Free(void* address)
+bool TinyAllocatorStrategy::Free(void* address)
 {
-	_ASSERT(m_Memory.IsAllocated(address));
+	if (!m_Memory.IsAllocated(address))
+	{
+		return false;
+	}
 
 	size_t FreeListIndex = GetFreeListIndex(address);
 
@@ -111,12 +117,21 @@ void TinyAllocatorStrategy::Free(void* address)
 			m_NumFreePages++;
 		}
 	}
+
+	_ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t)0x00007FF000000000);
+
+	return true;
+}
+
+size_t TinyAllocatorStrategy::GetMaxAllocationSize() const
+{
+	return 255;
 }
 
 
 size_t TinyAllocatorStrategy::GetFreeListIndex(size_t size) const
 {
-	return std::max(int(size >> 4) - 1, 0);
+	return std::max(int(size >> 4), 0);
 }
 
 size_t Zn::TinyAllocatorStrategy::GetFreeListIndex(void* address) const

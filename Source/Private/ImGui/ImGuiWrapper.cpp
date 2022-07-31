@@ -7,12 +7,33 @@
 #include <SDL.h>
 #include <d3d11.h>
 
+#include <Core/Memory/Memory.h>
+#include <Core/CommandLine.h>
+
 using namespace Zn;
+
+bool ImGuiUseZnAllocator()
+{
+    return !CommandLine::Get().Param("-noimguialloc");
+}
+
+void* ImGuiAlloc(size_t sz, void*)
+{
+    return Zn::Allocators::New(sz);
+}
+void ImGuiFree(void* ptr, void*)
+{
+    Zn::Allocators::Delete(ptr);
+}
 
 void ImGuiWrapper::Initialize(SDL_Window* window, ID3D11Device* d3dDevice, ID3D11DeviceContext* d3dDeviceContext)
 {
 	IMGUI_CHECKVERSION();
 
+    if (ImGuiUseZnAllocator())
+    {
+        ImGui::SetAllocatorFunctions(ImGuiAlloc, ImGuiFree);
+    }
 
 	ImGui::CreateContext();
 

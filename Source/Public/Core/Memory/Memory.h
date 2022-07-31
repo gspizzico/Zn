@@ -115,4 +115,13 @@ namespace Zn
 
 		void* m_End		= nullptr;
 	};
+
+    // Namespace used for new / delete overrides.
+    namespace Allocators
+    {
+        void* New(size_t size);
+
+        void Delete(void* address);
+    }
+
 }

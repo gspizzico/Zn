@@ -7,13 +7,11 @@ DEFINE_STATIC_LOG_CATEGORY(LogPoolAllocator, ELogVerbosity::Log)
 namespace Zn
 {
 	PageAllocator::PageAllocator(size_t poolSize, size_t page_size)
-		: m_Memory(nullptr)
+		: m_Memory(VirtualMemory::AlignToPageSize(poolSize))
 		, m_AllocatedPages(0)
 		, m_NextFreePage(nullptr)
 		, m_Tracker()
-	{
-		size_t RangeSize = VirtualMemory::AlignToPageSize(poolSize);
-		m_Memory = std::make_shared<VirtualMemoryRegion>(RangeSize);
+	{	
 		m_Tracker = CommittedMemoryTracker(Range(), page_size);
 		m_NextFreePage = Range().Begin();
 	}
@@ -21,14 +19,6 @@ namespace Zn
 	PageAllocator::PageAllocator(size_t page_size)
 		: PageAllocator(Memory::GetMemoryStatus().m_TotalPhys, page_size)
 	{
-	}
-
-	PageAllocator::PageAllocator(SharedPtr<VirtualMemoryRegion> region, size_t page_size)
-		: m_Memory(region)
-		, m_Tracker(Range(), VirtualMemory::AlignToPageSize(page_size))
-		, m_AllocatedPages(0)
-		, m_NextFreePage(m_Tracker.GetNextPageToCommit())
-	{	
 	}
 
 	void* PageAllocator::Allocate()
@@ -106,6 +96,8 @@ namespace Zn
 		{
 			return m_Tracker.IsCommitted(PageAddress) && !PageAddress->IsValid();
 		}		
+
+		return false;
 	}
 
 	void* PageAllocator::GetPageAddress(void* address) const

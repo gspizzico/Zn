@@ -22,6 +22,11 @@ DEFINE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
 #define VERIFY_WRITE_PRIVATE(MemoryRange, WriteOperation) WriteOperation;
 #endif
 
+#pragma push_macro("ZN_LOG")
+#undef ZN_LOG
+
+#define ZN_LOG(...)
+
 namespace Zn
 {
 #define VERIFY_WRITE(Address, Size, WriteOperationFunction)\
@@ -148,15 +153,6 @@ namespace Zn
 	{	
 	}
 
-	TLSFAllocator::TLSFAllocator(SharedPtr<VirtualMemoryRegion> region)
-		: m_Memory(region, VirtualMemory::AlignToPageSize(kBlockSize))
-		, m_FreeLists()
-		, m_FL(0)
-		, m_SL()
-	{
-		std::fill(m_SL.begin(), m_SL.end(), 0);
-	}
-
 	TLSFAllocator::TLSFAllocator(size_t capacity)
 		: m_Memory(capacity, VirtualMemory::AlignToPageSize(kBlockSize))
 		, m_FreeLists()
@@ -227,6 +223,11 @@ namespace Zn
 
 	bool TLSFAllocator::Free(void* address)
 	{
+		if (!m_Memory.IsAllocated(address))
+		{
+			return false;
+		}
+
 		void* BlockAddress = Memory::SubOffset(address, sizeof(uintptr_t));									// Recover this block size
 
 		uintptr_t BlockSize = *reinterpret_cast<uintptr_t*>(BlockAddress);
@@ -566,6 +567,9 @@ namespace Zn
 		return false;
 	}
 }
+
+#undef ZN_LOG
+#pragma pop_macro("ZN_LOG")
 
 #undef ENABLE_MEM_VERIFY
 #undef TLSF_ENABLE_DECOMMIT

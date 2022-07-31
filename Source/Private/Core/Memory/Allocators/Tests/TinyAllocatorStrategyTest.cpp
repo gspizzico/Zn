@@ -75,7 +75,7 @@ namespace Zn::Automation
 				std::random_device rd;
 				std::mt19937 gen(rd());
 
-				auto FrameAllocationDistribution = CreateIntDistribution({ sizeof(uintptr_t), 256 });
+				auto FrameAllocationDistribution = CreateIntDistribution({ sizeof(uintptr_t), 255 });
 
 				for (;;)
 				{

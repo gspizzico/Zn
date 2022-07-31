@@ -13,7 +13,7 @@ namespace Zn
 
 		void* Allocate(size_t size, size_t alignment = sizeof(uintptr_t));
 
-		void Free(void* address);
+		bool Free(void* address);
 
 	private:
 

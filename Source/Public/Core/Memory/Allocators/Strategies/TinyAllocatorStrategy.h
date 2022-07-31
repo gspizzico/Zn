@@ -15,7 +15,9 @@ namespace Zn
 
 		void* Allocate(size_t size, size_t alignment = sizeof(void*));
 
-		void Free(void* address);
+		bool Free(void* address);
+
+		size_t GetMaxAllocationSize() const;
 
 	private:
 

@@ -14,8 +14,6 @@ namespace Zn
 
 		PageAllocator(size_t page_size);
 
-		PageAllocator(SharedPtr<VirtualMemoryRegion> region, size_t page_size);
-
 		size_t GetUsedMemory() const { return m_AllocatedPages * PageSize(); }
 
 		float GetMemoryUtilization() const { return (float)GetUsedMemory() / (float) m_Tracker.GetCommittedMemory(); }
@@ -30,7 +28,7 @@ namespace Zn
 
 		void* GetPageAddress(void* address) const;
 
-		const MemoryRange& Range() const { return m_Memory->Range(); }
+		const MemoryRange& Range() const { return m_Memory.Range(); }
 
 	private:
 
@@ -75,7 +73,7 @@ namespace Zn
 			static constexpr uint64_t kFullCommittedMask = 0xFFFFFFFFFFFFFFFF;
 		};
 
-		SharedPtr<VirtualMemoryRegion> m_Memory;
+		VirtualMemoryRegion m_Memory;
 
 		CommittedMemoryTracker m_Tracker;
 
