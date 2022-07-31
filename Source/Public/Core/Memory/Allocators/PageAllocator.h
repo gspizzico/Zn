@@ -30,7 +30,7 @@ namespace Zn
 
 		void* GetPageAddress(void* address) const;
 
-		const MemoryRange& Range() const { _ASSERT(m_Memory); return m_Memory->Range(); }
+		const MemoryRange& Range() const { return m_Memory->Range(); }
 
 	private:
 

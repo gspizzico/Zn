@@ -102,18 +102,10 @@ namespace Zn
 
 	bool PageAllocator::IsAllocated(void* address) const
 	{
-		if (!Range().Contains(address)) return false;
-
-		FreePage* PageAddress = reinterpret_cast<FreePage*>(Memory::AlignToAddress(address, Range().Begin(), PageSize()));
-
-		if(m_Tracker.IsCommitted(PageAddress))
+		if (FreePage* PageAddress = reinterpret_cast<FreePage*>(GetPageAddress(address)))
 		{
-			return !PageAddress->IsValid();
-		}
-		else
-		{
-			return false;
-		}
+			return m_Tracker.IsCommitted(PageAddress) && !PageAddress->IsValid();
+		}		
 	}
 
 	void* PageAllocator::GetPageAddress(void* address) const
@@ -246,6 +238,6 @@ namespace Zn
 
 		auto Distance = Memory::GetDistance(address, m_AddressRange.Begin());				// Distance from memory range begin
 
-		return  Distance >> m_PageSizeMSB;													// Index of page in 1 dimensional space
+		return Distance >> m_PageSizeMSB;													// Index of page in 1 dimensional space
 	}
 }
