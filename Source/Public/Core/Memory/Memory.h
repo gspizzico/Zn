@@ -105,7 +105,7 @@ namespace Zn
 
 		bool Contains(const void* address) const { return Memory::GetDistance(address, m_Begin) >= 0 && Memory::GetDistance(address, m_End) < 0; }
 		
-		bool Contains(const MemoryRange& other) const { return Memory::GetDistance(other.m_Begin, m_Begin) >= 0 && Memory::GetDistance(m_End, other.m_End) < 0; }
+        bool Contains(const MemoryRange& other) const;
 
 		size_t Size() const { return static_cast<size_t>(Memory::GetDistance(m_End, m_Begin)); }
 
@@ -115,4 +115,13 @@ namespace Zn
 
 		void* m_End		= nullptr;
 	};
+
+    // Namespace used for new / delete overrides.
+    namespace Allocators
+    {
+        void* New(size_t size);
+
+        void Delete(void* address);
+    }
+
 }

@@ -4,17 +4,18 @@
 namespace Zn
 {
 	DirectAllocationStrategy::DirectAllocationStrategy(size_t min_allocation_size)
-		: m_MinAllocationSize(min_allocation_size)
+		: m_MinAllocationSize(VirtualMemory::AlignToPageSize(min_allocation_size))
 	{
 	}
 
 	void* DirectAllocationStrategy::Allocate(size_t size, size_t alignment)
 	{
-		_ASSERT(alignment >= sizeof(uintptr_t));
+		if (size < m_MinAllocationSize)
+		{
+			return nullptr;
+		}
 
-		size_t AllocationSize = size += sizeof(size_t);
-
-		AllocationSize = VirtualMemory::AlignToPageSize(size);
+		size_t AllocationSize = VirtualMemory::AlignToPageSize(size);
 
 		_ASSERT(AllocationSize < Memory::GetMemoryStatus().m_AvailPhys);
 
@@ -24,21 +25,23 @@ namespace Zn
 
 		MemoryDebug::MarkUninitialized(Address, Memory::AddOffset(Address, AllocationSize));
 
-		new (Address) size_t(AllocationSize);
-
-		return Memory::AddOffset(Address, sizeof(size_t));
+		return Address;
 	}
 
-	void DirectAllocationStrategy::Free(void* address)
+	bool DirectAllocationStrategy::Free(void* address)
 	{
-		auto AllocationAddress = Memory::SubOffset(address, sizeof(size_t));
+		auto AllocationAddress = address;
 
 		auto Removed = m_Allocations.erase(reinterpret_cast<uintptr_t>(AllocationAddress));
 
-		_ASSERT(Removed != 0);
-
-		//size_t AllocationSize = *reinterpret_cast<size_t*>(AllocationAddress);
-
-		VirtualMemory::Release(AllocationAddress);
+		if (Removed != 0)
+		{
+			VirtualMemory::Release(AllocationAddress);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 }

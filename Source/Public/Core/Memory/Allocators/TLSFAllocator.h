@@ -13,13 +13,13 @@ namespace Zn
 
 		static constexpr size_t				kJ = 3;
 
-		static constexpr size_t				kNumberOfPools = 9;
+		static constexpr size_t				kNumberOfPools = 10;
 
 		static constexpr size_t				kNumberOfLists = 1 << kJ;		// pow(2, kJ)
 
 		static constexpr size_t				kStartFl = 8;			// log2(kMinBlockSize)
 
-		static constexpr size_t				kMaxAllocationSize = (1 << (kStartFl + kNumberOfPools - 2));  // 64k is block size, 32 is max allocation size.
+		static constexpr size_t				kMaxAllocationSize = (1 << (kStartFl + kNumberOfPools - 2));  // 128k is block size, 64k is max allocation size.
 
 		static constexpr size_t				kBlockSize = kMaxAllocationSize * 2;
 
@@ -55,7 +55,7 @@ namespace Zn
 
 			static constexpr size_t			kFooterSize			= sizeof(Footer);
 
-			static constexpr size_t			kMinBlockSize		= std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
+			static constexpr size_t			kMinBlockSize = 256;// std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
 
 			static FreeBlock* New(const MemoryRange& block_range);
 
@@ -89,15 +89,17 @@ namespace Zn
 
 		TLSFAllocator();
 
-		TLSFAllocator(SharedPtr<VirtualMemoryRegion> region, size_t page_size = kMaxAllocationSize);
-		
-		TLSFAllocator(size_t capacity, size_t page_size = kMaxAllocationSize);
+		TLSFAllocator(size_t capacity);
 
-		__declspec(allocator)void*				Allocate(size_t size, size_t alignment = 1);
+		__declspec(allocator)void* Allocate(size_t size, size_t alignment = 1);
 
-		bool				Free(void* address);		
+		bool				Free(void* address);
 
 		size_t				GetAllocatedMemory() const { return m_Memory.GetUsedMemory(); }
+
+		static constexpr size_t	MinAllocationSize() { return FreeBlock::kMinBlockSize; }
+
+		static constexpr size_t MaxAllocationSize() { return kMaxAllocationSize; }
 
 #if ZN_DEBUG
 		void				LogDebugInfo() const;
@@ -129,7 +131,7 @@ namespace Zn
 
 		bool				Decommit(FreeBlock* block);
 
-		PageAllocator								m_Memory;
+		PageAllocator							m_Memory;
 
 		FreeListMatrix							m_FreeLists;
 

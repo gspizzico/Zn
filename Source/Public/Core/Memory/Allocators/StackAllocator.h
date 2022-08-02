@@ -22,8 +22,6 @@ namespace Zn
 
 		StackAllocator(size_t capacity);
 
-		StackAllocator(SharedPtr<VirtualMemoryRegion> region);
-
 		StackAllocator(StackAllocator&&) noexcept;
 
 		~StackAllocator();
@@ -37,6 +35,12 @@ namespace Zn
 		// Wipes out the stack.
 		bool Free();
 
+		// Returns true if the address is within the stack.
+		bool IsAllocated(void* address) const;
+
+		// Returns the size of the committed memory.
+		size_t GetCommittedMemory() const;
+
 		// Sets a restore point to which is possible to rewind.
 		void SaveStatus();
 
@@ -46,10 +50,10 @@ namespace Zn
 	private:
 
 		SharedPtr<VirtualMemoryRegion>	m_Memory;
-		
-		void* m_NextPageAddress			= nullptr;
 
 		void* m_TopAddress				= nullptr;
+
+		void* m_NextUncommitedAddress	= nullptr;
 
 		void* m_LastSavedStatus			= nullptr;
 	};

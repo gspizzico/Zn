@@ -3,6 +3,8 @@
 #include "Windows/WindowsCommon.h"
 #include "Core/Build.h"
 
+#include <Core/Memory/Allocators/ThreeWaysAllocator.h>
+
 #define ZN_WINDOWS_TRACK_MEMORY (ZN_TRACK_MEMORY && !ZN_RELEASE) && 0
 
 #if ZN_WINDOWS_TRACK_MEMORY 
@@ -44,6 +46,11 @@ namespace Zn
 		HeapTracker->DeallocateEvent(address);
 #endif
 	}
+
+    BaseAllocator* WindowsMemory::CreateAllocator()
+    {
+        return new ThreeWaysAllocator();
+    }
 
     void* WindowsVirtualMemory::Reserve(size_t size)
     {

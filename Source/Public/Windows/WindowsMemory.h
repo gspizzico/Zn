@@ -4,6 +4,9 @@
 
 namespace Zn
 {
+    class BaseAllocator;
+
+
     class WindowsMemory
     {
     public:
@@ -12,6 +15,8 @@ namespace Zn
 		static void TrackAllocation(void* address, size_t size);
 
 		static void TrackDeallocation(void* address);
+
+        static BaseAllocator* CreateAllocator();
     };
 
     class WindowsVirtualMemory

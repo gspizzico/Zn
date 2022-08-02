@@ -7,30 +7,22 @@ namespace Zn
 {	
 	StackAllocator::StackAllocator(size_t capacity)
 		: m_Memory(std::make_shared<VirtualMemoryRegion>(VirtualMemory::AlignToPageSize(capacity)))
-		, m_NextPageAddress(m_Memory->Begin())
 		, m_TopAddress(m_Memory->Begin())
+		, m_NextUncommitedAddress(m_TopAddress)
 		, m_LastSavedStatus(nullptr)
 	{
-		VirtualMemory::Commit(m_Memory->Begin(), m_Memory->Size());
-	}
 
-	StackAllocator::StackAllocator(SharedPtr<VirtualMemoryRegion> region)
-		: m_Memory(region)
-		, m_NextPageAddress(m_Memory->Begin())
-		, m_TopAddress(m_Memory->Begin())
-		, m_LastSavedStatus(nullptr)
-	{	
-		VirtualMemory::Commit(m_Memory->Begin(), m_Memory->Size());
 	}
 
 	StackAllocator::StackAllocator(StackAllocator&& allocator) noexcept
 		: m_Memory(std::move(allocator.m_Memory))
-		, m_NextPageAddress(allocator.m_NextPageAddress)
 		, m_TopAddress(allocator.m_TopAddress)
+		, m_NextUncommitedAddress(allocator.m_NextUncommitedAddress)
 		, m_LastSavedStatus(nullptr)
 	{	
-		allocator.m_NextPageAddress		= nullptr;
 		allocator.m_TopAddress			= nullptr;
+		allocator.m_NextUncommitedAddress = nullptr;
+		allocator.m_LastSavedStatus = nullptr;
 	}
 
 	StackAllocator::~StackAllocator()
@@ -48,6 +40,15 @@ namespace Zn
 
 		_ASSERT(m_Memory->Range().Contains(m_TopAddress));												// OOM guard.
 
+		if (const auto UncommittedMemory = Memory::GetDistance(m_TopAddress, m_NextUncommitedAddress); UncommittedMemory > 0)
+		{
+			const size_t CommitSize = VirtualMemory::AlignToPageSize(UncommittedMemory);
+
+			VirtualMemory::Commit(m_NextUncommitedAddress, CommitSize);
+
+			m_NextUncommitedAddress = Memory::AddOffset(m_NextUncommitedAddress, CommitSize);
+		}
+
 		MemoryDebug::MarkUninitialized(CurrentAddress, m_TopAddress);
 
 		return CurrentAddress;
@@ -57,22 +58,37 @@ namespace Zn
 	{
 		_ASSERT(m_Memory->Range().Contains(address));													// Verify that is a valid address
 
-		auto NewTopAddress = address;																	// New top of the stack ptr.
+		if (Memory::GetDistance(m_TopAddress, address) > 0)
+		{
+			MemoryDebug::MarkFree(address, m_TopAddress);
 
-		MemoryDebug::MarkFree(NewTopAddress, m_TopAddress);
+			m_TopAddress = address;																		// New top of the stack ptr.
 
-		m_TopAddress = NewTopAddress;
+			return true;
+		}
 
-		return true;
+		return false;
 	}
 
 	bool StackAllocator::Free()
 	{
 		MemoryDebug::MarkFree(m_Memory->Begin(), m_TopAddress);													// Decommit all pages.
 
-		m_NextPageAddress = m_TopAddress = m_Memory->Begin();
+		m_TopAddress = m_Memory->Begin();
+
+		VirtualMemory::Decommit(m_Memory->Begin(), Memory::GetDistance(m_NextUncommitedAddress, m_Memory->Begin()));
 
 		return true;
+	}
+
+	bool StackAllocator::IsAllocated(void* address) const
+	{
+		return Memory::GetDistance(m_TopAddress, address) > 0;
+	}
+
+	size_t StackAllocator::GetCommittedMemory() const
+	{
+		return Memory::GetDistance(m_NextUncommitedAddress, m_Memory->Begin());
 	}
 
 	void StackAllocator::SaveStatus()
