@@ -274,6 +274,21 @@
     <ClCompile Include="Source\Private\Core\Memory\Allocators\ThreeWaysAllocator.cpp">
       <Filter>Source\Private\Core\Memory\Allocators</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Core\Async\Thread.cpp">
+      <Filter>Source\Private\Core\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Windows\WindowsAPI.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Windows\WindowsCriticalSection.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Windows\WindowsThread.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Windows\WindowsThreads.cpp">
+      <Filter>Source\Private\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -434,6 +449,30 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\ThreeWaysAllocator.h">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\Thread.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\ThreadedJob.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\CallableJob.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Async\ScopedLock.h">
+      <Filter>Source\Public\Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsAPI.h">
+      <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsCriticalSection.h">
+      <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsThread.h">
+      <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Windows\WindowsThreads.h">
+      <Filter>Source\Public\Windows</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
