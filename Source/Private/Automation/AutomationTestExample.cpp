@@ -40,7 +40,7 @@ namespace Zn::Automation
 			}
 		}
 
-		virtual void Cleanup(bool bForce) override
+		virtual void Cleanup() override
 		{
 			ZN_LOG(LogAutomationTestExample, ELogVerbosity::Verbose, "AutomationTestExample... cleanup.");
 		}

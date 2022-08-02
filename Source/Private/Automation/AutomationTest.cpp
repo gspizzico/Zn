@@ -1,11 +1,14 @@
 #include "Automation/AutomationTest.h"
 #include "Core/Log/LogMacros.h"
 #include "Core/HAL/Misc.h"
+#include "Core/Time/Time.h"
 
-DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest, ELogVerbosity::Warning);
+DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest, ELogVerbosity::Log);
 
 namespace Zn::Automation
 {
+	using namespace Zn;
+
 	AutomationTest::AutomationTest(const AutomationTest& other)
 		: m_State(other.m_State)
 		, m_Result(other.m_Result)
@@ -26,6 +29,8 @@ namespace Zn::Automation
 		case State::kReady:
 		{ 
 			m_State = State::kRunning;
+			m_StartTime = Time::Seconds();
+			
 			Execute();
 			break;
 		}
@@ -50,8 +55,6 @@ namespace Zn::Automation
 	{
 		std::scoped_lock Lock(mtx_State);
 
-		bool ShouldCleanup = m_State >= State::kReady && m_State < State::kReadyToExit;
-
 		if (m_State == State::kRunning)
 		{
 			if (HasAsyncOperationsPending())
@@ -59,19 +62,18 @@ namespace Zn::Automation
 				Sync();
 			}
 		}
-		
-		if (ShouldCleanup)
-		{
-			Cleanup(bForce);
-		}
 
 		m_State = State::kReadyToExit;
+
+		const float Duration = static_cast<float>(Time::Seconds() - m_StartTime);
 
 		const auto TestNameString = GetName().CString();
 		
 		const auto ErrorMessage = GetErrorMessage();
 
 		const auto ErrorMessageCString = ErrorMessage.c_str();
+
+		ZN_LOG(LogAutomationTest, ELogVerbosity::Log, "%s was completed in %.3f seconds.", TestNameString, Duration);
 
 		switch (m_Result)
 		{
@@ -94,5 +96,14 @@ namespace Zn::Automation
 			}
 		}
 		}
+	}
+
+	void AutomationTest::Reset()
+	{
+		Cleanup();
+
+		m_State = State::kUninitialized;
+		m_Result = Result::kNone;
+		m_StartTime = 0.0;
 	}
 }

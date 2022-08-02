@@ -100,11 +100,7 @@ namespace Zn::Automation
 
 			m_Result = Result::kOk;
 		}
-
-		virtual void Cleanup(bool bForce) override
-		{	
-		}
 	};
 }
 
-DEFINE_AUTOMATION_STARTUP_TEST(BucketsAllocationStrategy, Zn::Automation::BucketsAllocationStrategyAutomationTest, 5000, 60*20);
+DEFINE_AUTOMATION_STARTUP_TEST(BucketsAllocationStrategy, Zn::Automation::BucketsAllocationStrategyAutomationTest, 5000, 1);

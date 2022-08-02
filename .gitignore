@@ -44,4 +44,7 @@
 /Debug
 .vs
 
+# ZN Libs
+!/Libs/**
+
 

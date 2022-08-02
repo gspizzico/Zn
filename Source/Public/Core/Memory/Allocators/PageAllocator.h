@@ -14,8 +14,6 @@ namespace Zn
 
 		PageAllocator(size_t page_size);
 
-		PageAllocator(SharedPtr<VirtualMemoryRegion> region, size_t page_size);
-
 		size_t GetUsedMemory() const { return m_AllocatedPages * PageSize(); }
 
 		float GetMemoryUtilization() const { return (float)GetUsedMemory() / (float) m_Tracker.GetCommittedMemory(); }
@@ -28,7 +26,9 @@ namespace Zn
 
 		bool IsAllocated(void* address) const;
 
-		const MemoryRange& Range() const { _ASSERT(m_Memory); return m_Memory->Range(); }
+		void* GetPageAddress(void* address) const;
+
+		const MemoryRange& Range() const { return m_Memory.Range(); }
 
 	private:
 
@@ -60,6 +60,8 @@ namespace Zn
 
 			size_t m_PageSize = 0;
 
+			size_t m_PageSizeMSB = 0;
+
 			size_t m_CommittedPages = 0;
 
 			Vector<uint64_t> m_CommittedPagesMasks;	// Each value is a mask that tells for each bit, if that block is committed. (bit == block)
@@ -71,7 +73,7 @@ namespace Zn
 			static constexpr uint64_t kFullCommittedMask = 0xFFFFFFFFFFFFFFFF;
 		};
 
-		SharedPtr<VirtualMemoryRegion> m_Memory;
+		VirtualMemoryRegion m_Memory;
 
 		CommittedMemoryTracker m_Tracker;
 
