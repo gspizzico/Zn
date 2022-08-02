@@ -29,7 +29,7 @@ bool CommandLine::Param(const char* param) const
 
 String CommandLine::ToLower(const char* param) const
 {
-	const int size = strlen(param);
+	const auto size = strlen(param);
 	String lower;
 	lower.resize(size + 1);
 
