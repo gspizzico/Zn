@@ -289,6 +289,9 @@
     <ClCompile Include="Source\Private\Windows\WindowsThreads.cpp">
       <Filter>Source\Private\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="tracy\public\TracyClient.cpp">
+      <Filter>Source\External</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
