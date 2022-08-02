@@ -1,5 +1,4 @@
 #include "Core/Async/Thread.h"
-#include "Core/Async/ThreadManager.h"
 #include "Core/HAL/PlatformTypes.h"
 #include "Core/Log/LogMacros.h"
 #include "Core/Async/ThreadedJob.h"

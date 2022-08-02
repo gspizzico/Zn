@@ -1,4 +1,4 @@
-#include "Core/Windows/WindowsCriticalSection.h"
+#include "Windows/WindowsCriticalSection.h"
 
 namespace Zn
 {

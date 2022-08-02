@@ -1,5 +1,4 @@
-#include "Core/Windows/WindowsThread.h"
-#include "Core/Async/ThreadManager.h"
+#include "Windows/WindowsThread.h"
 
 namespace Zn
 {

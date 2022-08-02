@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core/Windows/WindowsThreads.h"
-#include "Core/Windows/WindowsCriticalSection.h"
+#include "Windows/WindowsThreads.h"
+#include "Windows/WindowsCriticalSection.h"
 #include "Windows/WindowsMemory.h"
 #include "Windows/WindowsMisc.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Windows/WindowsCommon.h"
+#include "Windows/WindowsCommon.h"
 
 namespace Zn
 {

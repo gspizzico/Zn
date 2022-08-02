@@ -1,7 +1,7 @@
-#include "Core/Windows/WindowsThreads.h"
+#include "Windows/WindowsThreads.h"
 #include "Core/Log/LogMacros.h"
 #include "Core/HAL/PlatformTypes.h"
-#include "Core/Windows/WindowsThread.h"
+#include "Windows/WindowsThread.h"
 
 DEFINE_STATIC_LOG_CATEGORY(LogWindowsThreads, ELogVerbosity::Log);
 
