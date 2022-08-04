@@ -128,6 +128,9 @@
     <Filter Include="Source\Private\Editor">
       <UniqueIdentifier>{0f3336e1-8d64-4610-b6cc-4a09bcb50353}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core\Trace">
+      <UniqueIdentifier>{a4a52266-d56d-4c29-9fe8-3c1f1fa96ba2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -476,6 +479,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Windows\WindowsThreads.h">
       <Filter>Source\Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Core\Trace\Trace.h">
+      <Filter>Source\Public\Core\Trace</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

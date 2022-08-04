@@ -4,6 +4,8 @@
 
 #include <ImGui/imgui.h> //#todo handle editor UI separately
 
+#include <Core/Trace/Trace.h>
+
 namespace Zn::UI
 {
 	using namespace Zn;
@@ -131,6 +133,8 @@ Editor& Editor::Get()
 void Editor::PreUpdate(float deltaTime)
 {
 	// Draw editor UI
+
+	ZN_TRACE_QUICKSCOPE();
 
 	Zn::UI::DrawMainMenu();
 	

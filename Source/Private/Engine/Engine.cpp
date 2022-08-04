@@ -11,6 +11,8 @@
 #include <Engine/Window.h>
 #include <Editor/Editor.h>
 
+#include <Core/Trace/Trace.h>
+
 
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);
 
@@ -32,6 +34,8 @@ void Engine::Initialize()
 	m_Window = std::make_unique<Window>(640, 480, "Zn-Engine");
 
 	ZN_LOG(LogEngine, ELogVerbosity::Log, "Engine initialized.");
+
+	ZN_TRACE_INFO("Zn Engine");
 }
 
 void Engine::Start()
@@ -39,7 +43,9 @@ void Engine::Start()
 	//Automation::AutomationTestManager::Get().ExecuteStartupTests();
 
 	while (!m_IsRequestingExit)
-	{
+	{	
+		ZN_TRACE_QUICKSCOPE();
+		
 		double startFrame = Time::Seconds();
 
 		m_Window->NewFrame();
@@ -67,6 +73,8 @@ void Engine::Start()
 		m_Window->EndFrame();
 
 		m_DeltaTime = static_cast<float>(Time::Seconds() - startFrame);
+
+		ZN_END_FRAME();
 	}
 }
 
