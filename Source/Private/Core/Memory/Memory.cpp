@@ -2,6 +2,8 @@
 #include "Core/HAL/PlatformTypes.h"
 #include "Core/Math/Math.h"
 
+#include <Core/Trace/Trace.h>
+
 namespace Zn
 {
 	MemoryStatus Memory::GetMemoryStatus()
@@ -145,7 +147,9 @@ namespace Zn::Allocators
 		}
 
 		_ASSERT(GAllocator);
-		return GAllocator->Malloc(size);
+		auto Address = GAllocator->Malloc(size);
+		ZN_MEMTRACE_ALLOC(Address, size);
+		return Address;
 	}
 
 	void Delete(void* address)
@@ -156,6 +160,7 @@ namespace Zn::Allocators
 			_ASSERT(GAllocator);
 		}
 
+		ZN_MEMTRACE_FREE(address);
 		GAllocator->Free(address);
 	}
 }

@@ -10,6 +10,8 @@
 #include <Core/Memory/Memory.h>
 #include <Core/CommandLine.h>
 
+#include <Core/Trace/Trace.h>
+
 using namespace Zn;
 
 bool ImGuiUseZnAllocator()
@@ -83,6 +85,8 @@ void ImGuiWrapper::NewFrame()
 
 void ImGuiWrapper::EndFrame()
 {
+    ZN_TRACE_QUICKSCOPE();
+
     ImGui::Render();
 
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

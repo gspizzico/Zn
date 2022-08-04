@@ -1,5 +1,6 @@
 #include <Rendering/D3D11/D3D11.h>
 #include <Core/Memory/Memory.h>
+#include <Core/Trace/Trace.h>
 #include "crtdbg.h" //#todo needed for _ASSERT
 
 using namespace Zn;
@@ -121,6 +122,8 @@ void D3D11Device::ClearRenderTarget()
 
 void D3D11Device::Present(bool vSync)
 {
+    ZN_TRACE_QUICKSCOPE();
+
     uint8 vSyncFlag = vSync ? 1 : 0;
     m_SwapChain->Present(vSyncFlag, 0);
 }

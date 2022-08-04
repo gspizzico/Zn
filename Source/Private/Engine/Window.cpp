@@ -6,6 +6,7 @@
 #include <SDL_syswm.h>
 #include <Rendering/D3D11/D3D11.h>
 #include <ImGui/ImGuiWrapper.h>
+#include <Core/Trace/Trace.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogWindow, ELogVerbosity::Log);
 
@@ -96,11 +97,13 @@ void Window::NewFrame()
 
 void Window::EndFrame()
 {
+	ZN_TRACE_QUICKSCOPE();
+
 	m_D3DDevice->ClearRenderTarget();
 
 	m_ImGui->EndFrame();
 
-	m_D3DDevice->Present(true);
+	m_D3DDevice->Present(false);
 
 	m_FrameNumber++;
 
