@@ -108,9 +108,9 @@
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\Intermediate\$(Platform)\$(Configuration)\</IntDir>
     <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)tracy\public;$(SolutionDir)Source;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);D:\gitroot\SDL\include\</IncludePath>
-    <LibraryPath>$(LibraryPath);E:\Zn\Libs\Debug</LibraryPath>
-    <ExecutablePath>E:\Zn\Libs\Debug;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);$(SolutionDir)SDL\include\</IncludePath>
+    <LibraryPath>$(LibraryPath);</LibraryPath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,9 +128,9 @@
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\Intermediate\$(Platform)\$(Configuration)\</IntDir>
     <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)tracy\public;$(SolutionDir)Source;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);D:\gitroot\SDL\include\</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);E:\Zn\Libs\Release</LibraryPath>
-    <ExecutablePath>E:\Zn\Libs\Debug;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);$(SolutionDir)SDL\include\</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">
@@ -138,9 +138,9 @@
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\Intermediate\$(Platform)\$(Configuration)\</IntDir>
     <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)tracy\public;$(SolutionDir)Source;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);D:\gitroot\SDL\include\</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);E:\Zn\Libs\Release</LibraryPath>
-    <ExecutablePath>E:\Zn\Libs\Debug;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);$(SolutionDir)SDL\include\</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -166,7 +166,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ZN_DEBUG;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3\include;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -174,7 +174,11 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Rpcrt4.lib	;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PreLinkEvent>
+      <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -224,7 +228,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZN_RELEASE;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3\include;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -233,7 +237,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;rpcrt4.lib;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PreLinkEvent>
+      <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">
     <ClCompile>
@@ -245,7 +253,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZN_RELEASE;TRACY_ENABLE;TRACY_ONLY_LOCALHOST;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3\include;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -254,7 +262,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;rpcrt4.lib;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PreLinkEvent>
+      <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\External\ImGui\imgui.cpp" />

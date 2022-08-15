@@ -1,3 +1,6 @@
 [submodule "tracy"]
 	path = tracy
 	url = https://github.com/wolfpld/tracy
+[submodule "SDL"]
+	path = SDL
+	url = https://github.com/libsdl-org/SDL.git
