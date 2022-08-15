@@ -45,7 +45,7 @@
 .vs
 
 # ZN Libs
-!/Libs/**
+/Libs
 
 
 Tracy.lnk
