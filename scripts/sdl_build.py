@@ -33,6 +33,10 @@ def CopyWithExtension(in_path, out_path, extension):
             destination = os.path.join(out_path, filename.name)
             print("Copying '" + filename.name + "' to: '" + destination + "'")
             shutil.copy2(filename.path, destination)
+            
+def MakeDir(path):
+    if not os.path.isdir(path):
+        os.mkdir(path)
       
 try:
     if (not os.path.exists(VS_WHERE)):
@@ -63,6 +67,10 @@ try:
         source_debug_input = os.path.join(path, SDL_RELATIVE_PATH, 'x64', 'Debug')
         executable_debug_output = os.path.join(path, 'Binaries', 'x64', 'Debug')
         lib_debug_output = os.path.join(path, 'Libs', 'Debug')
+        
+        MakeDir(executable_debug_output);
+        MakeDir(lib_debug_output);
+        
         CopyWithExtension(source_debug_input, executable_debug_output, '.dll')
         CopyWithExtension(source_debug_input, executable_debug_output, '.pdb')
         CopyWithExtension(source_debug_input, lib_debug_output, '.lib')
@@ -71,6 +79,10 @@ try:
         source_release_input = os.path.join(path, SDL_RELATIVE_PATH, 'x64', 'Release')
         executable_release_output = os.path.join(path, 'Binaries', 'x64', 'Release')
         lib_release_output = os.path.join(path, 'Libs', 'Release')
+        
+        MakeDir(executable_release_output);
+        MakeDir(lib_release_output);
+        
         CopyWithExtension(source_release_input, executable_release_output, '.dll')
         CopyWithExtension(source_release_input, executable_release_output, '.pdb')
         CopyWithExtension(source_release_input, lib_release_output, '.lib')
