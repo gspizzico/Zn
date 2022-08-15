@@ -50,7 +50,7 @@ try:
         configuration = sys.argv[1]
         
     build_debug = configuration == "" or configuration == "Debug"
-    build_release = configuration == "" or configuration == "Release"
+    build_release = configuration == "" or configuration == "Release" or configuration == "ReleaseWithTrace"
     
     if(build_debug == False and build_release == False):
         raise Exception("Invalid configuration argument, only Debug and Release are accepted")
