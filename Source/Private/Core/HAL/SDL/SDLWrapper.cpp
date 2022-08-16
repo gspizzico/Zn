@@ -1,6 +1,5 @@
+#include <Znpch.h>
 #include <Core/HAL/SDL/SDLWrapper.h>
-#include "Core/Log/Log.h"
-#include "Core/Log/LogMacros.h"
 #include <SDL.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogSDL, ELogVerbosity::Log);

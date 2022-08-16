@@ -1,10 +1,9 @@
+#include <Znpch.h>
 #include <Editor/Editor.h>
 #include <Automation/AutomationTestManager.h>
 #include <Core/Containers/Map.h>
 
 #include <ImGui/imgui.h> //#todo handle editor UI separately
-
-#include <Core/Trace/Trace.h>
 
 namespace Zn::UI
 {

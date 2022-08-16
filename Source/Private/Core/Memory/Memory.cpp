@@ -1,8 +1,7 @@
+#include <Znpch.h>
 #include "Core/Memory/Memory.h"
 #include "Core/HAL/PlatformTypes.h"
 #include "Core/Math/Math.h"
-
-#include <Core/Trace/Trace.h>
 
 namespace Zn
 {

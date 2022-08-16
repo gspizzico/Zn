@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include "Windows/WindowsCriticalSection.h"
 
 namespace Zn

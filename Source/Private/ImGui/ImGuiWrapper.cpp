@@ -1,3 +1,5 @@
+#include <Znpch.h>
+
 #include <ImGui/ImGuiWrapper.h>
 
 #include "ImGui/imgui.h"
@@ -9,8 +11,6 @@
 
 #include <Core/Memory/Memory.h>
 #include <Core/CommandLine.h>
-
-#include <Core/Trace/Trace.h>
 
 using namespace Zn;
 

@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include "Windows/WindowsMemory.h"
 #include "Windows/WindowsMisc.h"
 #include "Windows/WindowsCommon.h"
@@ -45,7 +46,7 @@ namespace Zn
 #if ZN_WINDOWS_TRACK_MEMORY 
 		HeapTracker->DeallocateEvent(address);
 #endif
-	}
+}
 
 	BaseAllocator* WindowsMemory::CreateAllocator()
 	{

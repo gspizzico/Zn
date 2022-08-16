@@ -1,6 +1,6 @@
+#include <Znpch.h>
 #include "Core/Async/TaskGraph.h"
 #include <algorithm>
-#include "Core/Log/LogMacros.h"
 
 DEFINE_STATIC_LOG_CATEGORY(LogTaskGraph, ELogVerbosity::Log);
 
@@ -8,8 +8,7 @@ namespace Zn
 {
 	TaskGraph::TaskGraph(Name name)
 		: m_Name(name)
-	{
-	}
+	{}
 
 	Name TaskGraph::GetName() const
 	{

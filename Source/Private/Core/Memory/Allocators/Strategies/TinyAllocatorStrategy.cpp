@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include <Core/Memory/Allocators/Strategies/TinyAllocatorStrategy.h>
 #include <Core/Memory/Memory.h>
 

@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include <Core/Log/StdOutputDevice.h>
 
 #include <iostream>

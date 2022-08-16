@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include "Windows/WindowsMisc.h"
 #include "Windows/WindowsCommon.h"
 #include "Core/HAL/Guid.h"

@@ -1,6 +1,6 @@
+#include <Znpch.h>
 #include "Automation/AutomationTest.h"
 #include "Automation/AutomationTestManager.h"
-#include "Core/Log/LogMacros.h"
 #include "Core/Async/TaskGraph.h"
 
 DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_TaskGraph, ELogVerbosity::Log)

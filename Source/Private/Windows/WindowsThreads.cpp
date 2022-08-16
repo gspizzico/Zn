@@ -1,5 +1,5 @@
+#include <Znpch.h>
 #include "Windows/WindowsThreads.h"
-#include "Core/Log/LogMacros.h"
 #include "Core/HAL/PlatformTypes.h"
 #include "Windows/WindowsThread.h"
 

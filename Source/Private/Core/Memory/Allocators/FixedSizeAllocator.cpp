@@ -1,6 +1,6 @@
+#include <Znpch.h>
 #include "Core/Memory/Allocators/FixedSizeAllocator.h"
 #include "Core/Memory/Memory.h"
-#include "Core/Log/LogMacros.h"
 #include <algorithm>
 
 DEFINE_STATIC_LOG_CATEGORY(LogFixedSizeAllocator, ELogVerbosity::Log);

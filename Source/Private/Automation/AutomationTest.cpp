@@ -1,5 +1,5 @@
+#include <Znpch.h>
 #include "Automation/AutomationTest.h"
-#include "Core/Log/LogMacros.h"
 #include "Core/HAL/Misc.h"
 #include "Core/Time/Time.h"
 
@@ -20,31 +20,31 @@ namespace Zn::Automation
 	{
 		switch (m_State)
 		{
-		case State::kUninitialized:
-		{
-			Prepare();
-			m_State = State::kReady;
-			break;
-		}
-		case State::kReady:
-		{
-			m_State = State::kRunning;
-			m_StartTime = Time::Seconds();
+			case State::kUninitialized:
+			{
+				Prepare();
+				m_State = State::kReady;
+				break;
+			}
+			case State::kReady:
+			{
+				m_State = State::kRunning;
+				m_StartTime = Time::Seconds();
 
-			Execute();
-			break;
-		}
-		case State::kRunning:
-		{
-			if (!HasAsyncOperationsPending()) m_State = State::kComplete;
-			break;
-		}
-		case State::kComplete:
-		{
-			Terminate(false);
-			break;
-		}
-		default:
+				Execute();
+				break;
+			}
+			case State::kRunning:
+			{
+				if (!HasAsyncOperationsPending()) m_State = State::kComplete;
+				break;
+			}
+			case State::kComplete:
+			{
+				Terminate(false);
+				break;
+			}
+			default:
 			break;
 		}
 
@@ -77,24 +77,24 @@ namespace Zn::Automation
 
 		switch (m_Result)
 		{
-		case Result::kCannotRun:
+			case Result::kCannotRun:
 			ZN_LOG(LogAutomationTest, ELogVerbosity::Warning, "%s could not be run for the following reason: \n\t\t %s", TestNameString, ErrorMessageCString);
 			break;
-		case Result::kFailed:
+			case Result::kFailed:
 			ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has failed for the following reason: \n\t\t %s", TestNameString, ErrorMessageCString);
 			break;
-		case Result::kOk:
+			case Result::kOk:
 			ZN_LOG(LogAutomationTest, ELogVerbosity::Log, "%s is successful.", TestNameString, ErrorMessageCString);
 			break;
-		case Result::kCritical:
-		{
-			ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has critically failed. Application will be closed. Reason: \n\t\t %s", TestNameString, ErrorMessageCString);
-
-			if (ShouldQuitWhenCriticalError())
+			case Result::kCritical:
 			{
-				Misc::Exit(true);
+				ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has critically failed. Application will be closed. Reason: \n\t\t %s", TestNameString, ErrorMessageCString);
+
+				if (ShouldQuitWhenCriticalError())
+				{
+					Misc::Exit(true);
+				}
 			}
-		}
 		}
 	}
 

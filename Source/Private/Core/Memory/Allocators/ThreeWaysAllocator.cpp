@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include <Core/Memory/Allocators/ThreeWaysAllocator.h>
 
 using namespace Zn;

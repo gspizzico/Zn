@@ -1,6 +1,6 @@
+#include <Znpch.h>
 #include "Core/Memory/VirtualMemory.h"
 #include "Core/HAL/PlatformTypes.h"
-#include "Core/Log/LogMacros.h"
 #include <algorithm>
 
 DEFINE_LOG_CATEGORY(LogMemory, Zn::ELogVerbosity::Warning)
