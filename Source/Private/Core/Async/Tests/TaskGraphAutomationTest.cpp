@@ -5,13 +5,13 @@
 
 DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_TaskGraph, ELogVerbosity::Log)
 
-namespace Zn::Automation 
+namespace Zn::Automation
 {
 
 	class AutomationTaskClass : public ITaskGraphNode
 	{
 	public:
-		
+
 		AutomationTaskClass(Name name)
 			: m_Name(name)
 		{
@@ -38,7 +38,7 @@ namespace Zn::Automation
 		template<typename T>
 		SharedPtr<T> New(Name name) { return std::make_shared<T>(name); }
 
-		virtual void Execute() override 
+		virtual void Execute() override
 		{
 			auto Graph = New<TaskGraph>("Main");
 
@@ -53,13 +53,13 @@ namespace Zn::Automation
 			auto I = New<AutomationTaskClass>("I");
 
 			Graph->Enqueue(A, {});
-			Graph->Enqueue(B, {A});
-			Graph->Enqueue(C, {B});
-			Graph->Enqueue(D, {B});
-			Graph->Enqueue(E, {B, C});
-			Graph->Enqueue(F, {B});
-			Graph->Enqueue(G, {C, D});
-			Graph->Enqueue(H, {G, F});
+			Graph->Enqueue(B, { A });
+			Graph->Enqueue(C, { B });
+			Graph->Enqueue(D, { B });
+			Graph->Enqueue(E, { B, C });
+			Graph->Enqueue(F, { B });
+			Graph->Enqueue(G, { C, D });
+			Graph->Enqueue(H, { G, F });
 
 			auto SubA = New<TaskGraph>("SubA");
 

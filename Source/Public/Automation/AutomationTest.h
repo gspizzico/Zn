@@ -12,11 +12,11 @@ namespace Zn::Automation
 
 		enum class Result : uint8_t
 		{
-			kOk			= 1,
-			kCannotRun	= 1 << 1,
-			kFailed		= 1 << 2,
-			kCritical	= 1 << 3,
-			kNone		= 1 << 4
+			kOk = 1,
+			kCannotRun = 1 << 1,
+			kFailed = 1 << 2,
+			kCritical = 1 << 3,
+			kNone = 1 << 4
 		};
 
 		enum class State
@@ -40,23 +40,42 @@ namespace Zn::Automation
 
 		void Reset();
 
-		virtual void Prepare() {};
+		virtual void Prepare()
+		{};
 
-		virtual void Execute() {};
+		virtual void Execute()
+		{};
 
-		virtual void Cleanup() {};
+		virtual void Cleanup()
+		{};
 
-		Name GetName() const { return m_Name; };
+		Name GetName() const
+		{
+			return m_Name;
+		};
 
-		virtual String GetErrorMessage() const { return String(); };
+		virtual String GetErrorMessage() const
+		{
+			return String();
+		};
 
-		State GetState() const { return m_State; }
+		State GetState() const
+		{
+			return m_State;
+		}
 
-		virtual bool ShouldQuitWhenCriticalError() const { return false; }
+		virtual bool ShouldQuitWhenCriticalError() const
+		{
+			return false;
+		}
 
-		virtual bool HasAsyncOperationsPending() const { return false; }
+		virtual bool HasAsyncOperationsPending() const
+		{
+			return false;
+		}
 
-		virtual void Sync() { };
+		virtual void Sync()
+		{};
 
 	protected:
 
@@ -66,11 +85,11 @@ namespace Zn::Automation
 
 		std::mutex	mtx_State;
 
-		State		m_State			= State::kUninitialized;
+		State		m_State = State::kUninitialized;
 
-		Result		m_Result		= Result::kNone;
+		Result		m_Result = Result::kNone;
 
-		double		m_StartTime		= 0.0;
+		double		m_StartTime = 0.0;
 	};
 }
 

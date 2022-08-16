@@ -28,7 +28,7 @@ namespace Zn
 		/*
 			USE CASE:
 				1)	Create a list of tasks to be executed, OUTSIDE the graph with explicit dependencies.
-					Ex: 
+					Ex:
 						Task* A = new Task();
 						Task* B = new Task();
 						Task* C = new Task();
@@ -73,7 +73,7 @@ namespace Zn
 								Vt.Add(Th);
 								return Th;
 							};
-				
+
 				TaskHandle* B = TaskManager::CreateTask<T2>(args...);
 
 				TaskGraph::Link(B, {A});
@@ -83,7 +83,7 @@ namespace Zn
 					Th1.RefCount += Vt.size();
 
 					for(TaskHandle* Th : Vt)
-					{	
+					{
 						if(Th.UniqueDependencyId == -1)
 						{
 							Th.UniqueDependencyId = NewDependency();
@@ -103,7 +103,7 @@ namespace Zn
 						H.Dispatch();
 				// 3)	auto R = TaskManager::CreateNamedGraph("Render");
 						auto L = TaskManager::CreateTask<T>(args...);
-						
+
 						a) TaskGraph::AddPrerequisite(L, R);
 						b) L.Then("Render"); // Does not require to be dispatched when linked to named graph.
 
@@ -155,7 +155,7 @@ namespace Zn
 	{
 		auto It = At(insert_after_task);
 		_ASSERT(It != m_Graph.cend());
-		
+
 		++It;
 
 		m_Graph.insert(It, { task });
@@ -184,7 +184,7 @@ namespace Zn
 		for (const auto& Elem : m_Graph)
 		{
 			Index++;
-			if(std::count(Elem.begin(), Elem.end(), task) > 0)
+			if (std::count(Elem.begin(), Elem.end(), task) > 0)
 				return Index;
 		}
 		return -1;
@@ -210,7 +210,7 @@ namespace Zn
 
 				++i;
 			}
-		}		
+		}
 
 		return std::nullopt;
 	}

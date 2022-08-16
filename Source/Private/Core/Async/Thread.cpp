@@ -36,7 +36,7 @@ namespace Zn
 	inline bool Thread::IsCurrentThread() const { return GetId() == PlatformThreads::GetCurrentThreadId(); }
 
 	uint32 Thread::Main()
-	{	
+	{
 		_ASSERT(m_Job != nullptr);
 
 		m_Job->Prepare();

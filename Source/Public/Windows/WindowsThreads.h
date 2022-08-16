@@ -3,11 +3,11 @@
 #include "WindowsCommon.h"
 
 #ifndef THREAD_FUNCTION_SIGNATURE
-	#define THREAD_FUNCTION_SIGNATURE(RunThread, ArgName) static DWORD WINAPI RunThread(LPVOID ArgName)
+#define THREAD_FUNCTION_SIGNATURE(RunThread, ArgName) static DWORD WINAPI RunThread(LPVOID ArgName)
 #endif
 
 #ifndef THREAD_FUNCTION_RETURN
-	#define THREAD_FUNCTION_RETURN return 0
+#define THREAD_FUNCTION_RETURN return 0
 #endif
 
 namespace Zn
@@ -16,7 +16,7 @@ namespace Zn
 
 	typedef DWORD NativeThreadId;
 
-	typedef LPTHREAD_START_ROUTINE NativeThreadFunctionPtr;	
+	typedef LPTHREAD_START_ROUTINE NativeThreadFunctionPtr;
 
 	typedef __drv_aliasesMem LPVOID ThreadArgsPtr;
 

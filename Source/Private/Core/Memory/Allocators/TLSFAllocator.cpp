@@ -38,15 +38,14 @@ namespace Zn
 	using FreeBlock = TLSFAllocator::FreeBlock;
 	using Footer = FreeBlock::Footer;
 
-	
+
 	//	=== Footer ====
-	
+
 	Footer::Footer(size_t size, FreeBlock* const previous, FreeBlock* const next)
 		: m_Pattern(Footer::kValidationPattern | size)
 		, m_Previous(previous)
 		, m_Next(next)
-	{
-	}
+	{}
 
 	FreeBlock* Footer::GetBlock() const
 	{
@@ -120,11 +119,11 @@ namespace Zn
 	}
 
 	void FreeBlock::Verify(size_t max_block_size) const
-	{	
+	{
 		const auto Footer = const_cast<FreeBlock*>(this)->GetFooter();
 
 		_ASSERT(Footer->IsValid());
-		
+
 		if (Footer->m_Next)
 		{
 			Footer->m_Next->Verify(max_block_size);
@@ -150,8 +149,7 @@ namespace Zn
 
 	TLSFAllocator::TLSFAllocator()
 		:TLSFAllocator(Memory::GetMemoryStatus().m_TotalPhys)
-	{	
-	}
+	{}
 
 	TLSFAllocator::TLSFAllocator(size_t capacity)
 		: m_Memory(capacity, VirtualMemory::AlignToPageSize(kBlockSize))
@@ -164,9 +162,9 @@ namespace Zn
 	}
 
 	void* TLSFAllocator::Allocate(size_t size, size_t alignment)
-	{	
+	{
 		size_t AllocationSize = Memory::Align(size + sizeof(uintptr_t), FreeBlock::kMinBlockSize);	// FREEBLOCK -> {[BLOCK_SIZE][STORAGE|FOOTER]}
-		
+
 		index_type fl = 0, sl = 0;
 		MappingSearch(AllocationSize, fl, sl);
 
@@ -203,7 +201,7 @@ namespace Zn
 
 			AddBlock(NewBlock);
 		}
-		
+
 		VERIFY_WRITE_CALL(MemoryRange(FreeBlock, BlockSize));
 
 		new (FreeBlock) uintptr_t(BlockSize);																// Write at the beginning of the block its size in order to safely free the memory when requested.
@@ -215,7 +213,7 @@ namespace Zn
 		auto AllocationRange = MemoryRange(Memory::AddOffset(FreeBlock, sizeof(uintptr_t)), BlockSize - sizeof(BlockSize));
 
 		VERIFY_WRITE(AllocationRange.Begin(), AllocationRange.Size(), MemoryDebug::MarkUninitialized);
-		
+
 		VERIFY_WRITE(FreeBlock->GetFooter(), FreeBlock::kFooterSize, Memory::Memzero);					   // It's not a free block anymore, footer is unnecessary.
 
 		return AllocationRange.Begin();
@@ -245,7 +243,7 @@ namespace Zn
 		NewBlock = MergeNext(NewBlock);																		// Try merge the next physical block
 
 		if (!Decommit(NewBlock))
-		{	
+		{
 			AddBlock(NewBlock);
 		}
 
@@ -308,7 +306,7 @@ namespace Zn
 		{
 			_BitScanReverse64(&o_fl, size);																					// FLS -> Find most significant bit and returns log2 of it -> (2^o_fl);
 
-			o_sl = size < FreeBlock::kMinBlockSize ? 0ul : static_cast<index_type>((size >> (o_fl - kJ)) - kNumberOfLists); 
+			o_sl = size < FreeBlock::kMinBlockSize ? 0ul : static_cast<index_type>((size >> (o_fl - kJ)) - kNumberOfLists);
 
 			o_fl -= kStartFl;																								// Remove kStartFl because we are not starting from lists of size 2.
 		}
@@ -320,11 +318,11 @@ namespace Zn
 
 		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Size %u \t fl %u \t sl %u", size, o_fl, o_sl);
 
-		return o_fl < kNumberOfPools && o_sl < kNumberOfLists;
+		return o_fl < kNumberOfPools&& o_sl < kNumberOfLists;
 	}
 
 	bool TLSFAllocator::MappingSearch(size_t size, index_type& o_fl, index_type& o_sl)
-	{	
+	{
 		o_fl = 0;
 		o_sl = 0;
 
@@ -375,10 +373,10 @@ namespace Zn
 	}
 
 	TLSFAllocator::FreeBlock* TLSFAllocator::MergePrevious(FreeBlock* block)
-	{	
+	{
 		auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousPhysicalFooter(block);
 
-		if ((!Memory::IsAligned(block, m_Memory.PageSize()) || m_Memory.IsAllocated(PreviousPhysicalBlockFooter)) 
+		if ((!Memory::IsAligned(block, m_Memory.PageSize()) || m_Memory.IsAllocated(PreviousPhysicalBlockFooter))
 			&& PreviousPhysicalBlockFooter->IsValid())									// If the block is not aligned, the previous can never be not committed.
 		{
 			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->BlockSize();
@@ -403,7 +401,7 @@ namespace Zn
 	{
 		FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size()));
 
-		if ((!Memory::IsAligned(NextPhysicalBlock, m_Memory.PageSize()) || m_Memory.IsAllocated(NextPhysicalBlock)) 
+		if ((!Memory::IsAligned(NextPhysicalBlock, m_Memory.PageSize()) || m_Memory.IsAllocated(NextPhysicalBlock))
 			&& NextPhysicalBlock->GetFooter()->IsValid())								// If the block is not aligned, the next can never be not committed.
 		{
 			auto NextBlockSize = NextPhysicalBlock->Size();
@@ -422,13 +420,13 @@ namespace Zn
 	}
 
 	void TLSFAllocator::RemoveBlock(FreeBlock* block)
-	{	
+	{
 		index_type fl = 0, sl = 0;
 
 		MappingInsert(block->Size(), fl, sl);
 
 		ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "RemoveBlock \t Block: %p\t  Size: %i, fl %i, sl %i", block, block->Size(), fl, sl);
-		
+
 		auto BlockFooter = block->GetFooter();
 
 		if (m_FreeLists[fl][sl] == block)
@@ -450,7 +448,7 @@ namespace Zn
 				m_FreeLists[fl][sl]->GetFooter()->m_Previous = nullptr;
 			}
 		}
-		else 
+		else
 		{
 			_ASSERT(BlockFooter->m_Previous);
 
@@ -472,7 +470,7 @@ namespace Zn
 	}
 
 	void TLSFAllocator::AddBlock(FreeBlock* block)
-	{	
+	{
 		index_type fl = 0, sl = 0;
 
 		MappingInsert(block->Size(), fl, sl);
@@ -515,23 +513,23 @@ namespace Zn
 			auto NextPhysicalBlockAddress = Memory::AddOffset(block, BlockSize);
 
 			auto SPA_Alignment = Memory::GetDistance(SPA, block);
-			
+
 			if (BlockSize - SPA_Alignment < m_Memory.PageSize())
 			{
 				return false;
 			}
 
 			auto EPA = Memory::AddOffset(SPA, m_Memory.PageSize());
-			
+
 			auto LastBlockSize = Memory::GetDistance(NextPhysicalBlockAddress, EPA);
 
 			if (SPA_Alignment > 0 && SPA_Alignment < FreeBlock::kMinBlockSize) return false;
 			if (LastBlockSize > 0 && LastBlockSize < FreeBlock::kMinBlockSize) return false;
 
 			auto DeallocationRange = MemoryRange{ SPA,EPA };
-			
+
 			VERIFY_WRITE_CALL(DeallocationRange);
-			
+
 			{// dbg
 				auto pFooter = block->GetFooter();
 				_ASSERT(pFooter->m_Next == nullptr);
@@ -543,7 +541,7 @@ namespace Zn
 				if (SPA_Alignment >= FreeBlock::kMinBlockSize)
 				{
 					auto FirstBlock = FreeBlock::New({ block, (size_t) SPA_Alignment });
-					
+
 					AddBlock(FirstBlock);
 
 					ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t TLSFAllocator::AddFirstBlock: %p", block);

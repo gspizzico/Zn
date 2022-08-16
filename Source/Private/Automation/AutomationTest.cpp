@@ -15,28 +15,28 @@ namespace Zn::Automation
 	{
 		_ASSERT(m_State == State::kUninitialized);
 	}
-	
+
 	AutomationTest::State AutomationTest::Run()
 	{
 		switch (m_State)
 		{
 		case State::kUninitialized:
-		{	
+		{
 			Prepare();
 			m_State = State::kReady;
 			break;
 		}
 		case State::kReady:
-		{ 
+		{
 			m_State = State::kRunning;
 			m_StartTime = Time::Seconds();
-			
+
 			Execute();
 			break;
 		}
 		case State::kRunning:
 		{
-			if(!HasAsyncOperationsPending()) m_State = State::kComplete;
+			if (!HasAsyncOperationsPending()) m_State = State::kComplete;
 			break;
 		}
 		case State::kComplete:
@@ -68,7 +68,7 @@ namespace Zn::Automation
 		const float Duration = static_cast<float>(Time::Seconds() - m_StartTime);
 
 		const auto TestNameString = GetName().CString();
-		
+
 		const auto ErrorMessage = GetErrorMessage();
 
 		const auto ErrorMessageCString = ErrorMessage.c_str();
@@ -89,7 +89,7 @@ namespace Zn::Automation
 		case Result::kCritical:
 		{
 			ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has critically failed. Application will be closed. Reason: \n\t\t %s", TestNameString, ErrorMessageCString);
-			
+
 			if (ShouldQuitWhenCriticalError())
 			{
 				Misc::Exit(true);

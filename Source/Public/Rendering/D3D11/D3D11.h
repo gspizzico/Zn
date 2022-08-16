@@ -19,7 +19,7 @@ namespace Zn
 
 		ID3D11Device* GetDevice() const;
 		ID3D11DeviceContext* GetDeviceContext() const;
-		
+
 		~D3D11Device();
 
 	private:

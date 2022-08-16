@@ -14,29 +14,41 @@ namespace Zn
 
 		PageAllocator(size_t page_size);
 
-		size_t GetUsedMemory() const { return m_AllocatedPages * PageSize(); }
+		size_t GetUsedMemory() const
+		{
+			return m_AllocatedPages * PageSize();
+		}
 
-		float GetMemoryUtilization() const { return (float)GetUsedMemory() / (float) m_Tracker.GetCommittedMemory(); }
+		float GetMemoryUtilization() const
+		{
+			return (float) GetUsedMemory() / (float) m_Tracker.GetCommittedMemory();
+		}
 
 		void* Allocate();
 
 		bool Free(void* address);
 
-		size_t PageSize() const { return m_Tracker.m_PageSize; }
+		size_t PageSize() const
+		{
+			return m_Tracker.m_PageSize;
+		}
 
 		bool IsAllocated(void* address) const;
 
 		void* GetPageAddress(void* address) const;
 
-		const MemoryRange& Range() const { return m_Memory.Range(); }
+		const MemoryRange& Range() const
+		{
+			return m_Memory.Range();
+		}
 
 	private:
 
 		bool CommitMemory();
 
-		static constexpr float kStartDecommitThreshold	= .4f; 
-		
-		static constexpr float kEndDecommitThreshold	= .8f;
+		static constexpr float kStartDecommitThreshold = .4f;
+
+		static constexpr float kEndDecommitThreshold = .8f;
 
 		struct CommittedMemoryTracker
 		{
@@ -52,7 +64,10 @@ namespace Zn
 
 			void* GetNextPageToCommit() const;
 
-			size_t GetCommittedMemory() const { return m_CommittedPages * m_PageSize; }
+			size_t GetCommittedMemory() const
+			{
+				return m_CommittedPages * m_PageSize;
+			}
 
 			size_t PageNumber(void* address) const;
 
@@ -91,7 +106,10 @@ namespace Zn
 			uint64_t m_Pattern;
 			void* m_Next;
 
-			bool IsValid() const { return m_Pattern == kFreePagePattern; }
-		};		
+			bool IsValid() const
+			{
+				return m_Pattern == kFreePagePattern;
+			}
+		};
 	};
 }

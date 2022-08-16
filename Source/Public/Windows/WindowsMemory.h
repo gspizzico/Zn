@@ -4,36 +4,36 @@
 
 namespace Zn
 {
-    class BaseAllocator;
+	class BaseAllocator;
 
 
-    class WindowsMemory
-    {
-    public:
-        static MemoryStatus GetMemoryStatus();
+	class WindowsMemory
+	{
+	public:
+		static MemoryStatus GetMemoryStatus();
 
 		static void TrackAllocation(void* address, size_t size);
 
 		static void TrackDeallocation(void* address);
 
-        static BaseAllocator* CreateAllocator();
-    };
+		static BaseAllocator* CreateAllocator();
+	};
 
-    class WindowsVirtualMemory
-    {
-    public:
-        static void* Reserve(size_t size);
+	class WindowsVirtualMemory
+	{
+	public:
+		static void* Reserve(size_t size);
 
-        static void* Allocate(size_t size);
+		static void* Allocate(size_t size);
 
-        static bool Release(void* address);
+		static bool Release(void* address);
 
-        static bool Commit(void* address, size_t size);
+		static bool Commit(void* address, size_t size);
 
-        static bool Decommit(void* address, size_t size);
+		static bool Decommit(void* address, size_t size);
 
-        static size_t GetPageSize();
+		static size_t GetPageSize();
 
 		static VirtualMemoryInformation GetMemoryInformation(void* address, size_t size);
-    };
+	};
 }

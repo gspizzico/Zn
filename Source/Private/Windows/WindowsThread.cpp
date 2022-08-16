@@ -6,7 +6,7 @@ namespace Zn
 	{
 		//#TODO Create Sync point to avoid  that RunThread is called before Initialize has been completed.
 
-		m_Handle = ::CreateThread(NULL, 0, WindowsThread::RunThread, this, CREATE_SUSPENDED /*| STACK_SIZE_PARAM_IS_A_RESERVATION*/, (DWORD*)(&m_ThreadId));
+		m_Handle = ::CreateThread(NULL, 0, WindowsThread::RunThread, this, CREATE_SUSPENDED /*| STACK_SIZE_PARAM_IS_A_RESERVATION*/, (DWORD*) (&m_ThreadId));
 	}
 
 	void WindowsThread::WaitUntilCompletion()

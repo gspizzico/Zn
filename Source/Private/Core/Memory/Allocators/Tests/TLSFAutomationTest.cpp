@@ -23,22 +23,19 @@ namespace Zn::Automation
 			: m_Iterations(2)
 			, m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
 			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
-		{
-		}
+		{}
 
 		TLSFAutomationTest(size_t iterations)
 			: m_Iterations(iterations)
 			, m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
 			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
-		{
-		}
+		{}
 
 		TLSFAutomationTest(size_t iterations, size_t min_allocation_size, size_t max_allocation_size)
 			: m_Iterations(iterations)
 			, m_MinAllocationSize(std::clamp<size_t>(min_allocation_size, sizeof(uintptr_t), TLSFAllocator::kMaxAllocationSize))
 			, m_MaxAllocationSize(std::clamp<size_t>(max_allocation_size, m_MinAllocationSize, TLSFAllocator::kMaxAllocationSize))
-		{
-		}
+		{}
 
 		virtual void Execute() override
 		{
@@ -61,7 +58,7 @@ namespace Zn::Automation
 				std::chrono::high_resolution_clock hrc;
 				std::random_device rd;
 				std::mt19937 gen(rd());
-				std::uniform_int_distribution<size_t> dis(m_MinAllocationSize, (int)m_MaxAllocationSize);
+				std::uniform_int_distribution<size_t> dis(m_MinAllocationSize, (int) m_MaxAllocationSize);
 
 				auto& MemoryBlocks = Pointers[flip_flop];
 
@@ -102,7 +99,7 @@ namespace Zn::Automation
 			}
 
 			m_Result = Result::kOk;
-		}	
+		}
 
 		virtual bool ShouldQuitWhenCriticalError() const override
 		{
@@ -112,7 +109,7 @@ namespace Zn::Automation
 	private:
 
 		size_t m_Iterations;
-		
+
 		size_t m_MinAllocationSize;
 
 		size_t m_MaxAllocationSize;
@@ -121,7 +118,7 @@ namespace Zn::Automation
 	class TLSFAutomationTest2 : public AutomationTest
 	{
 	private:
-		
+
 		struct Allocation
 		{
 			void* m_Address;
@@ -131,13 +128,13 @@ namespace Zn::Automation
 		struct Data
 		{
 			// Large Memory
-			static constexpr size_t kLargeMemoryAllocations		= 15000;
+			static constexpr size_t kLargeMemoryAllocations = 15000;
 
 			static constexpr std::pair<size_t, size_t> kLargeMemoryAllocationRange = { 8192, TLSFAllocator::kMaxAllocationSize };
-			
+
 			// Frame Memory
-			static constexpr size_t kFrameMemoryAllocations		= 18000;
-			
+			static constexpr size_t kFrameMemoryAllocations = 18000;
+
 			static constexpr std::pair<size_t, size_t> kFrameAllocationRange = { 8, 512 };
 
 			static constexpr size_t kNumberOfFrames = 60 * 10;
@@ -152,7 +149,7 @@ namespace Zn::Automation
 			TLSFAllocator m_Allocator;
 
 			std::array<Allocation, kLargeMemoryAllocations> m_LargeMemoryAllocations;
-			
+
 			std::array<Allocation, kFrameMemoryAllocations> m_LastFrameAllocations;
 
 			std::array<Allocation, kMemorySpikesNum>		m_SpikesAllocations;
@@ -164,7 +161,7 @@ namespace Zn::Automation
 
 		size_t m_CurrentFrameSpikeIndex;
 
-		size_t m_NextSpikeIndex;		
+		size_t m_NextSpikeIndex;
 
 	public:
 
@@ -181,10 +178,13 @@ namespace Zn::Automation
 
 			auto IsDuplicate = [this, &ComputedFrames](const auto Index) -> bool
 			{
-				auto Predicate = [Index](const auto& Element) { return Index == Element; };
+				auto Predicate = [Index](const auto& Element)
+				{
+					return Index == Element;
+				};
 				return std::any_of(m_MemorySpikeFramesIndices.cbegin(), m_MemorySpikeFramesIndices.cbegin() + ComputedFrames, Predicate);
 			};
-			
+
 			m_MemorySpikeFramesIndices.fill(-1);
 
 			while (ComputedFrames < Data::kMemorySpikesNum)
@@ -204,9 +204,9 @@ namespace Zn::Automation
 
 		std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
 		{
-			return std::uniform_int_distribution<size_t> (range.first, range.second);
+			return std::uniform_int_distribution<size_t>(range.first, range.second);
 		}
-		
+
 		template<typename Array>
 		void Allocate(size_t allocation_size, size_t index, Array& storage)
 		{
@@ -222,7 +222,7 @@ namespace Zn::Automation
 			if (frame == m_NextSpikeIndex)
 			{
 				auto SpikeDistribution = CreateIntDistribution({ Data::kMemorySpikeAllocationRange });
-				
+
 				std::random_device rd;
 				std::mt19937 gen(rd());
 
@@ -266,7 +266,7 @@ namespace Zn::Automation
 			std::unique_ptr<TFrameAllocations> CurrentFrameAllocations = std::make_unique<TFrameAllocations>();
 
 			std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kFrameAllocationRange);
-			
+
 			std::chrono::high_resolution_clock hrc;
 			std::shuffle(m_AllocationData->m_LastFrameAllocations.begin(), m_AllocationData->m_LastFrameAllocations.end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
 
@@ -274,7 +274,7 @@ namespace Zn::Automation
 			std::mt19937 gen(rd());
 
 			std::uniform_int_distribution<size_t> RollDice = CreateIntDistribution({ 0, 100 });
-			
+
 			const bool CanDeallocate = frame > 0;
 
 			int RemainingDeallocations = CanDeallocate ? static_cast<int>(m_AllocationData->m_LastFrameAllocations.size()) : 0;
@@ -305,7 +305,7 @@ namespace Zn::Automation
 			AllocateLargeMemory();
 
 			std::array<long long, Data::kNumberOfFrames> FrameDurations;
-			
+
 			auto SavedTime = SystemClock::now();
 
 			for (int i = 0; i < Data::kNumberOfFrames; ++i)
@@ -325,7 +325,7 @@ namespace Zn::Automation
 			m_Result = Result::kOk;
 		}
 
-		virtual void Cleanup() override 
+		virtual void Cleanup() override
 		{
 			AutomationTest::Cleanup();
 

@@ -37,8 +37,7 @@ namespace Zn::Automation
 			, m_Allocations(allocations)
 			, m_Frames(frames)
 			, m_Allocator(nullptr)
-		{
-		}
+		{}
 
 		virtual void Prepare()
 		{
@@ -95,7 +94,7 @@ namespace Zn::Automation
 						allocation++;
 					}
 				}
-				
+
 				PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
 
 				PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());

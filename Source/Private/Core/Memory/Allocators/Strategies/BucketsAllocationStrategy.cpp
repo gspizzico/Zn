@@ -29,15 +29,14 @@ namespace Zn
 			  std::make_shared<PageAllocator>(PageAllocator(VirtualMemory::AlignToPageSize(reserve_memory_size), VirtualMemory::GetPageSize()))
 			, max_allocation_size
 			, allocation_step)
-	{
-	}
+	{}
 
 	void* BucketsAllocationStrategy::Allocate(size_t size, size_t alignment)
 	{
 		const size_t InternalAlignment = Memory::Align(alignment, m_AllocationStep);	// Always alignt to at least 8bytes
 
 		const size_t AllocationSize = Memory::Align(size, InternalAlignment);
-		
+
 		_ASSERT(AllocationSize <= GetMaxAllocationSize());								// Ensure that we can allocate this size.
 
 		size_t AllocatorIndex = (AllocationSize / m_AllocationStep) - 1;
@@ -71,7 +70,7 @@ namespace Zn
 	{
 		size_t SumAllUsedMemory = 0;
 
-		for(size_t Index = 0; Index < m_Buckets.size(); ++Index)
+		for (size_t Index = 0; Index < m_Buckets.size(); ++Index)
 		{
 			const auto& Allocator = m_Buckets[Index];
 
@@ -86,12 +85,12 @@ namespace Zn
 				for (const auto& Page : Allocator.GetFreePageList())
 				{
 					auto pPage = reinterpret_cast<FixedSizeAllocator::FSAPage*>(Page);
-				
+
 					SumUsedMemory += pPage->GetAllocatedMemory();
 				}
-			
-				ZN_LOG(LogBucketsAllocationStrategy, ELogVerbosity::Verbose, 
-					"Allocator %p \t AllocationSize %i \t Usage: %.2f", 
+
+				ZN_LOG(LogBucketsAllocationStrategy, ELogVerbosity::Verbose,
+					"Allocator %p \t AllocationSize %i \t Usage: %.2f",
 					&Allocator, (Index + 1) * m_AllocationStep, float(SumUsedMemory) / float(CommittedFreePagesTotalSize));
 
 				SumAllUsedMemory += SumUsedMemory;

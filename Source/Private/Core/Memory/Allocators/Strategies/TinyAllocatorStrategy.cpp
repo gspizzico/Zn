@@ -4,9 +4,9 @@
 using namespace Zn;
 
 TinyAllocatorStrategy::TinyAllocatorStrategy(size_t capacity)
-	: m_Memory(capacity, VirtualMemory::AlignToPageSize(16 * (size_t)StorageUnit::KiloByte))
+	: m_Memory(capacity, VirtualMemory::AlignToPageSize(16 * (size_t) StorageUnit::KiloByte))
 	, m_FreeLists()
-	, m_NumAllocations() 
+	, m_NumAllocations()
 	, m_NumFreePages(0)
 {
 	std::fill(m_FreeLists.begin(), m_FreeLists.end(), nullptr);
@@ -78,7 +78,7 @@ void* TinyAllocatorStrategy::Allocate(size_t size, size_t alignment)
 
 	MemoryDebug::MarkUninitialized(Allocation, Memory::AddOffset(Allocation, SlotSize));
 
-	_ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t)0x00007FF000000000);
+	_ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
 
 	return Allocation;
 }
@@ -118,7 +118,7 @@ bool TinyAllocatorStrategy::Free(void* address)
 		}
 	}
 
-	_ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t)0x00007FF000000000);
+	_ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
 
 	return true;
 }
