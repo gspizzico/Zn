@@ -35,8 +35,9 @@ def CopyWithExtension(in_path, out_path, extension):
             shutil.copy2(filename.path, destination)
             
 def MakeDir(path):
-    if not os.path.isdir(path):
-        os.mkdir(path)
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print("Created directory '" + path + "'")
       
 try:
     if (not os.path.exists(VS_WHERE)):
@@ -70,7 +71,7 @@ try:
         
         MakeDir(executable_debug_output);
         MakeDir(lib_debug_output);
-        
+
         CopyWithExtension(source_debug_input, executable_debug_output, '.dll')
         CopyWithExtension(source_debug_input, executable_debug_output, '.pdb')
         CopyWithExtension(source_debug_input, lib_debug_output, '.lib')
