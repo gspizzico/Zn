@@ -13,8 +13,7 @@ namespace Zn
 		, m_NextFreeBlock(nullptr)
 		, m_FreePageList()
 		, m_FullPageList()
-	{	
-	}
+	{}
 
 	FixedSizeAllocator::FixedSizeAllocator(size_t allocationSize, size_t pageSize)
 		: FixedSizeAllocator(allocationSize, nullptr)
@@ -41,17 +40,17 @@ namespace Zn
 			m_FullPageList.emplace(reinterpret_cast<uintptr_t>(CurrentPage));
 		}
 
-		return Block;		
+		return Block;
 	}
 
 	void FixedSizeAllocator::Free(void* address)
 	{
 		auto PageAddress = FSAPage::GetPageFromAnyAddress(address, m_MemoryPool->Range().Begin(), m_MemoryPool->PageSize());
-		
+
 		_ASSERT(PageAddress != NULL && PageAddress->m_AllocationSize == m_AllocationSize);
 
 		PageAddress->Free(address);
-		
+
 		uintptr_t PageKey = reinterpret_cast<uintptr_t>(PageAddress);
 
 		if (PageAddress->m_AllocatedBlocks == PageAddress->MaxAllocations() - 1)
@@ -83,7 +82,7 @@ namespace Zn
 
 			ZN_LOG(LogFixedSizeAllocator, ELogVerbosity::Verbose, "Requested a page of size \t%i from the pool.", m_MemoryPool->PageSize());
 		}
-	}	
+	}
 
 	FixedSizeAllocator::FSAPage::FSAPage(size_t page_size, size_t allocation_size)
 		: m_Size(page_size)
@@ -95,7 +94,7 @@ namespace Zn
 
 		const auto PageHeaderSize = Memory::GetDistance(StartAddress(), this);
 
-		_ASSERT(NumBlocks - 1 <= (size_t)std::numeric_limits<uint16_t>::max());
+		_ASSERT(NumBlocks - 1 <= (size_t) std::numeric_limits<uint16_t>::max());
 
 		for (uint16_t BlockIndex = 0; BlockIndex < NumBlocks; BlockIndex++)					// for every block, create a free block which points to the next one.
 		{
@@ -103,14 +102,14 @@ namespace Zn
 
 			auto BlockAddress = Memory::AddOffset(this, Offset);
 
-			uint16_t NextBlockOffset = BlockIndex < NumBlocks - 1 ? (uint16_t)(Offset + m_AllocationSize) : std::numeric_limits<uint16_t>::max();
+			uint16_t NextBlockOffset = BlockIndex < NumBlocks - 1 ? (uint16_t) (Offset + m_AllocationSize) : std::numeric_limits<uint16_t>::max();
 
 			new (BlockAddress) FreeBlock{ FreeBlock::kValidationToken, NextBlockOffset };
 		}
 	}
 
 	bool FixedSizeAllocator::FSAPage::IsFull() const
-	{	
+	{
 		return MaxAllocations() == m_AllocatedBlocks;
 	}
 

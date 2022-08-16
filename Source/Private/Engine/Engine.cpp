@@ -43,9 +43,9 @@ void Engine::Start()
 	//Automation::AutomationTestManager::Get().ExecuteStartupTests();
 
 	while (!m_IsRequestingExit)
-	{	
+	{
 		ZN_TRACE_QUICKSCOPE();
-		
+
 		double startFrame = Time::Seconds();
 
 		m_Window->NewFrame();
@@ -79,6 +79,6 @@ void Engine::Start()
 }
 
 void Engine::Shutdown()
-{	
+{
 	SDLWrapper::Shutdown();
 }

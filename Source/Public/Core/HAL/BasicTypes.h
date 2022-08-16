@@ -15,13 +15,13 @@ using uint64 = unsigned __int64;
 
 namespace Zn
 {
-    using String = std::string;
+	using String = std::string;
 
-    template<typename T>
-    using SharedPtr = std::shared_ptr<T>;
+	template<typename T>
+	using SharedPtr = std::shared_ptr<T>;
 
-    template<typename T>
-    using UniquePtr = std::unique_ptr<T>;
+	template<typename T>
+	using UniquePtr = std::unique_ptr<T>;
 
 	template<typename T>
 	using SharedFromThis = std::enable_shared_from_this<T>;

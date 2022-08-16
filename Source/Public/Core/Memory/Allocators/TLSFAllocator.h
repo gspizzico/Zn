@@ -26,15 +26,15 @@ namespace Zn
 		struct FreeBlock
 		{
 		public:
-			
+
 			// The footer contains the size of the block and a pointer to the previous and the next physical block.
 			struct Footer
 			{
 			private:
-				
-				static constexpr int64_t	kValidationPattern	= (int64_t) 0xff5aff5a << 32ull;
 
-				static constexpr int64_t	kValidationMask		= 0xffffffff;
+				static constexpr int64_t	kValidationPattern = (int64_t) 0xff5aff5a << 32ull;
+
+				static constexpr int64_t	kValidationMask = 0xffffffff;
 
 				int64_t						m_Pattern;
 
@@ -42,18 +42,18 @@ namespace Zn
 
 				Footer(size_t size, FreeBlock* const previous, FreeBlock* const next);
 
-				FreeBlock*	GetBlock() const;
+				FreeBlock* GetBlock() const;
 
 				size_t		BlockSize() const;
 
 				bool		IsValid() const;
 
-				FreeBlock*					m_Previous;
+				FreeBlock* m_Previous;
 
-				FreeBlock*					m_Next;
+				FreeBlock* m_Next;
 			};
 
-			static constexpr size_t			kFooterSize			= sizeof(Footer);
+			static constexpr size_t			kFooterSize = sizeof(Footer);
 
 			static constexpr size_t			kMinBlockSize = 256;// std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
 
@@ -63,15 +63,18 @@ namespace Zn
 
 			~FreeBlock();
 
-			Footer*			GetFooter();
+			Footer* GetFooter();
 
-			FreeBlock*		Previous();
+			FreeBlock* Previous();
 
-			FreeBlock*		Next();
+			FreeBlock* Next();
 
-			size_t			Size() const { return m_BlockSize; }
+			size_t			Size() const
+			{
+				return m_BlockSize;
+			}
 
-			static Footer*	GetPreviousPhysicalFooter(void* block);
+			static Footer* GetPreviousPhysicalFooter(void* block);
 
 #if ZN_DEBUG
 			void			LogDebugInfo(bool recursive) const;
@@ -82,8 +85,8 @@ namespace Zn
 #endif
 		private:
 
-			static constexpr bool			kMarkFreeOnDelete	= false;
-			
+			static constexpr bool			kMarkFreeOnDelete = false;
+
 			size_t							m_BlockSize;
 		};
 
@@ -95,11 +98,20 @@ namespace Zn
 
 		bool				Free(void* address);
 
-		size_t				GetAllocatedMemory() const { return m_Memory.GetUsedMemory(); }
+		size_t				GetAllocatedMemory() const
+		{
+			return m_Memory.GetUsedMemory();
+		}
 
-		static constexpr size_t	MinAllocationSize() { return FreeBlock::kMinBlockSize; }
+		static constexpr size_t	MinAllocationSize()
+		{
+			return FreeBlock::kMinBlockSize;
+		}
 
-		static constexpr size_t MaxAllocationSize() { return kMaxAllocationSize; }
+		static constexpr size_t MaxAllocationSize()
+		{
+			return kMaxAllocationSize;
+		}
 
 #if ZN_DEBUG
 		void				LogDebugInfo() const;
@@ -112,7 +124,7 @@ namespace Zn
 	private:
 
 		using index_type = unsigned long;
-		
+
 		using FreeListMatrix = std::array<std::array<FreeBlock*, kNumberOfLists>, kNumberOfPools>;
 
 		bool				MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
@@ -121,9 +133,9 @@ namespace Zn
 
 		bool				FindSuitableBlock(index_type& o_fl, index_type& o_sl);
 
-		FreeBlock*			MergePrevious(FreeBlock* block);
+		FreeBlock* MergePrevious(FreeBlock* block);
 
-		FreeBlock*			MergeNext(FreeBlock* block);
+		FreeBlock* MergeNext(FreeBlock* block);
 
 		void				RemoveBlock(FreeBlock* block);
 

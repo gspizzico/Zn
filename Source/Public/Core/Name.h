@@ -4,41 +4,54 @@
 
 namespace Zn
 {
-    struct Name
-    {
-        Name() = default;
+	struct Name
+	{
+		Name() = default;
 
-        Name(Zn::String string);
+		Name(Zn::String string);
 
-        Name(const char* chars) : Name(String(chars)) {}
+		Name(const char* chars) : Name(String(chars))
+		{}
 
-        bool operator==(const Name& other) const { return m_StringCode == other.m_StringCode; }
-        
-        bool operator<(const Name& other) const { return m_StringCode < other.m_StringCode; }
+		bool operator==(const Name& other) const
+		{
+			return m_StringCode == other.m_StringCode;
+		}
 
-        operator bool() const { return m_StringCode != 0; }
-        
-        size_t Value() const { return m_StringCode; }
+		bool operator<(const Name& other) const
+		{
+			return m_StringCode < other.m_StringCode;
+		}
 
-        Zn::String ToString() const;
+		operator bool() const
+		{
+			return m_StringCode != 0;
+		}
 
-        const char* const CString() const;
+		size_t Value() const
+		{
+			return m_StringCode;
+		}
 
-    private:
+		Zn::String ToString() const;
 
-        size_t m_StringCode = 0;
-    };
+		const char* const CString() const;
 
-    static const Name NO_NAME;
+	private:
+
+		size_t m_StringCode = 0;
+	};
+
+	static const Name NO_NAME;
 }
 
 namespace std
 {
-    template<> struct hash<Zn::Name>
-    {
-        size_t operator()(const Zn::Name& name) const noexcept
-        {
-            return name.Value();
-        }
-    };
+	template<> struct hash<Zn::Name>
+	{
+		size_t operator()(const Zn::Name& name) const noexcept
+		{
+			return name.Value();
+		}
+	};
 }

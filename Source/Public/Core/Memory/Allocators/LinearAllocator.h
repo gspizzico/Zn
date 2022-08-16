@@ -4,21 +4,21 @@
 
 namespace Zn
 {
-    class LinearAllocator
-    {
-    public:
-        
-        LinearAllocator() = default;
+	class LinearAllocator
+	{
+	public:
 
-        LinearAllocator(size_t capacity);
-        
+		LinearAllocator() = default;
+
+		LinearAllocator(size_t capacity);
+
 		LinearAllocator(SharedPtr<VirtualMemoryRegion> region);
-        
-        ~LinearAllocator();
 
-        void* Allocate(size_t size, size_t alignment = 1);
-        
-        bool Free();
+		~LinearAllocator();
+
+		void* Allocate(size_t size, size_t alignment = 1);
+
+		bool Free();
 
 		bool IsAllocated(void* address) const;
 
@@ -26,12 +26,12 @@ namespace Zn
 
 		size_t GetRemainingMemory() const;
 
-    private:
+	private:
 
 		SharedPtr<VirtualMemoryRegion> m_Memory;
 
-        void*   m_Address             = nullptr;
+		void* m_Address = nullptr;
 
-        void*   m_NextPageAddress     = nullptr;
-    };
+		void* m_NextPageAddress = nullptr;
+	};
 }

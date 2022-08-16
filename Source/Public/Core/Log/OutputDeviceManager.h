@@ -7,32 +7,35 @@
 
 namespace Zn
 {
-    // Manager of output devices. Holds their references and is used as passthrough for messages.
-    class OutputDeviceManager
-    {
-    public:
+	// Manager of output devices. Holds their references and is used as passthrough for messages.
+	class OutputDeviceManager
+	{
+	public:
 
-        static OutputDeviceManager& Get();
-        
-        bool OutputMessage(const String& message) { return OutputMessage(message.c_str()); }
-        
-        bool OutputMessage(const char* message);
+		static OutputDeviceManager& Get();
 
-        template<typename T, typename ...Args>
-        void RegisterOutputDevice(Args&& ... args);
+		bool OutputMessage(const String& message)
+		{
+			return OutputMessage(message.c_str());
+		}
 
-    private:
+		bool OutputMessage(const char* message);
 
-        Vector<SharedPtr<IOutputDevice>> OutputDevices;
+		template<typename T, typename ...Args>
+		void RegisterOutputDevice(Args&& ... args);
 
-        OutputDeviceManager() = default;
+	private:
 
-        OutputDeviceManager(OutputDeviceManager const& other) = delete;
-    };
+		Vector<SharedPtr<IOutputDevice>> OutputDevices;
 
-    template<typename T, typename ...Args>
-    inline void OutputDeviceManager::RegisterOutputDevice(Args&& ... args)
-    {
-        OutputDevices.emplace_back(std::make_shared<T>(T(std::forward<T>(args)...)));
-    }
+		OutputDeviceManager() = default;
+
+		OutputDeviceManager(OutputDeviceManager const& other) = delete;
+	};
+
+	template<typename T, typename ...Args>
+	inline void OutputDeviceManager::RegisterOutputDevice(Args&& ... args)
+	{
+		OutputDevices.emplace_back(std::make_shared<T>(T(std::forward<T>(args)...)));
+	}
 }

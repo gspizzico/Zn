@@ -39,11 +39,11 @@ namespace Zn
 	}
 	void* Memory::AddOffset(void* address, size_t offset)
 	{
-		return reinterpret_cast<uintptr_t*>((uintptr_t)address + (uintptr_t)offset);
+		return reinterpret_cast<uintptr_t*>((uintptr_t) address + (uintptr_t) offset);
 	}
 	void* Memory::SubOffset(void* address, size_t offset)
 	{
-		return reinterpret_cast<uintptr_t*>((uintptr_t)address - (uintptr_t)offset);
+		return reinterpret_cast<uintptr_t*>((uintptr_t) address - (uintptr_t) offset);
 	}
 	ptrdiff_t Memory::GetDistance(const void* first, const void* second)
 	{

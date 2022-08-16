@@ -2,10 +2,10 @@
 
 using namespace Zn;
 
-constexpr size_t kSmallAllocatorVM	= 2ull * (size_t)(StorageUnit::GigaByte);
-constexpr size_t kMediumAllocatorVM	= 128ull *(size_t)(StorageUnit::GigaByte);
+constexpr size_t kSmallAllocatorVM = 2ull * (size_t) (StorageUnit::GigaByte);
+constexpr size_t kMediumAllocatorVM = 128ull * (size_t) (StorageUnit::GigaByte);
 
-constexpr size_t kLargeAllocatorPageSize = 64ull * (size_t)(StorageUnit::KiloByte);
+constexpr size_t kLargeAllocatorPageSize = 64ull * (size_t) (StorageUnit::KiloByte);
 
 
 ThreeWaysAllocator::ThreeWaysAllocator()
@@ -13,8 +13,7 @@ ThreeWaysAllocator::ThreeWaysAllocator()
 	, m_Small(kSmallAllocatorVM)
 	, m_Medium(kMediumAllocatorVM)
 	, m_Large(VirtualMemory::AlignToPageSize(kLargeAllocatorPageSize))
-{
-}
+{}
 
 void* ThreeWaysAllocator::Malloc(size_t size, size_t alignment /*= DEFAULT_ALIGNMENT*/)
 {

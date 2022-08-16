@@ -22,7 +22,10 @@ namespace Zn::Automation
 
 		void Tick(float deltaTime);
 
-		bool IsRunningTests() const { return m_PendingTests.size() > 0; }
+		bool IsRunningTests() const
+		{
+			return m_PendingTests.size() > 0;
+		}
 
 	private:
 
@@ -43,7 +46,7 @@ namespace Zn::Automation
 		Test->m_Name = name;
 		Manager.m_StartupTests.emplace_back(Test);
 	}
-	
+
 	template<typename TTestType>
 	struct AutoStartupTest
 	{

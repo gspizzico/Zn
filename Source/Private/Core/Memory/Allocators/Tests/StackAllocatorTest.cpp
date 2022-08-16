@@ -37,8 +37,7 @@ namespace Zn::Automation
 			, m_Allocations(allocations)
 			, m_Frames(frames)
 			, m_Allocator(nullptr)
-		{
-		}
+		{}
 
 		virtual void Prepare()
 		{
@@ -93,7 +92,7 @@ namespace Zn::Automation
 					save_allocation = RollDice(gen);
 				}
 
-				while(allocation < m_Allocations)
+				while (allocation < m_Allocations)
 				{
 					CurrentFrameAllocations[allocation] = m_Allocator->Allocate(FrameAllocationDistribution(gen));
 

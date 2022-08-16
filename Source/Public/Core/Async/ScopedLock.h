@@ -9,7 +9,7 @@ namespace Zn
 		{
 			m_Lockable->Lock();
 		}
-		
+
 		~TScopedLock()
 		{
 			m_Lockable->Unlock();

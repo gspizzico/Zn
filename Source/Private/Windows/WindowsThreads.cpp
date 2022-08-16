@@ -63,13 +63,13 @@ namespace Zn
 	{
 		return handle != NULL && ::WaitForSingleObject(handle, 0) == WAIT_TIMEOUT;
 	}
-	
+
 	bool WindowsThreads::WaitThread(NativeThreadHandle handle, uint32 ms)
 	{
 		_ASSERT(handle != nullptr);
 		return ::WaitForSingleObject(handle, ms) == WAIT_OBJECT_0;
 	}
-	
+
 	void WindowsThreads::WaitThread(NativeThreadHandle handle)
 	{
 		_ASSERT(handle != nullptr);
@@ -85,14 +85,14 @@ namespace Zn
 	{
 		switch (priority)
 		{
-		case ThreadPriority::Idle: return THREAD_PRIORITY_IDLE;
-		case ThreadPriority::Lowest: return THREAD_PRIORITY_LOWEST;
-		case ThreadPriority::Low: return THREAD_PRIORITY_BELOW_NORMAL;
-		case ThreadPriority::High: return THREAD_PRIORITY_ABOVE_NORMAL;
-		case ThreadPriority::Highest: return THREAD_PRIORITY_HIGHEST;
-		case ThreadPriority::TimeCritical: return THREAD_PRIORITY_TIME_CRITICAL;
-		case ThreadPriority::Normal: 
-		default:
+			case ThreadPriority::Idle: return THREAD_PRIORITY_IDLE;
+			case ThreadPriority::Lowest: return THREAD_PRIORITY_LOWEST;
+			case ThreadPriority::Low: return THREAD_PRIORITY_BELOW_NORMAL;
+			case ThreadPriority::High: return THREAD_PRIORITY_ABOVE_NORMAL;
+			case ThreadPriority::Highest: return THREAD_PRIORITY_HIGHEST;
+			case ThreadPriority::TimeCritical: return THREAD_PRIORITY_TIME_CRITICAL;
+			case ThreadPriority::Normal:
+			default:
 			return THREAD_PRIORITY_NORMAL;
 		}
 	}

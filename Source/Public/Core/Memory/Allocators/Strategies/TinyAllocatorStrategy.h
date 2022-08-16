@@ -23,7 +23,7 @@ namespace Zn
 
 		struct FreeBlock
 		{
-			FreeBlock*	m_Next = nullptr;
+			FreeBlock* m_Next = nullptr;
 			size_t		m_FreeSlots = 0;
 		};
 

@@ -32,8 +32,7 @@ namespace Zn::Automation
 		DirectAllocationStrategyAutomationTest(size_t allocations, size_t frames)
 			: m_Allocations(allocations)
 			, m_Frames(frames)
-		{
-		}
+		{}
 
 		virtual void Execute()
 		{

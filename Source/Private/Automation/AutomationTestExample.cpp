@@ -18,7 +18,7 @@ namespace Zn::Automation
 		AutomationTestExample(size_t number_of_iterations)
 			: m_NumberOfIterations(number_of_iterations)
 		{
-		}		
+		}
 
 		virtual void Prepare() override
 		{
@@ -30,10 +30,10 @@ namespace Zn::Automation
 			for (size_t i = 0; i < m_NumberOfIterations; ++i)
 			{
 				size_t j = i + 1;
-				
+
 				static bool s_ForceFail = false;
 				static constexpr Result s_FailResult = Result::kCritical;
-				
+
 				const bool bResult = s_ForceFail ? j == !j : j == i + 1;
 
 				ZN_TEST_VERIFY(bResult, s_FailResult);
@@ -46,9 +46,9 @@ namespace Zn::Automation
 		}
 
 		virtual bool ShouldQuitWhenCriticalError() const override
-		{ 
+		{
 			static bool s_ForceQuit = false;
-			return s_ForceQuit; 
+			return s_ForceQuit;
 		}
 
 	private:

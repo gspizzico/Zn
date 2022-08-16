@@ -8,7 +8,8 @@ namespace Zn
 	class CallableJob : public ThreadedJob
 	{
 		CallableJob(std::function<void()>&& callable)
-			: m_Callable(std::move(callable)) {}
+			: m_Callable(std::move(callable))
+		{}
 
 		virtual void DoWork() override
 		{

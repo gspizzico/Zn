@@ -83,7 +83,7 @@ namespace Zn::UI
 
 				for (const Name& name : TestNames)
 				{
-					auto EmplaceResult =  GSelectedTests.try_emplace(name, false);
+					auto EmplaceResult = GSelectedTests.try_emplace(name, false);
 
 					auto& KvpReference = *EmplaceResult.first;
 
@@ -137,14 +137,14 @@ void Editor::PreUpdate(float deltaTime)
 	ZN_TRACE_QUICKSCOPE();
 
 	Zn::UI::DrawMainMenu();
-	
+
 	Zn::UI::DrawAutomationWindow();
-	
+
 }
 
 void Editor::Update(float deltaTime)
 {
-	
+
 }
 
 void Editor::PostUpdate(float deltaTime)

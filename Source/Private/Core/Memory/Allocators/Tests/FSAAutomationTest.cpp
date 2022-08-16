@@ -23,11 +23,11 @@ namespace Zn::Automation
 		}
 
 		size_t m_AllocationSize;
-		
+
 		size_t m_PageSize;
 
 		size_t m_Allocations;
-		
+
 		size_t m_Frames;
 
 		UniquePtr<Zn::FixedSizeAllocator> m_Allocator;
@@ -40,8 +40,7 @@ namespace Zn::Automation
 			, m_Allocations(allocations)
 			, m_Frames(frames)
 			, m_Allocator(nullptr)
-		{
-		}
+		{}
 
 		virtual void Prepare()
 		{
@@ -71,11 +70,11 @@ namespace Zn::Automation
 				}
 
 				std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);
-				
+
 				int allocation = 0;
 				int deallocation = 0;
 
-				for(;;)
+				for (;;)
 				{
 					if (deallocation == ToDeallocate && allocation == m_Allocations)
 						break;
@@ -93,7 +92,7 @@ namespace Zn::Automation
 				}
 
 				PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
-				
+
 				PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
 			}
 
@@ -114,7 +113,7 @@ namespace Zn::Automation
 	};
 }
 
-DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_8, Zn::Automation::FSAAutomationTest, 8,  1 << 14, 3000, 1);
+DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_8, Zn::Automation::FSAAutomationTest, 8, 1 << 14, 3000, 1);
 //DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_16, Zn::Automation::FSAAutomationTest, 16, 1 << 14, 3000, 600);
 //DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_24, Zn::Automation::FSAAutomationTest, 24, 1 << 14, 3000, 1);
 DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_32, Zn::Automation::FSAAutomationTest, 32, 1 << 14, 3000, 1);

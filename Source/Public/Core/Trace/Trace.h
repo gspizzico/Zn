@@ -12,15 +12,13 @@ namespace Zn::Trace
 		const char* Name;
 		uint32_t rgb;
 
-		constexpr TraceDefinition(const char* name, uint8_t&& ir, uint8_t&& ig, uint8_t ib):
+		constexpr TraceDefinition(const char* name, uint8_t&& ir, uint8_t&& ig, uint8_t ib) :
 			Name(name), rgb(ir << 8 | ig << 4 | ib)
-		{
-		}
+		{}
 
 		constexpr TraceDefinition(const char* name, const uint32_t inrgb) :
 			Name(name), rgb(inrgb)
-		{
-		}
+		{}
 	};
 
 	// constexpr function to determine the size of a const string.

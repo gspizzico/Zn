@@ -14,9 +14,9 @@ namespace Zn
 		{
 			uint32_t m_AllocationToken;
 			uint32_t m_NextBlockOffset;
-			
+
 			static constexpr uint32_t kValidationToken = 0xfbaf;		//FreeBlockAllocationFlag
-		};		
+		};
 
 		struct FSAPage
 		{
@@ -38,10 +38,13 @@ namespace Zn
 
 			void Free(void* address);
 
-			size_t GetAllocatedMemory() const { return m_AllocatedBlocks * m_AllocationSize; }
+			size_t GetAllocatedMemory() const
+			{
+				return m_AllocatedBlocks * m_AllocationSize;
+			}
 
 			static FSAPage* GetPageFromAnyAddress(void* address, void* start_address, size_t page_size);
-		
+
 		private:
 
 			FixedSizeAllocator::FreeBlock* StartAddress() const;
@@ -57,9 +60,12 @@ namespace Zn
 
 		void Free(void* address);
 
-		const std::list<uintptr_t>& GetFreePageList() const { return m_FreePageList; }
+		const std::list<uintptr_t>& GetFreePageList() const
+		{
+			return m_FreePageList;
+		}
 
-	private:		
+	private:
 
 		void AllocatePage();
 
@@ -67,12 +73,12 @@ namespace Zn
 
 		size_t					m_AllocationSize;
 
-		FreeBlock*				m_NextFreeBlock;
+		FreeBlock* m_NextFreeBlock;
 
 		// Book keeping data
 
 		std::list<uintptr_t>		m_FreePageList;
-		
+
 		std::set<uintptr_t>			m_FullPageList;
 	};
 }

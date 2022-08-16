@@ -11,19 +11,18 @@ namespace Zn
 		, m_AllocatedPages(0)
 		, m_NextFreePage(nullptr)
 		, m_Tracker()
-	{	
+	{
 		m_Tracker = CommittedMemoryTracker(Range(), page_size);
 		m_NextFreePage = Range().Begin();
 	}
 
 	PageAllocator::PageAllocator(size_t page_size)
 		: PageAllocator(Memory::GetMemoryStatus().m_TotalPhys, page_size)
-	{
-	}
+	{}
 
 	void* PageAllocator::Allocate()
 	{
-		if(!m_Tracker.IsCommitted(m_NextFreePage))		// Check if we need to commit memory
+		if (!m_Tracker.IsCommitted(m_NextFreePage))		// Check if we need to commit memory
 		{
 			if (!CommitMemory())
 			{
@@ -34,7 +33,7 @@ namespace Zn
 		FreePage* PageAddress = reinterpret_cast<FreePage*>(m_NextFreePage);
 
 		m_NextFreePage = PageAddress->m_Next;										// At the page address there is the address of the next free page
-		
+
 		if (m_NextFreePage == nullptr)												// If 0, then it means that the next free page is contiguous to this page.
 		{
 			m_NextFreePage = m_Tracker.GetNextPageToCommit();
@@ -61,14 +60,14 @@ namespace Zn
 		if (GetMemoryUtilization() < kStartDecommitThreshold)						// Attempt to decommit some pages since mem utilization is low
 		{
 			ZN_LOG(LogPoolAllocator, ELogVerbosity::Verbose, "Memory utilization %.2f, decommitting some pages.", GetMemoryUtilization());
-			
+
 			while (m_Tracker.IsCommitted(m_NextFreePage) && GetMemoryUtilization() < kEndDecommitThreshold)
 			{
 				FreePage* ToFree = reinterpret_cast<FreePage*>(m_NextFreePage);
 				_ASSERT(ToFree->IsValid());
 
 				m_NextFreePage = ToFree->m_Next;
-				
+
 				_ASSERT(Range().Contains(m_NextFreePage));
 
 				ZN_LOG(LogPoolAllocator, ELogVerbosity::Verbose, "%p \t %x \t %p"
@@ -95,13 +94,13 @@ namespace Zn
 		if (FreePage* PageAddress = reinterpret_cast<FreePage*>(GetPageAddress(address)))
 		{
 			return m_Tracker.IsCommitted(PageAddress) && !PageAddress->IsValid();
-		}		
+		}
 
 		return false;
 	}
 
 	void* PageAllocator::GetPageAddress(void* address) const
-	{	
+	{
 		if (Range().Contains(address))
 		{
 			auto StartAddress = Range().Begin();
@@ -144,12 +143,12 @@ namespace Zn
 	}
 
 	void PageAllocator::CommittedMemoryTracker::OnCommit(void* address)
-	{	
+	{
 		size_t PageNum = PageNumber(address);
 
 		size_t PagesMaskIndex = PageNum / (kMaskSize);					// Index of mask containing committed pages
 		size_t PageIndex = PageNum % (kMaskSize);						// Index of page in 64bit mask
-		
+
 		m_CommittedPagesMasks[PagesMaskIndex] |= (1ull << PageIndex);
 
 		bool IsFullyCommitted = (m_CommittedPagesMasks[PagesMaskIndex] == kFullCommittedMask);
@@ -158,7 +157,7 @@ namespace Zn
 		{
 			size_t CIMIndex = PagesMaskIndex / (kMaskSize);
 			size_t CIMValue = PagesMaskIndex % (kMaskSize);
-			
+
 			m_CommittedIndexMasks[CIMIndex] |= (1ull << CIMValue);
 		}
 
@@ -166,7 +165,7 @@ namespace Zn
 	}
 
 	void PageAllocator::CommittedMemoryTracker::OnFree(void* address)
-	{	
+	{
 		_ASSERT(m_AddressRange.Contains(address));
 
 		size_t PageNum = PageNumber(address);

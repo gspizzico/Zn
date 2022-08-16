@@ -30,7 +30,7 @@ Window::Window(const int width, const int height, const String& title)
 	SDL_SysWMinfo wmInfo;
 	SDL_VERSION(&wmInfo.version);
 	SDL_GetWindowWMInfo(m_Window, &wmInfo);
-	HWND hwnd = (HWND)wmInfo.info.win.window;
+	HWND hwnd = (HWND) wmInfo.info.win.window;
 
 	m_D3DDevice = UniquePtr<D3D11Device>(D3D11Device::CreateDevice(hwnd));
 

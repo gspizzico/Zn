@@ -5,8 +5,7 @@ namespace Zn
 {
 	DirectAllocationStrategy::DirectAllocationStrategy(size_t min_allocation_size)
 		: m_MinAllocationSize(VirtualMemory::AlignToPageSize(min_allocation_size))
-	{
-	}
+	{}
 
 	void* DirectAllocationStrategy::Allocate(size_t size, size_t alignment)
 	{

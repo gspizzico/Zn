@@ -4,23 +4,21 @@
 #include "Core/HAL/BasicTypes.h"
 
 namespace Zn
-{	
+{
 	StackAllocator::StackAllocator(size_t capacity)
 		: m_Memory(std::make_shared<VirtualMemoryRegion>(VirtualMemory::AlignToPageSize(capacity)))
 		, m_TopAddress(m_Memory->Begin())
 		, m_NextUncommitedAddress(m_TopAddress)
 		, m_LastSavedStatus(nullptr)
-	{
-
-	}
+	{}
 
 	StackAllocator::StackAllocator(StackAllocator&& allocator) noexcept
 		: m_Memory(std::move(allocator.m_Memory))
 		, m_TopAddress(allocator.m_TopAddress)
 		, m_NextUncommitedAddress(allocator.m_NextUncommitedAddress)
 		, m_LastSavedStatus(nullptr)
-	{	
-		allocator.m_TopAddress			= nullptr;
+	{
+		allocator.m_TopAddress = nullptr;
 		allocator.m_NextUncommitedAddress = nullptr;
 		allocator.m_LastSavedStatus = nullptr;
 	}
@@ -100,7 +98,7 @@ namespace Zn
 
 		m_LastSavedStatus = StatusPointer;
 	}
-	
+
 	void StackAllocator::RestoreStatus()
 	{
 		if (m_LastSavedStatus == nullptr)

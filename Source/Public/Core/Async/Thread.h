@@ -2,7 +2,7 @@
 #include "Core/HAL/BasicTypes.h"
 
 namespace Zn
-{	
+{
 	class ThreadedJob;
 
 	class Thread
@@ -20,7 +20,10 @@ namespace Zn
 
 		static Thread* New(String name, ThreadedJob* job);
 
-		uint32 GetId() const { return m_ThreadId; }
+		uint32 GetId() const
+		{
+			return m_ThreadId;
+		}
 
 		//Thread::Type GetType() const { return m_Type; }
 
@@ -43,7 +46,7 @@ namespace Zn
 		uint32 m_ThreadId = 0;
 
 		ThreadedJob* m_Job{ nullptr };
-	
+
 	private:
 
 		String m_Name;

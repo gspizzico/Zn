@@ -11,7 +11,7 @@ namespace Zn
 		// Default constructor doesn't make sense because it cannot be modified later.
 
 		// Copy doesn't make sense because it invokes the destructor on the copied element.
-		
+
 		// Only move is allowed.
 
 		StackAllocator() = delete;
@@ -51,10 +51,10 @@ namespace Zn
 
 		SharedPtr<VirtualMemoryRegion>	m_Memory;
 
-		void* m_TopAddress				= nullptr;
+		void* m_TopAddress = nullptr;
 
-		void* m_NextUncommitedAddress	= nullptr;
+		void* m_NextUncommitedAddress = nullptr;
 
-		void* m_LastSavedStatus			= nullptr;
+		void* m_LastSavedStatus = nullptr;
 	};
 }
