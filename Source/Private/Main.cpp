@@ -1,10 +1,8 @@
-#include "Core/Log/Log.h"
+#include <Znpch.h>
 #include "Core/Log/OutputDeviceManager.h"
 #include "Core/Name.h"
-#include "Core/HAL/BasicTypes.h"
 #include "Core/Memory/Memory.h"
 #include "Windows/WindowsDebugOutput.h"
-#include "Core/Log/LogMacros.h"
 #include "Core/CommandLine.h"
 #include "Core/Memory/Allocators/StackAllocator.h"
 #include "Core/Memory/Allocators/PageAllocator.h"

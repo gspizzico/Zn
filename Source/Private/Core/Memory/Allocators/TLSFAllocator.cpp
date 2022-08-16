@@ -1,7 +1,6 @@
+#include <Znpch.h>
 #include "Core/Memory/Allocators/TLSFAllocator.h"
 #include "Core/Memory/Memory.h"
-
-#include "Core/Log/LogMacros.h"
 
 DEFINE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
 

@@ -1,6 +1,6 @@
+#include <Znpch.h>
 #include "Automation/AutomationTest.h"
 #include "Automation/AutomationTestManager.h"
-#include "Core/Log/LogMacros.h"
 
 DEFINE_STATIC_LOG_CATEGORY(LogAutomationTestExample, ELogVerbosity::Log)
 
@@ -12,13 +12,11 @@ namespace Zn::Automation
 
 		AutomationTestExample()
 			: m_NumberOfIterations(1)
-		{
-		}
+		{}
 
 		AutomationTestExample(size_t number_of_iterations)
 			: m_NumberOfIterations(number_of_iterations)
-		{
-		}
+		{}
 
 		virtual void Prepare() override
 		{

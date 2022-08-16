@@ -1,7 +1,7 @@
+#include <Znpch.h>
 #include "Core/Memory/Allocators/LinearAllocator.h"
 #include "Core/Memory/Memory.h"
 #include "Core/Memory/VirtualMemory.h"
-#include "Core/Log/LogMacros.h"
 
 DEFINE_STATIC_LOG_CATEGORY(LogLinearAllocator, ELogVerbosity::Log);
 

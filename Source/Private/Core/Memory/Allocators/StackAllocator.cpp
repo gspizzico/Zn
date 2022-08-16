@@ -1,7 +1,7 @@
+#include <Znpch.h>
 #include "Core/Memory/Allocators/StackAllocator.h"
 #include "Core/Memory/Memory.h"
 #include "Core/Memory/VirtualMemory.h"
-#include "Core/HAL/BasicTypes.h"
 
 namespace Zn
 {

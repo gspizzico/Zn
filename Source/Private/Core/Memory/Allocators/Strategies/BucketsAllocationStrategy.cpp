@@ -1,5 +1,5 @@
+#include <Znpch.h>
 #include "Core/Memory/Allocators/Strategies/BucketsAllocationStrategy.h"
-#include "Core/Log/Log.h"
 
 DEFINE_STATIC_LOG_CATEGORY(LogBucketsAllocationStrategy, ELogVerbosity::Log);
 

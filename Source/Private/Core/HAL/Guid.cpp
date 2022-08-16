@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include "Core/HAL/Guid.h"
 #include "Core/HAL/Misc.h"
 

@@ -1,6 +1,6 @@
+#include <Znpch.h>
 #include <Rendering/D3D11/D3D11.h>
 #include <Core/Memory/Memory.h>
-#include <Core/Trace/Trace.h>
 #include "crtdbg.h" //#todo needed for _ASSERT
 
 using namespace Zn;

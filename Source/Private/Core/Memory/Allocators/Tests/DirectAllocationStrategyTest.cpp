@@ -1,6 +1,6 @@
+#include <Znpch.h>
 #include "Automation/AutomationTest.h"
 #include "Automation/AutomationTestManager.h"
-#include "Core/Log/LogMacros.h"
 #include "Core/Memory/Memory.h"
 #include "Core/Memory/Allocators/Strategies/DirectAllocationStrategy.h"
 #include <algorithm>

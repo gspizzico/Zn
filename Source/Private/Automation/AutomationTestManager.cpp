@@ -1,5 +1,5 @@
+#include <Znpch.h>
 #include "Automation/AutomationTestManager.h"
-#include "Core/Log/LogMacros.h"
 #include "Core/HAL/Misc.h"
 
 DEFINE_STATIC_LOG_CATEGORY(LogAutomationTestManager, ELogVerbosity::Log)

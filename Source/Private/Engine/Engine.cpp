@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include <Engine/Engine.h>
 #include <Core/Log/OutputDeviceManager.h>
 #include <Windows/WindowsDebugOutput.h> // #TODO Move to somewhere not platform specific
@@ -6,12 +7,8 @@
 #include <Core/CommandLine.h>
 #include <Core/HAL/SDL/SDLWrapper.h>
 #include <Core/Time/Time.h>
-#include <Core/Log/Log.h>
-#include <Core/Log/LogMacros.h>
 #include <Engine/Window.h>
 #include <Editor/Editor.h>
-
-#include <Core/Trace/Trace.h>
 
 
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);

@@ -1,3 +1,4 @@
+#include <Znpch.h>
 #include "Core/Log/OutputDeviceManager.h"
 
 Zn::OutputDeviceManager& Zn::OutputDeviceManager::Get()

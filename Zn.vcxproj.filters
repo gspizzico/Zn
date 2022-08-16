@@ -295,6 +295,9 @@
     <ClCompile Include="tracy\public\TracyClient.cpp">
       <Filter>Source\External</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Private\Znpch.cpp">
+      <Filter>Source\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -482,6 +485,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Core\Trace\Trace.h">
       <Filter>Source\Public\Core\Trace</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Znpch.h">
+      <Filter>Source\Public</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
