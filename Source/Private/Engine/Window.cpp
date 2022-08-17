@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <Rendering/D3D11/D3D11.h>
+#include <Rendering/Vulkan/VulkanDevice.h>
 #include <ImGui/ImGuiWrapper.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogWindow, ELogVerbosity::Log);
@@ -16,7 +17,8 @@ Window::Window(const int width, const int height, const String& title)
 
 	// Create window at default position
 
-	static auto ZN_SDL_WINDOW_FLAGS = (SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	static auto ZN_SDL_WINDOW_FLAGS = (SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_VULKAN);
+
 	m_Window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, ZN_SDL_WINDOW_FLAGS);
 
 	if (m_Window == NULL)
@@ -28,12 +30,13 @@ Window::Window(const int width, const int height, const String& title)
 	SDL_SysWMinfo wmInfo;
 	SDL_VERSION(&wmInfo.version);
 	SDL_GetWindowWMInfo(m_Window, &wmInfo);
-	HWND hwnd = (HWND) wmInfo.info.win.window;
+	m_NativeHandle = (HWND) wmInfo.info.win.window;
 
-	m_D3DDevice = UniquePtr<D3D11Device>(D3D11Device::CreateDevice(hwnd));
+	UniquePtr<VulkanDevice> VkDevice = std::make_unique<VulkanDevice>();
+	VkDevice->Initialize(m_Window);
 
 	m_ImGui = std::make_unique<ImGuiWrapper>();
-	m_ImGui->Initialize(m_Window, m_D3DDevice->GetDevice(), m_D3DDevice->GetDeviceContext());
+	// m_ImGui->Initialize(m_Window, m_D3DDevice->GetDevice(), m_D3DDevice->GetDeviceContext());
 }
 
 Window::~Window()

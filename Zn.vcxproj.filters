@@ -131,6 +131,12 @@
     <Filter Include="Source\Public\Core\Trace">
       <UniqueIdentifier>{a4a52266-d56d-4c29-9fe8-3c1f1fa96ba2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Rendering\Vulkan">
+      <UniqueIdentifier>{86fd722b-bfc2-41a0-afa1-e7deefe95cef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Rendering\Vulkan">
+      <UniqueIdentifier>{411fbd09-4390-4085-8d0a-3e556dd9d148}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -297,6 +303,9 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Znpch.cpp">
       <Filter>Source\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanDevice.cpp">
+      <Filter>Source\Private\Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -488,6 +497,9 @@
     </ClInclude>
     <ClInclude Include="Source\Public\Znpch.h">
       <Filter>Source\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanDevice.h">
+      <Filter>Source\Public\Rendering\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

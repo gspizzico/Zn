@@ -25,6 +25,8 @@ namespace Zn
 
 		bool IsRequestingExit() const;
 
+		void* GetHandle() const;
+
 	private:
 
 		SDL_Window* m_Window{ nullptr };
@@ -35,6 +37,8 @@ namespace Zn
 		UniquePtr<ImGuiWrapper> m_ImGui{ nullptr };
 
 		uint64 m_FrameNumber{ 0 };
+
+		void* m_NativeHandle{nullptr};
 
 		bool m_IsRequestingExit{ false };
 		bool m_HasPolledEventsThisFrame{ false };
