@@ -10,7 +10,6 @@
 #include <Engine/Window.h>
 #include <Editor/Editor.h>
 
-
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);
 
 using namespace Zn;

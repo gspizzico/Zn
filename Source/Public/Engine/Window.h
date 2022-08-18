@@ -1,5 +1,4 @@
 #pragma once
-#include "Core/HAL/BasicTypes.h"
 
 struct SDL_Window;
 struct SDL_Surface;
