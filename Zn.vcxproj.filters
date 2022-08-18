@@ -137,6 +137,12 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{7e22bfd7-bf0e-41b5-a31c-f93e98e2349b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{3afe83b9-5dfa-4d6e-b4ab-fa9b76016c31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts">
+      <UniqueIdentifier>{6412df33-04ba-48bc-8bd1-d54e232dbb1e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -507,5 +513,22 @@
     <ClInclude Include="imgui\backends\imgui_impl_vulkan.h">
       <Filter>imgui</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="scripts\PreLinking.bat">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="scripts\sdl_build.py">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="scripts\vk_compile_shaders.py">
+      <Filter>scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>

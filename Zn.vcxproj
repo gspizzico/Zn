@@ -421,6 +421,13 @@
     <ClInclude Include="Source\Public\Engine\Window.h" />
     <ClInclude Include="Source\Public\Znpch.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="scripts\PreLinking.bat" />
+    <None Include="scripts\sdl_build.py" />
+    <None Include="scripts\vk_compile_shaders.py" />
+    <None Include="shader.frag" />
+    <None Include="shader.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
