@@ -3,7 +3,7 @@
 #include <Automation/AutomationTestManager.h>
 #include <Core/Containers/Map.h>
 
-#include <ImGui/imgui.h> //#todo handle editor UI separately
+#include <imgui.h> //#todo handle editor UI separately
 
 namespace Zn::UI
 {
