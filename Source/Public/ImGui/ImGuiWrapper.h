@@ -11,7 +11,7 @@ namespace Zn
 	{
 	public:
 
-		void Initialize(SDL_Window* window, ID3D11Device* d3dDevice, ID3D11DeviceContext* d3dDeviceContext);
+		void Initialize();
 
 		void ProcessEvent(SDL_Event& event);
 

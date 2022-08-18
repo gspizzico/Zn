@@ -135,9 +135,9 @@ void Editor::PreUpdate(float deltaTime)
 
 	ZN_TRACE_QUICKSCOPE();
 
-	//Zn::UI::DrawMainMenu();
-	//
-	//Zn::UI::DrawAutomationWindow();
+	Zn::UI::DrawMainMenu();
+	
+	Zn::UI::DrawAutomationWindow();
 
 }
 

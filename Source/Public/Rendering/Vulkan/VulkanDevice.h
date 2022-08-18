@@ -90,6 +90,8 @@ namespace Zn
 		VkSemaphore m_VkPresentSemaphore, m_VkRenderSemaphore;
 		VkFence m_VkRenderFence;
 
+		VkDescriptorPool m_VkImGuiDescriptorPool;
+
 		static const Vector<const char*> kValidationLayers;
 
 		static const Vector<const char*> kDeviceExtensions;

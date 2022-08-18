@@ -4,7 +4,7 @@
 
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
-#include <imgui_impl_dx11.h>
+#include <imgui_impl_vulkan.h>
 
 #include <SDL.h>
 #include <d3d11.h>
@@ -28,7 +28,7 @@ void ImGuiFree(void* ptr, void*)
 	Zn::Allocators::Delete(ptr);
 }
 
-void ImGuiWrapper::Initialize(SDL_Window* window, ID3D11Device* d3dDevice, ID3D11DeviceContext* d3dDeviceContext)
+void ImGuiWrapper::Initialize()
 {
 	IMGUI_CHECKVERSION();
 
@@ -46,10 +46,6 @@ void ImGuiWrapper::Initialize(SDL_Window* window, ID3D11Device* d3dDevice, ID3D1
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsLight();
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForD3D(window);
-	ImGui_ImplDX11_Init(d3dDevice, d3dDeviceContext);
 
 	// Load Fonts
 	// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -75,7 +71,7 @@ void ImGuiWrapper::ProcessEvent(SDL_Event& event)
 void ImGuiWrapper::NewFrame()
 {
 	// Start the Dear ImGui frame
-	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
 
@@ -85,16 +81,10 @@ void ImGuiWrapper::NewFrame()
 
 void ImGuiWrapper::EndFrame()
 {
-	ZN_TRACE_QUICKSCOPE();
-
-	ImGui::Render();
-
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 void ImGuiWrapper::Shutdown()
 {
-	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
 }

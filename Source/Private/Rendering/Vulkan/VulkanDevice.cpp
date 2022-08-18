@@ -7,6 +7,11 @@
 
 #include <algorithm>
 
+// ImGui
+
+#include <imgui_impl_vulkan.h>
+#include <imgui_impl_sdl.h>
+
 #define ZN_VK_VALIDATION_LAYERS (ZN_DEBUG)
 
 #define ZN_VK_VALIDATION_VERBOSE (0)
@@ -446,13 +451,87 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 		_ASSERT(false);
 		return;
 	}
+
+	////// ImGui
+
+	ImGui_ImplSDL2_InitForVulkan(InWindowHandle);
+
+	// 1: create descriptor pool for IMGUI
+		// the size of the pool is very oversize, but it's copied from imgui demo itself.
+	VkDescriptorPoolSize ImGuiPoolSizes[] =
+	{
+		{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+	};
+
+	VkDescriptorPoolCreateInfo ImGuiPoolCreateInfo{};
+	ImGuiPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	ImGuiPoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	ImGuiPoolCreateInfo.maxSets = 1000;
+	ImGuiPoolCreateInfo.poolSizeCount = static_cast<uint32>(std::size(ImGuiPoolSizes));
+	ImGuiPoolCreateInfo.pPoolSizes = ImGuiPoolSizes;
+
+	ZN_VK_CHECK(vkCreateDescriptorPool(m_VkDevice, &ImGuiPoolCreateInfo, nullptr, &m_VkImGuiDescriptorPool));
+
+	//this initializes imgui for Vulkan
+	ImGui_ImplVulkan_InitInfo ImGuiInitInfo{};
+	ImGuiInitInfo.Instance = m_VkInstance;
+	ImGuiInitInfo.PhysicalDevice = m_VkGPU;
+	ImGuiInitInfo.Device = m_VkDevice;
+	ImGuiInitInfo.Queue = m_VkGraphicsQueue;
+	ImGuiInitInfo.DescriptorPool = m_VkImGuiDescriptorPool;
+	ImGuiInitInfo.MinImageCount = 3;
+	ImGuiInitInfo.ImageCount = 3;
+	ImGuiInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+	ImGui_ImplVulkan_Init(&ImGuiInitInfo, m_VkRenderPass);
+
+	// Upload Fonts
+	
+	ZN_VK_CHECK(vkResetCommandBuffer(m_VkCommandBuffer, 0));
+
+	VkCommandBufferBeginInfo CmdBufferBeginInfo{};
+	CmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	CmdBufferBeginInfo.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	ZN_VK_CHECK(vkBeginCommandBuffer(m_VkCommandBuffer, &CmdBufferBeginInfo));
+
+	ImGui_ImplVulkan_CreateFontsTexture(m_VkCommandBuffer);
+
+	ZN_VK_CHECK(vkEndCommandBuffer(m_VkCommandBuffer));
+
+	VkSubmitInfo CmdBufferEndInfo{};
+	CmdBufferEndInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	CmdBufferEndInfo.commandBufferCount = 1;
+	CmdBufferEndInfo.pCommandBuffers = &m_VkCommandBuffer;
+
+	ZN_VK_CHECK(vkQueueSubmit(m_VkGraphicsQueue, 1, &CmdBufferEndInfo, VK_NULL_HANDLE));
+
+	ZN_VK_CHECK(vkDeviceWaitIdle(m_VkDevice));
+
+	ImGui_ImplVulkan_DestroyFontUploadObjects();
 }
 
 void VulkanDevice::Deinitialize()
 {
 #if ZN_VK_VALIDATION_LAYERS
 	DeinitializeDebugMessenger();
-#endif		
+#endif
+
+	if (m_VkImGuiDescriptorPool != NULL)
+	{
+		vkDestroyDescriptorPool(m_VkDevice, m_VkImGuiDescriptorPool, nullptr/*allocator*/);
+		m_VkImGuiDescriptorPool = NULL;
+		ImGui_ImplVulkan_Shutdown();
+	}
 
 	if (m_VkCommandPool != NULL)
 	{
@@ -519,6 +598,9 @@ void VulkanDevice::Draw()
 	//now that we are sure that the commands finished executing, we can safely reset the command buffer to begin recording again.
 	ZN_VK_CHECK(vkResetCommandBuffer(m_VkCommandBuffer, 0));
 
+	// Build ImGui render commands
+	ImGui::Render();
+
 	//naming it CmdBuffer for shorter writing
 	VkCommandBuffer CmdBuffer = m_VkCommandBuffer;
 
@@ -550,6 +632,9 @@ void VulkanDevice::Draw()
 	vkCmdBeginRenderPass(CmdBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 	// *** Insert Commands here ***
+
+	// Enqueue ImGui commands to CmdBuffer
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CmdBuffer);
 
 	//finalize the render pass
 	vkCmdEndRenderPass(CmdBuffer);
