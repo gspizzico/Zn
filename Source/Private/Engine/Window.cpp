@@ -32,10 +32,10 @@ Window::Window(const int width, const int height, const String& title)
 	SDL_GetWindowWMInfo(m_Window, &wmInfo);
 	m_NativeHandle = (HWND) wmInfo.info.win.window;
 
-	UniquePtr<VulkanDevice> VkDevice = std::make_unique<VulkanDevice>();
-	VkDevice->Initialize(m_Window);
+	m_VulkanDevice = std::make_unique<VulkanDevice>();
+	m_VulkanDevice->Initialize(m_Window);
 
-	m_ImGui = std::make_unique<ImGuiWrapper>();
+	//m_ImGui = std::make_unique<ImGuiWrapper>();
 	// m_ImGui->Initialize(m_Window, m_D3DDevice->GetDevice(), m_D3DDevice->GetDeviceContext());
 }
 
@@ -48,11 +48,11 @@ Window::~Window()
 		m_Window = nullptr;
 	}
 
-	if (m_D3DDevice)
+	/*if (m_D3DDevice)
 	{
 		m_D3DDevice->Cleanup();
 		m_D3DDevice = nullptr;
-	}
+	}*/
 }
 
 void Window::PollEvents()
@@ -63,7 +63,7 @@ void Window::PollEvents()
 
 		while (SDL_PollEvent(&event) != 0)
 		{
-			m_ImGui->ProcessEvent(event);
+			//m_ImGui->ProcessEvent(event);
 			if (event.type == SDL_QUIT)
 			{
 				m_IsRequestingExit = true;
@@ -76,7 +76,7 @@ void Window::PollEvents()
 				}
 				else if (event.window.event == SDL_WINDOWEVENT_RESIZED)
 				{
-					m_D3DDevice->ResizeWindow();
+					//m_D3DDevice->ResizeWindow();
 				}
 			}
 		}
@@ -93,18 +93,20 @@ void Window::NewFrame()
 {
 	PollEvents();
 
-	m_ImGui->NewFrame();
+	//m_ImGui->NewFrame();
 }
 
 void Window::EndFrame()
 {
 	ZN_TRACE_QUICKSCOPE();
 
-	m_D3DDevice->ClearRenderTarget();
+	//m_D3DDevice->ClearRenderTarget();
 
-	m_ImGui->EndFrame();
+	//m_ImGui->EndFrame();
 
-	m_D3DDevice->Present(false);
+	//m_D3DDevice->Present(false);
+
+	m_VulkanDevice->Draw();
 
 	m_FrameNumber++;
 

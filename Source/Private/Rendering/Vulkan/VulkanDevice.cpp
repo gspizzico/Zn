@@ -11,6 +11,19 @@
 
 #define ZN_VK_VALIDATION_VERBOSE (0)
 
+#define ZN_VK_CHECK(expression)\
+if(expression != VK_SUCCESS)\
+{\
+_ASSERT(false);\
+}
+
+#define ZN_VK_CHECK_RETURN(expression)\
+if(expression != VK_SUCCESS)\
+{\
+_ASSERT(false);\
+return;\
+}
+
 // Verbosity set to ::Verbose, since messages are filtered through flags using ZN_VK_VALIDATION_VERBOSE
 DEFINE_STATIC_LOG_CATEGORY(LogVulkanValidation, ELogVerbosity::Verbose);
 
@@ -263,7 +276,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 		return;
 	}
 
-	m_VkSwapChainImages = VkEnumerate<VkImage>(vkGetSwapchainImagesKHR, m_VkSwapChain);
+	m_VkSwapChainImages = VkEnumerate<VkImage>(vkGetSwapchainImagesKHR, m_VkDevice, m_VkSwapChain);
 
 	m_VkImageViews.resize(m_VkSwapChainImages.size());
 
@@ -295,25 +308,182 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 			return;
 		}
 	}
+
+	////// Command Pool
+
+	VkCommandPoolCreateInfo GfxCmdPoolCreateInfo{};
+	GfxCmdPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	//the command pool will be one that can submit graphics commands
+	GfxCmdPoolCreateInfo.queueFamilyIndex = Indices.Graphics.value();
+	//we also want the pool to allow for resetting of individual command buffers
+	GfxCmdPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+	if (vkCreateCommandPool(m_VkDevice, &GfxCmdPoolCreateInfo, nullptr/*allocator*/, &m_VkCommandPool) != VK_SUCCESS)
+	{
+		_ASSERT(false);
+		return;
+	}
+
+	////// Command Buffer
+
+	VkCommandBufferAllocateInfo GfxCmdBufferCreateInfo{};
+	GfxCmdBufferCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	
+	//commands will be made from our _commandPool
+	GfxCmdBufferCreateInfo.commandPool = m_VkCommandPool;
+	//we will allocate 1 command buffer
+	GfxCmdBufferCreateInfo.commandBufferCount = 1;
+	// command level is Primary
+	GfxCmdBufferCreateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+	if (vkAllocateCommandBuffers(m_VkDevice, &GfxCmdBufferCreateInfo, &m_VkCommandBuffer) != VK_SUCCESS)
+	{
+		_ASSERT(false);
+		return;
+	}
+
+	////// Render Pass
+
+	// the renderpass will use this color attachment.
+	VkAttachmentDescription ColorAttachmentDesc = {};
+	//the attachment will have the format needed by the swapchain
+	ColorAttachmentDesc.format = m_VkSwapChainFormat.format;
+	//1 sample, we won't be doing MSAA
+	ColorAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+	// we Clear when this attachment is loaded
+	ColorAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	// we keep the attachment stored when the renderpass ends
+	ColorAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	//we don't care about stencil
+	ColorAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	ColorAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	//we don't know or care about the starting layout of the attachment
+	ColorAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	//after the renderpass ends, the image has to be on a layout ready for display
+	ColorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	// Main Subpass
+
+	VkAttachmentReference ColorAttachmentRef{};
+	//attachment number will index into the pAttachments array in the parent renderpass itself
+	ColorAttachmentRef.attachment = 0;
+	ColorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	//we are going to create 1 subpass, which is the minimum you can do
+	VkSubpassDescription SubpassDesc = {};
+	SubpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	SubpassDesc.colorAttachmentCount = 1;
+	SubpassDesc.pColorAttachments = &ColorAttachmentRef;
+
+	VkRenderPassCreateInfo RenderPassCreateInfo{};
+	RenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+
+	//connect the color attachment to the info
+	RenderPassCreateInfo.attachmentCount = 1;
+	RenderPassCreateInfo.pAttachments = &ColorAttachmentDesc;
+	//connect the subpass to the info
+	RenderPassCreateInfo.subpassCount = 1;
+	RenderPassCreateInfo.pSubpasses = &SubpassDesc;
+
+
+	if (vkCreateRenderPass(m_VkDevice, &RenderPassCreateInfo, nullptr, &m_VkRenderPass) != VK_SUCCESS)
+	{
+		_ASSERT(false);
+		return;
+	}
+
+	/////// Frame Buffers
+
+	//create the framebuffers for the swapchain images. This will connect the render-pass to the images for rendering
+	VkFramebufferCreateInfo FramebufferCreateInfo{};
+	FramebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+
+	FramebufferCreateInfo.renderPass = m_VkRenderPass;
+	FramebufferCreateInfo.attachmentCount = 1;
+	FramebufferCreateInfo.width = m_VkSwapChainExtent.width;
+	FramebufferCreateInfo.height = m_VkSwapChainExtent.height;
+	FramebufferCreateInfo.layers = 1;
+
+	//grab how many images we have in the swapchain
+	const size_t NumImages = m_VkSwapChainImages.size();
+	m_VkFramebuffers = Vector<VkFramebuffer>(NumImages);
+
+	//create framebuffers for each of the swapchain image views
+	for (size_t Index = 0; Index < NumImages; Index++)
+	{
+		FramebufferCreateInfo.pAttachments = &m_VkImageViews[Index];
+		if (vkCreateFramebuffer(m_VkDevice, &FramebufferCreateInfo, nullptr, &m_VkFramebuffers[Index]) != VK_SUCCESS)
+		{
+			_ASSERT(false);
+			return;
+		}
+	}
+
+	////// Sync Structures
+
+	VkFenceCreateInfo FenceCreateInfo{};
+	FenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+	//we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
+	FenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	if (vkCreateFence(m_VkDevice, &FenceCreateInfo, nullptr, &m_VkRenderFence) != VK_SUCCESS)
+	{
+		_ASSERT(false);
+		return;
+	}
+
+	//for the semaphores we don't need any flags
+	VkSemaphoreCreateInfo SemaphoreCreateInfo{};
+	SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	SemaphoreCreateInfo.flags = 0;
+
+	const bool Semaphore1 = vkCreateSemaphore(m_VkDevice, &SemaphoreCreateInfo, nullptr, &m_VkPresentSemaphore) == VK_SUCCESS;
+	const bool Semaphore2 = vkCreateSemaphore(m_VkDevice, &SemaphoreCreateInfo, nullptr, &m_VkRenderSemaphore) == VK_SUCCESS;
+
+	if (Semaphore1 == false || Semaphore2 == false)
+	{
+		_ASSERT(false);
+		return;
+	}
 }
 
 void VulkanDevice::Deinitialize()
 {
 #if ZN_VK_VALIDATION_LAYERS
 	DeinitializeDebugMessenger();
-#endif
+#endif		
 
-	for (VkImageView& ImageView : m_VkImageViews)
+	if (m_VkCommandPool != NULL)
 	{
+		vkDestroyCommandPool(m_VkDevice, m_VkCommandPool, nullptr/*allocator*/);
+		m_VkCommandPool = NULL;
+		// Pool automatically destroys its buffers. 
+		m_VkCommandBuffer = NULL;
+	}
+
+	for(size_t Index = 0; Index < m_VkFramebuffers.size(); ++Index)
+	{
+		VkFramebuffer& Framebuffer = m_VkFramebuffers[Index];
+		vkDestroyFramebuffer(m_VkDevice, Framebuffer, nullptr/*allocator*/);
+
+		VkImageView& ImageView = m_VkImageViews[Index];		
 		vkDestroyImageView(m_VkDevice, ImageView, nullptr/*allocator*/);
 	}
 
-	m_VkImageViews.empty();
+	m_VkFramebuffers.clear();
+	m_VkImageViews.clear();
 
 	if (m_VkSwapChain != NULL)
 	{
 		vkDestroySwapchainKHR(m_VkDevice, m_VkSwapChain, nullptr/*allocator*/);
 		m_VkSwapChain = NULL;
+	}
+
+	if (m_VkRenderPass != NULL)
+	{	
+		vkDestroyRenderPass(m_VkDevice, m_VkRenderPass, nullptr/*allocator*/);
+		m_VkRenderPass = NULL;
 	}
 
 	if (m_VkSurface != NULL)
@@ -335,9 +505,105 @@ void VulkanDevice::Deinitialize()
 	}
 }
 
+void VulkanDevice::Draw()
+{
+	//wait until the GPU has finished rendering the last frame. Timeout of 1 second
+	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &m_VkRenderFence, true, 1000000000));
+	ZN_VK_CHECK(vkResetFences(m_VkDevice, 1, &m_VkRenderFence));
+
+	//request image from the swapchain, one second timeout
+	uint32 SwapChainImageIndex;
+	//m_VkPresentSemaphore is set to make sure that we can sync other operations with the swapchain having an image ready to render.
+	ZN_VK_CHECK(vkAcquireNextImageKHR(m_VkDevice, m_VkSwapChain, 1000000000, m_VkPresentSemaphore, nullptr/*fence*/, &SwapChainImageIndex));
+
+	//now that we are sure that the commands finished executing, we can safely reset the command buffer to begin recording again.
+	ZN_VK_CHECK(vkResetCommandBuffer(m_VkCommandBuffer, 0));
+
+	//naming it CmdBuffer for shorter writing
+	VkCommandBuffer CmdBuffer = m_VkCommandBuffer;
+
+	//begin the command buffer recording. We will use this command buffer exactly once, so we want to let Vulkan know that
+	VkCommandBufferBeginInfo CmdBufferBeginInfo{};
+	CmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	CmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	ZN_VK_CHECK(vkBeginCommandBuffer(CmdBuffer, &CmdBufferBeginInfo));
+
+	VkClearValue ClearColor;
+	ClearColor.color = { { 1.0f, 1.0f, 1.0f, 1.0f } };
+
+	//start the main renderpass.
+	//We will use the clear color from above, and the framebuffer of the index the swapchain gave us
+	VkRenderPassBeginInfo RenderPassBeginInfo{};
+	RenderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+
+	RenderPassBeginInfo.renderPass = m_VkRenderPass;
+	RenderPassBeginInfo.renderArea.offset.x = 0;
+	RenderPassBeginInfo.renderArea.offset.y = 0;
+	RenderPassBeginInfo.renderArea.extent = m_VkSwapChainExtent;
+	RenderPassBeginInfo.framebuffer = m_VkFramebuffers[SwapChainImageIndex];
+
+	//connect clear values
+	RenderPassBeginInfo.clearValueCount = 1;
+	RenderPassBeginInfo.pClearValues = &ClearColor;
+
+	vkCmdBeginRenderPass(CmdBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	// *** Insert Commands here ***
+
+	//finalize the render pass
+	vkCmdEndRenderPass(CmdBuffer);
+	//finalize the command buffer (we can no longer add commands, but it can now be executed)
+	ZN_VK_CHECK(vkEndCommandBuffer(CmdBuffer));
+
+	////// Submit
+
+	//prepare the submission to the queue.
+	//we want to wait on the m_VkPresentSemaphore, as that semaphore is signaled when the swapchain is ready
+	//we will signal the m_VkRenderSemaphore, to signal that rendering has finished
+
+	VkSubmitInfo SubmitInfo{};
+	SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkPipelineStageFlags WaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+	SubmitInfo.pWaitDstStageMask = &WaitStage;
+
+	SubmitInfo.waitSemaphoreCount = 1;
+	SubmitInfo.pWaitSemaphores = &m_VkPresentSemaphore;
+
+	SubmitInfo.signalSemaphoreCount = 1;
+	SubmitInfo.pSignalSemaphores = &m_VkRenderSemaphore;
+
+	SubmitInfo.commandBufferCount = 1;
+	SubmitInfo.pCommandBuffers = &CmdBuffer;
+
+	//submit command buffer to the queue and execute it.
+	// _renderFence will now block until the graphic commands finish execution
+	ZN_VK_CHECK(vkQueueSubmit(m_VkGraphicsQueue, 1, &SubmitInfo, m_VkRenderFence));
+
+
+	////// Present
+
+	// this will put the image we just rendered into the visible window.
+	// we want to wait on the _renderSemaphore for that,
+	// as it's necessary that drawing commands have finished before the image is displayed to the user
+	VkPresentInfoKHR PresentInfo = {};
+	PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+	PresentInfo.pSwapchains = &m_VkSwapChain;
+	PresentInfo.swapchainCount = 1;
+
+	PresentInfo.pWaitSemaphores = &m_VkRenderSemaphore;
+	PresentInfo.waitSemaphoreCount = 1;
+
+	PresentInfo.pImageIndices = &SwapChainImageIndex;
+
+	ZN_VK_CHECK(vkQueuePresentKHR(m_VkGraphicsQueue, &PresentInfo));
+}
+
 bool VulkanDevice::SupportsValidationLayers() const
 {
-	//Vector<VkLayerProperties> AvailableLayers = VkEnumerate<VkLayerProperties, VkResult>(vkEnumerateInstanceLayerProperties);
 	Vector<VkLayerProperties> AvailableLayers = VkEnumerate<VkLayerProperties>(vkEnumerateInstanceLayerProperties);
 
 	return std::any_of(AvailableLayers.begin(), AvailableLayers.end(), [](const VkLayerProperties& It)
@@ -505,7 +771,6 @@ Vk::QueueFamilyIndices VulkanDevice::GetQueueFamilyIndices(VkPhysicalDevice InDe
 {
 	Vk::QueueFamilyIndices Indices;
 
-	//Vector<VkQueueFamilyProperties> QueueFamilies = VkEnumerate<VkQueueFamilyProperties>(InDevice, vkGetPhysicalDeviceQueueFamilyProperties);
 	Vector<VkQueueFamilyProperties> QueueFamilies = VkEnumerate<VkQueueFamilyProperties>(vkGetPhysicalDeviceQueueFamilyProperties, InDevice);
 
 	for (size_t Index = 0; Index < QueueFamilies.size(); ++Index)
@@ -518,7 +783,7 @@ Vk::QueueFamilyIndices VulkanDevice::GetQueueFamilyIndices(VkPhysicalDevice InDe
 		}
 
 		VkBool32 PresentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(InDevice, Index, m_VkSurface, &PresentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(InDevice, static_cast<uint32>(Index), m_VkSurface, &PresentSupport);
 
 		// tbd: We could enforce that Graphics and Present are in the same queue but is not mandatory.
 		if (PresentSupport)

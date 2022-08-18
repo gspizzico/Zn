@@ -7,6 +7,7 @@ struct SDL_Surface;
 namespace Zn
 {
 	class D3D11Device;
+	class VulkanDevice;
 	class ImGuiWrapper;
 
 	class Window
@@ -32,7 +33,9 @@ namespace Zn
 		SDL_Window* m_Window{ nullptr };
 		SDL_Surface* m_Canvas{ nullptr };
 
-		UniquePtr<D3D11Device> m_D3DDevice{ nullptr };
+		//UniquePtr<D3D11Device> m_D3DDevice{ nullptr };
+
+		UniquePtr<VulkanDevice> m_VulkanDevice{ nullptr };
 
 		UniquePtr<ImGuiWrapper> m_ImGui{ nullptr };
 

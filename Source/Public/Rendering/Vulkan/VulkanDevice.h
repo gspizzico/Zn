@@ -36,6 +36,8 @@ namespace Zn
 
 		void Deinitialize();
 
+		void Draw();
+
 	private:
 
 		bool SupportsValidationLayers() const;
@@ -78,6 +80,15 @@ namespace Zn
 
 		Vector<VkImage> m_VkSwapChainImages;
 		Vector<VkImageView> m_VkImageViews;
+
+		VkCommandPool m_VkCommandPool;
+		VkCommandBuffer m_VkCommandBuffer;
+
+		VkRenderPass m_VkRenderPass;
+		Vector<VkFramebuffer> m_VkFramebuffers;
+		
+		VkSemaphore m_VkPresentSemaphore, m_VkRenderSemaphore;
+		VkFence m_VkRenderFence;
 
 		static const Vector<const char*> kValidationLayers;
 
