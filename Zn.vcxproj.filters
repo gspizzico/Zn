@@ -143,6 +143,12 @@
     <Filter Include="scripts">
       <UniqueIdentifier>{6412df33-04ba-48bc-8bd1-d54e232dbb1e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Public\Core\IO">
+      <UniqueIdentifier>{4c920979-15dc-4013-b45a-5c3c96e1dae6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Private\Core\IO">
+      <UniqueIdentifier>{78fc1543-6407-4208-9821-8d059db04dae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
@@ -315,6 +321,12 @@
     </ClCompile>
     <ClCompile Include="imgui\backends\imgui_impl_vulkan.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Core\IO\IO.cpp">
+      <Filter>Source\Private\Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanPipeline.cpp">
+      <Filter>Source\Private\Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -513,14 +525,14 @@
     <ClInclude Include="imgui\backends\imgui_impl_vulkan.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Public\Core\IO\IO.h">
+      <Filter>Source\Public\Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanPipeline.h">
+      <Filter>Source\Public\Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader.frag">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="scripts\PreLinking.bat">
       <Filter>scripts</Filter>
     </None>
@@ -529,6 +541,12 @@
     </None>
     <None Include="scripts\vk_compile_shaders.py">
       <Filter>scripts</Filter>
+    </None>
+    <None Include="shaders\fragment.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\vertex.vert">
+      <Filter>shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -4,6 +4,9 @@
 #include <SDL_vulkan.h>
 
 #include <Core/Containers/Set.h>
+#include <Core/IO/IO.h>
+
+#include <Rendering/Vulkan/VulkanPipeline.h>
 
 #include <algorithm>
 
@@ -29,6 +32,7 @@ _ASSERT(false);\
 return;\
 }
 
+DEFINE_STATIC_LOG_CATEGORY(LogVulkan, ELogVerbosity::Log);
 // Verbosity set to ::Verbose, since messages are filtered through flags using ZN_VK_VALIDATION_VERBOSE
 DEFINE_STATIC_LOG_CATEGORY(LogVulkanValidation, ELogVerbosity::Verbose);
 
@@ -519,6 +523,21 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}
+
+	LoadShaders();
+
+	////// Init Pipelines
+
+	VkPipelineLayoutCreateInfo PipelineLayout{};
+	PipelineLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	PipelineLayout.setLayoutCount = 0; // Optional
+	PipelineLayout.pSetLayouts = nullptr; // Optional
+	PipelineLayout.pushConstantRangeCount = 0; // Optional
+	PipelineLayout.pPushConstantRanges = nullptr; // Optional
+
+	ZN_VK_CHECK(vkCreatePipelineLayout(m_VkDevice, &PipelineLayout, nullptr, &m_VkPipelineLayout));
+
+	m_VkPipeline = VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, m_VkVert, m_VkFrag, m_VkSwapChainExtent, m_VkPipelineLayout);
 }
 
 void VulkanDevice::Deinitialize()
@@ -527,19 +546,43 @@ void VulkanDevice::Deinitialize()
 	DeinitializeDebugMessenger();
 #endif
 
-	if (m_VkImGuiDescriptorPool != NULL)
+	if (m_VkPipeline != VK_NULL_HANDLE)
+	{
+		vkDestroyPipeline(m_VkDevice, m_VkPipeline, nullptr);
+		m_VkPipeline = VK_NULL_HANDLE;
+	}
+
+	if (m_VkPipelineLayout != VK_NULL_HANDLE)
+	{
+		vkDestroyPipelineLayout(m_VkDevice, m_VkPipelineLayout, nullptr);
+		m_VkPipelineLayout = VK_NULL_HANDLE;
+	}
+
+	if (m_VkFrag != VK_NULL_HANDLE)
+	{
+		vkDestroyShaderModule(m_VkDevice, m_VkFrag, nullptr);
+		m_VkFrag = VK_NULL_HANDLE;
+	}
+
+	if (m_VkVert != VK_NULL_HANDLE)
+	{
+		vkDestroyShaderModule(m_VkDevice, m_VkVert, nullptr);
+		m_VkVert = VK_NULL_HANDLE;
+	}
+
+	if (m_VkImGuiDescriptorPool != VK_NULL_HANDLE)
 	{
 		vkDestroyDescriptorPool(m_VkDevice, m_VkImGuiDescriptorPool, nullptr/*allocator*/);
-		m_VkImGuiDescriptorPool = NULL;
+		m_VkImGuiDescriptorPool = VK_NULL_HANDLE;
 		ImGui_ImplVulkan_Shutdown();
 	}
 
-	if (m_VkCommandPool != NULL)
+	if (m_VkCommandPool != VK_NULL_HANDLE)
 	{
 		vkDestroyCommandPool(m_VkDevice, m_VkCommandPool, nullptr/*allocator*/);
-		m_VkCommandPool = NULL;
+		m_VkCommandPool = VK_NULL_HANDLE;
 		// Pool automatically destroys its buffers. 
-		m_VkCommandBuffer = NULL;
+		m_VkCommandBuffer = VK_NULL_HANDLE;
 	}
 
 	for(size_t Index = 0; Index < m_VkFramebuffers.size(); ++Index)
@@ -554,34 +597,34 @@ void VulkanDevice::Deinitialize()
 	m_VkFramebuffers.clear();
 	m_VkImageViews.clear();
 
-	if (m_VkSwapChain != NULL)
+	if (m_VkSwapChain != VK_NULL_HANDLE)
 	{
 		vkDestroySwapchainKHR(m_VkDevice, m_VkSwapChain, nullptr/*allocator*/);
-		m_VkSwapChain = NULL;
+		m_VkSwapChain = VK_NULL_HANDLE;
 	}
 
-	if (m_VkRenderPass != NULL)
+	if (m_VkRenderPass != VK_NULL_HANDLE)
 	{	
 		vkDestroyRenderPass(m_VkDevice, m_VkRenderPass, nullptr/*allocator*/);
-		m_VkRenderPass = NULL;
+		m_VkRenderPass = VK_NULL_HANDLE;
 	}
 
-	if (m_VkSurface != NULL)
+	if (m_VkSurface != VK_NULL_HANDLE)
 	{
 		vkDestroySurfaceKHR(m_VkInstance, m_VkSurface, nullptr/*allocator*/);
-		m_VkSurface = NULL;
+		m_VkSurface = VK_NULL_HANDLE;
 	}
 
-	if (m_VkDevice != NULL)
+	if (m_VkDevice != VK_NULL_HANDLE)
 	{
 		vkDestroyDevice(m_VkDevice, nullptr/*allocator*/);
-		m_VkDevice = NULL;
+		m_VkDevice = VK_NULL_HANDLE;
 	}
 
-	if (m_VkInstance != NULL)
+	if (m_VkInstance != VK_NULL_HANDLE)
 	{
 		vkDestroyInstance(m_VkInstance, nullptr/*allocator*/);
-		m_VkInstance = NULL;
+		m_VkInstance = VK_NULL_HANDLE;
 	}
 }
 
@@ -633,6 +676,9 @@ void VulkanDevice::Draw()
 	vkCmdBeginRenderPass(CmdBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 	// *** Insert Commands here ***
+
+	vkCmdBindPipeline(CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VkPipeline);
+	vkCmdDraw(CmdBuffer, 3, 1, 0, 0);
 
 	// Enqueue ImGui commands to CmdBuffer
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CmdBuffer);
@@ -774,7 +820,7 @@ void VulkanDevice::InitializeDebugMessenger()
 
 void VulkanDevice::DeinitializeDebugMessenger()
 {
-	if (m_DebugMessenger != NULL)
+	if (m_DebugMessenger != VK_NULL_HANDLE)
 	{
 		// Load function
 		auto vkDestroyDebugUtilsMessengerEXTPtr = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(m_VkInstance, "vkDestroyDebugUtilsMessengerEXT");
@@ -782,7 +828,7 @@ void VulkanDevice::DeinitializeDebugMessenger()
 		{
 			vkDestroyDebugUtilsMessengerEXTPtr(m_VkInstance, m_DebugMessenger, nullptr/*Allocator*/);
 
-			m_DebugMessenger = NULL;
+			m_DebugMessenger = VK_NULL_HANDLE;
 		}
 	}
 }
@@ -915,4 +961,38 @@ Vector<VkDeviceQueueCreateInfo> VulkanDevice::BuildQueueCreateInfo(const Vk::Que
 	}
 
 	return OutCreateInfo;
+}
+
+void Zn::VulkanDevice::LoadShaders()
+{
+	Vector<uint8> VertexShader,FragmentShader;
+	
+	const bool VertexShaderSuccess = IO::ReadBinaryFile("shaders/vertex.spv", VertexShader);
+	const bool FragmentShaderSuccess = IO::ReadBinaryFile("shaders/fragment.spv", FragmentShader);
+
+	m_VkVert = CreateShaderModule(VertexShader);
+	m_VkFrag = CreateShaderModule(FragmentShader);
+
+	if (m_VkVert == VK_NULL_HANDLE)
+	{
+		ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create vertex shader.");
+	}
+
+	if (m_VkFrag == VK_NULL_HANDLE)
+	{
+		ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create fragment shader.");
+	}
+}
+
+VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes)
+{
+	VkShaderModuleCreateInfo ShaderCreateInfo{};
+	ShaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	ShaderCreateInfo.codeSize = InBytes.size();
+	ShaderCreateInfo.pCode = reinterpret_cast<const uint32_t*>(InBytes.data());
+
+	VkShaderModule OutModule{ VK_NULL_HANDLE };
+	vkCreateShaderModule(m_VkDevice, &ShaderCreateInfo, nullptr, &OutModule);
+
+	return OutModule;
 }

@@ -65,32 +65,42 @@ namespace Zn
 
 		Vector<VkDeviceQueueCreateInfo> BuildQueueCreateInfo(const Vk::QueueFamilyIndices& InIndices) const;
 
-		VkInstance m_VkInstance; // Vulkan library handle
-		VkDevice m_VkDevice; // Vulkan Device to issue commands
+		void LoadShaders();
+
+		VkShaderModule CreateShaderModule(const Vector<uint8>& InBytes);
+
+		VkInstance m_VkInstance{VK_NULL_HANDLE}; // Vulkan library handle
+		VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands
 		VkPhysicalDevice m_VkGPU{ VK_NULL_HANDLE }; // Graphics Card Handle
-		VkDebugUtilsMessengerEXT m_DebugMessenger; // Debug message handler
+		VkDebugUtilsMessengerEXT m_DebugMessenger{ VK_NULL_HANDLE }; // Debug message handler
 
-		VkSurfaceKHR m_VkSurface;
-		VkQueue m_VkGraphicsQueue;
-		VkQueue m_VkPresentQueue;
-		VkSwapchainKHR m_VkSwapChain;
+		VkSurfaceKHR m_VkSurface{ VK_NULL_HANDLE };
+		VkQueue m_VkGraphicsQueue{ VK_NULL_HANDLE };
+		VkQueue m_VkPresentQueue{ VK_NULL_HANDLE };
+		VkSwapchainKHR m_VkSwapChain{ VK_NULL_HANDLE };
 
-		VkSurfaceFormatKHR m_VkSwapChainFormat;
-		VkExtent2D m_VkSwapChainExtent;
+		VkSurfaceFormatKHR m_VkSwapChainFormat{};
+		VkExtent2D m_VkSwapChainExtent{};
 
 		Vector<VkImage> m_VkSwapChainImages;
 		Vector<VkImageView> m_VkImageViews;
 
-		VkCommandPool m_VkCommandPool;
-		VkCommandBuffer m_VkCommandBuffer;
+		VkCommandPool m_VkCommandPool{ VK_NULL_HANDLE };
+		VkCommandBuffer m_VkCommandBuffer{ VK_NULL_HANDLE };
 
-		VkRenderPass m_VkRenderPass;
-		Vector<VkFramebuffer> m_VkFramebuffers;
+		VkRenderPass m_VkRenderPass{ VK_NULL_HANDLE };
+		Vector<VkFramebuffer> m_VkFramebuffers{};
 		
 		VkSemaphore m_VkPresentSemaphore, m_VkRenderSemaphore;
 		VkFence m_VkRenderFence;
 
-		VkDescriptorPool m_VkImGuiDescriptorPool;
+		VkDescriptorPool m_VkImGuiDescriptorPool{VK_NULL_HANDLE};
+
+		VkShaderModule m_VkVert{VK_NULL_HANDLE};
+		VkShaderModule m_VkFrag{VK_NULL_HANDLE};
+
+		VkPipelineLayout m_VkPipelineLayout{VK_NULL_HANDLE};
+		VkPipeline m_VkPipeline{ VK_NULL_HANDLE };
 
 		static const Vector<const char*> kValidationLayers;
 
