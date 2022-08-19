@@ -86,6 +86,22 @@ namespace
 
 		return Output;
 	}
+
+	template<typename TypePtr, typename OwnerType, typename CreateInfoType, typename VkCreateFunction>
+	VkResult VkCreate(OwnerType Owner, TypePtr& Object, const CreateInfoType& CreateInfo, VkCreateFunction&& InFunction)
+	{
+		return InFunction(Owner, &CreateInfo, nullptr, &Object);
+	}
+
+	template<typename TypePtr, typename OwnerType, typename VkDestroyFunction>
+	void VkDestroy(TypePtr& Object, OwnerType Owner, VkDestroyFunction&& InFunction)
+	{
+		if (Object != VK_NULL_HANDLE)
+		{
+			InFunction(Owner, Object, nullptr);
+			Object = VK_NULL_HANDLE;
+		}
+	}
 }
 
 const Vector<const char*> VulkanDevice::kValidationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -98,7 +114,7 @@ VulkanDevice::VulkanDevice()
 
 VulkanDevice::~VulkanDevice()
 {
-	Deinitialize();
+	Cleanup();
 }
 
 void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
@@ -279,11 +295,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	SwapChainCreateInfo.presentMode = PresentMode;
 	SwapChainCreateInfo.clipped = true;
 
-	if (vkCreateSwapchainKHR(m_VkDevice, &SwapChainCreateInfo, nullptr/*allocator*/, &m_VkSwapChain) != VK_SUCCESS)
-	{
-		_ASSERT(false);
-		return;
-	}
+	CreateVkObject(m_VkDevice, m_VkSwapChain, SwapChainCreateInfo, vkCreateSwapchainKHR, vkDestroySwapchainKHR);
 
 	m_VkSwapChainImages = VkEnumerate<VkImage>(vkGetSwapchainImagesKHR, m_VkDevice, m_VkSwapChain);
 
@@ -327,11 +339,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	//we also want the pool to allow for resetting of individual command buffers
 	GfxCmdPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-	if (vkCreateCommandPool(m_VkDevice, &GfxCmdPoolCreateInfo, nullptr/*allocator*/, &m_VkCommandPool) != VK_SUCCESS)
-	{
-		_ASSERT(false);
-		return;
-	}
+	CreateVkObject(m_VkDevice, m_VkCommandPool, GfxCmdPoolCreateInfo, vkCreateCommandPool, vkDestroyCommandPool);
 
 	////// Command Buffer
 
@@ -345,11 +353,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	// command level is Primary
 	GfxCmdBufferCreateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-	if (vkAllocateCommandBuffers(m_VkDevice, &GfxCmdBufferCreateInfo, &m_VkCommandBuffer) != VK_SUCCESS)
-	{
-		_ASSERT(false);
-		return;
-	}
+	ZN_VK_CHECK(vkAllocateCommandBuffers(m_VkDevice, &GfxCmdBufferCreateInfo, &m_VkCommandBuffer));
 
 	////// Render Pass
 
@@ -394,12 +398,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	RenderPassCreateInfo.subpassCount = 1;
 	RenderPassCreateInfo.pSubpasses = &SubpassDesc;
 
-
-	if (vkCreateRenderPass(m_VkDevice, &RenderPassCreateInfo, nullptr, &m_VkRenderPass) != VK_SUCCESS)
-	{
-		_ASSERT(false);
-		return;
-	}
+	CreateVkObject(m_VkDevice, m_VkRenderPass, RenderPassCreateInfo, vkCreateRenderPass, vkDestroyRenderPass);
 
 	/////// Frame Buffers
 
@@ -421,11 +420,13 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	for (size_t Index = 0; Index < NumImages; Index++)
 	{
 		FramebufferCreateInfo.pAttachments = &m_VkImageViews[Index];
-		if (vkCreateFramebuffer(m_VkDevice, &FramebufferCreateInfo, nullptr, &m_VkFramebuffers[Index]) != VK_SUCCESS)
-		{
-			_ASSERT(false);
-			return;
-		}
+		CreateVkObject(m_VkDevice, m_VkFramebuffers[Index], FramebufferCreateInfo, vkCreateFramebuffer,
+					   [&ImageView = m_VkImageViews[Index]](VkDevice InDevice, VkFramebuffer Framebuffer, const VkAllocationCallbacks* Allocator) mutable
+					   {
+						   vkDestroyFramebuffer(InDevice, Framebuffer, Allocator);
+						   vkDestroyImageView(InDevice, ImageView, Allocator);
+						   ImageView = VK_NULL_HANDLE;
+					   });
 	}
 
 	////// Sync Structures
@@ -436,25 +437,16 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	//we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
 	FenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	if (vkCreateFence(m_VkDevice, &FenceCreateInfo, nullptr, &m_VkRenderFence) != VK_SUCCESS)
-	{
-		_ASSERT(false);
-		return;
-	}
+	CreateVkObject(m_VkDevice, m_VkRenderFence, FenceCreateInfo, vkCreateFence, vkDestroyFence);
 
 	//for the semaphores we don't need any flags
 	VkSemaphoreCreateInfo SemaphoreCreateInfo{};
 	SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	SemaphoreCreateInfo.flags = 0;
 
-	const bool Semaphore1 = vkCreateSemaphore(m_VkDevice, &SemaphoreCreateInfo, nullptr, &m_VkPresentSemaphore) == VK_SUCCESS;
-	const bool Semaphore2 = vkCreateSemaphore(m_VkDevice, &SemaphoreCreateInfo, nullptr, &m_VkRenderSemaphore) == VK_SUCCESS;
-
-	if (Semaphore1 == false || Semaphore2 == false)
-	{
-		_ASSERT(false);
-		return;
-	}
+	
+	CreateVkObject(m_VkDevice, m_VkPresentSemaphore, SemaphoreCreateInfo, vkCreateSemaphore, vkDestroySemaphore);
+	CreateVkObject(m_VkDevice, m_VkRenderSemaphore, SemaphoreCreateInfo, vkCreateSemaphore, vkDestroySemaphore);
 
 	////// ImGui
 	{
@@ -484,7 +476,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 		ImGuiPoolCreateInfo.poolSizeCount = static_cast<uint32>(std::size(ImGuiPoolSizes));
 		ImGuiPoolCreateInfo.pPoolSizes = ImGuiPoolSizes;
 
-		ZN_VK_CHECK(vkCreateDescriptorPool(m_VkDevice, &ImGuiPoolCreateInfo, nullptr, &m_VkImGuiDescriptorPool));
+		CreateVkObject(m_VkDevice, m_VkImGuiDescriptorPool, ImGuiPoolCreateInfo, vkCreateDescriptorPool, vkDestroyDescriptorPool);
 
 		//this initializes imgui for Vulkan
 		ImGui_ImplVulkan_InitInfo ImGuiInitInfo{};
@@ -534,80 +526,39 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	PipelineLayout.pSetLayouts = nullptr; // Optional
 	PipelineLayout.pushConstantRangeCount = 0; // Optional
 	PipelineLayout.pPushConstantRanges = nullptr; // Optional
-
-	ZN_VK_CHECK(vkCreatePipelineLayout(m_VkDevice, &PipelineLayout, nullptr, &m_VkPipelineLayout));
+	
+	CreateVkObject(m_VkDevice, m_VkPipelineLayout, PipelineLayout, vkCreatePipelineLayout, vkDestroyPipelineLayout);
 
 	m_VkPipeline = VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, m_VkVert, m_VkFrag, m_VkSwapChainExtent, m_VkPipelineLayout);
+
+	m_DestroyQueue.Enqueue([this]()
+	{
+		VkDestroy(m_VkPipeline, m_VkDevice, vkDestroyPipeline);
+	});
+
+	IsInitialized = true;
 }
 
-void VulkanDevice::Deinitialize()
+void VulkanDevice::Cleanup()
 {
+	if (IsInitialized == false)
+	{
+		return;
+	}
+
+	ZN_VK_CHECK(vkDeviceWaitIdle(m_VkDevice));
+
 #if ZN_VK_VALIDATION_LAYERS
 	DeinitializeDebugMessenger();
 #endif
 
-	if (m_VkPipeline != VK_NULL_HANDLE)
-	{
-		vkDestroyPipeline(m_VkDevice, m_VkPipeline, nullptr);
-		m_VkPipeline = VK_NULL_HANDLE;
-	}
+	m_DestroyQueue.Flush();	
 
-	if (m_VkPipelineLayout != VK_NULL_HANDLE)
-	{
-		vkDestroyPipelineLayout(m_VkDevice, m_VkPipelineLayout, nullptr);
-		m_VkPipelineLayout = VK_NULL_HANDLE;
-	}
-
-	if (m_VkFrag != VK_NULL_HANDLE)
-	{
-		vkDestroyShaderModule(m_VkDevice, m_VkFrag, nullptr);
-		m_VkFrag = VK_NULL_HANDLE;
-	}
-
-	if (m_VkVert != VK_NULL_HANDLE)
-	{
-		vkDestroyShaderModule(m_VkDevice, m_VkVert, nullptr);
-		m_VkVert = VK_NULL_HANDLE;
-	}
-
-	if (m_VkImGuiDescriptorPool != VK_NULL_HANDLE)
-	{
-		vkDestroyDescriptorPool(m_VkDevice, m_VkImGuiDescriptorPool, nullptr/*allocator*/);
-		m_VkImGuiDescriptorPool = VK_NULL_HANDLE;
-		ImGui_ImplVulkan_Shutdown();
-	}
-
-	if (m_VkCommandPool != VK_NULL_HANDLE)
-	{
-		vkDestroyCommandPool(m_VkDevice, m_VkCommandPool, nullptr/*allocator*/);
-		m_VkCommandPool = VK_NULL_HANDLE;
-		// Pool automatically destroys its buffers. 
-		m_VkCommandBuffer = VK_NULL_HANDLE;
-	}
-
-	for(size_t Index = 0; Index < m_VkFramebuffers.size(); ++Index)
-	{
-		VkFramebuffer& Framebuffer = m_VkFramebuffers[Index];
-		vkDestroyFramebuffer(m_VkDevice, Framebuffer, nullptr/*allocator*/);
-
-		VkImageView& ImageView = m_VkImageViews[Index];		
-		vkDestroyImageView(m_VkDevice, ImageView, nullptr/*allocator*/);
-	}
+	ImGui_ImplVulkan_Shutdown();
+	m_VkCommandBuffer = VK_NULL_HANDLE;
 
 	m_VkFramebuffers.clear();
 	m_VkImageViews.clear();
-
-	if (m_VkSwapChain != VK_NULL_HANDLE)
-	{
-		vkDestroySwapchainKHR(m_VkDevice, m_VkSwapChain, nullptr/*allocator*/);
-		m_VkSwapChain = VK_NULL_HANDLE;
-	}
-
-	if (m_VkRenderPass != VK_NULL_HANDLE)
-	{	
-		vkDestroyRenderPass(m_VkDevice, m_VkRenderPass, nullptr/*allocator*/);
-		m_VkRenderPass = VK_NULL_HANDLE;
-	}
 
 	if (m_VkSurface != VK_NULL_HANDLE)
 	{
@@ -626,6 +577,8 @@ void VulkanDevice::Deinitialize()
 		vkDestroyInstance(m_VkInstance, nullptr/*allocator*/);
 		m_VkInstance = VK_NULL_HANDLE;
 	}
+
+	IsInitialized = false;
 }
 
 void VulkanDevice::Draw()
@@ -973,6 +926,12 @@ void Zn::VulkanDevice::LoadShaders()
 	m_VkVert = CreateShaderModule(VertexShader);
 	m_VkFrag = CreateShaderModule(FragmentShader);
 
+	m_DestroyQueue.Enqueue([this]()
+	{
+		VkDestroy(m_VkVert, m_VkDevice, vkDestroyShaderModule);
+		VkDestroy(m_VkFrag, m_VkDevice, vkDestroyShaderModule);
+	});
+
 	if (m_VkVert == VK_NULL_HANDLE)
 	{
 		ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create vertex shader.");
@@ -995,4 +954,35 @@ VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes
 	vkCreateShaderModule(m_VkDevice, &ShaderCreateInfo, nullptr, &OutModule);
 
 	return OutModule;
+}
+
+VulkanDevice::DestroyQueue::~DestroyQueue()
+{
+	Flush();
+}
+
+void Zn::VulkanDevice::DestroyQueue::Enqueue(std::function<void()> && InDestructor)
+{
+	m_Queue.emplace_back(std::move(InDestructor));
+}
+
+void Zn::VulkanDevice::DestroyQueue::Flush()
+{
+	while (!m_Queue.empty())
+	{
+		std::invoke(m_Queue.front());
+
+		m_Queue.pop_front();
+	}
+}
+
+template<typename TypePtr, typename OwnerType, typename CreateInfoType, typename VkCreateFunction, typename VkDestroyFunction>
+void VulkanDevice::CreateVkObject(OwnerType Owner, TypePtr& OutObject, const CreateInfoType& CreateInfo, VkCreateFunction&& Create, VkDestroyFunction&& Destroy)
+{
+	ZN_VK_CHECK(VkCreate(Owner, OutObject, CreateInfo, std::move(Create)));
+
+	m_DestroyQueue.Enqueue([this, &OutObject, Owner, Destructor = std::move(Destroy)]() mutable
+	{
+		VkDestroy(OutObject, Owner, Destructor);
+	});
 }

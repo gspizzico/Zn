@@ -1,6 +1,8 @@
 #pragma once
 
 #include <optional>
+#include <deque>
+#include <functional>
 #include <vulkan/vulkan.h>
 
 struct SDL_Window;
@@ -34,7 +36,7 @@ namespace Zn
 
 		void Initialize(SDL_Window* InWindowHandle);
 
-		void Deinitialize();
+		void Cleanup();
 
 		void Draw();
 
@@ -68,6 +70,8 @@ namespace Zn
 		void LoadShaders();
 
 		VkShaderModule CreateShaderModule(const Vector<uint8>& InBytes);
+
+		bool IsInitialized{ false };
 
 		VkInstance m_VkInstance{VK_NULL_HANDLE}; // Vulkan library handle
 		VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands
@@ -105,5 +109,25 @@ namespace Zn
 		static const Vector<const char*> kValidationLayers;
 
 		static const Vector<const char*> kDeviceExtensions;
-	};
+
+		class DestroyQueue
+		{
+		public:
+
+			~DestroyQueue();
+
+			void Enqueue(std::function<void()>&& InDestructor);
+
+			void Flush();
+
+		private:
+
+			std::deque<std::function<void()>> m_Queue{};
+		};
+
+		DestroyQueue m_DestroyQueue{};
+
+		template<typename TypePtr, typename OwnerType, typename CreateInfoType, typename VkCreateFunction, typename VkDestroyFunction>
+		void CreateVkObject(OwnerType Owner, TypePtr& OutObject, const CreateInfoType& CreateInfo, VkCreateFunction&& Create, VkDestroyFunction&& Destroy);
+	};	
 }

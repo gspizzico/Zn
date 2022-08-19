@@ -50,7 +50,7 @@ Window::~Window()
 
 	if (m_VulkanDevice != nullptr)
 	{
-		m_VulkanDevice->Deinitialize();
+		m_VulkanDevice->Cleanup();
 		m_VulkanDevice = nullptr;
 	}
 }
