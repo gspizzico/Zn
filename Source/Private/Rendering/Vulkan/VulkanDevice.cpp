@@ -153,11 +153,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 #endif
 
 
-	if (vkCreateInstance(&CreateInfo, nullptr, &m_VkInstance) != VK_SUCCESS)
-	{
-		_ASSERT(false);
-		return;
-	}
+	ZN_VK_CHECK(vkCreateInstance(&CreateInfo, nullptr, &m_VkInstance));
 
 #if ZN_VK_VALIDATION_LAYERS
 	InitializeDebugMessenger();
@@ -206,11 +202,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	LogicalDeviceCreateInfo.ppEnabledExtensionNames = kDeviceExtensions.data();
 	LogicalDeviceCreateInfo.enabledExtensionCount = static_cast<uint32>(kDeviceExtensions.size());
 
-	if (vkCreateDevice(m_VkGPU, &LogicalDeviceCreateInfo, nullptr, &m_VkDevice) != VK_SUCCESS)
-	{
-		_ASSERT(false);
-		return;
-	}
+	ZN_VK_CHECK(vkCreateDevice(m_VkGPU, &LogicalDeviceCreateInfo, nullptr, &m_VkDevice));
 
 	vkGetDeviceQueue(m_VkDevice, Indices.Graphics.value(), 0, &m_VkGraphicsQueue);
 	vkGetDeviceQueue(m_VkDevice, Indices.Present.value(), 0, &m_VkPresentQueue);
@@ -323,11 +315,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ImageViewCreateInfo.subresourceRange.layerCount = 1;
 
-		if (vkCreateImageView(m_VkDevice, &ImageViewCreateInfo, nullptr/*allocator*/, &m_VkImageViews[Index]) != VK_SUCCESS)
-		{
-			_ASSERT(false);
-			return;
-		}
+		ZN_VK_CHECK(vkCreateImageView(m_VkDevice, &ImageViewCreateInfo, nullptr/*allocator*/, &m_VkImageViews[Index]));
 	}
 
 	////// Command Pool
