@@ -28,6 +28,11 @@ bool CommandLine::Param(const char* param) const
 	});
 }
 
+String CommandLine::GetExeArgument() const
+{
+	return arguments_.size() > 0 ? arguments_[0] : "";
+}
+
 String CommandLine::ToLower(const char* param) const
 {
 	const auto size = strlen(param);

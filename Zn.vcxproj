@@ -305,6 +305,7 @@
     <ClCompile Include="Source\Private\Core\CommandLine.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Guid.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Misc.cpp" />
+    <ClCompile Include="Source\Private\Core\IO\IO.cpp" />
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
     <ClCompile Include="Source\Private\Core\Log\StdOutputDevice.cpp" />
@@ -382,6 +383,7 @@
     <ClInclude Include="Source\Public\Core\HAL\Guid.h" />
     <ClInclude Include="Source\Public\Core\HAL\Misc.h" />
     <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h" />
+    <ClInclude Include="Source\Public\Core\IO\IO.h" />
     <ClInclude Include="Source\Public\Core\Log\Log.h" />
     <ClInclude Include="Source\Public\Core\Log\LogMacros.h" />
     <ClInclude Include="Source\Public\Core\Log\OutputDevice.h" />

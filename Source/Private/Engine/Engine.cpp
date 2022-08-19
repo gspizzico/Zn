@@ -9,6 +9,7 @@
 #include <Core/Time/Time.h>
 #include <Engine/Window.h>
 #include <Editor/Editor.h>
+#include <Core/IO/IO.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);
 
@@ -16,6 +17,8 @@ using namespace Zn;
 
 void Engine::Initialize()
 {
+	IO::Initialize();
+
 	OutputDeviceManager::Get().RegisterOutputDevice<WindowsDebugOutput>();
 
 	if (CommandLine::Get().Param("-std"))

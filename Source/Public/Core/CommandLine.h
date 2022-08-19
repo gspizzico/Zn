@@ -15,6 +15,8 @@ namespace Zn
 
 		bool Param(const char* param) const;
 
+		String GetExeArgument() const;
+
 		//bool Value(const char* param, String& out_value) const;
 
 	private:
