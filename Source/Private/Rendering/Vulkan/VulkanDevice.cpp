@@ -6,6 +6,8 @@
 #include <Core/Containers/Set.h>
 #include <Core/IO/IO.h>
 
+#include <Core/Memory/Memory.h>
+
 #include <Rendering/Vulkan/VulkanPipeline.h>
 
 #include <algorithm>
@@ -206,6 +208,13 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
 	vkGetDeviceQueue(m_VkDevice, Indices.Graphics.value(), 0, &m_VkGraphicsQueue);
 	vkGetDeviceQueue(m_VkDevice, Indices.Present.value(), 0, &m_VkPresentQueue);
+
+	//initialize the memory allocator
+	VmaAllocatorCreateInfo AllocatorCreateInfo{};
+	AllocatorCreateInfo.instance = m_VkInstance;
+	AllocatorCreateInfo.physicalDevice = m_VkGPU;
+	AllocatorCreateInfo.device = m_VkDevice;
+	vmaCreateAllocator(&AllocatorCreateInfo, &m_VkAllocator);
 
 	/////// Create Swap Chain
 
@@ -523,6 +532,10 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	{
 		VkDestroy(m_VkPipeline, m_VkDevice, vkDestroyPipeline);
 	});
+
+	LoadMeshes();
+
+	CreateMeshPipeline();
 
 	IsInitialized = true;
 }
@@ -942,6 +955,141 @@ VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes
 	vkCreateShaderModule(m_VkDevice, &ShaderCreateInfo, nullptr, &OutModule);
 
 	return OutModule;
+}
+
+void Zn::VulkanDevice::LoadMeshes()
+{
+	m_Mesh = Vk::Mesh{};
+
+	m_Mesh.Vertices.resize(3);
+
+	//vertex positions
+	m_Mesh.Vertices[0].Position[0] = 1.f;
+	m_Mesh.Vertices[0].Position[1] = 1.f;
+	m_Mesh.Vertices[0].Position[2] = 0.f;
+
+	m_Mesh.Vertices[1].Position[0] = -1.f;
+	m_Mesh.Vertices[1].Position[1] = 1.f;
+	m_Mesh.Vertices[1].Position[2] = 0.0f;
+
+	m_Mesh.Vertices[2].Position[0] = 0.0f;
+	m_Mesh.Vertices[2].Position[1] = -1.f;
+	m_Mesh.Vertices[2].Position[2] = 0.0f;
+
+	m_Mesh.Vertices[0].Color[0] = 0.f;
+	m_Mesh.Vertices[0].Color[1] = 1.f;
+	m_Mesh.Vertices[0].Color[2] = 0.f;
+
+	m_Mesh.Vertices[1].Color[0] = 0.0;
+	m_Mesh.Vertices[1].Color[1] = 1.f;
+	m_Mesh.Vertices[1].Color[2] = 0.0f;
+
+	m_Mesh.Vertices[2].Color[0] = 0.0f;
+	m_Mesh.Vertices[2].Color[1] = 1.f;
+	m_Mesh.Vertices[2].Color[2] = 0.0f;
+
+	Memory::Memzero(m_Mesh.Vertices[0].Normal);
+	Memory::Memzero(m_Mesh.Vertices[1].Normal);
+	Memory::Memzero(m_Mesh.Vertices[2].Normal);
+
+	//we don't care about the vertex normals
+
+	UploadMesh(m_Mesh);
+}
+
+void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
+{
+	//allocate vertex buffer
+	VkBufferCreateInfo CreateBufferInfo{};
+	CreateBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	//this is the total size, in bytes, of the buffer we are allocating
+	CreateBufferInfo.size = OutMesh.Vertices.size() * sizeof(Vk::Vertex);
+	//this buffer is going to be used as a Vertex Buffer
+	CreateBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+	//let the VMA library know that this data should be writeable by CPU, but also readable by GPU
+	VmaAllocationCreateInfo AllocationInfo{};
+	AllocationInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+
+	//allocate the buffer
+	ZN_VK_CHECK(vmaCreateBuffer(m_VkAllocator, &CreateBufferInfo, &AllocationInfo,
+			 &OutMesh.Buffer.Buffer,
+			 &OutMesh.Buffer.Allocation,
+			 nullptr));
+
+	//add the destruction of triangle mesh buffer to the deletion queue
+	m_DestroyQueue.Enqueue([=]()
+	{
+		vmaDestroyBuffer(m_VkAllocator, OutMesh.Buffer.Buffer, OutMesh.Buffer.Allocation);
+	});
+
+	//copy vertex data
+	void* Data;
+	vmaMapMemory(m_VkAllocator, OutMesh.Buffer.Allocation, &Data);
+
+	memcpy(Data, OutMesh.Vertices.data(), OutMesh.Vertices.size() * sizeof(Vk::Vertex));
+
+	vmaUnmapMemory(m_VkAllocator, OutMesh.Buffer.Allocation);
+}
+
+void Zn::VulkanDevice::CreateMeshPipeline()
+{
+	//build the mesh pipeline
+
+	Vk::VertexInputDescription VertexDescription = Vk::Vertex::GetVertexInputDescription();
+
+
+
+	//connect the pipeline builder vertex input info to the one we get from Vertex
+	//pipelineBuilder._vertexInputInfo.pVertexAttributeDescriptions = vertexDescription.attributes.data();
+	//pipelineBuilder._vertexInputInfo.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
+
+	//pipelineBuilder._vertexInputInfo.pVertexBindingDescriptions = vertexDescription.bindings.data();
+	//pipelineBuilder._vertexInputInfo.vertexBindingDescriptionCount = vertexDescription.bindings.size();
+
+	////clear the shader stages for the builder
+	//pipelineBuilder._shaderStages.clear();
+
+	////compile mesh vertex shader
+
+
+	//VkShaderModule meshVertShader;
+	//if (!load_shader_module("../../shaders/tri_mesh.vert.spv", &meshVertShader))
+	//{
+	//	std::cout << "Error when building the triangle vertex shader module" << std::endl;
+	//}
+	//else
+	//{
+	//	std::cout << "Red Triangle vertex shader successfully loaded" << std::endl;
+	//}
+
+	////add the other shaders
+	//pipelineBuilder._shaderStages.push_back(
+	//	vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
+
+	////make sure that triangleFragShader is holding the compiled colored_triangle.frag
+	//pipelineBuilder._shaderStages.push_back(
+	//	vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, triangleFragShader));
+
+	////build the mesh triangle pipeline
+	//_meshPipeline = pipelineBuilder.build_pipeline(_device, _renderPass);
+
+	////deleting all of the vulkan shaders
+	//vkDestroyShaderModule(_device, meshVertShader, nullptr);
+	//vkDestroyShaderModule(_device, redTriangleVertShader, nullptr);
+	//vkDestroyShaderModule(_device, redTriangleFragShader, nullptr);
+	//vkDestroyShaderModule(_device, triangleFragShader, nullptr);
+	//vkDestroyShaderModule(_device, triangleVertexShader, nullptr);
+
+	////adding the pipelines to the deletion queue
+	//_mainDeletionQueue.push_function([=]()
+ //{
+	// vkDestroyPipeline(_device, _redTrianglePipeline, nullptr);
+	// vkDestroyPipeline(_device, _trianglePipeline, nullptr);
+	// vkDestroyPipeline(_device, _meshPipeline, nullptr);
+
+	// vkDestroyPipelineLayout(_device, _trianglePipelineLayout, nullptr);
+	//});
 }
 
 VulkanDevice::DestroyQueue::~DestroyQueue()

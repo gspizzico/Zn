@@ -4,6 +4,8 @@
 #include <deque>
 #include <functional>
 #include <vulkan/vulkan.h>
+#include <vma/vk_mem_alloc.h>
+#include <Rendering/Vulkan/VulkanMesh.h>
 
 struct SDL_Window;
 
@@ -22,6 +24,12 @@ namespace Zn
 			VkSurfaceCapabilitiesKHR Capabilities;
 			Vector<VkSurfaceFormatKHR> Formats;
 			Vector<VkPresentModeKHR> PresentModes;
+		};
+
+		struct AllocatedBuffer
+		{
+			VkBuffer Buffer;
+			VmaAllocation Allocation;
 		};
 	}
 
@@ -126,6 +134,17 @@ namespace Zn
 		};
 
 		DestroyQueue m_DestroyQueue{};
+
+		VmaAllocator m_VkAllocator{VK_NULL_HANDLE};
+
+		Vk::Mesh m_Mesh;
+		VkPipeline m_MeshPipeline;
+
+		void LoadMeshes();
+
+		void UploadMesh(Vk::Mesh& OutMesh);
+
+		void CreateMeshPipeline();
 
 		template<typename TypePtr, typename OwnerType, typename CreateInfoType, typename VkCreateFunction, typename VkDestroyFunction>
 		void CreateVkObject(OwnerType Owner, TypePtr& OutObject, const CreateInfoType& CreateInfo, VkCreateFunction&& Create, VkDestroyFunction&& Destroy);

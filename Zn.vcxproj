@@ -334,6 +334,7 @@
     <ClCompile Include="Source\Private\ImGui\ImGuiWrapper.cpp" />
     <ClCompile Include="Source\Private\Rendering\D3D11\D3D11.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanDevice.cpp" />
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMesh.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanPipeline.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsAPI.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsCriticalSection.cpp" />
@@ -410,6 +411,7 @@
     <ClInclude Include="Source\Public\ImGui\ImGuiWrapper.h" />
     <ClInclude Include="Source\Public\Rendering\D3D11\D3D11.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanDevice.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMesh.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanPipeline.h" />
     <ClInclude Include="Source\Public\Windows\WindowsAPI.h" />
     <ClInclude Include="Source\Public\Windows\WindowsCommon.h" />
@@ -430,6 +432,7 @@
     <None Include="scripts\sdl_build.py" />
     <None Include="scripts\vk_compile_shaders.py" />
     <None Include="shaders\fragment.frag" />
+    <None Include="shaders\tri_mesh_vertex.vert" />
     <None Include="shaders\vertex.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
