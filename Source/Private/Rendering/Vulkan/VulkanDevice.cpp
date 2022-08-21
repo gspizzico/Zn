@@ -1,4 +1,5 @@
 #include <Znpch.h>
+#define VMA_IMPLEMENTATION
 #include <Rendering/Vulkan/VulkanDevice.h>
 #include <SDL.h>
 #include <SDL_vulkan.h>
@@ -350,7 +351,10 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	// command level is Primary
 	GfxCmdBufferCreateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-	ZN_VK_CHECK(vkAllocateCommandBuffers(m_VkDevice, &GfxCmdBufferCreateInfo, &m_VkCommandBuffer));
+	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
+	{
+		ZN_VK_CHECK(vkAllocateCommandBuffers(m_VkDevice, &GfxCmdBufferCreateInfo, &m_VkCommandBuffers[Index]));
+	}
 
 	////// Render Pass
 
@@ -395,6 +399,22 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	RenderPassCreateInfo.subpassCount = 1;
 	RenderPassCreateInfo.pSubpasses = &SubpassDesc;
 
+	/*
+	* https://vulkan-tutorial.com/Drawing_a_triangle/Drawing/Rendering_and_presentation | Subpass dependencies
+	*/
+	VkSubpassDependency SubpassDependency{};
+	SubpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	SubpassDependency.dstSubpass = 0;
+
+	SubpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	SubpassDependency.srcAccessMask = 0;
+
+	SubpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	SubpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+	RenderPassCreateInfo.dependencyCount = 1;
+	RenderPassCreateInfo.pDependencies = &SubpassDependency;
+
 	CreateVkObject(m_VkDevice, m_VkRenderPass, RenderPassCreateInfo, vkCreateRenderPass, vkDestroyRenderPass);
 
 	/////// Frame Buffers
@@ -434,16 +454,21 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	//we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
 	FenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	CreateVkObject(m_VkDevice, m_VkRenderFence, FenceCreateInfo, vkCreateFence, vkDestroyFence);
+	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
+	{
+		CreateVkObject(m_VkDevice, m_VkRenderFences[Index], FenceCreateInfo, vkCreateFence, vkDestroyFence);
+	}
 
 	//for the semaphores we don't need any flags
 	VkSemaphoreCreateInfo SemaphoreCreateInfo{};
 	SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	SemaphoreCreateInfo.flags = 0;
 
-	
-	CreateVkObject(m_VkDevice, m_VkPresentSemaphore, SemaphoreCreateInfo, vkCreateSemaphore, vkDestroySemaphore);
-	CreateVkObject(m_VkDevice, m_VkRenderSemaphore, SemaphoreCreateInfo, vkCreateSemaphore, vkDestroySemaphore);
+	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
+	{
+		CreateVkObject(m_VkDevice, m_VkPresentSemaphores[Index], SemaphoreCreateInfo, vkCreateSemaphore, vkDestroySemaphore);
+		CreateVkObject(m_VkDevice, m_VkRenderSemaphores[Index], SemaphoreCreateInfo, vkCreateSemaphore, vkDestroySemaphore);
+	}
 
 	////// ImGui
 	{
@@ -490,23 +515,25 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
 		// Upload Fonts
 
-		ZN_VK_CHECK(vkResetCommandBuffer(m_VkCommandBuffer, 0));
+		VkCommandBuffer CmdBuffer = m_VkCommandBuffers[0];
+
+		ZN_VK_CHECK(vkResetCommandBuffer(CmdBuffer, 0));
 
 		VkCommandBufferBeginInfo CmdBufferBeginInfo{};
 		CmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		CmdBufferBeginInfo.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		ZN_VK_CHECK(vkBeginCommandBuffer(m_VkCommandBuffer, &CmdBufferBeginInfo));
+		ZN_VK_CHECK(vkBeginCommandBuffer(CmdBuffer, &CmdBufferBeginInfo));
 
-		ImGui_ImplVulkan_CreateFontsTexture(m_VkCommandBuffer);
+		ImGui_ImplVulkan_CreateFontsTexture(CmdBuffer);
 
-		ZN_VK_CHECK(vkEndCommandBuffer(m_VkCommandBuffer));
+		ZN_VK_CHECK(vkEndCommandBuffer(CmdBuffer));
 
 		VkSubmitInfo CmdBufferEndInfo{};
 		CmdBufferEndInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		CmdBufferEndInfo.commandBufferCount = 1;
-		CmdBufferEndInfo.pCommandBuffers = &m_VkCommandBuffer;
+		CmdBufferEndInfo.pCommandBuffers = &CmdBuffer;
 
-		ZN_VK_CHECK(vkQueueSubmit(m_VkPresentQueue, 1, &CmdBufferEndInfo, VK_NULL_HANDLE));
+		ZN_VK_CHECK(vkQueueSubmit(m_VkGraphicsQueue, 1, &CmdBufferEndInfo, VK_NULL_HANDLE));
 
 		ZN_VK_CHECK(vkDeviceWaitIdle(m_VkDevice));
 
@@ -537,12 +564,12 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
 	CreateMeshPipeline();
 
-	IsInitialized = true;
+	m_IsInitialized = true;
 }
 
 void VulkanDevice::Cleanup()
 {
-	if (IsInitialized == false)
+	if (m_IsInitialized == false)
 	{
 		return;
 	}
@@ -556,7 +583,11 @@ void VulkanDevice::Cleanup()
 	m_DestroyQueue.Flush();	
 
 	ImGui_ImplVulkan_Shutdown();
-	m_VkCommandBuffer = VK_NULL_HANDLE;
+
+	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
+	{
+		m_VkCommandBuffers[Index] = VK_NULL_HANDLE;
+	}
 
 	m_VkFramebuffers.clear();
 	m_VkImageViews.clear();
@@ -579,28 +610,28 @@ void VulkanDevice::Cleanup()
 		m_VkInstance = VK_NULL_HANDLE;
 	}
 
-	IsInitialized = false;
+	m_IsInitialized = false;
 }
 
 void VulkanDevice::Draw()
 {
 	//wait until the GPU has finished rendering the last frame. Timeout of 1 second
-	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &m_VkRenderFence, true, 1000000000));
-	ZN_VK_CHECK(vkResetFences(m_VkDevice, 1, &m_VkRenderFence));
+	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame], VK_TRUE, 1000000000));
+	ZN_VK_CHECK(vkResetFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame]));
 
 	//request image from the swapchain, one second timeout
 	uint32 SwapChainImageIndex;
 	//m_VkPresentSemaphore is set to make sure that we can sync other operations with the swapchain having an image ready to render.
-	ZN_VK_CHECK(vkAcquireNextImageKHR(m_VkDevice, m_VkSwapChain, 1000000000, m_VkPresentSemaphore, nullptr/*fence*/, &SwapChainImageIndex));
+	ZN_VK_CHECK(vkAcquireNextImageKHR(m_VkDevice, m_VkSwapChain, 1000000000, m_VkPresentSemaphores[m_CurrentFrame], nullptr/*fence*/, &SwapChainImageIndex));
 
 	//now that we are sure that the commands finished executing, we can safely reset the command buffer to begin recording again.
-	ZN_VK_CHECK(vkResetCommandBuffer(m_VkCommandBuffer, 0));
+	ZN_VK_CHECK(vkResetCommandBuffer(m_VkCommandBuffers[m_CurrentFrame], 0));
 
 	// Build ImGui render commands
 	ImGui::Render();
 
 	//naming it CmdBuffer for shorter writing
-	VkCommandBuffer CmdBuffer = m_VkCommandBuffer;
+	VkCommandBuffer CmdBuffer = m_VkCommandBuffers[m_CurrentFrame];
 
 	//begin the command buffer recording. We will use this command buffer exactly once, so we want to let Vulkan know that
 	VkCommandBufferBeginInfo CmdBufferBeginInfo{};
@@ -648,6 +679,9 @@ void VulkanDevice::Draw()
 	//we want to wait on the m_VkPresentSemaphore, as that semaphore is signaled when the swapchain is ready
 	//we will signal the m_VkRenderSemaphore, to signal that rendering has finished
 
+	VkSemaphore WaitSemaphores[] = { m_VkPresentSemaphores[m_CurrentFrame] };
+	VkSemaphore SignalSemaphores[] = { m_VkRenderSemaphores[m_CurrentFrame] };
+
 	VkSubmitInfo SubmitInfo{};
 	SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -656,17 +690,17 @@ void VulkanDevice::Draw()
 	SubmitInfo.pWaitDstStageMask = &WaitStage;
 
 	SubmitInfo.waitSemaphoreCount = 1;
-	SubmitInfo.pWaitSemaphores = &m_VkPresentSemaphore;
+	SubmitInfo.pWaitSemaphores = WaitSemaphores;
 
 	SubmitInfo.signalSemaphoreCount = 1;
-	SubmitInfo.pSignalSemaphores = &m_VkRenderSemaphore;
+	SubmitInfo.pSignalSemaphores = SignalSemaphores;
 
 	SubmitInfo.commandBufferCount = 1;
 	SubmitInfo.pCommandBuffers = &CmdBuffer;
 
 	//submit command buffer to the queue and execute it.
 	// _renderFence will now block until the graphic commands finish execution
-	ZN_VK_CHECK(vkQueueSubmit(m_VkGraphicsQueue, 1, &SubmitInfo, m_VkRenderFence));
+	ZN_VK_CHECK(vkQueueSubmit(m_VkGraphicsQueue, 1, &SubmitInfo, m_VkRenderFences[m_CurrentFrame]));
 
 
 	////// Present
@@ -680,12 +714,14 @@ void VulkanDevice::Draw()
 	PresentInfo.pSwapchains = &m_VkSwapChain;
 	PresentInfo.swapchainCount = 1;
 
-	PresentInfo.pWaitSemaphores = &m_VkRenderSemaphore;
+	PresentInfo.pWaitSemaphores = SignalSemaphores;
 	PresentInfo.waitSemaphoreCount = 1;
 
 	PresentInfo.pImageIndices = &SwapChainImageIndex;
 
 	ZN_VK_CHECK(vkQueuePresentKHR(m_VkPresentQueue, &PresentInfo));
+
+	m_CurrentFrame = (m_CurrentFrame + 1) % kMaxFramesInFlight;
 }
 
 bool VulkanDevice::SupportsValidationLayers() const

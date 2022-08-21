@@ -5,33 +5,13 @@
 #include <functional>
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
+#include <Rendering/Vulkan/VulkanTypes.h>
 #include <Rendering/Vulkan/VulkanMesh.h>
 
 struct SDL_Window;
 
 namespace Zn
 {
-	namespace Vk
-	{
-		struct QueueFamilyIndices
-		{
-			std::optional<uint32> Graphics;
-			std::optional<uint32> Present;
-		};
-
-		struct SwapChainDetails
-		{
-			VkSurfaceCapabilitiesKHR Capabilities;
-			Vector<VkSurfaceFormatKHR> Formats;
-			Vector<VkPresentModeKHR> PresentModes;
-		};
-
-		struct AllocatedBuffer
-		{
-			VkBuffer Buffer;
-			VmaAllocation Allocation;
-		};
-	}
 
 	class VulkanDevice
 	{
@@ -49,6 +29,8 @@ namespace Zn
 		void Draw();
 
 	private:
+
+		static constexpr size_t kMaxFramesInFlight = 2;
 
 		bool SupportsValidationLayers() const;
 
@@ -79,7 +61,9 @@ namespace Zn
 
 		VkShaderModule CreateShaderModule(const Vector<uint8>& InBytes);
 
-		bool IsInitialized{ false };
+		bool m_IsInitialized{ false };
+
+		size_t m_CurrentFrame = 0;
 
 		VkInstance m_VkInstance{VK_NULL_HANDLE}; // Vulkan library handle
 		VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands
@@ -98,13 +82,13 @@ namespace Zn
 		Vector<VkImageView> m_VkImageViews;
 
 		VkCommandPool m_VkCommandPool{ VK_NULL_HANDLE };
-		VkCommandBuffer m_VkCommandBuffer{ VK_NULL_HANDLE };
+		VkCommandBuffer m_VkCommandBuffers[kMaxFramesInFlight]{VK_NULL_HANDLE, VK_NULL_HANDLE};
 
 		VkRenderPass m_VkRenderPass{ VK_NULL_HANDLE };
 		Vector<VkFramebuffer> m_VkFramebuffers{};
 		
-		VkSemaphore m_VkPresentSemaphore, m_VkRenderSemaphore;
-		VkFence m_VkRenderFence;
+		VkSemaphore m_VkPresentSemaphores[kMaxFramesInFlight], m_VkRenderSemaphores[kMaxFramesInFlight];
+		VkFence m_VkRenderFences[kMaxFramesInFlight];
 
 		VkDescriptorPool m_VkImGuiDescriptorPool{VK_NULL_HANDLE};
 

@@ -336,6 +336,7 @@
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMesh.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanPipeline.cpp" />
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanTypes.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsAPI.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsCriticalSection.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsDebugOutput.cpp" />
@@ -413,6 +414,7 @@
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanDevice.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMesh.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanPipeline.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanTypes.h" />
     <ClInclude Include="Source\Public\Windows\WindowsAPI.h" />
     <ClInclude Include="Source\Public\Windows\WindowsCommon.h" />
     <ClInclude Include="Source\Public\Windows\WindowsCriticalSection.h" />

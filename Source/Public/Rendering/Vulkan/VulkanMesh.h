@@ -1,11 +1,12 @@
 #pragma once
 
+#include <vulkan/vulkan.h>
+#include <Rendering/Vulkan/VulkanTypes.h>
+
 namespace Zn
 {
 	namespace Vk
 	{
-		struct AllocatedBuffer;
-
 		struct VertexInputDescription
 		{
 			Vector<VkVertexInputBindingDescription> Bindings{};
