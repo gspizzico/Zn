@@ -76,7 +76,20 @@ void Window::PollEvents()
 				}
 				else if (event.window.event == SDL_WINDOWEVENT_RESIZED)
 				{
-					//m_D3DDevice->ResizeWindow();
+					m_VulkanDevice->ResizeWindow();
+				}
+				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
+				{
+					m_VulkanDevice->OnWindowMinimized();
+					m_IsMinimized = true;
+				}
+				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+				{
+					if (m_IsMinimized)
+					{
+						m_IsMinimized = false;
+						m_VulkanDevice->OnWindowRestored();
+					}
 				}
 			}
 		}
@@ -99,12 +112,6 @@ void Window::NewFrame()
 void Window::EndFrame()
 {
 	ZN_TRACE_QUICKSCOPE();
-
-	//m_D3DDevice->ClearRenderTarget();
-
-	//m_ImGui->EndFrame();
-
-	//m_D3DDevice->Present(false);
 
 	m_VulkanDevice->Draw();
 

@@ -1,5 +1,6 @@
 #include <Znpch.h>
 #include <Rendering/Vulkan/VulkanPipeline.h>
+#include <Rendering/Vulkan/VulkanTypes.h>
 
 using namespace Zn;
 
@@ -90,7 +91,10 @@ VkPipelineColorBlendAttachmentState VulkanPipeline::CreateColorBlendAttachmentSt
 	return BlendAttachment;
 }
 
-VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRenderPass, VkShaderModule InVertexShader, VkShaderModule InFragmentShader, VkExtent2D InSwapChainExtent, VkPipelineLayout InLayout)
+VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRenderPass,
+										VkShaderModule InVertexShader, VkShaderModule InFragmentShader,
+										VkExtent2D InSwapChainExtent, VkPipelineLayout InLayout,
+										const Vk::VertexInputDescription& InVertexInputDescription)
 {
 	static const Vector<VkDynamicState> DynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
@@ -103,6 +107,19 @@ VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRende
 	VkPipelineShaderStageCreateInfo ShaderStages[] = { CreateShaderStage(VK_SHADER_STAGE_VERTEX_BIT, InVertexShader), CreateShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, InFragmentShader)};
 
 	VkPipelineVertexInputStateCreateInfo VertexInput = CreateVertexInputState();
+
+	const uint32 NumBindings = static_cast<uint32>(InVertexInputDescription.Bindings.size());
+	const uint32 NumAttributes = static_cast<uint32>(InVertexInputDescription.Attributes.size());
+
+	if (NumBindings > 0 && NumAttributes > 0)
+	{
+		VertexInput.vertexBindingDescriptionCount = NumBindings;
+		VertexInput.pVertexBindingDescriptions = InVertexInputDescription.Bindings.data();
+
+		VertexInput.vertexAttributeDescriptionCount = NumAttributes;
+		VertexInput.pVertexAttributeDescriptions = InVertexInputDescription.Attributes.data();
+		VertexInput.flags = InVertexInputDescription.Flags;
+	}
 
 	VkPipelineInputAssemblyStateCreateInfo InputAssembly = CreateInputAssembly(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
@@ -146,7 +163,7 @@ VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRende
 	VkGraphicsPipelineCreateInfo PipelineInfo = {};
 	PipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	
-	PipelineInfo.stageCount = std::size(ShaderStages);
+	PipelineInfo.stageCount = static_cast<uint32>(std::size(ShaderStages));
 	PipelineInfo.pStages = ShaderStages;
 	PipelineInfo.pVertexInputState = &VertexInput;
 	PipelineInfo.pInputAssemblyState = &InputAssembly;

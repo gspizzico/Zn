@@ -18,6 +18,11 @@
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_sdl.h>
 
+// glm
+
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
 #define ZN_VK_VALIDATION_LAYERS (ZN_DEBUG)
 
 #define ZN_VK_VALIDATION_VERBOSE (0)
@@ -219,114 +224,9 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
 	/////// Create Swap Chain
 
-	VkSurfaceFormatKHR Format{ VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+	CreateSwapChain();
 
-	for (const VkSurfaceFormatKHR& AvailableFormat : SwapChainDetails.Formats)
-	{
-		if (AvailableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && AvailableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-		{
-			Format = AvailableFormat;
-			break;
-		}
-	}
-
-	if (Format.format == VK_FORMAT_UNDEFINED)
-	{
-		Format = SwapChainDetails.Formats[0];
-	}
-
-	// Always guaranteed to be available.
-	VkPresentModeKHR PresentMode = VK_PRESENT_MODE_FIFO_KHR;
-
-	const bool UseMailboxPresentMode = std::any_of(SwapChainDetails.PresentModes.begin(), SwapChainDetails.PresentModes.end(),
-												   [](VkPresentModeKHR InPresentMode)
-												   {
-													   // 'Triple Buffering'
-													   return InPresentMode == VK_PRESENT_MODE_MAILBOX_KHR;
-												   });
-
-	if (UseMailboxPresentMode)
-	{
-		PresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-	}
-
-	int32 Width, Height = 0;
-	SDL_Vulkan_GetDrawableSize(InWindowHandle, &Width, &Height);
-
-	Width = std::clamp(Width, static_cast<int32>(SwapChainDetails.Capabilities.minImageExtent.width), static_cast<int32>(SwapChainDetails.Capabilities.maxImageExtent.width));
-	Height = std::clamp(Height, static_cast<int32>(SwapChainDetails.Capabilities.minImageExtent.height), static_cast<int32>(SwapChainDetails.Capabilities.maxImageExtent.height));
-
-	uint32 ImageCount = SwapChainDetails.Capabilities.minImageCount + 1;
-	if (SwapChainDetails.Capabilities.maxImageCount > 0)
-	{
-		ImageCount = std::min(ImageCount, SwapChainDetails.Capabilities.maxImageCount);
-	}
-
-	m_VkSwapChainFormat = Format;
-
-	m_VkSwapChainExtent = VkExtent2D(Width, Height);
-
-	VkSwapchainCreateInfoKHR SwapChainCreateInfo{};
-	SwapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	SwapChainCreateInfo.surface = m_VkSurface;
-	SwapChainCreateInfo.minImageCount = ImageCount;
-	SwapChainCreateInfo.imageFormat = m_VkSwapChainFormat.format;
-	SwapChainCreateInfo.imageColorSpace = m_VkSwapChainFormat.colorSpace;
-	SwapChainCreateInfo.imageExtent = m_VkSwapChainExtent;
-	SwapChainCreateInfo.imageArrayLayers = 1;
-	SwapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-	uint32 QueueFamilyIndicesArray[] = { Indices.Graphics.value(), Indices.Present.value() };
-
-	if (Indices.Graphics.value() != Indices.Present.value())
-	{
-		SwapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		SwapChainCreateInfo.queueFamilyIndexCount = 2;
-		SwapChainCreateInfo.pQueueFamilyIndices = QueueFamilyIndicesArray;
-	}
-	else
-	{
-		SwapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		SwapChainCreateInfo.queueFamilyIndexCount = 0;
-		SwapChainCreateInfo.pQueueFamilyIndices = nullptr;
-	}
-
-	SwapChainCreateInfo.preTransform = SwapChainDetails.Capabilities.currentTransform;
-	SwapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
-	SwapChainCreateInfo.presentMode = PresentMode;
-	SwapChainCreateInfo.clipped = true;
-
-	CreateVkObject(m_VkDevice, m_VkSwapChain, SwapChainCreateInfo, vkCreateSwapchainKHR, vkDestroySwapchainKHR);
-
-	m_VkSwapChainImages = VkEnumerate<VkImage>(vkGetSwapchainImagesKHR, m_VkDevice, m_VkSwapChain);
-
-	m_VkImageViews.resize(m_VkSwapChainImages.size());
-
-	for (size_t Index = 0; Index < m_VkSwapChainImages.size(); ++Index)
-	{
-		VkImageViewCreateInfo ImageViewCreateInfo{};
-		ImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		ImageViewCreateInfo.image = m_VkSwapChainImages[Index];
-		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		ImageViewCreateInfo.format = m_VkSwapChainFormat.format;
-
-		// RGBA
-		ImageViewCreateInfo.components = { 
-			VK_COMPONENT_SWIZZLE_IDENTITY,
-			VK_COMPONENT_SWIZZLE_IDENTITY,
-			VK_COMPONENT_SWIZZLE_IDENTITY,
-			VK_COMPONENT_SWIZZLE_IDENTITY 
-		};
-
-		ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-		ImageViewCreateInfo.subresourceRange.levelCount = 1;
-		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		ImageViewCreateInfo.subresourceRange.layerCount = 1;
-
-		ZN_VK_CHECK(vkCreateImageView(m_VkDevice, &ImageViewCreateInfo, nullptr/*allocator*/, &m_VkImageViews[Index]));
-	}
+	CreateImageViews();
 
 	////// Command Pool
 
@@ -419,32 +319,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
 	/////// Frame Buffers
 
-	//create the framebuffers for the swapchain images. This will connect the render-pass to the images for rendering
-	VkFramebufferCreateInfo FramebufferCreateInfo{};
-	FramebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-
-	FramebufferCreateInfo.renderPass = m_VkRenderPass;
-	FramebufferCreateInfo.attachmentCount = 1;
-	FramebufferCreateInfo.width = m_VkSwapChainExtent.width;
-	FramebufferCreateInfo.height = m_VkSwapChainExtent.height;
-	FramebufferCreateInfo.layers = 1;
-
-	//grab how many images we have in the swapchain
-	const size_t NumImages = m_VkSwapChainImages.size();
-	m_VkFramebuffers = Vector<VkFramebuffer>(NumImages);
-
-	//create framebuffers for each of the swapchain image views
-	for (size_t Index = 0; Index < NumImages; Index++)
-	{
-		FramebufferCreateInfo.pAttachments = &m_VkImageViews[Index];
-		CreateVkObject(m_VkDevice, m_VkFramebuffers[Index], FramebufferCreateInfo, vkCreateFramebuffer,
-					   [&ImageView = m_VkImageViews[Index]](VkDevice InDevice, VkFramebuffer Framebuffer, const VkAllocationCallbacks* Allocator) mutable
-					   {
-						   vkDestroyFramebuffer(InDevice, Framebuffer, Allocator);
-						   vkDestroyImageView(InDevice, ImageView, Allocator);
-						   ImageView = VK_NULL_HANDLE;
-					   });
-	}
+	CreateFramebuffers();
 
 	////// Sync Structures
 
@@ -553,7 +428,25 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	
 	CreateVkObject(m_VkDevice, m_VkPipelineLayout, PipelineLayout, vkCreatePipelineLayout, vkDestroyPipelineLayout);
 
-	m_VkPipeline = VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, m_VkVert, m_VkFrag, m_VkSwapChainExtent, m_VkPipelineLayout);
+	// Mesh pipeline with push constants 
+
+	VkPipelineLayoutCreateInfo MeshPipelineLayout{};
+	MeshPipelineLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	MeshPipelineLayout.setLayoutCount = 0; // Optional
+	MeshPipelineLayout.pSetLayouts = nullptr; // Optional
+
+	VkPushConstantRange PushConstants{};
+	PushConstants.offset = 0;
+	PushConstants.size = sizeof(Vk::MeshPushConstants);
+	//this push constant range is accessible only in the vertex shader
+	PushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	MeshPipelineLayout.pPushConstantRanges = &PushConstants;
+	MeshPipelineLayout.pushConstantRangeCount = 1;
+
+	CreateVkObject(m_VkDevice, m_VkMeshPipelineLayout, MeshPipelineLayout, vkCreatePipelineLayout, vkDestroyPipelineLayout);
+
+	m_VkPipeline = VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, m_VkVert, m_VkFrag, m_VkSwapChainExtent, m_VkPipelineLayout, Vk::VertexInputDescription{});
 
 	m_DestroyQueue.Enqueue([this]()
 	{
@@ -579,6 +472,8 @@ void VulkanDevice::Cleanup()
 #if ZN_VK_VALIDATION_LAYERS
 	DeinitializeDebugMessenger();
 #endif
+
+	CleanupSwapChain();
 
 	m_DestroyQueue.Flush();	
 
@@ -617,12 +512,24 @@ void VulkanDevice::Draw()
 {
 	//wait until the GPU has finished rendering the last frame. Timeout of 1 second
 	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame], VK_TRUE, 1000000000));
-	ZN_VK_CHECK(vkResetFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame]));
 
 	//request image from the swapchain, one second timeout
 	uint32 SwapChainImageIndex;
 	//m_VkPresentSemaphore is set to make sure that we can sync other operations with the swapchain having an image ready to render.
-	ZN_VK_CHECK(vkAcquireNextImageKHR(m_VkDevice, m_VkSwapChain, 1000000000, m_VkPresentSemaphores[m_CurrentFrame], nullptr/*fence*/, &SwapChainImageIndex));
+	VkResult AcquireImageResult = vkAcquireNextImageKHR(m_VkDevice, m_VkSwapChain, 1000000000, m_VkPresentSemaphores[m_CurrentFrame], nullptr/*fence*/, &SwapChainImageIndex);
+
+	if (AcquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		RecreateSwapChain();
+		return;
+	}
+	else if (AcquireImageResult != VK_SUCCESS && AcquireImageResult != VK_SUBOPTIMAL_KHR)
+	{
+		_ASSERT(false);
+		return;
+	}
+
+	ZN_VK_CHECK(vkResetFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame]));
 
 	//now that we are sure that the commands finished executing, we can safely reset the command buffer to begin recording again.
 	ZN_VK_CHECK(vkResetCommandBuffer(m_VkCommandBuffers[m_CurrentFrame], 0));
@@ -662,11 +569,42 @@ void VulkanDevice::Draw()
 
 	// *** Insert Commands here ***
 
-	vkCmdBindPipeline(CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VkPipeline);
-	vkCmdDraw(CmdBuffer, 3, 1, 0, 0);
+	if (!m_IsMinimized)
+	{
+		//vkCmdBindPipeline(CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VkPipeline);
+		//vkCmdDraw(CmdBuffer, 3, 1, 0, 0);
 
-	// Enqueue ImGui commands to CmdBuffer
-	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CmdBuffer);
+		//make a model view matrix for rendering the object
+		//camera position
+		glm::vec3 camPos = { 0.f,0.f,-2.f };
+
+		glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
+		//camera projection
+		glm::mat4 projection = glm::perspective(glm::radians(70.f), 1.f, 0.1f, 200.0f);
+		projection[1][1] *= -1;
+		//model rotation
+		glm::mat4 model = glm::rotate(glm::mat4{ 1.0f }, glm::sin(glm::radians(m_FrameNumber * 0.1f)), glm::vec3(0, 1, 0));
+
+		//calculate final mesh matrix
+		glm::mat4 mesh_matrix = projection * view * model;
+
+		Vk::MeshPushConstants constants;
+		constants.RenderMatrix = mesh_matrix;
+
+		//upload the matrix to the GPU via push constants
+		vkCmdPushConstants(CmdBuffer, m_VkMeshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Vk::MeshPushConstants), &constants);
+
+		vkCmdBindPipeline(CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VkMeshPipeline);
+		// Bind the mesh vertex buffer with offset 0 
+		VkDeviceSize Offset = 0;
+
+		vkCmdBindVertexBuffers(CmdBuffer, 0, 1, &m_Mesh.Buffer.Buffer, &Offset);
+
+		vkCmdDraw(CmdBuffer, m_Mesh.Vertices.size(), 1, 0, 0);
+
+		// Enqueue ImGui commands to CmdBuffer
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CmdBuffer);
+	}
 
 	//finalize the render pass
 	vkCmdEndRenderPass(CmdBuffer);
@@ -719,9 +657,34 @@ void VulkanDevice::Draw()
 
 	PresentInfo.pImageIndices = &SwapChainImageIndex;
 
-	ZN_VK_CHECK(vkQueuePresentKHR(m_VkPresentQueue, &PresentInfo));
+	VkResult QueuePresentResult = vkQueuePresentKHR(m_VkPresentQueue, &PresentInfo);
+
+	if (QueuePresentResult == VK_ERROR_OUT_OF_DATE_KHR || QueuePresentResult == VK_SUBOPTIMAL_KHR)
+	{
+		RecreateSwapChain();
+	}
+	else
+	{
+		_ASSERT(QueuePresentResult == VK_SUCCESS);
+	}
 
 	m_CurrentFrame = (m_CurrentFrame + 1) % kMaxFramesInFlight;
+	m_FrameNumber++;
+}
+
+void Zn::VulkanDevice::ResizeWindow()
+{
+	RecreateSwapChain();
+}
+
+void Zn::VulkanDevice::OnWindowMinimized()
+{
+	m_IsMinimized = true;
+}
+
+void Zn::VulkanDevice::OnWindowRestored()
+{
+	m_IsMinimized = false;
 }
 
 bool VulkanDevice::SupportsValidationLayers() const
@@ -993,6 +956,175 @@ VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes
 	return OutModule;
 }
 
+void Zn::VulkanDevice::CreateSwapChain()
+{
+	Vk::SwapChainDetails SwapChainDetails = GetSwapChainDetails(m_VkGPU);
+
+	Vk::QueueFamilyIndices Indices = GetQueueFamilyIndices(m_VkGPU);
+
+	VkSurfaceFormatKHR Format{ VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+
+	for (const VkSurfaceFormatKHR& AvailableFormat : SwapChainDetails.Formats)
+	{
+		if (AvailableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && AvailableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+		{
+			Format = AvailableFormat;
+			break;
+		}
+	}
+
+	if (Format.format == VK_FORMAT_UNDEFINED)
+	{
+		Format = SwapChainDetails.Formats[0];
+	}
+
+	// Always guaranteed to be available.
+	VkPresentModeKHR PresentMode = VK_PRESENT_MODE_FIFO_KHR;
+
+	const bool UseMailboxPresentMode = std::any_of(SwapChainDetails.PresentModes.begin(), SwapChainDetails.PresentModes.end(),
+												   [](VkPresentModeKHR InPresentMode)
+												   {
+													   // 'Triple Buffering'
+													   return InPresentMode == VK_PRESENT_MODE_MAILBOX_KHR;
+												   });
+
+	if (UseMailboxPresentMode)
+	{
+		PresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+	}
+
+	SDL_Window* WindowHandle = SDL_GL_GetCurrentWindow();
+
+	int32 Width, Height = 0;
+	SDL_Vulkan_GetDrawableSize(WindowHandle, &Width, &Height);
+
+	Width = std::clamp(Width, static_cast<int32>(SwapChainDetails.Capabilities.minImageExtent.width), static_cast<int32>(SwapChainDetails.Capabilities.maxImageExtent.width));
+	Height = std::clamp(Height, static_cast<int32>(SwapChainDetails.Capabilities.minImageExtent.height), static_cast<int32>(SwapChainDetails.Capabilities.maxImageExtent.height));
+
+	uint32 ImageCount = SwapChainDetails.Capabilities.minImageCount + 1;
+	if (SwapChainDetails.Capabilities.maxImageCount > 0)
+	{
+		ImageCount = std::min(ImageCount, SwapChainDetails.Capabilities.maxImageCount);
+	}
+
+	m_VkSwapChainFormat = Format;
+
+	m_VkSwapChainExtent = VkExtent2D(Width, Height);
+
+	VkSwapchainCreateInfoKHR SwapChainCreateInfo{};
+	SwapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	SwapChainCreateInfo.surface = m_VkSurface;
+	SwapChainCreateInfo.minImageCount = ImageCount;
+	SwapChainCreateInfo.imageFormat = m_VkSwapChainFormat.format;
+	SwapChainCreateInfo.imageColorSpace = m_VkSwapChainFormat.colorSpace;
+	SwapChainCreateInfo.imageExtent = m_VkSwapChainExtent;
+	SwapChainCreateInfo.imageArrayLayers = 1;
+	SwapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	uint32 QueueFamilyIndicesArray[] = { Indices.Graphics.value(), Indices.Present.value() };
+
+	if (Indices.Graphics.value() != Indices.Present.value())
+	{
+		SwapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		SwapChainCreateInfo.queueFamilyIndexCount = 2;
+		SwapChainCreateInfo.pQueueFamilyIndices = QueueFamilyIndicesArray;
+	}
+	else
+	{
+		SwapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		SwapChainCreateInfo.queueFamilyIndexCount = 0;
+		SwapChainCreateInfo.pQueueFamilyIndices = nullptr;
+	}
+
+	SwapChainCreateInfo.preTransform = SwapChainDetails.Capabilities.currentTransform;
+	SwapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+
+	SwapChainCreateInfo.presentMode = PresentMode;
+	SwapChainCreateInfo.clipped = true;
+
+	VkCreate(m_VkDevice, m_VkSwapChain, SwapChainCreateInfo, vkCreateSwapchainKHR);
+}
+
+void Zn::VulkanDevice::CreateImageViews()
+{
+	m_VkSwapChainImages = VkEnumerate<VkImage>(vkGetSwapchainImagesKHR, m_VkDevice, m_VkSwapChain);
+
+	m_VkImageViews.resize(m_VkSwapChainImages.size());
+
+	for (size_t Index = 0; Index < m_VkSwapChainImages.size(); ++Index)
+	{
+		VkImageViewCreateInfo ImageViewCreateInfo{};
+		ImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		ImageViewCreateInfo.image = m_VkSwapChainImages[Index];
+		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		ImageViewCreateInfo.format = m_VkSwapChainFormat.format;
+
+		// RGBA
+		ImageViewCreateInfo.components = {
+			VK_COMPONENT_SWIZZLE_IDENTITY,
+			VK_COMPONENT_SWIZZLE_IDENTITY,
+			VK_COMPONENT_SWIZZLE_IDENTITY,
+			VK_COMPONENT_SWIZZLE_IDENTITY
+		};
+
+		ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		ImageViewCreateInfo.subresourceRange.levelCount = 1;
+		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		ImageViewCreateInfo.subresourceRange.layerCount = 1;
+
+		ZN_VK_CHECK(vkCreateImageView(m_VkDevice, &ImageViewCreateInfo, nullptr/*allocator*/, &m_VkImageViews[Index]));
+	}
+}
+
+void Zn::VulkanDevice::CreateFramebuffers()
+{
+	//create the framebuffers for the swapchain images. This will connect the render-pass to the images for rendering
+	VkFramebufferCreateInfo FramebufferCreateInfo{};
+	FramebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+
+	FramebufferCreateInfo.renderPass = m_VkRenderPass;
+	FramebufferCreateInfo.attachmentCount = 1;
+	FramebufferCreateInfo.width = m_VkSwapChainExtent.width;
+	FramebufferCreateInfo.height = m_VkSwapChainExtent.height;
+	FramebufferCreateInfo.layers = 1;
+
+	//grab how many images we have in the swapchain
+	const size_t NumImages = m_VkSwapChainImages.size();
+	m_VkFramebuffers = Vector<VkFramebuffer>(NumImages);
+
+	//create framebuffers for each of the swapchain image views
+	for (size_t Index = 0; Index < NumImages; Index++)
+	{
+		FramebufferCreateInfo.pAttachments = &m_VkImageViews[Index];
+		VkCreate(m_VkDevice, m_VkFramebuffers[Index], FramebufferCreateInfo, vkCreateFramebuffer);
+	}
+}
+
+void Zn::VulkanDevice::CleanupSwapChain()
+{
+	for (size_t Index = 0; Index < m_VkFramebuffers.size(); ++Index)
+	{
+		vkDestroyFramebuffer(m_VkDevice, m_VkFramebuffers[Index], nullptr);
+		vkDestroyImageView(m_VkDevice, m_VkImageViews[Index], nullptr);
+	}
+
+	vkDestroySwapchainKHR(m_VkDevice, m_VkSwapChain, nullptr);
+}
+
+void Zn::VulkanDevice::RecreateSwapChain()
+{	
+	vkDeviceWaitIdle(m_VkDevice);
+
+	CleanupSwapChain();
+
+	CreateSwapChain();
+
+	CreateImageViews();
+
+	CreateFramebuffers();
+}
+
 void Zn::VulkanDevice::LoadMeshes()
 {
 	m_Mesh = Vk::Mesh{};
@@ -1000,33 +1132,17 @@ void Zn::VulkanDevice::LoadMeshes()
 	m_Mesh.Vertices.resize(3);
 
 	//vertex positions
-	m_Mesh.Vertices[0].Position[0] = 1.f;
-	m_Mesh.Vertices[0].Position[1] = 1.f;
-	m_Mesh.Vertices[0].Position[2] = 0.f;
+	m_Mesh.Vertices[0].Position = { 1.f, 1.f, 0.f };
+	m_Mesh.Vertices[1].Position = { -1.f, 1.f, 0.0f };
+	m_Mesh.Vertices[2].Position = { 0.f, -1.f, 0.0f };
 
-	m_Mesh.Vertices[1].Position[0] = -1.f;
-	m_Mesh.Vertices[1].Position[1] = 1.f;
-	m_Mesh.Vertices[1].Position[2] = 0.0f;
+	m_Mesh.Vertices[0].Color = { 1.0f, 0.f, 0.f };
+	m_Mesh.Vertices[1].Color = { 0.0f, 1.0f, 0.0f };
+	m_Mesh.Vertices[2].Color = { 0.0f, 0.0f, 1.0f };
 
-	m_Mesh.Vertices[2].Position[0] = 0.0f;
-	m_Mesh.Vertices[2].Position[1] = -1.f;
-	m_Mesh.Vertices[2].Position[2] = 0.0f;
-
-	m_Mesh.Vertices[0].Color[0] = 0.f;
-	m_Mesh.Vertices[0].Color[1] = 1.f;
-	m_Mesh.Vertices[0].Color[2] = 0.f;
-
-	m_Mesh.Vertices[1].Color[0] = 0.0;
-	m_Mesh.Vertices[1].Color[1] = 1.f;
-	m_Mesh.Vertices[1].Color[2] = 0.0f;
-
-	m_Mesh.Vertices[2].Color[0] = 0.0f;
-	m_Mesh.Vertices[2].Color[1] = 1.f;
-	m_Mesh.Vertices[2].Color[2] = 0.0f;
-
-	Memory::Memzero(m_Mesh.Vertices[0].Normal);
-	Memory::Memzero(m_Mesh.Vertices[1].Normal);
-	Memory::Memzero(m_Mesh.Vertices[2].Normal);
+	m_Mesh.Vertices[0].Normal = glm::vec3(0.0f);
+	m_Mesh.Vertices[1].Normal = glm::vec3(0.0f);
+	m_Mesh.Vertices[2].Normal = glm::vec3(0.0f);
 
 	//we don't care about the vertex normals
 
@@ -1070,62 +1186,26 @@ void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 
 void Zn::VulkanDevice::CreateMeshPipeline()
 {
-	//build the mesh pipeline
+	Vector<uint8> MeshVertData;
 
-	Vk::VertexInputDescription VertexDescription = Vk::Vertex::GetVertexInputDescription();
+	if (IO::ReadBinaryFile("shaders/tri_mesh_vertex.spv", MeshVertData))
+	{
+		m_VkMeshVert = CreateShaderModule(MeshVertData);
 
+		m_DestroyQueue.Enqueue([=]()
+		{
+			VkDestroy(m_VkMeshVert, m_VkDevice, vkDestroyShaderModule);
+		});
 
+		Vk::VertexInputDescription VertexDescription = Vk::Vertex::GetVertexInputDescription();
 
-	//connect the pipeline builder vertex input info to the one we get from Vertex
-	//pipelineBuilder._vertexInputInfo.pVertexAttributeDescriptions = vertexDescription.attributes.data();
-	//pipelineBuilder._vertexInputInfo.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
+		m_VkMeshPipeline = VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, m_VkMeshVert, m_VkFrag, m_VkSwapChainExtent, m_VkMeshPipelineLayout, VertexDescription);
 
-	//pipelineBuilder._vertexInputInfo.pVertexBindingDescriptions = vertexDescription.bindings.data();
-	//pipelineBuilder._vertexInputInfo.vertexBindingDescriptionCount = vertexDescription.bindings.size();
-
-	////clear the shader stages for the builder
-	//pipelineBuilder._shaderStages.clear();
-
-	////compile mesh vertex shader
-
-
-	//VkShaderModule meshVertShader;
-	//if (!load_shader_module("../../shaders/tri_mesh.vert.spv", &meshVertShader))
-	//{
-	//	std::cout << "Error when building the triangle vertex shader module" << std::endl;
-	//}
-	//else
-	//{
-	//	std::cout << "Red Triangle vertex shader successfully loaded" << std::endl;
-	//}
-
-	////add the other shaders
-	//pipelineBuilder._shaderStages.push_back(
-	//	vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, meshVertShader));
-
-	////make sure that triangleFragShader is holding the compiled colored_triangle.frag
-	//pipelineBuilder._shaderStages.push_back(
-	//	vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, triangleFragShader));
-
-	////build the mesh triangle pipeline
-	//_meshPipeline = pipelineBuilder.build_pipeline(_device, _renderPass);
-
-	////deleting all of the vulkan shaders
-	//vkDestroyShaderModule(_device, meshVertShader, nullptr);
-	//vkDestroyShaderModule(_device, redTriangleVertShader, nullptr);
-	//vkDestroyShaderModule(_device, redTriangleFragShader, nullptr);
-	//vkDestroyShaderModule(_device, triangleFragShader, nullptr);
-	//vkDestroyShaderModule(_device, triangleVertexShader, nullptr);
-
-	////adding the pipelines to the deletion queue
-	//_mainDeletionQueue.push_function([=]()
- //{
-	// vkDestroyPipeline(_device, _redTrianglePipeline, nullptr);
-	// vkDestroyPipeline(_device, _trianglePipeline, nullptr);
-	// vkDestroyPipeline(_device, _meshPipeline, nullptr);
-
-	// vkDestroyPipelineLayout(_device, _trianglePipelineLayout, nullptr);
-	//});
+		m_DestroyQueue.Enqueue([=]()
+		{
+			VkDestroy(m_VkMeshPipeline, m_VkDevice, vkDestroyPipeline);
+		});
+	}
 }
 
 VulkanDevice::DestroyQueue::~DestroyQueue()
@@ -1155,6 +1235,9 @@ void VulkanDevice::CreateVkObject(OwnerType Owner, TypePtr& OutObject, const Cre
 
 	m_DestroyQueue.Enqueue([this, &OutObject, Owner, Destructor = std::move(Destroy)]() mutable
 	{
-		VkDestroy(OutObject, Owner, Destructor);
+		if (Owner != VK_NULL_HANDLE && OutObject != VK_NULL_HANDLE)
+		{
+			VkDestroy(OutObject, Owner, Destructor);
+		}
 	});
 }

@@ -44,5 +44,6 @@ namespace Zn
 
 		bool m_IsRequestingExit{ false };
 		bool m_HasPolledEventsThisFrame{ false };
+		bool m_IsMinimized{ false };
 	};
 }

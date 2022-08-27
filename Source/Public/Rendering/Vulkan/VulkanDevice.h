@@ -28,6 +28,12 @@ namespace Zn
 
 		void Draw();
 
+		void ResizeWindow();
+
+		void OnWindowMinimized();
+
+		void OnWindowRestored();
+
 	private:
 
 		static constexpr size_t kMaxFramesInFlight = 2;
@@ -61,9 +67,21 @@ namespace Zn
 
 		VkShaderModule CreateShaderModule(const Vector<uint8>& InBytes);
 
+		void CreateSwapChain();
+		void CreateImageViews();
+		void CreateFramebuffers();
+
+		void CleanupSwapChain();
+
+		void RecreateSwapChain();
+
 		bool m_IsInitialized{ false };
 
+		bool m_IsMinimized{ false };
+
 		size_t m_CurrentFrame = 0;
+
+		size_t m_FrameNumber = 0;
 
 		VkInstance m_VkInstance{VK_NULL_HANDLE}; // Vulkan library handle
 		VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands
@@ -94,9 +112,13 @@ namespace Zn
 
 		VkShaderModule m_VkVert{VK_NULL_HANDLE};
 		VkShaderModule m_VkFrag{VK_NULL_HANDLE};
+		VkShaderModule m_VkMeshVert{VK_NULL_HANDLE};
 
 		VkPipelineLayout m_VkPipelineLayout{VK_NULL_HANDLE};
+		VkPipelineLayout m_VkMeshPipelineLayout{VK_NULL_HANDLE};
+
 		VkPipeline m_VkPipeline{ VK_NULL_HANDLE };
+		VkPipeline m_VkMeshPipeline{ VK_NULL_HANDLE };
 
 		static const Vector<const char*> kValidationLayers;
 
@@ -121,8 +143,7 @@ namespace Zn
 
 		VmaAllocator m_VkAllocator{VK_NULL_HANDLE};
 
-		Vk::Mesh m_Mesh;
-		VkPipeline m_MeshPipeline;
+		Vk::Mesh m_Mesh;		
 
 		void LoadMeshes();
 

@@ -3,6 +3,11 @@
 
 namespace Zn
 {
+	namespace Vk
+	{
+		struct VertexInputDescription;
+	}
+
 	class VulkanPipeline
 	{
 	public:
@@ -19,7 +24,10 @@ namespace Zn
 		
 		static VkPipelineColorBlendAttachmentState CreateColorBlendAttachmentState();
 
-		static VkPipeline NewVkPipeline(VkDevice InDevice, VkRenderPass InRenderPass, VkShaderModule InVertexShader, VkShaderModule InFragmentShader, VkExtent2D InSwapChainExtent, VkPipelineLayout InLayout);
+		static VkPipeline NewVkPipeline(VkDevice InDevice, VkRenderPass InRenderPass, 
+										VkShaderModule InVertexShader, VkShaderModule InFragmentShader, 
+										VkExtent2D InSwapChainExtent, VkPipelineLayout InLayout, 
+										const Vk::VertexInputDescription& InVertexInputDescription);
 
 	};
 }
