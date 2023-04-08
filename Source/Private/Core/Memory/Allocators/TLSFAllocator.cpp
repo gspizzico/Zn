@@ -375,8 +375,7 @@ namespace Zn
 	{
 		auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousPhysicalFooter(block);
 
-		if ((!Memory::IsAligned(block, m_Memory.PageSize()) || m_Memory.IsAllocated(PreviousPhysicalBlockFooter))
-			&& PreviousPhysicalBlockFooter->IsValid())									// If the block is not aligned, the previous can never be not committed.
+		if ((m_Memory.IsAllocated(PreviousPhysicalBlockFooter) && PreviousPhysicalBlockFooter->IsValid()))
 		{
 			const auto PreviousBlockSize = PreviousPhysicalBlockFooter->BlockSize();
 
@@ -400,8 +399,7 @@ namespace Zn
 	{
 		FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size()));
 
-		if ((!Memory::IsAligned(NextPhysicalBlock, m_Memory.PageSize()) || m_Memory.IsAllocated(NextPhysicalBlock))
-			&& NextPhysicalBlock->GetFooter()->IsValid())								// If the block is not aligned, the next can never be not committed.
+		if (m_Memory.IsAllocated(NextPhysicalBlock) && NextPhysicalBlock->GetFooter()->IsValid())
 		{
 			auto NextBlockSize = NextPhysicalBlock->Size();
 
