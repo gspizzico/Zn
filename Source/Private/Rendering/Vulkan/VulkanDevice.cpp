@@ -589,7 +589,7 @@ void VulkanDevice::Draw()
 	ZN_VK_CHECK(vkBeginCommandBuffer(CmdBuffer, &CmdBufferBeginInfo));
 
 	VkClearValue ClearColor;
-	ClearColor.color = { { 1.0f, 1.0f, abs(sin(m_FrameNumber / 999.f)), 1.0f } };
+	ClearColor.color = { { 1.0f, 1.0f, 1.0f, 1.0f } };
 
 	VkClearValue DepthClear;
 	
