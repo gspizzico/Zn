@@ -143,7 +143,8 @@ namespace Zn
 
 		VmaAllocator m_VkAllocator{VK_NULL_HANDLE};
 
-		Vk::Mesh m_Mesh;		
+		Vk::Mesh m_Mesh;
+		Vk::Mesh m_Monkey;
 
 		void LoadMeshes();
 

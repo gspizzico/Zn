@@ -13,6 +13,11 @@ namespace Zn
 
 			AllocatedBuffer Buffer;
 		};
+
+		namespace Obj
+		{
+			bool LoadMesh(String Filename, Mesh& OutMesh);
+		}
 	}
 
 }

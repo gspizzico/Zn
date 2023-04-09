@@ -576,14 +576,14 @@ void VulkanDevice::Draw()
 
 		//make a model view matrix for rendering the object
 		//camera position
-		glm::vec3 camPos = { 0.f,0.f,-2.f };
+		glm::vec3 camPos = { 0.f,0.f,-4.f };
 
 		glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
 		//camera projection
 		glm::mat4 projection = glm::perspective(glm::radians(70.f), 1.f, 0.1f, 200.0f);
 		projection[1][1] *= -1;
 		//model rotation
-		glm::mat4 model = glm::rotate(glm::mat4{ 1.0f }, glm::sin(glm::radians(m_FrameNumber * 0.1f)), glm::vec3(0, 1, 0));
+		glm::mat4 model = glm::rotate(glm::mat4{ 1.0f }, glm::radians(m_FrameNumber * 0.05f), glm::vec3(0, 1, 0));
 
 		//calculate final mesh matrix
 		glm::mat4 mesh_matrix = projection * view * model;
@@ -598,9 +598,9 @@ void VulkanDevice::Draw()
 		// Bind the mesh vertex buffer with offset 0 
 		VkDeviceSize Offset = 0;
 
-		vkCmdBindVertexBuffers(CmdBuffer, 0, 1, &m_Mesh.Buffer.Buffer, &Offset);
+		vkCmdBindVertexBuffers(CmdBuffer, 0, 1, &m_Monkey.Buffer.Buffer, &Offset);
 
-		vkCmdDraw(CmdBuffer, m_Mesh.Vertices.size(), 1, 0, 0);
+		vkCmdDraw(CmdBuffer, m_Monkey.Vertices.size(), 1, 0, 0);
 
 		// Enqueue ImGui commands to CmdBuffer
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CmdBuffer);
@@ -1147,6 +1147,12 @@ void Zn::VulkanDevice::LoadMeshes()
 	//we don't care about the vertex normals
 
 	UploadMesh(m_Mesh);
+
+	m_Monkey = Vk::Mesh{};
+
+	Vk::Obj::LoadMesh(IO::GetAbsolutePath("assets/VulkanGuide/monkey_smooth.obj"), m_Monkey);
+
+	UploadMesh(m_Monkey);
 }
 
 void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
