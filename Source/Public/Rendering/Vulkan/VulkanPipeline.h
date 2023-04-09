@@ -24,6 +24,8 @@ namespace Zn
 		
 		static VkPipelineColorBlendAttachmentState CreateColorBlendAttachmentState();
 
+		static VkPipelineDepthStencilStateCreateInfo CreateDepthStencil(bool InDepthTest, bool InDepthWrite, VkCompareOp InCompareOp);
+
 		static VkPipeline NewVkPipeline(VkDevice InDevice, VkRenderPass InRenderPass, 
 										VkShaderModule InVertexShader, VkShaderModule InFragmentShader, 
 										VkExtent2D InSwapChainExtent, VkPipelineLayout InLayout, 

@@ -16,7 +16,7 @@ namespace Zn
 
 		namespace Obj
 		{
-			bool LoadMesh(String Filename, Mesh& OutMesh);
+			bool LoadMesh(String InFilename, Mesh& OutMesh);
 		}
 	}
 

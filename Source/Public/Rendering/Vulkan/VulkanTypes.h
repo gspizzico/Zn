@@ -28,6 +28,17 @@ namespace Zn
 			VmaAllocation Allocation;
 		};
 
+		struct AllocatedImage
+		{
+			VkImage Image;
+			VmaAllocation Allocation;
+
+			//	TODO: MOVE AWAY FROM HERE
+			static VkImageCreateInfo GetImageCreateInfo(VkFormat InFormat, VkImageUsageFlags InUsageFlags, VkExtent3D InExtent);
+			//	TODO: MOVE AWAY FROM HERE
+			static VkImageViewCreateInfo GetImageViewCreateInfo(VkFormat InFormat, VkImage InImage, VkImageAspectFlagBits InAspectFlags);
+		};
+
 		struct VertexInputDescription
 		{
 			Vector<VkVertexInputBindingDescription> Bindings{};

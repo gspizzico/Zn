@@ -12,7 +12,7 @@ DEFINE_STATIC_LOG_CATEGORY(LogTinyObj, ELogVerbosity::Log);
 
 namespace Zn::Vk::Obj
 {
-	bool LoadMesh(String Filename, Mesh& OutMesh)
+	bool LoadMesh(String InFilename, Mesh& OutMesh)
 	{
 		// https://vkguide.dev/docs/chapter-3/obj_loading/
 #if ZN_WITH_TINYOBJ		
@@ -24,7 +24,7 @@ namespace Zn::Vk::Obj
 		String Warning;
 		String Error;
 
-		tinyobj::LoadObj(&VertexAttributes, &Shapes, &Materials, &Warning, &Error, Filename.c_str(), nullptr);
+		tinyobj::LoadObj(&VertexAttributes, &Shapes, &Materials, &Warning, &Error, InFilename.c_str(), nullptr);
 
 		if (!Warning.empty())
 		{

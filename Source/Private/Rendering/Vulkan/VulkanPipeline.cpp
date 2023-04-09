@@ -91,6 +91,33 @@ VkPipelineColorBlendAttachmentState VulkanPipeline::CreateColorBlendAttachmentSt
 	return BlendAttachment;
 }
 
+VkPipelineDepthStencilStateCreateInfo VulkanPipeline::CreateDepthStencil(bool InDepthTest, bool InDepthWrite, VkCompareOp InCompareOp)
+{
+	VkPipelineDepthStencilStateCreateInfo CreateInfo{};
+	CreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	CreateInfo.pNext = nullptr;
+
+	//	Enable/Disable z-culling
+	CreateInfo.depthTestEnable = InDepthTest ? VK_TRUE : VK_FALSE;
+	//	Actually write to depth buffer. Usually == DepthTest, but sometimes you might want to not read from d-buffer for special effects.
+	CreateInfo.depthWriteEnable = InDepthWrite ? VK_TRUE : VK_FALSE;
+	//	VK_COMPARE_OP_ALWAYS does not do any depth test at all.
+	//	VK_COMPARE_OP_LESS = Draw if Z < whatever is on d-buffer
+	//	VK_COMPARE_OP_EQUAL = Draw if depth matches what is on d-buffer.
+	CreateInfo.depthCompareOp = InDepthTest ? InCompareOp : VK_COMPARE_OP_ALWAYS;
+
+	CreateInfo.depthBoundsTestEnable = VK_FALSE;
+	//	Min and Max depth bounds lets us cap the depth test. 
+	//	If the depth is outside of bounds, the pixel will be skipped. 
+	CreateInfo.minDepthBounds = 0.f;	// Optional
+	CreateInfo.maxDepthBounds = 1.f;	// Optional
+	
+	//	We won’t be using stencil test, so that’s set to VK_FALSE by default.
+	CreateInfo.stencilTestEnable = VK_FALSE;
+
+	return CreateInfo;
+}
+
 VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRenderPass,
 										VkShaderModule InVertexShader, VkShaderModule InFragmentShader,
 										VkExtent2D InSwapChainExtent, VkPipelineLayout InLayout,
@@ -149,8 +176,8 @@ VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRende
 
 	VkPipelineColorBlendAttachmentState BlendAttachment = CreateColorBlendAttachmentState();
 
-	//setup dummy color blending. We aren't using transparent objects yet
-				//the blending is just "no blend", but we do write to the color attachment
+	//	setup dummy color blending. We aren't using transparent objects yet
+	//	the blending is just "no blend", but we do write to the color attachment
 	VkPipelineColorBlendStateCreateInfo ColorBlending{};
 	ColorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 
@@ -159,6 +186,7 @@ VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRende
 	ColorBlending.attachmentCount = 1;
 	ColorBlending.pAttachments = &BlendAttachment;
 
+	VkPipelineDepthStencilStateCreateInfo DepthStencil = CreateDepthStencil(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
 
 	VkGraphicsPipelineCreateInfo PipelineInfo = {};
 	PipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -171,6 +199,7 @@ VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRende
 	PipelineInfo.pRasterizationState = &Rasterizer;
 	PipelineInfo.pMultisampleState = &MSAA;
 	PipelineInfo.pColorBlendState = &ColorBlending;
+	PipelineInfo.pDepthStencilState = &DepthStencil;
 	PipelineInfo.layout = InLayout;
 	PipelineInfo.renderPass = InRenderPass;
 	PipelineInfo.subpass = 0;

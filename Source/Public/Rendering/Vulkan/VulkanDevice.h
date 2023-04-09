@@ -146,6 +146,16 @@ namespace Zn
 		Vk::Mesh m_Mesh;
 		Vk::Mesh m_Monkey;
 
+		// == Depth Buffer ==
+
+		VkImageView m_DepthImageView;
+		Vk::AllocatedImage m_DepthImage;
+
+		// Format of the depth image.
+		VkFormat m_DepthFormat;
+
+		// ==================
+
 		void LoadMeshes();
 
 		void UploadMesh(Vk::Mesh& OutMesh);
