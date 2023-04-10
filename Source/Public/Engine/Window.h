@@ -25,7 +25,7 @@ namespace Zn
 
 		bool IsRequestingExit() const;
 
-		void* GetHandle() const;
+		// void* GetHandle() const;
 
 	private:
 

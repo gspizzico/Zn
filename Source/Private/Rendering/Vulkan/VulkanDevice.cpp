@@ -110,6 +110,15 @@ namespace
 			Object = VK_NULL_HANDLE;
 		}
 	}
+
+	template<typename TypePtr, typename OwnerType, typename VkDestroyFunction>
+	void VkDestroy(const TypePtr& Object, OwnerType Owner, VkDestroyFunction&& InFunction)
+	{
+		if (Object != VK_NULL_HANDLE)
+		{
+			InFunction(Owner, Object, nullptr);
+		}
+	}
 }
 
 const Vector<const char*> VulkanDevice::kValidationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -456,47 +465,11 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}
 
-	LoadShaders();
-
-	////// Init Pipelines
-
-	VkPipelineLayoutCreateInfo PipelineLayout{};
-	PipelineLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	PipelineLayout.setLayoutCount = 0; // Optional
-	PipelineLayout.pSetLayouts = nullptr; // Optional
-	PipelineLayout.pushConstantRangeCount = 0; // Optional
-	PipelineLayout.pPushConstantRanges = nullptr; // Optional
-	
-	CreateVkObject(m_VkDevice, m_VkPipelineLayout, PipelineLayout, vkCreatePipelineLayout, vkDestroyPipelineLayout);
-
-	// Mesh pipeline with push constants 
-
-	VkPipelineLayoutCreateInfo MeshPipelineLayout{};
-	MeshPipelineLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	MeshPipelineLayout.setLayoutCount = 0; // Optional
-	MeshPipelineLayout.pSetLayouts = nullptr; // Optional
-
-	VkPushConstantRange PushConstants{};
-	PushConstants.offset = 0;
-	PushConstants.size = sizeof(Vk::MeshPushConstants);
-	//this push constant range is accessible only in the vertex shader
-	PushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-	MeshPipelineLayout.pPushConstantRanges = &PushConstants;
-	MeshPipelineLayout.pushConstantRangeCount = 1;
-
-	CreateVkObject(m_VkDevice, m_VkMeshPipelineLayout, MeshPipelineLayout, vkCreatePipelineLayout, vkDestroyPipelineLayout);
-
-	//m_VkPipeline = VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, m_VkVert, m_VkFrag, m_VkSwapChainExtent, m_VkPipelineLayout, Vk::VertexInputDescription{});
-
-	//m_DestroyQueue.Enqueue([this]()
-	//{
-	//	VkDestroy(m_VkPipeline, m_VkDevice, vkDestroyPipeline);
-	//});
-
 	LoadMeshes();
 
 	CreateMeshPipeline();
+
+	CreateScene();
 
 	m_IsInitialized = true;
 }
@@ -620,36 +593,7 @@ void VulkanDevice::Draw()
 
 	if (!m_IsMinimized)
 	{
-		//vkCmdBindPipeline(CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VkPipeline);
-		//vkCmdDraw(CmdBuffer, 3, 1, 0, 0);
-
-		//make a model view matrix for rendering the object
-		//camera position
-		glm::vec3 camPos = { 0.f,0.f,-4.f };
-
-		glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
-		//camera projection
-		glm::mat4 projection = glm::perspective(glm::radians(70.f), 1.f, 0.1f, 200.0f);
-		projection[1][1] *= -1;
-		//model rotation
-		glm::mat4 model = glm::rotate(glm::mat4{ 1.0f }, glm::radians(m_FrameNumber * 0.05f), glm::vec3(0, 1, 0));
-
-		//calculate final mesh matrix
-		glm::mat4 mesh_matrix = projection * view * model;
-
-		Vk::MeshPushConstants constants;
-		constants.RenderMatrix = mesh_matrix;
-
-		//upload the matrix to the GPU via push constants
-		vkCmdPushConstants(CmdBuffer, m_VkMeshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Vk::MeshPushConstants), &constants);
-
-		vkCmdBindPipeline(CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VkMeshPipeline);
-		// Bind the mesh vertex buffer with offset 0 
-		VkDeviceSize Offset = 0;
-
-		vkCmdBindVertexBuffers(CmdBuffer, 0, 1, &m_Monkey.Buffer.Buffer, &Offset);
-
-		vkCmdDraw(CmdBuffer, m_Monkey.Vertices.size(), 1, 0, 0);
+		DrawObjects(CmdBuffer, m_Renderables.data(), m_Renderables.size());
 
 		// Enqueue ImGui commands to CmdBuffer
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CmdBuffer);
@@ -965,33 +909,6 @@ Vector<VkDeviceQueueCreateInfo> VulkanDevice::BuildQueueCreateInfo(const Vk::Que
 	return OutCreateInfo;
 }
 
-void Zn::VulkanDevice::LoadShaders()
-{
-	Vector<uint8> VertexShader,FragmentShader;
-	
-	const bool VertexShaderSuccess = IO::ReadBinaryFile("shaders/vertex.spv", VertexShader);
-	const bool FragmentShaderSuccess = IO::ReadBinaryFile("shaders/fragment.spv", FragmentShader);
-
-	m_VkVert = CreateShaderModule(VertexShader);
-	m_VkFrag = CreateShaderModule(FragmentShader);
-
-	m_DestroyQueue.Enqueue([this]()
-	{
-		VkDestroy(m_VkVert, m_VkDevice, vkDestroyShaderModule);
-		VkDestroy(m_VkFrag, m_VkDevice, vkDestroyShaderModule);
-	});
-
-	if (m_VkVert == VK_NULL_HANDLE)
-	{
-		ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create vertex shader.");
-	}
-
-	if (m_VkFrag == VK_NULL_HANDLE)
-	{
-		ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create fragment shader.");
-	}
-}
-
 VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes)
 {
 	VkShaderModuleCreateInfo ShaderCreateInfo{};
@@ -1216,34 +1133,150 @@ void Zn::VulkanDevice::RecreateSwapChain()
 	CreateFramebuffers();
 }
 
+Vk::Material* Zn::VulkanDevice::CreateMaterial(VkPipeline InPipeline, VkPipelineLayout InLayout, const String& InName)
+{
+	Vk::Material material{};
+	material.pipeline = InPipeline;
+	material.layout = InLayout;
+	m_Materials[InName] = std::move(material);
+
+	return &m_Materials[InName];
+}
+
+Vk::Material* Zn::VulkanDevice::GetMaterial(const String& InName)
+{
+	if (auto it = m_Materials.find(InName); it != m_Materials.end())
+	{
+		return &((*it).second);
+	}
+
+	return nullptr;
+}
+
+Vk::Mesh* Zn::VulkanDevice::GetMesh(const String& InName)
+{
+	if (auto it = m_Meshes.find(InName); it != m_Meshes.end())
+	{
+		return &((*it).second);
+	}
+
+	return nullptr;
+}
+
+void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderObject* InFirst, int32 InCount)
+{
+	// Model View Matrix
+
+	// Camera View
+	const glm::vec3 camera_position{ 0.f, -2.f, -10.f };
+	const glm::mat4 view = glm::translate(glm::mat4(1.f), camera_position);
+
+	// Camera Projection
+	glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 200.f);
+	projection[1][1] *= -1;
+
+	Vk::Mesh* last_mesh = nullptr;
+	Vk::Material* last_material = nullptr;
+
+	for (int32 index = 0; index < InCount; ++index)
+	{
+		Vk::RenderObject& object = InFirst[index];
+
+		// only bind the pipeline if it doesn't match what's already bound
+		if (object.material != last_material)
+		{
+			vkCmdBindPipeline(InCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipeline);
+			last_material = object.material;
+		}
+
+		const glm::mat4 model = object.transform;
+		const glm::mat4 mesh_matrix = projection * view * model;
+
+		Vk::MeshPushConstants constants
+		{
+			.RenderMatrix = mesh_matrix
+		};
+
+		vkCmdPushConstants(InCommandBuffer, object.material->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Vk::MeshPushConstants), &constants);
+
+		// only bind the mesh if it's different from what's already bound
+
+		if (object.mesh != last_mesh)
+		{
+			// bind the mesh v-buffer with offset 0
+			VkDeviceSize offset = 0;
+			vkCmdBindVertexBuffers(InCommandBuffer, 0, 1, &object.mesh->Buffer.Buffer, &offset);
+			last_mesh = object.mesh;
+		}
+
+		// Draw
+
+		vkCmdDraw(InCommandBuffer, object.mesh->Vertices.size(), 1, 0, 0);
+	}
+}
+
+void Zn::VulkanDevice::CreateScene()
+{
+	Vk::RenderObject monkey
+	{
+		.mesh = GetMesh("monkey"),
+		.material = GetMaterial("default"),
+		.transform = glm::mat4(1.0f)
+	};
+
+	m_Renderables.push_back(monkey);
+
+	for (int32 x = -20; x <= 20; ++x)
+	{
+		for (int32 y = -20; y <= 20; ++y)
+		{
+			glm::mat4 translation = glm::translate(glm::mat4{ 1.0f }, glm::vec3(x, 0, y));
+			glm::mat4 scale = glm::scale(glm::mat4{ 1.0f }, glm::vec3(0.2f));
+
+			Vk::RenderObject triangle
+			{	
+				.mesh = GetMesh("triangle"),
+				.material = GetMaterial("default"),
+				.transform = translation * scale
+			};
+
+			m_Renderables.push_back(triangle);
+		}
+	}
+}
+
 void Zn::VulkanDevice::LoadMeshes()
 {
-	m_Mesh = Vk::Mesh{};
+	Vk::Mesh triangle{};
 
-	m_Mesh.Vertices.resize(3);
+	triangle.Vertices.resize(3);
 
 	//vertex positions
-	m_Mesh.Vertices[0].Position = { 1.f, 1.f, 0.f };
-	m_Mesh.Vertices[1].Position = { -1.f, 1.f, 0.0f };
-	m_Mesh.Vertices[2].Position = { 0.f, -1.f, 0.0f };
+	triangle.Vertices[0].Position = { 1.f, 1.f, 0.f };
+	triangle.Vertices[1].Position = { -1.f, 1.f, 0.0f };
+	triangle.Vertices[2].Position = { 0.f, -1.f, 0.0f };
 
-	m_Mesh.Vertices[0].Color = { 1.0f, 0.f, 0.f };
-	m_Mesh.Vertices[1].Color = { 0.0f, 1.0f, 0.0f };
-	m_Mesh.Vertices[2].Color = { 0.0f, 0.0f, 1.0f };
+	triangle.Vertices[0].Color = { 1.0f, 0.f, 0.f };
+	triangle.Vertices[1].Color = { 0.0f, 1.0f, 0.0f };
+	triangle.Vertices[2].Color = { 0.0f, 0.0f, 1.0f };
 
-	m_Mesh.Vertices[0].Normal = glm::vec3(0.0f);
-	m_Mesh.Vertices[1].Normal = glm::vec3(0.0f);
-	m_Mesh.Vertices[2].Normal = glm::vec3(0.0f);
+	triangle.Vertices[0].Normal = glm::vec3(0.0f);
+	triangle.Vertices[1].Normal = glm::vec3(0.0f);
+	triangle.Vertices[2].Normal = glm::vec3(0.0f);
 
 	//we don't care about the vertex normals
 
-	UploadMesh(m_Mesh);
+	UploadMesh(triangle);
 
-	m_Monkey = Vk::Mesh{};
+	m_Meshes["triangle"] = triangle;
 
-	Vk::Obj::LoadMesh(IO::GetAbsolutePath("assets/VulkanGuide/monkey_smooth.obj"), m_Monkey);
+	Vk::Mesh monkey{};
 
-	UploadMesh(m_Monkey);
+	Vk::Obj::LoadMesh(IO::GetAbsolutePath("assets/VulkanGuide/monkey_smooth.obj"), monkey);
+
+	UploadMesh(monkey);
+
+	m_Meshes["monkey"] = monkey;
 }
 
 void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
@@ -1283,24 +1316,61 @@ void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 
 void Zn::VulkanDevice::CreateMeshPipeline()
 {
-	Vector<uint8> MeshVertData;
+	Vector<uint8> vertex_shader_data;
+	Vector<uint8> fragment_shader_data;
 
-	if (IO::ReadBinaryFile("shaders/tri_mesh_vertex.spv", MeshVertData))
+	const bool vertex_success = IO::ReadBinaryFile("shaders/tri_mesh_vertex.spv", vertex_shader_data);
+	const bool fragment_success = IO::ReadBinaryFile("shaders/fragment.spv", fragment_shader_data);
+
+	if (vertex_success && fragment_success)
 	{
-		m_VkMeshVert = CreateShaderModule(MeshVertData);
+		VkShaderModule vertex_shader = CreateShaderModule(vertex_shader_data);
+		VkShaderModule fragment_shader = CreateShaderModule(fragment_shader_data);
+
+		if (vertex_shader == VK_NULL_HANDLE)
+		{
+			ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create vertex shader.");
+		}
+
+		if (fragment_shader == VK_NULL_HANDLE)
+		{
+			ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create fragment shader.");
+		}
 
 		m_DestroyQueue.Enqueue([=]()
 		{
-			VkDestroy(m_VkMeshVert, m_VkDevice, vkDestroyShaderModule);
+			VkDestroy(vertex_shader, m_VkDevice, vkDestroyShaderModule);
+			VkDestroy(fragment_shader, m_VkDevice, vkDestroyShaderModule);
 		});
+		
 
-		Vk::VertexInputDescription VertexDescription = Vk::Vertex::GetVertexInputDescription();
+		Vk::VertexInputDescription vertex_description = Vk::Vertex::GetVertexInputDescription();
 
-		m_VkMeshPipeline = VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, m_VkMeshVert, m_VkFrag, m_VkSwapChainExtent, m_VkMeshPipelineLayout, VertexDescription);
+		// Mesh pipeline with push constants 
+
+		VkPipelineLayoutCreateInfo layout_create_info{};
+		layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		layout_create_info.setLayoutCount = 0; // Optional
+		layout_create_info.pSetLayouts = nullptr; // Optional
+
+		VkPushConstantRange push_constants{};
+		push_constants.offset = 0;
+		push_constants.size = sizeof(Vk::MeshPushConstants);
+		//this push constant range is accessible only in the vertex shader
+		push_constants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+		layout_create_info.pPushConstantRanges = &push_constants;
+		layout_create_info.pushConstantRangeCount = 1;
+
+		Vk::Material* material = CreateMaterial(VK_NULL_HANDLE, VK_NULL_HANDLE, "default");
+
+		CreateVkObject(m_VkDevice, material->layout, layout_create_info, vkCreatePipelineLayout, vkDestroyPipelineLayout);
+
+		material->pipeline= VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, vertex_shader, fragment_shader, m_VkSwapChainExtent, material->layout, vertex_description);
 
 		m_DestroyQueue.Enqueue([=]()
 		{
-			VkDestroy(m_VkMeshPipeline, m_VkDevice, vkDestroyPipeline);
+			VkDestroy(material->pipeline, m_VkDevice, vkDestroyPipeline);
 		});
 	}
 }

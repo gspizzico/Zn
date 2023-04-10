@@ -41,17 +41,17 @@ Window::Window(const int width, const int height, const String& title)
 
 Window::~Window()
 {
+	if (m_VulkanDevice != nullptr)
+	{
+		m_VulkanDevice->Cleanup();
+		m_VulkanDevice = nullptr;
+	}
+
 	if (m_Window != nullptr)
 	{
 		SDL_DestroyWindow(m_Window);
 
 		m_Window = nullptr;
-	}
-
-	if (m_VulkanDevice != nullptr)
-	{
-		m_VulkanDevice->Cleanup();
-		m_VulkanDevice = nullptr;
 	}
 }
 

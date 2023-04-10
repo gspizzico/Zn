@@ -60,5 +60,25 @@ namespace Zn
 			glm::vec4 Data;
 			glm::mat4 RenderMatrix;
 		};
+
+		struct Mesh
+		{
+			Vector<Vertex> Vertices;
+
+			AllocatedBuffer Buffer;
+		};
+
+		struct Material
+		{
+			VkPipeline pipeline;
+			VkPipelineLayout layout;
+		};
+
+		struct RenderObject
+		{
+			Vk::Mesh* mesh;
+			Vk::Material* material;
+			glm::mat4 transform;
+		};
 	}
 }

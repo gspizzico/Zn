@@ -5,6 +5,7 @@
 #include <functional>
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
+#include <Core/Containers/Map.h>
 #include <Rendering/Vulkan/VulkanTypes.h>
 #include <Rendering/Vulkan/VulkanMesh.h>
 
@@ -63,8 +64,6 @@ namespace Zn
 
 		Vector<VkDeviceQueueCreateInfo> BuildQueueCreateInfo(const Vk::QueueFamilyIndices& InIndices) const;
 
-		void LoadShaders();
-
 		VkShaderModule CreateShaderModule(const Vector<uint8>& InBytes);
 
 		void CreateSwapChain();
@@ -110,16 +109,6 @@ namespace Zn
 
 		VkDescriptorPool m_VkImGuiDescriptorPool{VK_NULL_HANDLE};
 
-		VkShaderModule m_VkVert{VK_NULL_HANDLE};
-		VkShaderModule m_VkFrag{VK_NULL_HANDLE};
-		VkShaderModule m_VkMeshVert{VK_NULL_HANDLE};
-
-		VkPipelineLayout m_VkPipelineLayout{VK_NULL_HANDLE};
-		VkPipelineLayout m_VkMeshPipelineLayout{VK_NULL_HANDLE};
-
-		VkPipeline m_VkPipeline{ VK_NULL_HANDLE };
-		VkPipeline m_VkMeshPipeline{ VK_NULL_HANDLE };
-
 		static const Vector<const char*> kValidationLayers;
 
 		static const Vector<const char*> kDeviceExtensions;
@@ -143,9 +132,6 @@ namespace Zn
 
 		VmaAllocator m_VkAllocator{VK_NULL_HANDLE};
 
-		Vk::Mesh m_Mesh;
-		Vk::Mesh m_Monkey;
-
 		// == Depth Buffer ==
 
 		VkImageView m_DepthImageView;
@@ -153,6 +139,22 @@ namespace Zn
 
 		// Format of the depth image.
 		VkFormat m_DepthFormat;
+
+		// ==================
+
+		// == Scene Management ==
+
+		Vector<Vk::RenderObject> m_Renderables;
+		UnorderedMap<String, Vk::Material> m_Materials;
+		UnorderedMap<String, Vk::Mesh> m_Meshes;
+
+		Vk::Material* CreateMaterial(VkPipeline InPipeline, VkPipelineLayout InLayout, const String& InName);
+		Vk::Material* GetMaterial(const String& InName);
+		Vk::Mesh* GetMesh(const String& InName);
+
+		void DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderObject* InFirst, int32 InCount);
+
+		void CreateScene();
 
 		// ==================
 
