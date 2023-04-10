@@ -2,6 +2,7 @@
 
 struct SDL_Window;
 struct SDL_Surface;
+union SDL_Event;
 
 namespace Zn
 {
@@ -17,9 +18,9 @@ namespace Zn
 
 		~Window();
 
-		void PollEvents();
+		void PollEvents(float delta_time);
 
-		void NewFrame();
+		void NewFrame(float delta_time);
 
 		void EndFrame();
 
@@ -32,8 +33,6 @@ namespace Zn
 		SDL_Window* m_Window{ nullptr };
 		SDL_Surface* m_Canvas{ nullptr };
 
-		//UniquePtr<D3D11Device> m_D3DDevice{ nullptr };
-
 		UniquePtr<VulkanDevice> m_VulkanDevice{ nullptr };
 
 		UniquePtr<ImGuiWrapper> m_ImGui{ nullptr };
@@ -45,5 +44,11 @@ namespace Zn
 		bool m_IsRequestingExit{ false };
 		bool m_HasPolledEventsThisFrame{ false };
 		bool m_IsMinimized{ false };
+
+		// Handle Input
+
+		void HandleInput(const SDL_Event& InEvent, float delta_time);
+
+		bool m_RightMouseDown = false;
 	};
 }

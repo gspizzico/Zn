@@ -55,7 +55,7 @@ Window::~Window()
 	}
 }
 
-void Window::PollEvents()
+void Window::PollEvents(float delta_time)
 {
 	if (!m_HasPolledEventsThisFrame)
 	{
@@ -92,6 +92,10 @@ void Window::PollEvents()
 					}
 				}
 			}
+			else
+			{
+				HandleInput(event, delta_time);
+			}
 		}
 
 		m_HasPolledEventsThisFrame = true;
@@ -102,9 +106,9 @@ void Window::PollEvents()
 	}
 }
 
-void Window::NewFrame()
+void Window::NewFrame(float delta_time)
 {
-	PollEvents();
+	PollEvents(delta_time);
 
 	m_ImGui->NewFrame();
 }
@@ -123,4 +127,71 @@ void Window::EndFrame()
 bool Window::IsRequestingExit() const
 {
 	return m_IsRequestingExit;
+}
+
+void Window::HandleInput(const SDL_Event& InEvent, float delta_time)
+{
+	static const float kSpeed = 15.f;
+	switch (InEvent.type)
+	{
+		case SDL_KEYDOWN:
+		{
+			ZN_LOG(LogWindow, ELogVerbosity::Log, "Pressed key %d", InEvent.key.keysym.scancode);
+
+			switch (InEvent.key.keysym.scancode)
+			{
+				case SDL_SCANCODE_A:
+				m_VulkanDevice->MoveCamera(glm::vec3(-kSpeed * delta_time, 0.f, 0.f));
+				break;
+				case SDL_SCANCODE_D:
+				m_VulkanDevice->MoveCamera(glm::vec3(kSpeed * delta_time, 0.f, 0.f));
+				break;
+				case SDL_SCANCODE_S:
+				m_VulkanDevice->MoveCamera(glm::vec3(0.f, 0.f, -kSpeed * delta_time));
+				break;
+				case SDL_SCANCODE_W:
+				m_VulkanDevice->MoveCamera(glm::vec3(0.f, 0.f, kSpeed * delta_time));
+				break;
+				case SDL_SCANCODE_Q:
+				m_VulkanDevice->MoveCamera(glm::vec3(0.f, -kSpeed * delta_time, 0.f));
+				break;
+				case SDL_SCANCODE_E:
+				m_VulkanDevice->MoveCamera(glm::vec3(0.f, kSpeed * delta_time, 0.f));
+				break;
+			}
+		}
+		break;
+		case SDL_KEYUP:
+		ZN_LOG(LogWindow, ELogVerbosity::Log, "Released key %d", InEvent.key.keysym.scancode);
+		break;
+
+		case SDL_MOUSEBUTTONDOWN:
+		{	
+		}
+
+		case SDL_MOUSEMOTION:
+		{
+			if (InEvent.motion.state & SDL_BUTTON_RMASK)
+			{
+				float sensitivity = 0.1f;
+
+				glm::vec2 rotation
+				{
+					InEvent.motion.xrel * sensitivity,
+					-InEvent.motion.yrel * sensitivity
+				};
+
+				m_VulkanDevice->RotateCamera(rotation);
+
+				SDL_SetRelativeMouseMode(SDL_TRUE);
+			}
+			else
+			{
+				SDL_SetRelativeMouseMode(SDL_FALSE);
+			}
+			break;
+		}
+		default:
+		break;
+	}
 }

@@ -125,8 +125,7 @@ const Vector<const char*> VulkanDevice::kValidationLayers = { "VK_LAYER_KHRONOS_
 const Vector<const char*> VulkanDevice::kDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 VulkanDevice::VulkanDevice()
-{
-
+{	
 }
 
 VulkanDevice::~VulkanDevice()
@@ -680,6 +679,29 @@ void Zn::VulkanDevice::OnWindowRestored()
 	m_IsMinimized = false;
 }
 
+void Zn::VulkanDevice::MoveCamera(glm::vec3 InDirection)
+{
+	glm::vec3 direction = glm::normalize(camera_direction);
+	glm::vec3 right = glm::normalize(glm::cross(direction, up_vector));
+
+	camera_position += (InDirection.z * direction);
+	camera_position += (InDirection.y * up_vector);
+	camera_position += (InDirection.x * right);
+}
+
+void Zn::VulkanDevice::RotateCamera(glm::vec2 InRotation)
+{
+	glm::vec3 direction = glm::normalize(camera_direction);
+	glm::vec3 right = glm::normalize(glm::cross(direction, up_vector));
+	glm::vec3 up = glm::normalize(glm::cross(right, direction));
+
+	glm::mat4 rotation = glm::mat4(1.f);
+	rotation = glm::rotate(rotation, glm::radians(InRotation.y), right);
+	rotation = glm::rotate(rotation, glm::radians(-InRotation.x), up);
+
+	camera_direction = glm::vec3(rotation * glm::vec4(camera_direction, 0.f));
+}
+
 bool VulkanDevice::SupportsValidationLayers() const
 {
 	Vector<VkLayerProperties> AvailableLayers = VkEnumerate<VkLayerProperties>(vkEnumerateInstanceLayerProperties);
@@ -1167,9 +1189,8 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 {
 	// Model View Matrix
 
-	// Camera View
-	const glm::vec3 camera_position{ 0.f, -2.f, -10.f };
-	const glm::mat4 view = glm::translate(glm::mat4(1.f), camera_position);
+	// Camera View	
+	const glm::mat4 view = glm::lookAt(camera_position, camera_position + camera_direction, up_vector);
 
 	// Camera Projection
 	glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 200.f);

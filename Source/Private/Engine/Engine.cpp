@@ -47,7 +47,7 @@ void Engine::Start()
 
 		double startFrame = Time::Seconds();
 
-		m_Window->NewFrame();
+		m_Window->NewFrame(m_DeltaTime);
 
 		Editor& editor = Editor::Get();
 

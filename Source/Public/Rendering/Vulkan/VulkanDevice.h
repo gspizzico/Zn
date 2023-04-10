@@ -9,6 +9,9 @@
 #include <Rendering/Vulkan/VulkanTypes.h>
 #include <Rendering/Vulkan/VulkanMesh.h>
 
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
 struct SDL_Window;
 
 namespace Zn
@@ -34,6 +37,9 @@ namespace Zn
 		void OnWindowMinimized();
 
 		void OnWindowRestored();
+
+		void MoveCamera(glm::vec3 InDirection);
+		void RotateCamera(glm::vec2 InRotation);
 
 	private:
 
@@ -157,6 +163,11 @@ namespace Zn
 		void CreateScene();
 
 		// ==================
+
+		// == Camera ==
+		glm::vec3 camera_position{ 0.f, 0.f, -10.f };
+		glm::vec3 camera_direction { 0.0f, 0.0f, -1.f };
+		glm::vec3 up_vector{ 0.0f, 1.f, 0.f };
 
 		void LoadMeshes();
 
