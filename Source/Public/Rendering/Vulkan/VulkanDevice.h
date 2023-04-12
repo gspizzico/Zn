@@ -84,6 +84,8 @@ namespace Zn
 
 		bool m_IsMinimized{ false };
 
+		uint32 m_WindowID = 0;
+
 		size_t m_CurrentFrame = 0;
 
 		size_t m_FrameNumber = 0;

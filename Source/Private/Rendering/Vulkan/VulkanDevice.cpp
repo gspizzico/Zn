@@ -182,6 +182,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 		return;
 	}
 
+	m_WindowID = SDL_GetWindowID(InWindowHandle);
+
 	/////// Initialize GPU
 
 	Vector<VkPhysicalDevice> Devices = VkEnumerate<VkPhysicalDevice>(vkEnumeratePhysicalDevices, m_VkInstance);
@@ -981,8 +983,7 @@ void Zn::VulkanDevice::CreateSwapChain()
 		PresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 	}
 
-	SDL_Window* WindowHandle = SDL_GL_GetCurrentWindow();
-
+	SDL_Window* WindowHandle = SDL_GetWindowFromID(m_WindowID);
 	int32 Width, Height = 0;
 	SDL_Vulkan_GetDrawableSize(WindowHandle, &Width, &Height);
 
@@ -1275,7 +1276,7 @@ void Zn::VulkanDevice::LoadMeshes()
 	//vertex positions
 	triangle.Vertices[0].Position = { 1.f, 1.f, 0.f };
 	triangle.Vertices[1].Position = { -1.f, 1.f, 0.0f };
-	triangle.Vertices[2].Position = { 0.f, -1.f, 0.0f };
+	triangle.Vertices[2].Position = { 0.f, -0.5f, 0.0f };
 
 	triangle.Vertices[0].Color = { 1.0f, 0.f, 0.f };
 	triangle.Vertices[1].Color = { 0.0f, 1.0f, 0.0f };
