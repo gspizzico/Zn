@@ -149,8 +149,7 @@ namespace Zn
 		void DestroyBuffer(Vk::AllocatedBuffer buffer);
 
 		// TODO: Naming might be incorrect
-		template<typename T>
-		void CopyToGPU(VmaAllocation allocation, const T& data);
+		void CopyToGPU(VmaAllocation allocation, void* src, size_t size);
 
 		// == Depth Buffer ==
 
