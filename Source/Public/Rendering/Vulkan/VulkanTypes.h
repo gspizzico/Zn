@@ -80,5 +80,12 @@ namespace Zn
 			Vk::Material* material;
 			glm::mat4 transform;
 		};
+
+		struct GPUCameraData
+		{
+			glm::mat4 view;
+			glm::mat4 projection;
+			glm::mat4 view_projection;
+		};
 	}
 }

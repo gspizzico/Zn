@@ -232,6 +232,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 	AllocatorCreateInfo.device = m_VkDevice;
 	vmaCreateAllocator(&AllocatorCreateInfo, &m_VkAllocator);
 
+	CreateDescriptors();
+
 	/////// Create Swap Chain
 
 	CreateSwapChain();
@@ -396,6 +398,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 		CreateVkObject(m_VkDevice, m_VkRenderSemaphores[Index], SemaphoreCreateInfo, vkCreateSemaphore, vkDestroySemaphore);
 	}
 
+
 	////// ImGui
 	{
 		ImGui_ImplSDL2_InitForVulkan(InWindowHandle);
@@ -488,7 +491,7 @@ void VulkanDevice::Cleanup()
 	DeinitializeDebugMessenger();
 #endif
 
-	CleanupSwapChain();
+	CleanupSwapChain();	
 
 	m_DestroyQueue.Flush();	
 
@@ -501,6 +504,8 @@ void VulkanDevice::Cleanup()
 
 	m_VkFramebuffers.clear();
 	m_VkImageViews.clear();
+
+	vmaDestroyAllocator(m_VkAllocator);
 
 	if (m_VkSurface != VK_NULL_HANDLE)
 	{
@@ -814,6 +819,11 @@ VkBool32 VulkanDevice::OnDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT Sev
 
 	ZN_LOG(LogVulkanValidation, Verbosity, "[%s] %s", MessageType.c_str(), Data->pMessage);
 
+	if (Verbosity >= ELogVerbosity::Error)
+	{
+		__debugbreak();
+	}
+
 	return VK_FALSE;
 }
 
@@ -944,6 +954,71 @@ VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes
 	vkCreateShaderModule(m_VkDevice, &ShaderCreateInfo, nullptr, &OutModule);
 
 	return OutModule;
+}
+
+void Zn::VulkanDevice::CreateDescriptors()
+{
+	VkDescriptorSetLayoutBinding CameraBufferBinding{};
+	CameraBufferBinding.binding = 0;
+	CameraBufferBinding.descriptorCount = 1;
+	CameraBufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	CameraBufferBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	VkDescriptorSetLayoutCreateInfo SetCreateInfo{};
+	SetCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	SetCreateInfo.pNext = nullptr;
+	SetCreateInfo.bindingCount = 1;
+	SetCreateInfo.flags = 0;
+	SetCreateInfo.pBindings = &CameraBufferBinding;
+
+	CreateVkObject(m_VkDevice, m_VkGlobalSetLayout, SetCreateInfo, vkCreateDescriptorSetLayout, vkDestroyDescriptorSetLayout);
+
+	VkDescriptorPoolSize PoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10 };
+
+	VkDescriptorPoolCreateInfo PoolCreateInfo{};
+	PoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	PoolCreateInfo.flags = 0;
+	PoolCreateInfo.maxSets = 10;
+	PoolCreateInfo.poolSizeCount = 1;
+	PoolCreateInfo.pPoolSizes = &PoolSize;
+
+	CreateVkObject(m_VkDevice, m_VkDescriptorPool, PoolCreateInfo, vkCreateDescriptorPool, vkDestroyDescriptorPool);
+
+	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
+	{
+		m_CameraBuffer[Index] = CreateBuffer(sizeof(Vk::GPUCameraData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+
+		m_DestroyQueue.Enqueue([=]()
+		{
+			DestroyBuffer(m_CameraBuffer[Index]);
+		});
+
+		VkDescriptorSetAllocateInfo SetAllocateInfo{};
+		SetAllocateInfo.pNext = nullptr;
+		SetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		SetAllocateInfo.descriptorPool = m_VkDescriptorPool;
+		SetAllocateInfo.descriptorSetCount = 1;
+		SetAllocateInfo.pSetLayouts = &m_VkGlobalSetLayout;
+
+		vkAllocateDescriptorSets(m_VkDevice, &SetAllocateInfo, &m_VkGlobalDescriptorSet[Index]);
+
+		VkDescriptorBufferInfo BufferInfo{};
+		BufferInfo.buffer = m_CameraBuffer[Index].Buffer;
+		BufferInfo.offset = 0;
+		BufferInfo.range = sizeof(Vk::GPUCameraData);
+
+		VkWriteDescriptorSet SetWrite{};
+		SetWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		SetWrite.pNext = nullptr;
+		// We are going to write into binding number 0
+		SetWrite.dstBinding = 0;
+		SetWrite.dstSet = m_VkGlobalDescriptorSet[Index];
+		SetWrite.descriptorCount = 1;
+		SetWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		SetWrite.pBufferInfo = &BufferInfo;
+
+		vkUpdateDescriptorSets(m_VkDevice, 1, &SetWrite, 0, nullptr);
+	}
 }
 
 void Zn::VulkanDevice::CreateSwapChain()
@@ -1156,6 +1231,41 @@ void Zn::VulkanDevice::RecreateSwapChain()
 	CreateFramebuffers();
 }
 
+Vk::AllocatedBuffer Zn::VulkanDevice::CreateBuffer(size_t size, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
+{	
+	VkBufferCreateInfo CreateInfo{};
+	CreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	CreateInfo.pNext = nullptr;
+
+	CreateInfo.size = size;
+	CreateInfo.usage = usage;
+
+	VmaAllocationCreateInfo AllocationInfo{};
+	AllocationInfo.usage = memoryUsage;
+
+	Vk::AllocatedBuffer OutBuffer{};
+
+	ZN_VK_CHECK(vmaCreateBuffer(m_VkAllocator, &CreateInfo, &AllocationInfo, &OutBuffer.Buffer, &OutBuffer.Allocation, nullptr));
+
+	return OutBuffer;
+}
+
+void Zn::VulkanDevice::DestroyBuffer(Vk::AllocatedBuffer buffer)
+{
+	vmaDestroyBuffer(m_VkAllocator, buffer.Buffer, buffer.Allocation);
+}
+
+void Zn::VulkanDevice::CopyToGPU(VmaAllocation allocation, void* src, size_t size)
+{
+	void* dst;
+
+	vmaMapMemory(m_VkAllocator, allocation, &dst);
+
+	memcpy(dst, src, size);
+
+	vmaUnmapMemory(m_VkAllocator, allocation);
+}
+
 Vk::Material* Zn::VulkanDevice::CreateMaterial(VkPipeline InPipeline, VkPipelineLayout InLayout, const String& InName)
 {
 	Vk::Material material{};
@@ -1197,6 +1307,13 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 	glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 200.f);
 	projection[1][1] *= -1;
 
+	Vk::GPUCameraData camera{};
+	camera.projection = projection;
+	camera.view = view;
+	camera.view_projection = projection * view;
+
+	CopyToGPU(m_CameraBuffer[m_CurrentFrame].Allocation, &camera, sizeof(Vk::GPUCameraData));
+
 	Vk::Mesh* last_mesh = nullptr;
 	Vk::Material* last_material = nullptr;
 
@@ -1209,14 +1326,13 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 		{
 			vkCmdBindPipeline(InCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipeline);
 			last_material = object.material;
-		}
 
-		const glm::mat4 model = object.transform;
-		const glm::mat4 mesh_matrix = projection * view * model;
+			vkCmdBindDescriptorSets(InCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->layout, 0, 1, &m_VkGlobalDescriptorSet[m_CurrentFrame], 0, nullptr);
+		}
 
 		Vk::MeshPushConstants constants
 		{
-			.RenderMatrix = mesh_matrix
+			.RenderMatrix = object.transform
 		};
 
 		vkCmdPushConstants(InCommandBuffer, object.material->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Vk::MeshPushConstants), &constants);
@@ -1303,37 +1419,24 @@ void Zn::VulkanDevice::LoadMeshes()
 
 void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 {
-	//allocate vertex buffer
-	VkBufferCreateInfo CreateBufferInfo{};
-	CreateBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	//this is the total size, in bytes, of the buffer we are allocating
-	CreateBufferInfo.size = OutMesh.Vertices.size() * sizeof(Vk::Vertex);
+	const size_t allocationSize = OutMesh.Vertices.size() * sizeof(Vk::Vertex);
+
 	//this buffer is going to be used as a Vertex Buffer
-	CreateBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-
+	VkBufferUsageFlags usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 	//let the VMA library know that this data should be writeable by CPU, but also readable by GPU
-	VmaAllocationCreateInfo AllocationInfo{};
-	AllocationInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-
-	//allocate the buffer
-	ZN_VK_CHECK(vmaCreateBuffer(m_VkAllocator, &CreateBufferInfo, &AllocationInfo,
-			 &OutMesh.Buffer.Buffer,
-			 &OutMesh.Buffer.Allocation,
-			 nullptr));
+	VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+	OutMesh.Buffer = CreateBuffer(allocationSize, usage, memoryUsage);
 
 	//add the destruction of triangle mesh buffer to the deletion queue
 	m_DestroyQueue.Enqueue([=]()
 	{
-		vmaDestroyBuffer(m_VkAllocator, OutMesh.Buffer.Buffer, OutMesh.Buffer.Allocation);
+		DestroyBuffer(OutMesh.Buffer);
 	});
 
 	//copy vertex data
-	void* Data;
-	vmaMapMemory(m_VkAllocator, OutMesh.Buffer.Allocation, &Data);
 
-	memcpy(Data, OutMesh.Vertices.data(), OutMesh.Vertices.size() * sizeof(Vk::Vertex));
-
-	vmaUnmapMemory(m_VkAllocator, OutMesh.Buffer.Allocation);
+	CopyToGPU(OutMesh.Buffer.Allocation, OutMesh.Vertices.data(), OutMesh.Vertices.size() * sizeof(Vk::Vertex));
 }
 
 void Zn::VulkanDevice::CreateMeshPipeline()
@@ -1347,8 +1450,8 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 	if (vertex_success && fragment_success)
 	{
 		VkShaderModule vertex_shader = CreateShaderModule(vertex_shader_data);
-		VkShaderModule fragment_shader = CreateShaderModule(fragment_shader_data);
-
+		VkShaderModule fragment_shader = CreateShaderModule(fragment_shader_data); 
+		
 		if (vertex_shader == VK_NULL_HANDLE)
 		{
 			ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create vertex shader.");
@@ -1372,8 +1475,8 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
 		VkPipelineLayoutCreateInfo layout_create_info{};
 		layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layout_create_info.setLayoutCount = 0; // Optional
-		layout_create_info.pSetLayouts = nullptr; // Optional
+		layout_create_info.setLayoutCount = 1;
+		layout_create_info.pSetLayouts = &m_VkGlobalSetLayout;
 
 		VkPushConstantRange push_constants{};
 		push_constants.offset = 0;

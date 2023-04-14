@@ -72,6 +72,7 @@ namespace Zn
 
 		VkShaderModule CreateShaderModule(const Vector<uint8>& InBytes);
 
+		void CreateDescriptors();
 		void CreateSwapChain();
 		void CreateImageViews();
 		void CreateFramebuffers();
@@ -115,6 +116,10 @@ namespace Zn
 		VkSemaphore m_VkPresentSemaphores[kMaxFramesInFlight], m_VkRenderSemaphores[kMaxFramesInFlight];
 		VkFence m_VkRenderFences[kMaxFramesInFlight];
 
+		VkDescriptorPool m_VkDescriptorPool{ VK_NULL_HANDLE };
+		VkDescriptorSetLayout m_VkGlobalSetLayout{ VK_NULL_HANDLE };
+		VkDescriptorSet m_VkGlobalDescriptorSet[kMaxFramesInFlight];
+
 		VkDescriptorPool m_VkImGuiDescriptorPool{VK_NULL_HANDLE};
 
 		static const Vector<const char*> kValidationLayers;
@@ -139,6 +144,13 @@ namespace Zn
 		DestroyQueue m_DestroyQueue{};
 
 		VmaAllocator m_VkAllocator{VK_NULL_HANDLE};
+
+		Vk::AllocatedBuffer CreateBuffer(size_t size, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);		
+		void DestroyBuffer(Vk::AllocatedBuffer buffer);
+
+		// TODO: Naming might be incorrect
+		template<typename T>
+		void CopyToGPU(VmaAllocation allocation, const T& data);
 
 		// == Depth Buffer ==
 
@@ -170,6 +182,10 @@ namespace Zn
 		glm::vec3 camera_position{ 0.f, 0.f, -10.f };
 		glm::vec3 camera_direction { 0.0f, 0.0f, -1.f };
 		glm::vec3 up_vector{ 0.0f, 1.f, 0.f };
+
+		Vk::AllocatedBuffer m_CameraBuffer[kMaxFramesInFlight];
+
+		// ==================
 
 		void LoadMeshes();
 
