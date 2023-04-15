@@ -112,8 +112,6 @@ namespace Zn
 
 		VkDescriptorPool m_VkImGuiDescriptorPool{VK_NULL_HANDLE};
 
-		static const Vector<const char*> kValidationLayers;
-
 		static const Vector<const char*> kDeviceExtensions;
 
 		class DestroyQueue
