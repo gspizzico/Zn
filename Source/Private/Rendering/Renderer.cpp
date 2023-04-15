@@ -8,6 +8,8 @@
 
 using namespace Zn;
 
+DEFINE_STATIC_LOG_CATEGORY(LogRenderer, ELogVerbosity::Log);
+
 static RendererBackend* GRenderer = nullptr;
 
 bool Zn::Renderer::create(RendererBackendType type)
@@ -56,27 +58,27 @@ void Zn::Renderer::destroy()
 	GRenderer = nullptr;
 }
 
-bool Zn::Renderer::begin_frame()
+
+
+bool Zn::Renderer::render_frame(float deltaTime)
 {
 	_ASSERT(GRenderer);
 
-	Zn::imgui_begin_frame();
+	if (!begin_frame())
+	{
+		ZN_LOG(LogRenderer, ELogVerbosity::Error, "Failed to begin_frame.");
+		return false;
+	}
 
-	return true;
-}
+	if (!GRenderer->render_frame())
+	{
+		ZN_LOG(LogRenderer, ELogVerbosity::Error, "Failed to render_frame.");
+	}
 
-bool Zn::Renderer::render_frame()
-{
-	_ASSERT(GRenderer);
-
-	return GRenderer->render_frame();
-}
-
-bool Zn::Renderer::end_frame()
-{
-	_ASSERT(GRenderer);
-
-	Zn::imgui_end_frame();
+	if (!end_frame())
+	{
+		ZN_LOG(LogRenderer, ELogVerbosity::Error, "Failed to end_frame.");
+	}
 
 	return true;
 }
@@ -107,4 +109,18 @@ void Zn::Renderer::set_camera(Camera camera)
 	_ASSERT(GRenderer);
 
 	GRenderer->set_camera(camera.position, camera.direction);
+}
+
+bool Zn::Renderer::begin_frame()
+{
+	Zn::imgui_begin_frame();
+
+	return true;
+}
+
+bool Zn::Renderer::end_frame()
+{
+	Zn::imgui_end_frame();
+
+	return true;
 }

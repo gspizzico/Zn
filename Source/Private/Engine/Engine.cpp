@@ -74,14 +74,8 @@ void Engine::Start()
 			break;
 		}
 
+		// TEMP - Moving Camera
 		Renderer::set_camera(*m_Camera.get());
-
-		if (!Renderer::begin_frame())
-		{
-			// TODO:
-			m_IsRequestingExit = true;
-			break;
-		}
 
 		Editor& editor = Editor::Get();
 
@@ -101,11 +95,10 @@ void Engine::Start()
 
 		m_IsRequestingExit = editor.IsRequestingExit();
 
-		Renderer::render_frame();
-
-		// Render
-
-		Renderer::end_frame();
+		if (!Renderer::render_frame(m_DeltaTime))
+		{
+			m_IsRequestingExit = true;
+		}
 
 		m_DeltaTime = static_cast<float>(Time::Seconds() - startFrame);
 
@@ -137,6 +130,7 @@ bool Engine::PumpMessages()
 		}
 		else if (event.type >= SDL_KEYDOWN && event.type <= SDL_CONTROLLERSENSORUPDATE)
 		{
+			// TODO: camera is being processed by input ...
 			Input::sdl_process_input(event, m_DeltaTime, *m_Camera.get());
 		}
 	}

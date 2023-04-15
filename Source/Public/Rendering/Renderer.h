@@ -23,11 +23,7 @@ namespace Zn
 		
 		static void destroy();
 
-		static bool begin_frame();
-
-		static bool render_frame();
-
-		static bool end_frame();
+		static bool render_frame(float deltaTime);
 
 		static void on_window_resized();
 		
@@ -38,6 +34,10 @@ namespace Zn
 		static void set_camera(Camera camera);
 
 	private:
+		
+		static bool begin_frame();
+
+		static bool end_frame();
 
 		Renderer() = default;
 	};
