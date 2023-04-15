@@ -121,7 +121,6 @@ namespace
 	}
 }
 
-const Vector<const char*> VulkanDevice::kValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 const Vector<const char*> VulkanDevice::kDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 VulkanDevice::VulkanDevice()
@@ -135,53 +134,6 @@ VulkanDevice::~VulkanDevice()
 
 void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanceHandle, VkSurfaceKHR InVkSurface)
 {
-//	/////// Create VkIntance
-//
-//	VkApplicationInfo ApplicationInfo{};
-//	ApplicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-//	ApplicationInfo.pApplicationName = "Zn";
-//	ApplicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-//	ApplicationInfo.pEngineName = "Zn";
-//	ApplicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-//	ApplicationInfo.apiVersion = VK_API_VERSION_1_0;
-//
-//	VkInstanceCreateInfo CreateInfo{};
-//	CreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-//	CreateInfo.pApplicationInfo = &ApplicationInfo;
-//
-//	const Vector<const char*> RequiredExtensions = GetRequiredVkExtensions(InWindowHandle);
-//
-//	CreateInfo.enabledExtensionCount = static_cast<uint32>(RequiredExtensions.size());
-//	CreateInfo.ppEnabledExtensionNames = RequiredExtensions.data();
-//
-//#if ZN_VK_VALIDATION_LAYERS
-//	// Enable Validation Layers
-//	_ASSERT(SupportsValidationLayers());
-//
-//	CreateInfo.enabledLayerCount = static_cast<uint32>(kValidationLayers.size());
-//	CreateInfo.ppEnabledLayerNames = kValidationLayers.data();
-//
-//	VkDebugUtilsMessengerCreateInfoEXT DebugCreateInfo = GetDebugMessengerCreateInfo();
-//
-//	CreateInfo.pNext = &DebugCreateInfo;
-//#else
-//	CreateInfo.enabledLayerCount = 0;
-//#endif
-//
-//
-//	ZN_VK_CHECK(vkCreateInstance(&CreateInfo, nullptr, &m_VkInstance));
-//
-//#if ZN_VK_VALIDATION_LAYERS
-//	InitializeDebugMessenger();
-//#endif
-//
-//	/////// Create Surface
-//	if (SDL_Vulkan_CreateSurface(InWindowHandle, m_VkInstance, &m_VkSurface) != SDL_TRUE)
-//	{
-//		_ASSERT(false);
-//		return;
-//	}
-
 	m_VkInstance = InVkInstanceHandle;
 	m_VkSurface = InVkSurface;
 
@@ -490,10 +442,6 @@ void VulkanDevice::Cleanup()
 
 	ZN_VK_CHECK(vkDeviceWaitIdle(m_VkDevice));
 
-#if ZN_VK_VALIDATION_LAYERS
-	DeinitializeDebugMessenger();
-#endif
-
 	CleanupSwapChain();	
 
 	m_DestroyQueue.Flush();	
@@ -710,42 +658,6 @@ void Zn::VulkanDevice::OnWindowRestored()
 	m_IsMinimized = false;
 }
 
-bool VulkanDevice::SupportsValidationLayers() const
-{
-	Vector<VkLayerProperties> AvailableLayers = VkEnumerate<VkLayerProperties>(vkEnumerateInstanceLayerProperties);
-
-	return std::any_of(AvailableLayers.begin(), AvailableLayers.end(), [](const VkLayerProperties& It)
-	{
-		for (const auto& LayerName : kValidationLayers)
-		{
-			if (strcmp(It.layerName, LayerName) == 0)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	});
-}
-
-Vector<const char*> VulkanDevice::GetRequiredVkExtensions(SDL_Window* InWindowHandle) const
-{
-	uint32 ExtensionsCount = 0;
-	SDL_Vulkan_GetInstanceExtensions(InWindowHandle, &ExtensionsCount, nullptr);
-	Vector<const char*> ExtensionsNames(ExtensionsCount);
-	SDL_Vulkan_GetInstanceExtensions(InWindowHandle, &ExtensionsCount, ExtensionsNames.data());
-
-#if ZN_VK_VALIDATION_LAYERS
-	static const Vector<const char*> kRequiredExtensions = { VK_EXT_DEBUG_UTILS_EXTENSION_NAME };
-
-	ExtensionsCount += static_cast<uint32>(kRequiredExtensions.size());
-	ExtensionsNames.insert(ExtensionsNames.end(), kRequiredExtensions.begin(), kRequiredExtensions.end());
-#endif
-
-	return ExtensionsNames;
-
-}
-
 bool VulkanDevice::HasRequiredDeviceExtensions(VkPhysicalDevice InDevice) const
 {
 	Vector<VkExtensionProperties> AvailableExtensions = VkEnumerate<VkExtensionProperties>(vkEnumerateDeviceExtensionProperties, InDevice, nullptr);
@@ -759,73 +671,6 @@ bool VulkanDevice::HasRequiredDeviceExtensions(VkPhysicalDevice InDevice) const
 		});
 
 	return kRequiredDeviceExtensions.size() == NumFoundExtensions;
-}
-
-VkDebugUtilsMessengerCreateInfoEXT VulkanDevice::GetDebugMessengerCreateInfo() const
-{
-	VkDebugUtilsMessengerCreateInfoEXT DebugCreateInfo{};
-
-	DebugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-#if ZN_VK_VALIDATION_VERBOSE
-	DebugCreateInfo.messageSeverity = (VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
-#else
-	DebugCreateInfo.messageSeverity = (VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
-#endif
-	DebugCreateInfo.messageType = (VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
-	DebugCreateInfo.pfnUserCallback = OnDebugMessage;
-	DebugCreateInfo.pUserData = nullptr;
-
-	return DebugCreateInfo;
-}
-
-void VulkanDevice::InitializeDebugMessenger()
-{
-	VkDebugUtilsMessengerCreateInfoEXT DebugUtilsInfo = GetDebugMessengerCreateInfo();
-
-	// Load function
-	auto vkCreateDebugUtilsMessengerEXTPtr = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(m_VkInstance, "vkCreateDebugUtilsMessengerEXT");
-	if (vkCreateDebugUtilsMessengerEXTPtr != nullptr)
-	{
-		vkCreateDebugUtilsMessengerEXTPtr(m_VkInstance, &DebugUtilsInfo, nullptr/*Allocator*/, &m_DebugMessenger);
-	}
-	else
-	{
-		ZN_LOG(LogVulkanValidation, ELogVerbosity::Error, "vkCreateDebugUtilsMessengerEXT not available.");
-	}
-}
-
-void VulkanDevice::DeinitializeDebugMessenger()
-{
-	if (m_DebugMessenger != VK_NULL_HANDLE)
-	{
-		// Load function
-		auto vkDestroyDebugUtilsMessengerEXTPtr = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(m_VkInstance, "vkDestroyDebugUtilsMessengerEXT");
-		if (vkDestroyDebugUtilsMessengerEXTPtr != nullptr)
-		{
-			vkDestroyDebugUtilsMessengerEXTPtr(m_VkInstance, m_DebugMessenger, nullptr/*Allocator*/);
-
-			m_DebugMessenger = VK_NULL_HANDLE;
-		}
-	}
-}
-
-VkBool32 VulkanDevice::OnDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT Severity,
-									  VkDebugUtilsMessageTypeFlagsEXT Type,
-									  const VkDebugUtilsMessengerCallbackDataEXT* Data,
-									  void* UserData)
-{
-	ELogVerbosity Verbosity = VkMessageSeverityToZnVerbosity(Severity);
-
-	const String& MessageType = VkMessageTypeToString(static_cast<VkDebugUtilsMessageTypeFlagBitsEXT>(Type));
-
-	ZN_LOG(LogVulkanValidation, Verbosity, "[%s] %s", MessageType.c_str(), Data->pMessage);
-
-	if (Verbosity >= ELogVerbosity::Error)
-	{
-		__debugbreak();
-	}
-
-	return VK_FALSE;
 }
 
 VkPhysicalDevice VulkanDevice::SelectPhysicalDevice(const Vector<VkPhysicalDevice>& InDevices) const

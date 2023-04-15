@@ -48,22 +48,7 @@ namespace Zn
 
 		static constexpr size_t kMaxFramesInFlight = 2;
 
-		bool SupportsValidationLayers() const;
-
-		Vector<const char*> GetRequiredVkExtensions(SDL_Window* InWindowHandle) const;
-
 		bool HasRequiredDeviceExtensions(VkPhysicalDevice InDevice) const;
-
-		VkDebugUtilsMessengerCreateInfoEXT GetDebugMessengerCreateInfo() const;
-
-		void InitializeDebugMessenger();
-
-		void DeinitializeDebugMessenger();
-
-		static VKAPI_ATTR VkBool32 VKAPI_CALL OnDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT Severity, 
-															 VkDebugUtilsMessageTypeFlagsEXT Type,
-															 const VkDebugUtilsMessengerCallbackDataEXT* Data,
-															 void* UserData);
 
 		VkPhysicalDevice SelectPhysicalDevice(const Vector<VkPhysicalDevice>& InDevices) const;
 

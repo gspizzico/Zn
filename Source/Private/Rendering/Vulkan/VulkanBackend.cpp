@@ -15,7 +15,7 @@ using namespace Zn;
 
 static const Zn::Vector<const char*> kRequiredExtensions = { VK_EXT_DEBUG_UTILS_EXTENSION_NAME };
 static const Zn::Vector<const char*> kValidationLayers = { "VK_LAYER_KHRONOS_validation" };
-static const Zn::Vector<const char*> kDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+// static const Zn::Vector<const char*> kDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 #if ZN_VK_VALIDATION_LAYERS
 namespace VulkanValidation
@@ -73,7 +73,7 @@ namespace VulkanValidation
 		}
 	}
 
-	VkBool32 OnDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+	VKAPI_ATTR VkBool32 VKAPI_CALL OnDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
 									  VkDebugUtilsMessageTypeFlagsEXT type,
 									  const VkDebugUtilsMessengerCallbackDataEXT* data,
 									  void* userData)
@@ -215,6 +215,10 @@ void Zn::VulkanBackend::shutdown()
 		vkDestroySurfaceKHR(instance, surface, nullptr);
 		surface = VK_NULL_HANDLE;
 	}
+
+#if ZN_VK_VALIDATION_LAYERS
+	VulkanValidation::DeinitializeDebugMessenger(instance);
+#endif
 
 	if (instance != VK_NULL_HANDLE)
 	{
