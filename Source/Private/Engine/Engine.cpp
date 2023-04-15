@@ -77,28 +77,22 @@ void Engine::Start()
 		// TEMP - Moving Camera
 		Renderer::set_camera(*m_Camera.get());
 
-		Editor& editor = Editor::Get();
+		Automation::AutomationTestManager::Get().Tick(m_DeltaTime);		
 
-		// Pre Update Work
+		auto engine_render = [](float deltaTime)
+		{
+			auto& editor = Editor::Get();
+			editor.PreUpdate(deltaTime);
+			editor.Update(deltaTime);
+			editor.PostUpdate(deltaTime);
+		};
 
-		editor.PreUpdate(m_DeltaTime);
-
-		// Update Work
-
-		editor.Update(m_DeltaTime);
-
-		// Post Update Work
-
-		editor.PostUpdate(m_DeltaTime);
-
-		Automation::AutomationTestManager::Get().Tick(m_DeltaTime);
-
-		m_IsRequestingExit = editor.IsRequestingExit();
-
-		if (!Renderer::render_frame(m_DeltaTime))
+		if (!Renderer::render_frame(m_DeltaTime, engine_render))
 		{
 			m_IsRequestingExit = true;
 		}
+
+		m_IsRequestingExit |= Editor::Get().IsRequestingExit();
 
 		m_DeltaTime = static_cast<float>(Time::Seconds() - startFrame);
 

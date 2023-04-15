@@ -23,7 +23,7 @@ namespace Zn
 		
 		static void destroy();
 
-		static bool render_frame(float deltaTime);
+		static bool render_frame(float deltaTime, std::function<void(float)> render);
 
 		static void on_window_resized();
 		

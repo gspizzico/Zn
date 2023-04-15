@@ -60,7 +60,7 @@ void Zn::Renderer::destroy()
 
 
 
-bool Zn::Renderer::render_frame(float deltaTime)
+bool Zn::Renderer::render_frame(float deltaTime, std::function<void(float)> render)
 {
 	_ASSERT(GRenderer);
 
@@ -68,6 +68,11 @@ bool Zn::Renderer::render_frame(float deltaTime)
 	{
 		ZN_LOG(LogRenderer, ELogVerbosity::Error, "Failed to begin_frame.");
 		return false;
+	}
+
+	if (render)
+	{
+		render(deltaTime);
 	}
 
 	if (!GRenderer->render_frame())
