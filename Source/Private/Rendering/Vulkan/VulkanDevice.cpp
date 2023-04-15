@@ -531,7 +531,7 @@ void VulkanDevice::Cleanup()
 	m_IsInitialized = false;
 }
 
-void VulkanDevice::Draw()
+void Zn::VulkanDevice::BeginFrame()
 {
 	//wait until the GPU has finished rendering the last frame. Timeout of 1 second
 	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame], VK_TRUE, 1000000000));
@@ -542,9 +542,8 @@ void VulkanDevice::Draw()
 	}
 
 	//request image from the swapchain, one second timeout
-	uint32 SwapChainImageIndex;
 	//m_VkPresentSemaphore is set to make sure that we can sync other operations with the swapchain having an image ready to render.
-	VkResult AcquireImageResult = vkAcquireNextImageKHR(m_VkDevice, m_VkSwapChain, 1000000000, m_VkPresentSemaphores[m_CurrentFrame], nullptr/*fence*/, &SwapChainImageIndex);
+	VkResult AcquireImageResult = vkAcquireNextImageKHR(m_VkDevice, m_VkSwapChain, 1000000000, m_VkPresentSemaphores[m_CurrentFrame], nullptr/*fence*/, &m_SwapChainImageIndex);
 
 	if (AcquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
 	{
@@ -561,6 +560,14 @@ void VulkanDevice::Draw()
 
 	//now that we are sure that the commands finished executing, we can safely reset the command buffer to begin recording again.
 	ZN_VK_CHECK(vkResetCommandBuffer(m_VkCommandBuffers[m_CurrentFrame], 0));
+}
+
+void VulkanDevice::Draw()
+{
+	if (m_IsMinimized)
+	{
+		return;
+	}
 
 	// Build ImGui render commands
 	ImGui::Render();
@@ -593,7 +600,7 @@ void VulkanDevice::Draw()
 	RenderPassBeginInfo.renderArea.offset.x = 0;
 	RenderPassBeginInfo.renderArea.offset.y = 0;
 	RenderPassBeginInfo.renderArea.extent = m_VkSwapChainExtent;
-	RenderPassBeginInfo.framebuffer = m_VkFramebuffers[SwapChainImageIndex];
+	RenderPassBeginInfo.framebuffer = m_VkFramebuffers[m_SwapChainImageIndex];
 
 	//	Connect clear values
 	
@@ -617,6 +624,17 @@ void VulkanDevice::Draw()
 	//finalize the command buffer (we can no longer add commands, but it can now be executed)
 	ZN_VK_CHECK(vkEndCommandBuffer(CmdBuffer));
 
+	
+}
+
+void Zn::VulkanDevice::EndFrame()
+{
+	if (m_IsMinimized)
+	{
+		return;
+	}
+
+	auto& CmdBuffer = m_VkCommandBuffers[m_CurrentFrame];
 	////// Submit
 
 	//prepare the submission to the queue.
@@ -646,7 +664,6 @@ void VulkanDevice::Draw()
 	// _renderFence will now block until the graphic commands finish execution
 	ZN_VK_CHECK(vkQueueSubmit(m_VkGraphicsQueue, 1, &SubmitInfo, m_VkRenderFences[m_CurrentFrame]));
 
-
 	////// Present
 
 	// this will put the image we just rendered into the visible window.
@@ -661,7 +678,7 @@ void VulkanDevice::Draw()
 	PresentInfo.pWaitSemaphores = SignalSemaphores;
 	PresentInfo.waitSemaphoreCount = 1;
 
-	PresentInfo.pImageIndices = &SwapChainImageIndex;
+	PresentInfo.pImageIndices = &m_SwapChainImageIndex;
 
 	VkResult QueuePresentResult = vkQueuePresentKHR(m_VkPresentQueue, &PresentInfo);
 

@@ -120,12 +120,16 @@ bool Zn::Renderer::begin_frame()
 {
 	Zn::imgui_begin_frame();
 
+	GRenderer->begin_frame();
+
 	return true;
 }
 
 bool Zn::Renderer::end_frame()
 {
 	Zn::imgui_end_frame();
+
+	GRenderer->end_frame();
 
 	return true;
 }

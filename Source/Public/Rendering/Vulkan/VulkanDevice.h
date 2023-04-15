@@ -30,7 +30,11 @@ namespace Zn
 
 		void Cleanup();
 
+		void BeginFrame();
+
 		void Draw();
+
+		void EndFrame();
 
 		void ResizeWindow();
 
@@ -89,6 +93,8 @@ namespace Zn
 		size_t m_CurrentFrame = 0;
 
 		size_t m_FrameNumber = 0;
+
+		u32 m_SwapChainImageIndex = 0;
 
 		VkInstance m_VkInstance{VK_NULL_HANDLE}; // Vulkan library handle
 		VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands

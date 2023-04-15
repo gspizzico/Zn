@@ -225,7 +225,8 @@ void Zn::VulkanBackend::shutdown()
 
 bool Zn::VulkanBackend::begin_frame()
 {
-	// TODO
+	device->BeginFrame();
+
 	return true;
 }
 
@@ -238,7 +239,8 @@ bool Zn::VulkanBackend::render_frame()
 
 bool Zn::VulkanBackend::end_frame()
 {
-	// TODO
+	device->EndFrame();
+
 	return true;
 }
 
