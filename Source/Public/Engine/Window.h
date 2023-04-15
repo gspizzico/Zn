@@ -8,7 +8,6 @@ namespace Zn
 {
 	class D3D11Device;
 	class VulkanDevice;
-	class ImGuiWrapper;
 
 	class Window
 	{
@@ -18,36 +17,30 @@ namespace Zn
 
 		~Window();
 
-		void PollEvents(float delta_time);
+		bool ProcessEvent(SDL_Event event);
 
-		void NewFrame(float delta_time);
-
-		void EndFrame();
-
-		bool IsRequestingExit() const;
-
+		// bool PumpMessages();
 		// void* GetHandle() const;
+
+		u32 GetSDLWindowID() const { return m_SDLWindowID; }
 
 	private:
 
 		SDL_Window* m_Window{ nullptr };
 		SDL_Surface* m_Canvas{ nullptr };
+		uint32 m_SDLWindowID{ 0 };
 
 		UniquePtr<VulkanDevice> m_VulkanDevice{ nullptr };
-
-		UniquePtr<ImGuiWrapper> m_ImGui{ nullptr };
 
 		uint64 m_FrameNumber{ 0 };
 
 		void* m_NativeHandle{nullptr};
 
-		bool m_IsRequestingExit{ false };
-		bool m_HasPolledEventsThisFrame{ false };
 		bool m_IsMinimized{ false };
 
 		// Handle Input
 
-		void HandleInput(const SDL_Event& InEvent, float delta_time);
+		// void HandleInput(const SDL_Event& InEvent, float delta_time);
 
 		bool m_RightMouseDown = false;
 	};

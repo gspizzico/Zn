@@ -32,8 +32,6 @@ int main(int argc, char* args[])
 
 	Engine engine{};
 
-	engine.Initialize();
-
 	engine.Start();
 
 	engine.Shutdown();

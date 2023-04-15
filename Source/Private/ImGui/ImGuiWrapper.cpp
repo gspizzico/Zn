@@ -14,27 +14,35 @@
 
 using namespace Zn;
 
-bool ImGuiUseZnAllocator()
+namespace
 {
-	return !CommandLine::Get().Param("-noimguialloc");
+	bool imgui_use_zn_allocator()
+	{
+		return !CommandLine::Get().Param("-noimguialloc");
+	}
+
+	void* imgui_alloc(size_t sz, void*)
+	{
+		return Zn::Allocators::New(sz);
+	}
+
+	void imgui_free(void* ptr, void*)
+	{
+		Zn::Allocators::Delete(ptr);
+	}
+
+	bool GImGuiInitialized = false;
 }
 
-void* ImGuiAlloc(size_t sz, void*)
+void Zn::imgui_initialize()
 {
-	return Zn::Allocators::New(sz);
-}
-void ImGuiFree(void* ptr, void*)
-{
-	Zn::Allocators::Delete(ptr);
-}
+	_ASSERT(GImGuiInitialized == false);
 
-void ImGuiWrapper::Initialize()
-{
 	IMGUI_CHECKVERSION();
 
-	if (ImGuiUseZnAllocator())
+	if (imgui_use_zn_allocator())
 	{
-		ImGui::SetAllocatorFunctions(ImGuiAlloc, ImGuiFree);
+		ImGui::SetAllocatorFunctions(imgui_alloc, imgui_free);
 	}
 
 	ImGui::CreateContext();
@@ -61,30 +69,42 @@ void ImGuiWrapper::Initialize()
 	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
 	//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 	//IM_ASSERT(font != NULL);
+
+	GImGuiInitialized = true;
 }
 
-void ImGuiWrapper::ProcessEvent(SDL_Event& event)
+void Zn::imgui_shutdown()
 {
-	ImGui_ImplSDL2_ProcessEvent(&event);
-}
+	_ASSERT(GImGuiInitialized);
 
-void ImGuiWrapper::NewFrame()
-{
-	// Start the Dear ImGui frame
-	ImGui_ImplVulkan_NewFrame();
-	ImGui_ImplSDL2_NewFrame();
-	ImGui::NewFrame();
-
-	//bool show = true;
-	//ImGui::ShowDemoWindow(&show);
-}
-
-void ImGuiWrapper::EndFrame()
-{
-}
-
-void ImGuiWrapper::Shutdown()
-{
+	// TODO: why is this here?
 	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
+}
+
+bool Zn::imgui_process_event(SDL_Event& event)
+{
+	return ImGui_ImplSDL2_ProcessEvent(&event);
+}
+
+bool Zn::imgui_begin_frame()
+{
+	if (GImGuiInitialized)
+	{
+		// Start the Dear ImGui frame
+		ImGui_ImplVulkan_NewFrame();
+		ImGui_ImplSDL2_NewFrame();
+		ImGui::NewFrame();
+	}
+
+	return GImGuiInitialized;
+}
+
+bool Zn::imgui_end_frame()
+{
+	if (GImGuiInitialized)
+	{
+		ImGui::EndFrame();
+	}
+	return GImGuiInitialized;
 }

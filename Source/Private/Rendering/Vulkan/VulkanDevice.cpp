@@ -133,54 +133,57 @@ VulkanDevice::~VulkanDevice()
 	Cleanup();
 }
 
-void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
+void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanceHandle, VkSurfaceKHR InVkSurface)
 {
-	/////// Create VkIntance
+//	/////// Create VkIntance
+//
+//	VkApplicationInfo ApplicationInfo{};
+//	ApplicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+//	ApplicationInfo.pApplicationName = "Zn";
+//	ApplicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+//	ApplicationInfo.pEngineName = "Zn";
+//	ApplicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+//	ApplicationInfo.apiVersion = VK_API_VERSION_1_0;
+//
+//	VkInstanceCreateInfo CreateInfo{};
+//	CreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+//	CreateInfo.pApplicationInfo = &ApplicationInfo;
+//
+//	const Vector<const char*> RequiredExtensions = GetRequiredVkExtensions(InWindowHandle);
+//
+//	CreateInfo.enabledExtensionCount = static_cast<uint32>(RequiredExtensions.size());
+//	CreateInfo.ppEnabledExtensionNames = RequiredExtensions.data();
+//
+//#if ZN_VK_VALIDATION_LAYERS
+//	// Enable Validation Layers
+//	_ASSERT(SupportsValidationLayers());
+//
+//	CreateInfo.enabledLayerCount = static_cast<uint32>(kValidationLayers.size());
+//	CreateInfo.ppEnabledLayerNames = kValidationLayers.data();
+//
+//	VkDebugUtilsMessengerCreateInfoEXT DebugCreateInfo = GetDebugMessengerCreateInfo();
+//
+//	CreateInfo.pNext = &DebugCreateInfo;
+//#else
+//	CreateInfo.enabledLayerCount = 0;
+//#endif
+//
+//
+//	ZN_VK_CHECK(vkCreateInstance(&CreateInfo, nullptr, &m_VkInstance));
+//
+//#if ZN_VK_VALIDATION_LAYERS
+//	InitializeDebugMessenger();
+//#endif
+//
+//	/////// Create Surface
+//	if (SDL_Vulkan_CreateSurface(InWindowHandle, m_VkInstance, &m_VkSurface) != SDL_TRUE)
+//	{
+//		_ASSERT(false);
+//		return;
+//	}
 
-	VkApplicationInfo ApplicationInfo{};
-	ApplicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	ApplicationInfo.pApplicationName = "Zn";
-	ApplicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	ApplicationInfo.pEngineName = "Zn";
-	ApplicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	ApplicationInfo.apiVersion = VK_API_VERSION_1_0;
-
-	VkInstanceCreateInfo CreateInfo{};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	CreateInfo.pApplicationInfo = &ApplicationInfo;
-
-	const Vector<const char*> RequiredExtensions = GetRequiredVkExtensions(InWindowHandle);
-
-	CreateInfo.enabledExtensionCount = static_cast<uint32>(RequiredExtensions.size());
-	CreateInfo.ppEnabledExtensionNames = RequiredExtensions.data();
-
-#if ZN_VK_VALIDATION_LAYERS
-	// Enable Validation Layers
-	_ASSERT(SupportsValidationLayers());
-
-	CreateInfo.enabledLayerCount = static_cast<uint32>(kValidationLayers.size());
-	CreateInfo.ppEnabledLayerNames = kValidationLayers.data();
-
-	VkDebugUtilsMessengerCreateInfoEXT DebugCreateInfo = GetDebugMessengerCreateInfo();
-
-	CreateInfo.pNext = &DebugCreateInfo;
-#else
-	CreateInfo.enabledLayerCount = 0;
-#endif
-
-
-	ZN_VK_CHECK(vkCreateInstance(&CreateInfo, nullptr, &m_VkInstance));
-
-#if ZN_VK_VALIDATION_LAYERS
-	InitializeDebugMessenger();
-#endif
-
-	/////// Create Surface
-	if (SDL_Vulkan_CreateSurface(InWindowHandle, m_VkInstance, &m_VkSurface) != SDL_TRUE)
-	{
-		_ASSERT(false);
-		return;
-	}
+	m_VkInstance = InVkInstanceHandle;
+	m_VkSurface = InVkSurface;
 
 	m_WindowID = SDL_GetWindowID(InWindowHandle);
 
@@ -507,11 +510,11 @@ void VulkanDevice::Cleanup()
 
 	vmaDestroyAllocator(m_VkAllocator);
 
-	if (m_VkSurface != VK_NULL_HANDLE)
-	{
-		vkDestroySurfaceKHR(m_VkInstance, m_VkSurface, nullptr/*allocator*/);
-		m_VkSurface = VK_NULL_HANDLE;
-	}
+	//if (m_VkSurface != VK_NULL_HANDLE)
+	//{
+	//	vkDestroySurfaceKHR(m_VkInstance, m_VkSurface, nullptr/*allocator*/);
+	//	m_VkSurface = VK_NULL_HANDLE;
+	//}
 
 	if (m_VkDevice != VK_NULL_HANDLE)
 	{
@@ -519,11 +522,11 @@ void VulkanDevice::Cleanup()
 		m_VkDevice = VK_NULL_HANDLE;
 	}
 
-	if (m_VkInstance != VK_NULL_HANDLE)
-	{
-		vkDestroyInstance(m_VkInstance, nullptr/*allocator*/);
-		m_VkInstance = VK_NULL_HANDLE;
-	}
+	//if (m_VkInstance != VK_NULL_HANDLE)
+	//{
+	//	vkDestroyInstance(m_VkInstance, nullptr/*allocator*/);
+	//	m_VkInstance = VK_NULL_HANDLE;
+	//}
 
 	m_IsInitialized = false;
 }
@@ -532,6 +535,11 @@ void VulkanDevice::Draw()
 {
 	//wait until the GPU has finished rendering the last frame. Timeout of 1 second
 	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame], VK_TRUE, 1000000000));
+
+	if (m_IsMinimized)
+	{
+		return;
+	}
 
 	//request image from the swapchain, one second timeout
 	uint32 SwapChainImageIndex;
@@ -595,15 +603,14 @@ void VulkanDevice::Draw()
 
 	vkCmdBeginRenderPass(CmdBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	// *** Insert Commands here ***
-
-	if (!m_IsMinimized)
+	// *** Insert Commands here ***	
 	{
 		DrawObjects(CmdBuffer, m_Renderables.data(), m_Renderables.size());
 
 		// Enqueue ImGui commands to CmdBuffer
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CmdBuffer);
 	}
+
 
 	//finalize the render pass
 	vkCmdEndRenderPass(CmdBuffer);
@@ -684,29 +691,6 @@ void Zn::VulkanDevice::OnWindowMinimized()
 void Zn::VulkanDevice::OnWindowRestored()
 {
 	m_IsMinimized = false;
-}
-
-void Zn::VulkanDevice::MoveCamera(glm::vec3 InDirection)
-{
-	glm::vec3 direction = glm::normalize(camera_direction);
-	glm::vec3 right = glm::normalize(glm::cross(direction, up_vector));
-
-	camera_position += (InDirection.z * direction);
-	camera_position += (InDirection.y * up_vector);
-	camera_position += (InDirection.x * right);
-}
-
-void Zn::VulkanDevice::RotateCamera(glm::vec2 InRotation)
-{
-	glm::vec3 direction = glm::normalize(camera_direction);
-	glm::vec3 right = glm::normalize(glm::cross(direction, up_vector));
-	glm::vec3 up = glm::normalize(glm::cross(right, direction));
-
-	glm::mat4 rotation = glm::mat4(1.f);
-	rotation = glm::rotate(rotation, glm::radians(InRotation.y), right);
-	rotation = glm::rotate(rotation, glm::radians(-InRotation.x), up);
-
-	camera_direction = glm::vec3(rotation * glm::vec4(camera_direction, 0.f));
 }
 
 bool VulkanDevice::SupportsValidationLayers() const

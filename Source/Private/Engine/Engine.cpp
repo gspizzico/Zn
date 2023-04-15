@@ -10,12 +10,18 @@
 #include <Engine/Window.h>
 #include <Editor/Editor.h>
 #include <Core/IO/IO.h>
+#include <SDL.h>
+#include <Rendering/Renderer.h>
+#include <ImGui/ImGuiWrapper.h>
+#include <Input/Input.h>
+#include <glm/glm.hpp>
+#include <Engine/Camera.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);
 
 using namespace Zn;
 
-void Engine::Initialize()
+void Engine::Start()
 {
 	IO::Initialize();
 
@@ -30,16 +36,31 @@ void Engine::Initialize()
 
 	// Create Window
 
-	m_Window = std::make_unique<Window>(640, 480, "Zn-Engine");
+	m_Window = std::make_shared<Window>(640, 480, "Zn-Engine");
+
+	// Initialize Renderer
+
+	if (!Renderer::create(RendererBackendType::Vulkan))
+	{
+		ZN_LOG(LogEngine, ELogVerbosity::Error, "Failed to create renderer.");
+		return;
+	}
+
+	if (!Renderer::initialize(Zn::RendererBackendInitData{ m_Window }))
+	{
+		ZN_LOG(LogEngine, ELogVerbosity::Error, "Failed to initialize renderer.");
+		return;
+	}
 
 	ZN_LOG(LogEngine, ELogVerbosity::Log, "Engine initialized.");
 
 	ZN_TRACE_INFO("Zn Engine");
-}
 
-void Engine::Start()
-{
-	//Automation::AutomationTestManager::Get().ExecuteStartupTests();
+	// TEMP - Moving Camera
+
+	m_Camera = std::make_shared<Camera>();
+	m_Camera->position = glm::vec3(0.f, 0.f, -10.f);
+	m_Camera->direction = glm::vec3(0.0f, 0.0f, -1.f);
 
 	while (!m_IsRequestingExit)
 	{
@@ -47,7 +68,20 @@ void Engine::Start()
 
 		double startFrame = Time::Seconds();
 
-		m_Window->NewFrame(m_DeltaTime);
+		if (!PumpMessages())
+		{
+			m_IsRequestingExit = true;
+			break;
+		}
+
+		Renderer::set_camera(*m_Camera.get());
+
+		if (!Renderer::begin_frame())
+		{
+			// TODO:
+			m_IsRequestingExit = true;
+			break;
+		}
 
 		Editor& editor = Editor::Get();
 
@@ -65,11 +99,13 @@ void Engine::Start()
 
 		Automation::AutomationTestManager::Get().Tick(m_DeltaTime);
 
-		m_IsRequestingExit = m_Window->IsRequestingExit() || editor.IsRequestingExit();
+		m_IsRequestingExit = editor.IsRequestingExit();
+
+		Renderer::render_frame();
 
 		// Render
 
-		m_Window->EndFrame();
+		Renderer::end_frame();
 
 		m_DeltaTime = static_cast<float>(Time::Seconds() - startFrame);
 
@@ -80,4 +116,30 @@ void Engine::Start()
 void Engine::Shutdown()
 {
 	SDLWrapper::Shutdown();
+}
+
+bool Engine::PumpMessages()
+{
+	bool bWantsToExit = false;
+	SDL_Event event;
+
+	while (SDL_PollEvent(&event) != 0)
+	{
+		imgui_process_event(event);
+
+		if (event.type == SDL_QUIT)
+		{
+			bWantsToExit = true;
+		}
+		else if (event.type == SDL_WINDOWEVENT)
+		{
+			bWantsToExit |= !m_Window->ProcessEvent(event);
+		}
+		else if (event.type >= SDL_KEYDOWN && event.type <= SDL_CONTROLLERSENSORUPDATE)
+		{
+			Input::sdl_process_input(event, m_DeltaTime, *m_Camera.get());
+		}
+	}
+
+	return !bWantsToExit;
 }

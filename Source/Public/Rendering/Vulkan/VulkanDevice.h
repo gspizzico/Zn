@@ -26,7 +26,7 @@ namespace Zn
 
 		~VulkanDevice();
 
-		void Initialize(SDL_Window* InWindowHandle);
+		void Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanceHandle, VkSurfaceKHR InVkSurface);
 
 		void Cleanup();
 
@@ -38,10 +38,9 @@ namespace Zn
 
 		void OnWindowRestored();
 
-		void MoveCamera(glm::vec3 InDirection);
-		void RotateCamera(glm::vec2 InRotation);
-
 	private:
+
+		friend class VulkanBackend;
 
 		static constexpr size_t kMaxFramesInFlight = 2;
 
