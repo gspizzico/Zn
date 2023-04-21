@@ -247,9 +247,6 @@
     <ClCompile Include="Source\Private\ImGui\ImGuiWrapper.cpp">
       <Filter>Source\Private\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Editor\Editor.cpp">
-      <Filter>Source\Private\Editor</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\StackAllocatorTest.cpp">
       <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
     </ClCompile>
@@ -338,6 +335,7 @@
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanBackend.cpp" />
     <ClCompile Include="Source\Private\Input\Input.cpp" />
     <ClCompile Include="Source\Private\Engine\Camera.cpp" />
+    <ClCompile Include="Source\Private\Engine\EngineFrontend.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -457,9 +455,6 @@
     <ClInclude Include="Source\Public\ImGui\ImGuiWrapper.h">
       <Filter>Source\Public\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Editor\Editor.h">
-      <Filter>Source\Public\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.h">
       <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
     </ClInclude>
@@ -555,6 +550,7 @@
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanUtils.h" />
     <ClInclude Include="Source\Public\Input\Input.h" />
     <ClInclude Include="Source\Public\Engine\Camera.h" />
+    <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\PreLinking.bat">

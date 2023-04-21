@@ -8,7 +8,6 @@
 #include <Core/HAL/SDL/SDLWrapper.h>
 #include <Core/Time/Time.h>
 #include <Engine/Window.h>
-#include <Editor/Editor.h>
 #include <Core/IO/IO.h>
 #include <SDL.h>
 #include <Rendering/Renderer.h>
@@ -16,6 +15,7 @@
 #include <Input/Input.h>
 #include <glm/glm.hpp>
 #include <Engine/Camera.h>
+#include <Engine/EngineFrontend.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);
 
@@ -62,6 +62,8 @@ void Engine::Start()
 	m_Camera->position = glm::vec3(0.f, 0.f, -10.f);
 	m_Camera->direction = glm::vec3(0.0f, 0.0f, -1.f);
 
+	m_FrontEnd = std::make_shared<EngineFrontend>();
+
 	while (!m_IsRequestingExit)
 	{
 		ZN_TRACE_QUICKSCOPE();
@@ -79,12 +81,9 @@ void Engine::Start()
 
 		Automation::AutomationTestManager::Get().Tick(m_DeltaTime);		
 
-		auto engine_render = [](float deltaTime)
+		auto engine_render = [this](float deltaTime)
 		{
-			auto& editor = Editor::Get();
-			editor.PreUpdate(deltaTime);
-			editor.Update(deltaTime);
-			editor.PostUpdate(deltaTime);
+			RenderUI(deltaTime);
 		};
 
 		if (!Renderer::render_frame(m_DeltaTime, engine_render))
@@ -92,7 +91,7 @@ void Engine::Start()
 			m_IsRequestingExit = true;
 		}
 
-		m_IsRequestingExit |= Editor::Get().IsRequestingExit();
+		m_IsRequestingExit |= m_FrontEnd->bIsRequestingExit;
 
 		m_DeltaTime = static_cast<float>(Time::Seconds() - startFrame);
 
@@ -103,6 +102,15 @@ void Engine::Start()
 void Engine::Shutdown()
 {
 	SDLWrapper::Shutdown();
+}
+
+void Engine::RenderUI(float deltaTime)
+{
+	ZN_TRACE_QUICKSCOPE();
+
+	m_FrontEnd->DrawMainMenu();
+
+	m_FrontEnd->DrawAutomationWindow();
 }
 
 bool Engine::PumpMessages()

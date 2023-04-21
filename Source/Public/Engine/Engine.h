@@ -6,6 +6,8 @@ namespace Zn
 {
 	struct Camera;
 
+	class EngineFrontend;
+
 	class Engine
 	{
 	public:
@@ -14,6 +16,9 @@ namespace Zn
 		void Shutdown();
 
 	private:
+
+		// Render editor ImGui 
+		void RenderUI(float deltaTime);
 
 		bool PumpMessages();
 
@@ -24,5 +29,7 @@ namespace Zn
 		SharedPtr<Window> m_Window;
 
 		SharedPtr<Camera> m_Camera;
+
+		SharedPtr<EngineFrontend> m_FrontEnd;
 	};
 }

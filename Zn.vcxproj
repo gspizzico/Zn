@@ -329,8 +329,8 @@
     <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp" />
     <ClCompile Include="Source\Private\Core\Name.cpp" />
     <ClCompile Include="Source\Private\Core\Time\Time.cpp" />
-    <ClCompile Include="Source\Private\Editor\Editor.cpp" />
     <ClCompile Include="Source\Private\Engine\Camera.cpp" />
+    <ClCompile Include="Source\Private\Engine\EngineFrontend.cpp" />
     <ClCompile Include="Source\Private\Engine\Window.cpp" />
     <ClCompile Include="Source\Private\ImGui\ImGuiWrapper.cpp" />
     <ClCompile Include="Source\Private\Input\Input.cpp" />
@@ -373,6 +373,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="Source\Public\Engine\Camera.h" />
+    <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
     <ClInclude Include="Source\Public\Input\Input.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanUtils.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTest.h" />
@@ -415,7 +416,6 @@
     <ClInclude Include="Source\Public\Core\Name.h" />
     <ClInclude Include="Source\Public\Core\Time\Time.h" />
     <ClInclude Include="Source\Public\Core\Trace\Trace.h" />
-    <ClInclude Include="Source\Public\Editor\Editor.h" />
     <ClInclude Include="Source\Public\ImGui\ImGuiWrapper.h" />
     <ClInclude Include="Source\Public\Rendering\D3D11\D3D11.h" />
     <ClInclude Include="Source\Public\Rendering\Renderer.h" />
