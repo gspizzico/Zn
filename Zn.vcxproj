@@ -296,6 +296,7 @@
     <ClCompile Include="imgui\imgui_widgets.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\Private\Application\Application.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTest.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestExample.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp" />
@@ -372,6 +373,7 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="Source\Public\Application\Application.h" />
     <ClInclude Include="Source\Public\Engine\Camera.h" />
     <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
     <ClInclude Include="Source\Public\Input\Input.h" />

@@ -1,4 +1,5 @@
 #include <Znpch.h>
+#include <Application/Application.h>
 #include "Core/Log/OutputDeviceManager.h"
 #include "Core/Name.h"
 #include "Core/Memory/Memory.h"
@@ -15,26 +16,49 @@
 #include <random>
 #include <numeric>
 #include <SDL.h>
+#include <Core/Time/Time.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogMainCpp, ELogVerbosity::Verbose);
 
 using namespace Zn;
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-
 int main(int argc, char* args[])
 {
-	CommandLine& Cmd = CommandLine::Get();
+	// Initialize command line arguments
+	CommandLine::Get().Initialize(args, argc);
 
-	Cmd.Initialize(args, argc);
+	// Initialize Application layer.
+	Application& app = Application::Get();
+	app.Initialize();
 
-	Engine engine{};
+	// Initialize Engine layer.
+	Engine* engine = new Engine();
+	engine->Initialize();
 
-	engine.Start();
+	f64 lastFrameTime = Time::Seconds();
+	f64 currentFrameTime = lastFrameTime;
+	
+	while (!app.WantsToExit())
+	{
+		currentFrameTime = Time::Seconds();
+		
+		f32 deltaTime = static_cast<f32>(currentFrameTime - lastFrameTime);
+		
+		lastFrameTime = currentFrameTime;
 
-	engine.Shutdown();
+		if (!app.ProcessOSEvents(deltaTime))
+		{
+			break;
+		}
+
+		engine->Update(deltaTime);
+	}
+
+	engine->Shutdown();
+
+	delete engine;
+
+	Application::Get().Shutdown();
 
 	return 0;
 }

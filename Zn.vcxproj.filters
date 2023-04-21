@@ -336,6 +336,7 @@
     <ClCompile Include="Source\Private\Input\Input.cpp" />
     <ClCompile Include="Source\Private\Engine\Camera.cpp" />
     <ClCompile Include="Source\Private\Engine\EngineFrontend.cpp" />
+    <ClCompile Include="Source\Private\Application\Application.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -551,6 +552,7 @@
     <ClInclude Include="Source\Public\Input\Input.h" />
     <ClInclude Include="Source\Public\Engine\Camera.h" />
     <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
+    <ClInclude Include="Source\Public\Application\Application.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\PreLinking.bat">

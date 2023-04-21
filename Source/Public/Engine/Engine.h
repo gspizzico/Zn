@@ -11,6 +11,10 @@ namespace Zn
 	class Engine
 	{
 	public:
+
+		void Initialize();
+
+		void Update(float deltaTime);
 		
 		void Start();
 		void Shutdown();
@@ -20,9 +24,9 @@ namespace Zn
 		// Render editor ImGui 
 		void RenderUI(float deltaTime);
 
-		bool PumpMessages();
+		void ProcessInput();
 
-		bool m_IsRequestingExit{ false };
+		bool PumpMessages();
 
 		float m_DeltaTime{ 0.f };
 

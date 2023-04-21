@@ -16,28 +16,15 @@
 #include <glm/glm.hpp>
 #include <Engine/Camera.h>
 #include <Engine/EngineFrontend.h>
+#include <Application/Application.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);
 
 using namespace Zn;
 
-void Engine::Start()
+
+void Engine::Initialize()
 {
-	IO::Initialize();
-
-	OutputDeviceManager::Get().RegisterOutputDevice<WindowsDebugOutput>();
-
-	if (CommandLine::Get().Param("-std"))
-	{
-		OutputDeviceManager::Get().RegisterOutputDevice<StdOutputDevice>();
-	}
-
-	SDLWrapper::Initialize();
-
-	// Create Window
-
-	m_Window = std::make_shared<Window>(640, 480, "Zn-Engine");
-
 	// Initialize Renderer
 
 	if (!Renderer::create(RendererBackendType::Vulkan))
@@ -46,7 +33,7 @@ void Engine::Start()
 		return;
 	}
 
-	if (!Renderer::initialize(Zn::RendererBackendInitData{ m_Window }))
+	if (!Renderer::initialize(Zn::RendererBackendInitData{ Application::Get().GetWindow()}))
 	{
 		ZN_LOG(LogEngine, ELogVerbosity::Error, "Failed to initialize renderer.");
 		return;
@@ -63,45 +50,46 @@ void Engine::Start()
 	m_Camera->direction = glm::vec3(0.0f, 0.0f, -1.f);
 
 	m_FrontEnd = std::make_shared<EngineFrontend>();
+}
 
-	while (!m_IsRequestingExit)
+void Engine::Update(float deltaTime)
+{
+	ZN_TRACE_QUICKSCOPE();
+	
+	m_DeltaTime = deltaTime;
+
+	bool wantsToExit = false;
+
+	ProcessInput();
+
+	// TEMP - Moving Camera
+	Renderer::set_camera(*m_Camera.get());
+
+	Automation::AutomationTestManager::Get().Tick(deltaTime);
+
+	auto engine_render = [=](float dTime)
 	{
-		ZN_TRACE_QUICKSCOPE();
+		RenderUI(dTime);
+	};
 
-		double startFrame = Time::Seconds();
-
-		if (!PumpMessages())
-		{
-			m_IsRequestingExit = true;
-			break;
-		}
-
-		// TEMP - Moving Camera
-		Renderer::set_camera(*m_Camera.get());
-
-		Automation::AutomationTestManager::Get().Tick(m_DeltaTime);		
-
-		auto engine_render = [this](float deltaTime)
-		{
-			RenderUI(deltaTime);
-		};
-
-		if (!Renderer::render_frame(m_DeltaTime, engine_render))
-		{
-			m_IsRequestingExit = true;
-		}
-
-		m_IsRequestingExit |= m_FrontEnd->bIsRequestingExit;
-
-		m_DeltaTime = static_cast<float>(Time::Seconds() - startFrame);
-
-		ZN_END_FRAME();
+	if (!Renderer::render_frame(deltaTime, engine_render))
+	{
+		Application::Get().RequestExit("Error - Rendering has failed.");
 	}
+
+	if (m_FrontEnd->bIsRequestingExit)
+	{
+		Application::Get().RequestExit("User wants to exit.");
+	}
+
+	ZN_END_FRAME();
 }
 
 void Engine::Shutdown()
 {
-	SDLWrapper::Shutdown();
+	m_FrontEnd = nullptr;
+
+	Renderer::destroy();
 }
 
 void Engine::RenderUI(float deltaTime)
@@ -113,29 +101,12 @@ void Engine::RenderUI(float deltaTime)
 	m_FrontEnd->DrawAutomationWindow();
 }
 
-bool Engine::PumpMessages()
+void Engine::ProcessInput()
 {
-	bool bWantsToExit = false;
-	SDL_Event event;
+	SharedPtr<InputState> input = Application::Get().GetInputState();
 
-	while (SDL_PollEvent(&event) != 0)
+	for (const SDL_Event& event : input->events)
 	{
-		imgui_process_event(event);
-
-		if (event.type == SDL_QUIT)
-		{
-			bWantsToExit = true;
-		}
-		else if (event.type == SDL_WINDOWEVENT)
-		{
-			bWantsToExit |= !m_Window->ProcessEvent(event);
-		}
-		else if (event.type >= SDL_KEYDOWN && event.type <= SDL_CONTROLLERSENSORUPDATE)
-		{
-			// TODO: camera is being processed by input ...
-			Input::sdl_process_input(event, m_DeltaTime, *m_Camera.get());
-		}
+		camera_process_input(event, m_DeltaTime, *m_Camera.get());
 	}
-
-	return !bWantsToExit;
 }

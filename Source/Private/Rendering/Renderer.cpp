@@ -11,6 +11,7 @@ using namespace Zn;
 DEFINE_STATIC_LOG_CATEGORY(LogRenderer, ELogVerbosity::Log);
 
 static RendererBackend* GRenderer = nullptr;
+static bool GInitialized = false;
 
 bool Zn::Renderer::create(RendererBackendType type)
 {
@@ -31,7 +32,7 @@ bool Zn::Renderer::create(RendererBackendType type)
 
 bool Zn::Renderer::initialize(RendererBackendInitData data)
 {
-	_ASSERT(GRenderer);
+	_ASSERT(GRenderer && GInitialized == false);
 
 	Zn::imgui_initialize();
 
@@ -42,22 +43,26 @@ bool Zn::Renderer::initialize(RendererBackendInitData data)
 		return false;
 	}
 
+	GInitialized = true;
+
 	return true;
 }
 
 void Zn::Renderer::destroy()
 {
-	_ASSERT(GRenderer);
+	if (GInitialized)
+	{
+		GRenderer->shutdown();
 
-	Zn::imgui_shutdown();
+		Zn::imgui_shutdown();
 
-	GRenderer->shutdown();
+		delete GRenderer;
 
-	delete GRenderer;
+		GRenderer = nullptr;
+	}
 
-	GRenderer = nullptr;
+	GInitialized = false;
 }
-
 
 
 bool Zn::Renderer::render_frame(float deltaTime, std::function<void(float)> render)
@@ -118,6 +123,8 @@ void Zn::Renderer::set_camera(Camera camera)
 
 bool Zn::Renderer::begin_frame()
 {
+	_ASSERT(GInitialized);
+
 	Zn::imgui_begin_frame();
 
 	GRenderer->begin_frame();
@@ -127,6 +134,8 @@ bool Zn::Renderer::begin_frame()
 
 bool Zn::Renderer::end_frame()
 {
+	_ASSERT(GInitialized);
+
 	Zn::imgui_end_frame();
 
 	GRenderer->end_frame();

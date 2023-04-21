@@ -5,12 +5,8 @@
 
 namespace Zn
 {
-	struct Camera;
-
-	class Input
+	struct InputState
 	{
-	public:
-
-		static bool sdl_process_input(SDL_Event& event, float deltaTime, Camera& camera);
+		Vector<SDL_Event> events;
 	};
 }
