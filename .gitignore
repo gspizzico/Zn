@@ -43,6 +43,7 @@
 /Binaries
 /Debug
 .vs
+.vscode
 
 # ZN Libs
 /Libs
