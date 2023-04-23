@@ -251,6 +251,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Public\Core\Event.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imconfig.h" />
