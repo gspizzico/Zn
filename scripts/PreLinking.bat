@@ -12,7 +12,7 @@ goto :ErrorEmpty
 
 :Clean
 echo ====== Running Clean ======
-..\SDL\VisualC\clean.sh
+..\Source\ThirdParty\SDL\VisualC\clean.sh
 echo ====== Clean Completed ======
 
 :Build

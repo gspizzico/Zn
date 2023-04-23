@@ -6,7 +6,7 @@ import filecmp
 
 VS_WHERE = os.path.join(os.getenv("ProgramFiles(x86)"),r"Microsoft Visual Studio\Installer\vswhere.exe")
 
-SDL_RELATIVE_PATH = 'SDL\VisualC'
+SDL_RELATIVE_PATH = 'Source\ThirdParty\SDL\VisualC'
 
 def Execute(cmd):
     popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True, shell=True)

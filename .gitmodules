@@ -1,12 +1,15 @@
 [submodule "tracy"]
-	path = tracy
+	path = Source/ThirdParty/tracy
 	url = https://github.com/wolfpld/tracy
 [submodule "SDL"]
-	path = SDL
+	path = Source/ThirdParty/SDL
 	url = https://github.com/libsdl-org/SDL.git
 [submodule "imgui"]
-	path = imgui
+	path = Source/ThirdParty/imgui
 	url = https://github.com/ocornut/imgui
 [submodule "tinyobjloader"]
-	path = tinyobjloader
+	path = Source/ThirdParty/tinyobjloader
 	url = https://github.com/tinyobjloader/tinyobjloader
+[submodule "Delegate"]
+	path = Source/ThirdParty/Delegate
+	url = https://github.com/bitwizeshift/Delegate
