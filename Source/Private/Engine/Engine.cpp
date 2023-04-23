@@ -12,11 +12,11 @@
 #include <SDL.h>
 #include <Rendering/Renderer.h>
 #include <ImGui/ImGuiWrapper.h>
-#include <Input/Input.h>
 #include <glm/glm.hpp>
 #include <Engine/Camera.h>
 #include <Engine/EngineFrontend.h>
 #include <Application/Application.h>
+#include <Application/ApplicationInput.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);
 

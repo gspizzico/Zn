@@ -333,7 +333,6 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Rendering\Renderer.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanBackend.cpp" />
-    <ClCompile Include="Source\Private\Input\Input.cpp" />
     <ClCompile Include="Source\Private\Engine\Camera.cpp" />
     <ClCompile Include="Source\Private\Engine\EngineFrontend.cpp" />
     <ClCompile Include="Source\Private\Application\Application.cpp" />
@@ -549,10 +548,10 @@
     <ClInclude Include="Source\Public\Rendering\RendererTypes.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\Vulkan.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanUtils.h" />
-    <ClInclude Include="Source\Public\Input\Input.h" />
     <ClInclude Include="Source\Public\Engine\Camera.h" />
     <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
     <ClInclude Include="Source\Public\Application\Application.h" />
+    <ClInclude Include="Source\Public\Application\ApplicationInput.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\PreLinking.bat">

@@ -9,7 +9,7 @@
 #include <Engine/Window.h>
 #include <SDL.h>
 #include <ImGui/ImGuiWrapper.h>
-#include <Input/Input.h>
+#include <Application/ApplicationInput.h>
 
 using namespace Zn;
 
