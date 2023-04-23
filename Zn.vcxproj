@@ -332,7 +332,7 @@
     <ClCompile Include="Source\Private\Core\Time\Time.cpp" />
     <ClCompile Include="Source\Private\Engine\Camera.cpp" />
     <ClCompile Include="Source\Private\Engine\EngineFrontend.cpp" />
-    <ClCompile Include="Source\Private\Engine\Window.cpp" />
+    <ClCompile Include="Source\Private\Application\Window.cpp" />
     <ClCompile Include="Source\Private\ImGui\ImGuiWrapper.cpp" />
     <ClCompile Include="Source\Private\Rendering\D3D11\D3D11.cpp" />
     <ClCompile Include="Source\Private\Rendering\Renderer.cpp" />
@@ -439,7 +439,7 @@
     <ClInclude Include="Source\Public\Windows\WindowsTypes.h" />
     <ClInclude Include="Source\Public\Engine\Engine.h" />
     <ClInclude Include="Source\Public\Core\HAL\SDL\SDLWrapper.h" />
-    <ClInclude Include="Source\Public\Engine\Window.h" />
+    <ClInclude Include="Source\Public\Application\Window.h" />
     <ClInclude Include="Source\Public\Znpch.h" />
   </ItemGroup>
   <ItemGroup>

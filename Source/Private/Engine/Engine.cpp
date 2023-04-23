@@ -7,7 +7,7 @@
 #include <Core/CommandLine.h>
 #include <Core/HAL/SDL/SDLWrapper.h>
 #include <Core/Time/Time.h>
-#include <Engine/Window.h>
+#include <Application/Window.h>
 #include <Core/IO/IO.h>
 #include <SDL.h>
 #include <Rendering/Renderer.h>

@@ -1,12 +1,12 @@
 #pragma once
 #include <Core/HAL/BasicTypes.h>
-#include <Engine/Window.h>
 
 namespace Zn
 {
 	struct Camera;
 
 	class EngineFrontend;
+	class Window;
 
 	class Engine
 	{

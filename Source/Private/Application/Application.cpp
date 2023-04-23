@@ -6,7 +6,7 @@
 #include <Core/Log/StdOutputDevice.h>
 #include <Core/HAL/SDL/SDLWrapper.h>
 #include <Windows/WindowsDebugOutput.h> // #TODO Move to somewhere not platform specific
-#include <Engine/Window.h>
+#include <Application/Window.h>
 #include <SDL.h>
 #include <ImGui/ImGuiWrapper.h>
 #include <Application/ApplicationInput.h>
