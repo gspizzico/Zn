@@ -3,6 +3,9 @@
 #include <string>
 #include <functional>
 #include "Core/Containers/Vector.h"
+//#define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
+#include <delegate.hpp>
+// #undef DELEGATE_NAMESPACE
 
 using int8 = char;
 using int16 = short;
@@ -39,6 +42,9 @@ namespace Zn
 
 	template<typename T>
 	using SharedFromThis = std::enable_shared_from_this<T>;
+
+	template<typename Signature>
+	using TDelegate = DELEGATE_NAMESPACE_INTERNAL::delegate<Signature>;
 
 	enum class ThreadPriority //#TODO move to approriate header
 	{
