@@ -145,7 +145,7 @@ namespace VulkanValidation
 }
 #endif
 
-bool Zn::VulkanRenderer::initialize(RendererBackendInitData data)
+bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 {
 	VkApplicationInfo appCreateInfo{};
 	appCreateInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -156,7 +156,7 @@ bool Zn::VulkanRenderer::initialize(RendererBackendInitData data)
 	appCreateInfo.apiVersion = VK_API_VERSION_1_0;
 
 	// Get the names of the Vulkan instance extensions needed to create a surface with SDL_Vulkan_CreateSurface
-	SDL_Window* window = SDL_GetWindowFromID(data.window->GetSDLWindowID());
+	SDL_Window* window = SDL_GetWindowFromID(params.window->GetSDLWindowID());
 
 	u32 numExtensions = 0;
 	SDL_Vulkan_GetInstanceExtensions(window, &numExtensions, nullptr);

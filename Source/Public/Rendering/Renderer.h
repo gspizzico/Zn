@@ -19,10 +19,10 @@ namespace Zn
 
 		static Renderer& get();
 
-		static bool initialize(RendererBackendType type, RendererBackendInitData data);
+		static bool initialize(RendererBackendType type, RendererInitParams data);
 		static bool destroy();
 
-		virtual bool initialize(RendererBackendInitData data) = 0;
+		virtual bool initialize(RendererInitParams data) = 0;
 		virtual void shutdown() = 0;
 		virtual bool begin_frame() = 0;
 		virtual bool render_frame(float deltaTime, std::function<void(float)> render) = 0;

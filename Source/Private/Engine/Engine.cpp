@@ -27,7 +27,7 @@ void Engine::Initialize()
 {
 	// Initialize Renderer
 
-	if (!Renderer::initialize(RendererBackendType::Vulkan, Zn::RendererBackendInitData{ Application::Get().GetWindow() }))
+	if (!Renderer::initialize(RendererBackendType::Vulkan, Zn::RendererInitParams{ Application::Get().GetWindow() }))
 	{
 		ZN_LOG(LogEngine, ELogVerbosity::Error, "Failed to create renderer.");
 		return;

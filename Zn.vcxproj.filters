@@ -317,6 +317,7 @@
     <ClCompile Include="Source\ThirdParty\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\ThirdParty\tracy\public\TracyClient.cpp" />
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMaterialManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">
@@ -514,6 +515,7 @@
     <ClInclude Include="Source\ThirdParty\imgui\imstb_rectpack.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imstb_truetype.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMaterialManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\PreLinking.bat">

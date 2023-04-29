@@ -4,7 +4,7 @@
 
 namespace Zn
 {
-	struct RendererBackendInitData
+	struct RendererInitParams
 	{
 		SharedPtr<class Window> window;
 	};

@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
 #include <glm/glm.hpp>
+#include <Core/Containers/Map.h>
 
 namespace Zn
 {
@@ -72,6 +73,16 @@ namespace Zn
 		{
 			VkPipeline pipeline;
 			VkPipelineLayout layout;
+
+			VkShaderModule vertex_shader;
+			VkShaderModule fragment_shader;
+
+			// Textures
+			UnorderedMap<String, VkImageView> texture_image_views;
+			UnorderedMap<String, VkSampler> texture_samplers;
+
+			// Material parameters
+			UnorderedMap<String, f32> parameters;
 		};
 
 		struct RenderObject

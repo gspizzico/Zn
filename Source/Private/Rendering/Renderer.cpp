@@ -21,7 +21,7 @@ Renderer& Zn::Renderer::get()
 	return *instance;
 }
 
-bool Zn::Renderer::initialize(RendererBackendType type, RendererBackendInitData data)
+bool Zn::Renderer::initialize(RendererBackendType type, RendererInitParams data)
 {
 	_ASSERT(!instance);
 

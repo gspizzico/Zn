@@ -163,6 +163,7 @@
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMaterialManager.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -252,6 +253,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Event.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMaterialManager.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imconfig.h" />

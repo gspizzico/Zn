@@ -11,7 +11,7 @@ namespace Zn
 	{
 	public:
 
-		virtual bool initialize(RendererBackendInitData data) override;
+		virtual bool initialize(RendererInitParams params) override;
 		virtual void shutdown() override;
 		virtual bool begin_frame() override;
 		virtual bool render_frame(float deltaTime, std::function<void(float)> render) override;

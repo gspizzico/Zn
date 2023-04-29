@@ -3,7 +3,11 @@
 #include <string>
 #include <functional>
 #include "Core/Containers/Vector.h"
+
+// glm
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
 //#define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
 #include <delegate.hpp>
 // #undef DELEGATE_NAMESPACE
@@ -16,6 +20,8 @@ using uint8 = unsigned char;
 using uint16 = unsigned short;
 using uint32 = unsigned int;
 using uint64 = unsigned __int64;
+
+using cstring = const char*;
 
 // Testing alternative format
 

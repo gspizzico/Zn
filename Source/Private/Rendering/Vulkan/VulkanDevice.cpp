@@ -10,6 +10,7 @@
 #include <Core/Memory/Memory.h>
 
 #include <Rendering/Vulkan/VulkanPipeline.h>
+#include <Rendering/Vulkan/VulkanMaterialManager.h>
 
 #include <algorithm>
 
@@ -18,10 +19,6 @@
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_sdl.h>
 
-// glm
-
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
 #define ZN_VK_VALIDATION_LAYERS (ZN_DEBUG)
 
@@ -1002,6 +999,7 @@ void Zn::VulkanDevice::CreateImageViews()
 	//	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
 	VkImageCreateInfo DepthImageCreateInfo = Vk::AllocatedImage::GetImageCreateInfo(m_DepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, DepthImageExtent);
 
+
 	//	Allocate from GPU memory.
 
 	VmaAllocationCreateInfo DepthImageAllocInfo{};
@@ -1112,26 +1110,6 @@ void Zn::VulkanDevice::CopyToGPU(VmaAllocation allocation, void* src, size_t siz
 	vmaUnmapMemory(m_VkAllocator, allocation);
 }
 
-Vk::Material* Zn::VulkanDevice::CreateMaterial(VkPipeline InPipeline, VkPipelineLayout InLayout, const String& InName)
-{
-	Vk::Material material{};
-	material.pipeline = InPipeline;
-	material.layout = InLayout;
-	m_Materials[InName] = std::move(material);
-
-	return &m_Materials[InName];
-}
-
-Vk::Material* Zn::VulkanDevice::GetMaterial(const String& InName)
-{
-	if (auto it = m_Materials.find(InName); it != m_Materials.end())
-	{
-		return &((*it).second);
-	}
-
-	return nullptr;
-}
-
 Vk::Mesh* Zn::VulkanDevice::GetMesh(const String& InName)
 {
 	if (auto it = m_Meshes.find(InName); it != m_Meshes.end())
@@ -1204,7 +1182,7 @@ void Zn::VulkanDevice::CreateScene()
 	Vk::RenderObject monkey
 	{
 		.mesh = GetMesh("monkey"),
-		.material = GetMaterial("default"),
+		.material = VulkanMaterialManager::get().get_material("default"),
 		.transform = glm::mat4(1.0f)
 	};
 
@@ -1220,7 +1198,7 @@ void Zn::VulkanDevice::CreateScene()
 			Vk::RenderObject triangle
 			{	
 				.mesh = GetMesh("triangle"),
-				.material = GetMaterial("default"),
+				.material = VulkanMaterialManager::get().get_material("default"),
 				.transform = translation * scale
 			};
 
@@ -1295,25 +1273,20 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
 	if (vertex_success && fragment_success)
 	{
-		VkShaderModule vertex_shader = CreateShaderModule(vertex_shader_data);
-		VkShaderModule fragment_shader = CreateShaderModule(fragment_shader_data); 
+		Vk::Material* material = VulkanMaterialManager::get().create_material("default");
+
+		material->vertex_shader = CreateShaderModule(vertex_shader_data);
+		material->fragment_shader = CreateShaderModule(fragment_shader_data); 
 		
-		if (vertex_shader == VK_NULL_HANDLE)
+		if (material->vertex_shader == VK_NULL_HANDLE)
 		{
 			ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create vertex shader.");
 		}
 
-		if (fragment_shader == VK_NULL_HANDLE)
+		if (material->fragment_shader == VK_NULL_HANDLE)
 		{
 			ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create fragment shader.");
 		}
-
-		m_DestroyQueue.Enqueue([=]()
-		{
-			VkDestroy(vertex_shader, m_VkDevice, vkDestroyShaderModule);
-			VkDestroy(fragment_shader, m_VkDevice, vkDestroyShaderModule);
-		});
-		
 
 		Vk::VertexInputDescription vertex_description = Vk::Vertex::GetVertexInputDescription();
 
@@ -1333,14 +1306,14 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 		layout_create_info.pPushConstantRanges = &push_constants;
 		layout_create_info.pushConstantRangeCount = 1;
 
-		Vk::Material* material = CreateMaterial(VK_NULL_HANDLE, VK_NULL_HANDLE, "default");
-
 		CreateVkObject(m_VkDevice, material->layout, layout_create_info, vkCreatePipelineLayout, vkDestroyPipelineLayout);
 
-		material->pipeline= VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, vertex_shader, fragment_shader, m_VkSwapChainExtent, material->layout, vertex_description);
+		material->pipeline= VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, material->vertex_shader, material->fragment_shader, m_VkSwapChainExtent, material->layout, vertex_description);
 
 		m_DestroyQueue.Enqueue([=]()
 		{
+			VkDestroy(material->vertex_shader, m_VkDevice, vkDestroyShaderModule);
+			VkDestroy(material->fragment_shader, m_VkDevice, vkDestroyShaderModule);
 			VkDestroy(material->pipeline, m_VkDevice, vkDestroyPipeline);
 		});
 	}

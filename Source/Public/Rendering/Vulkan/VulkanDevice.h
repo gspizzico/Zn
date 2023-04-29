@@ -151,12 +151,9 @@ namespace Zn
 
 		// == Scene Management ==
 
-		Vector<Vk::RenderObject> m_Renderables;
-		UnorderedMap<String, Vk::Material> m_Materials;
+		Vector<Vk::RenderObject> m_Renderables;		
 		UnorderedMap<String, Vk::Mesh> m_Meshes;
-
-		Vk::Material* CreateMaterial(VkPipeline InPipeline, VkPipelineLayout InLayout, const String& InName);
-		Vk::Material* GetMaterial(const String& InName);
+		
 		Vk::Mesh* GetMesh(const String& InName);
 
 		void DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderObject* InFirst, int32 InCount);
