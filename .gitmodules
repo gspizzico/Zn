@@ -13,3 +13,6 @@
 [submodule "Delegate"]
 	path = Source/ThirdParty/Delegate
 	url = https://github.com/bitwizeshift/Delegate
+[submodule "Source/ThirdParty/stb"]
+	path = Source/ThirdParty/stb
+	url = https://github.com/nothings/stb
