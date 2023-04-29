@@ -3,6 +3,7 @@
 #include <string>
 #include <functional>
 #include "Core/Containers/Vector.h"
+#include <glm/glm.hpp>
 //#define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
 #include <delegate.hpp>
 // #undef DELEGATE_NAMESPACE

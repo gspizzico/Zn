@@ -1,12 +1,13 @@
 #include "Znpch.h"
 #include "Rendering/Vulkan/Vulkan.h"
-#include "Rendering/Vulkan/VulkanBackend.h"
+#include "Rendering/Vulkan/VulkanRenderer.h"
 #include "Rendering/Vulkan/VulkanUtils.h"
 #include "Application/Window.h"
 
 #include <Core/Log/LogMacros.h>
 
 #include <algorithm>
+#include <ImGui/ImGuiWrapper.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogVulkan_2, ELogVerbosity::Log);
 DEFINE_STATIC_LOG_CATEGORY(LogVulkanValidation_2, ELogVerbosity::Verbose);
@@ -144,7 +145,7 @@ namespace VulkanValidation
 }
 #endif
 
-bool Zn::VulkanBackend::initialize(RendererBackendInitData data)
+bool Zn::VulkanRenderer::initialize(RendererBackendInitData data)
 {
 	VkApplicationInfo appCreateInfo{};
 	appCreateInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -206,9 +207,16 @@ bool Zn::VulkanBackend::initialize(RendererBackendInitData data)
 	return true;
 }
 
-void Zn::VulkanBackend::shutdown()
+void Zn::VulkanRenderer::shutdown()
 {
+	if (instance == VK_NULL_HANDLE)
+	{
+		return;
+	}	
+
 	device = nullptr;
+
+	Zn::imgui_shutdown();
 
 	if (surface != VK_NULL_HANDLE)
 	{
@@ -227,28 +235,48 @@ void Zn::VulkanBackend::shutdown()
 	}
 }
 
-bool Zn::VulkanBackend::begin_frame()
+bool Zn::VulkanRenderer::begin_frame()
 {
+	Zn::imgui_begin_frame();
+
 	device->BeginFrame();
 
 	return true;
 }
 
-bool Zn::VulkanBackend::render_frame()
+bool Zn::VulkanRenderer::render_frame(float deltaTime, std::function<void(float)> render)
 {
+	if (!begin_frame())
+	{
+		ZN_LOG(LogVulkan_2, ELogVerbosity::Error, "Failed to begin_frame.");
+		return false;
+	}
+
+	if (render)
+	{
+		render(deltaTime);
+	}
+
 	device->Draw();
+
+	if (!end_frame())
+	{
+		ZN_LOG(LogVulkan_2, ELogVerbosity::Error, "Failed to end_frame.");
+	}
 
 	return true;
 }
 
-bool Zn::VulkanBackend::end_frame()
+bool Zn::VulkanRenderer::end_frame()
 {
+	Zn::imgui_end_frame();
+
 	device->EndFrame();
 
 	return true;
 }
 
-void Zn::VulkanBackend::on_window_resized()
+void Zn::VulkanRenderer::on_window_resized()
 {
 	if (device != VK_NULL_HANDLE)
 	{
@@ -256,7 +284,7 @@ void Zn::VulkanBackend::on_window_resized()
 	}
 }
 
-void Zn::VulkanBackend::on_window_minimized()
+void Zn::VulkanRenderer::on_window_minimized()
 {
 	if (device != VK_NULL_HANDLE)
 	{
@@ -264,7 +292,7 @@ void Zn::VulkanBackend::on_window_minimized()
 	}
 }
 
-void Zn::VulkanBackend::on_window_restored()
+void Zn::VulkanRenderer::on_window_restored()
 {
 	if (device != VK_NULL_HANDLE)
 	{
@@ -272,7 +300,7 @@ void Zn::VulkanBackend::on_window_restored()
 	}
 }
 
-void Zn::VulkanBackend::set_camera(glm::vec3 position, glm::vec3 direction)
+void Zn::VulkanRenderer::set_camera(glm::vec3 position, glm::vec3 direction)
 {
 	if (device != VK_NULL_HANDLE)
 	{

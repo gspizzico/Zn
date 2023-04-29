@@ -27,15 +27,9 @@ void Engine::Initialize()
 {
 	// Initialize Renderer
 
-	if (!Renderer::create(RendererBackendType::Vulkan))
+	if (!Renderer::initialize(RendererBackendType::Vulkan, Zn::RendererBackendInitData{ Application::Get().GetWindow() }))
 	{
 		ZN_LOG(LogEngine, ELogVerbosity::Error, "Failed to create renderer.");
-		return;
-	}
-
-	if (!Renderer::initialize(Zn::RendererBackendInitData{ Application::Get().GetWindow()}))
-	{
-		ZN_LOG(LogEngine, ELogVerbosity::Error, "Failed to initialize renderer.");
 		return;
 	}
 
@@ -63,7 +57,7 @@ void Engine::Update(float deltaTime)
 	ProcessInput();
 
 	// TEMP - Moving Camera
-	Renderer::set_camera(*m_Camera.get());
+	Renderer::get().set_camera(m_Camera->position, m_Camera->direction);
 
 	Automation::AutomationTestManager::Get().Tick(deltaTime);
 
@@ -72,7 +66,7 @@ void Engine::Update(float deltaTime)
 		RenderUI(dTime);
 	};
 
-	if (!Renderer::render_frame(deltaTime, engine_render))
+	if (!Renderer::get().render_frame(deltaTime, engine_render))
 	{
 		Application::Get().RequestExit("Error - Rendering has failed.");
 	}

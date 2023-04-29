@@ -56,15 +56,15 @@ bool Zn::Window::ProcessEvent(SDL_Event event)
 		// TODO: Implement as events, so that we remove the strong-reference to Renderer
 		if (event.window.event == SDL_WINDOWEVENT_RESIZED)
 		{
-			Renderer::on_window_resized();
+			Renderer::get().on_window_resized();
 		}
 		else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
 		{
-			Renderer::on_window_minimized();
+			Renderer::get().on_window_minimized();
 		}
 		else if (event.window.event == SDL_WINDOWEVENT_RESTORED)
 		{
-			Renderer::on_window_restored();
+			Renderer::get().on_window_restored();
 		}
 	}
 

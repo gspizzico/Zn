@@ -17,27 +17,32 @@ namespace Zn
 	{
 	public:
 
-		static bool create(RendererBackendType type);
+		static Renderer& get();
 
-		static bool initialize(RendererBackendInitData data);
+		static bool initialize(RendererBackendType type, RendererBackendInitData data);
+		static bool destroy();
+
+		virtual bool initialize(RendererBackendInitData data) = 0;
+		virtual void shutdown() = 0;
+		virtual bool begin_frame() = 0;
+		virtual bool render_frame(float deltaTime, std::function<void(float)> render) = 0;
+		virtual bool end_frame() = 0;
+		virtual void on_window_resized() = 0;
+		virtual void on_window_minimized() = 0;
+		virtual void on_window_restored() = 0;
+		virtual void set_camera(glm::vec3 position, glm::vec3 direction) = 0;
 		
-		static void destroy();
+		// static void destroy();
 
-		static bool render_frame(float deltaTime, std::function<void(float)> render);
+		// static bool render_frame(float deltaTime, std::function<void(float)> render);
 
-		static void on_window_resized();
-		
-		static void on_window_minimized();
-
-		static void on_window_restored();
-
-		static void set_camera(Camera camera);
+		// static void set_camera(Camera camera);
 
 	private:
-		
-		static bool begin_frame();
 
-		static bool end_frame();
+		static UniquePtr<Renderer> instance;
+
+	protected:
 
 		Renderer() = default;
 	};

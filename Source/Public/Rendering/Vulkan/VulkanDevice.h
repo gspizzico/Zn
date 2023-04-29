@@ -44,7 +44,7 @@ namespace Zn
 
 	private:
 
-		friend class VulkanBackend;
+		friend class VulkanRenderer;
 
 		static constexpr size_t kMaxFramesInFlight = 2;
 
