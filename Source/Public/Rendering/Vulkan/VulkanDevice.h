@@ -142,6 +142,7 @@ namespace Zn
 		// == Depth Buffer ==
 
 		VkImageView m_DepthImageView;
+
 		Vk::AllocatedImage m_DepthImage;
 
 		// Format of the depth image.
@@ -177,6 +178,28 @@ namespace Zn
 		void UploadMesh(Vk::Mesh& OutMesh);
 
 		void CreateMeshPipeline();
+
+		// ===================
+
+		// == Texture ==
+
+		Vk::AllocatedImage create_texture(const String& texture);
+		Vk::AllocatedBuffer create_staging_texture(const Vk::RawTexture& inRawTexture);
+		Vk::AllocatedImage create_texture_image(i32 width, i32 height, const Vk::AllocatedBuffer& inStagingTexture);
+		void transition_image_layout(VkImage img, VkFormat fmt, VkImageLayout prevLayout, VkImageLayout newLayout);
+
+		Vector<Vk::AllocatedImage> textures;
+
+		// ===================
+
+		// == Command Buffer ==
+
+		VkCommandBuffer create_single_command_buffer();
+		void end_single_command_buffer(VkCommandBuffer cmdBuffer);
+		void copy_buffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
+		void copy_buffer_to_image(VkBuffer buffer, VkImage img, u32 width, u32 height);
+
+		// ===================
 
 		template<typename TypePtr, typename OwnerType, typename CreateInfoType, typename VkCreateFunction, typename VkDestroyFunction>
 		void CreateVkObject(OwnerType Owner, TypePtr& OutObject, const CreateInfoType& CreateInfo, VkCreateFunction&& Create, VkDestroyFunction&& Destroy);

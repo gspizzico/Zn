@@ -1,6 +1,11 @@
 #include <Znpch.h>
 #include <Rendering/Vulkan/VulkanTypes.h>
 
+// TODO: MOVE AWAY FROM HERE
+#ifndef STB_IMAGE_IMPLEMENTATION
+	#define STB_IMAGE_IMPLEMENTATION
+#endif
+#include <stb_image.h>
 
 using namespace Zn::Vk;
 
@@ -114,4 +119,28 @@ VkImageViewCreateInfo AllocatedImage::GetImageViewCreateInfo(VkFormat InFormat, 
 	CreateInfo.subresourceRange.aspectMask = InAspectFlags;
 
 	return CreateInfo;
+}
+
+bool Zn::Vk::RawTexture::create_texture_image(String path, RawTexture& outTexture)
+{
+	outTexture.data = stbi_load(path.c_str(), &outTexture.width, &outTexture.height, &outTexture.channels, STBI_rgb_alpha);
+
+	const bool success = outTexture.data != nullptr;
+
+	if (success)
+	{
+		outTexture.size = outTexture.width * outTexture.height * 4;
+	}
+
+	return success;
+}
+
+void Zn::Vk::RawTexture::destroy_image(RawTexture& inTexture)
+{
+	if (inTexture.data != nullptr)
+	{
+		stbi_image_free(inTexture.data);
+	}
+
+	memset(&inTexture, 0, sizeof(inTexture));
 }

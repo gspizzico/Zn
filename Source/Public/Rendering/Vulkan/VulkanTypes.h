@@ -3,8 +3,9 @@
 #include <optional>
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
-#include <glm/glm.hpp>
 #include <Core/Containers/Map.h>
+
+
 
 namespace Zn
 {
@@ -38,6 +39,18 @@ namespace Zn
 			static VkImageCreateInfo GetImageCreateInfo(VkFormat InFormat, VkImageUsageFlags InUsageFlags, VkExtent3D InExtent);
 			//	TODO: MOVE AWAY FROM HERE
 			static VkImageViewCreateInfo GetImageViewCreateInfo(VkFormat InFormat, VkImage InImage, VkImageAspectFlagBits InAspectFlags);
+		};
+
+		struct RawTexture
+		{
+			i32 width;
+			i32 height;
+			i32 channels;
+			i32 size;
+			u8* data;
+
+			static bool create_texture_image(String path, RawTexture& outTexture);
+			static void destroy_image(RawTexture& inTexture);
 		};
 
 		struct VertexInputDescription
