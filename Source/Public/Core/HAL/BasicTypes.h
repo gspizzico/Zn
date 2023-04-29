@@ -14,12 +14,12 @@
 
 using int8 = char;
 using int16 = short;
-using int32 = int;
+using int32 = int32_t;
 using int64 = __int64;
 using uint8 = unsigned char;
-using uint16 = unsigned short;
-using uint32 = unsigned int;
-using uint64 = unsigned __int64;
+using uint16 = uint16_t;
+using uint32 = uint32_t;
+using uint64 = uint64_t;
 
 using cstring = const char*;
 
@@ -27,12 +27,12 @@ using cstring = const char*;
 
 using i8 = char;
 using i16 = short;
-using i32 = int;
+using i32 = int32_t;
 using i64 = __int64;
 using u8 = unsigned char;
-using u16 = unsigned short;
-using u32 = unsigned int;
-using u64 = unsigned __int64;
+using u16 = uint16_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
 
 using f32 = float;
 using f64 = double;

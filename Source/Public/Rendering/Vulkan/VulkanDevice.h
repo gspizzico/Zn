@@ -163,11 +163,12 @@ namespace Zn
 		// ==================
 
 		// == Camera ==
-		glm::vec3 camera_position{ 0.f, 0.f, -10.f };
+		glm::vec3 camera_position{ 0.f, 0.f, 0.f };
 		glm::vec3 camera_direction { 0.0f, 0.0f, -1.f };
 		glm::vec3 up_vector{ 0.0f, 1.f, 0.f };
 
 		Vk::AllocatedBuffer m_CameraBuffer[kMaxFramesInFlight];
+		Vk::AllocatedBuffer lighting_buffer[kMaxFramesInFlight];
 
 		// ==================
 

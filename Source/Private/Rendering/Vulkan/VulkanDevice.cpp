@@ -801,18 +801,27 @@ VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes
 
 void Zn::VulkanDevice::CreateDescriptors()
 {
-	VkDescriptorSetLayoutBinding CameraBufferBinding{};
+	VkDescriptorSetLayoutBinding bindings[2];
+
+	VkDescriptorSetLayoutBinding& CameraBufferBinding = bindings[0];
 	CameraBufferBinding.binding = 0;
 	CameraBufferBinding.descriptorCount = 1;
 	CameraBufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	CameraBufferBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
+	// #Lighting
+	VkDescriptorSetLayoutBinding& lightingBufferBinding = bindings[1];
+	lightingBufferBinding.binding = 1;
+	lightingBufferBinding.descriptorCount = 1;
+	lightingBufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	lightingBufferBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
 	VkDescriptorSetLayoutCreateInfo SetCreateInfo{};
 	SetCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	SetCreateInfo.pNext = nullptr;
-	SetCreateInfo.bindingCount = 1;
+	SetCreateInfo.bindingCount = 2;
 	SetCreateInfo.flags = 0;
-	SetCreateInfo.pBindings = &CameraBufferBinding;
+	SetCreateInfo.pBindings = &bindings[0];
 
 	CreateVkObject(m_VkDevice, m_VkGlobalSetLayout, SetCreateInfo, vkCreateDescriptorSetLayout, vkDestroyDescriptorSetLayout);
 
@@ -834,6 +843,15 @@ void Zn::VulkanDevice::CreateDescriptors()
 		m_DestroyQueue.Enqueue([=]()
 		{
 			DestroyBuffer(m_CameraBuffer[Index]);
+		});		
+
+		// Lighting
+
+		lighting_buffer[Index] = CreateBuffer(sizeof(Vk::LightingUniforms), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+
+		m_DestroyQueue.Enqueue([=]()
+		{
+			DestroyBuffer(lighting_buffer[Index]);
 		});
 
 		VkDescriptorSetAllocateInfo SetAllocateInfo{};
@@ -845,22 +863,45 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 		vkAllocateDescriptorSets(m_VkDevice, &SetAllocateInfo, &m_VkGlobalDescriptorSet[Index]);
 
-		VkDescriptorBufferInfo BufferInfo{};
-		BufferInfo.buffer = m_CameraBuffer[Index].Buffer;
-		BufferInfo.offset = 0;
-		BufferInfo.range = sizeof(Vk::GPUCameraData);
+		VkDescriptorBufferInfo bufferInfo[2];
 
-		VkWriteDescriptorSet SetWrite{};
-		SetWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		SetWrite.pNext = nullptr;
+		VkDescriptorBufferInfo& cameraBufferInfo = bufferInfo[0];
+		cameraBufferInfo.buffer = m_CameraBuffer[Index].Buffer;
+		cameraBufferInfo.offset = 0;
+		cameraBufferInfo.range = sizeof(Vk::GPUCameraData);
+
+		VkDescriptorBufferInfo& lightingBufferInfo = bufferInfo[1];
+		lightingBufferInfo.buffer = lighting_buffer[Index].Buffer;
+		lightingBufferInfo.offset = 0;
+		lightingBufferInfo.range = sizeof(Vk::LightingUniforms);
+
+		VkWriteDescriptorSet descriptorWrites[2];
+
+		VkWriteDescriptorSet& cameraWrite = descriptorWrites[0];
+
+		cameraWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		cameraWrite.pNext = nullptr;
 		// We are going to write into binding number 0
-		SetWrite.dstBinding = 0;
-		SetWrite.dstSet = m_VkGlobalDescriptorSet[Index];
-		SetWrite.descriptorCount = 1;
-		SetWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		SetWrite.pBufferInfo = &BufferInfo;
+		cameraWrite.dstBinding = 0;
+		cameraWrite.dstSet = m_VkGlobalDescriptorSet[Index];
+		cameraWrite.descriptorCount = 1;
+		cameraWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		cameraWrite.pBufferInfo = &bufferInfo[0];
+		cameraWrite.dstArrayElement = 0;
 
-		vkUpdateDescriptorSets(m_VkDevice, 1, &SetWrite, 0, nullptr);
+		VkWriteDescriptorSet& lightingWrite = descriptorWrites[1];
+
+		lightingWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		lightingWrite.pNext = nullptr;
+		// We are going to write into binding number 1
+		lightingWrite.dstBinding = 1;
+		lightingWrite.dstSet = m_VkGlobalDescriptorSet[Index];
+		lightingWrite.descriptorCount = 1;
+		lightingWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		lightingWrite.pBufferInfo = &bufferInfo[1];
+		lightingWrite.dstArrayElement = 0;
+
+		vkUpdateDescriptorSets(m_VkDevice, 2, &descriptorWrites[0], 0, nullptr);
 	}
 }
 
@@ -1086,6 +1127,7 @@ Vk::AllocatedBuffer Zn::VulkanDevice::CreateBuffer(size_t size, VkBufferUsageFla
 
 	VmaAllocationCreateInfo AllocationInfo{};
 	AllocationInfo.usage = memoryUsage;
+	AllocationInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
 	Vk::AllocatedBuffer OutBuffer{};
 
@@ -1137,6 +1179,17 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 	camera.view_projection = projection * view;
 
 	CopyToGPU(m_CameraBuffer[m_CurrentFrame].Allocation, &camera, sizeof(Vk::GPUCameraData));
+
+	Vk::LightingUniforms lighting{};
+	lighting.directional_lights[0].direction = glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
+	lighting.directional_lights[0].color = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
+	lighting.directional_lights[0].intensity = 1.f;
+	lighting.ambient_light.color = glm::vec4(0.f, 0.2f, 1.f, 0.f);
+	lighting.ambient_light.intensity = 0.15f;
+	lighting.num_directional_lights = 1;
+	lighting.num_point_lights = 0;
+
+	CopyToGPU(lighting_buffer[m_CurrentFrame].Allocation, &lighting, sizeof(Vk::LightingUniforms));
 
 	Vk::Mesh* last_mesh = nullptr;
 	Vk::Material* last_material = nullptr;
@@ -1193,13 +1246,14 @@ void Zn::VulkanDevice::CreateScene()
 		for (int32 y = -20; y <= 20; ++y)
 		{
 			glm::mat4 translation = glm::translate(glm::mat4{ 1.0f }, glm::vec3(x, 0, y));
+			glm::mat4 rotate = glm::rotate(glm::mat4{ 1.0f }, glm::radians(25.f), glm::vec3(1.0f, 0.0f, 0.f));
 			glm::mat4 scale = glm::scale(glm::mat4{ 1.0f }, glm::vec3(0.2f));
 
 			Vk::RenderObject triangle
 			{	
 				.mesh = GetMesh("triangle"),
 				.material = VulkanMaterialManager::get().get_material("default"),
-				.transform = translation * scale
+				.transform = translation * rotate * scale
 			};
 
 			m_Renderables.push_back(triangle);
@@ -1222,9 +1276,9 @@ void Zn::VulkanDevice::LoadMeshes()
 	triangle.Vertices[1].Color = { 0.0f, 1.0f, 0.0f };
 	triangle.Vertices[2].Color = { 0.0f, 0.0f, 1.0f };
 
-	triangle.Vertices[0].Normal = glm::vec3(0.0f);
-	triangle.Vertices[1].Normal = glm::vec3(0.0f);
-	triangle.Vertices[2].Normal = glm::vec3(0.0f);
+	triangle.Vertices[0].Normal = glm::vec3(1.0f);
+	triangle.Vertices[1].Normal = glm::vec3(1.0f);
+	triangle.Vertices[2].Normal = glm::vec3(1.0f);
 
 	//we don't care about the vertex normals
 
