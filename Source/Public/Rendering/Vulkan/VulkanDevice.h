@@ -184,10 +184,10 @@ namespace Zn
 
 		// == Texture ==
 
-		Vk::AllocatedImage create_texture(const String& texture);
+		Vk::AllocatedImage CreateTexture(const String& texture);
 		Vk::AllocatedBuffer create_staging_texture(const Vk::RawTexture& inRawTexture);
-		Vk::AllocatedImage create_texture_image(i32 width, i32 height, const Vk::AllocatedBuffer& inStagingTexture);
-		void transition_image_layout(VkImage img, VkFormat fmt, VkImageLayout prevLayout, VkImageLayout newLayout);
+		Vk::AllocatedImage CreateTextureImage(u32 width, u32 height, const Vk::AllocatedBuffer& inStagingTexture);
+		void TransitionImageLayout(VkCommandBuffer cmd, VkImage img, VkFormat fmt, VkImageLayout prevLayout, VkImageLayout newLayout);
 
 		Vector<Vk::AllocatedImage> textures;
 
@@ -209,8 +209,8 @@ namespace Zn
 		
 		void ImmediateSubmit(std::function<void(VkCommandBuffer)>&& function);
 
-		void copy_buffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
-		void copy_buffer_to_image(VkBuffer buffer, VkImage img, u32 width, u32 height);
+		void CopyBuffer(VkCommandBuffer cmd, VkBuffer src, VkBuffer dst, VkDeviceSize size);
+		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage img, u32 width, u32 height);
 
 		// ===================
 

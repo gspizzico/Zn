@@ -121,7 +121,7 @@ VkImageViewCreateInfo AllocatedImage::GetImageViewCreateInfo(VkFormat InFormat, 
 	return CreateInfo;
 }
 
-bool Zn::Vk::RawTexture::create_texture_image(String path, RawTexture& outTexture)
+bool Zn::Vk::RawTexture::LoadFromFile(String path, RawTexture& outTexture)
 {
 	outTexture.data = stbi_load(path.c_str(), &outTexture.width, &outTexture.height, &outTexture.channels, STBI_rgb_alpha);
 
@@ -135,7 +135,7 @@ bool Zn::Vk::RawTexture::create_texture_image(String path, RawTexture& outTextur
 	return success;
 }
 
-void Zn::Vk::RawTexture::destroy_image(RawTexture& inTexture)
+void Zn::Vk::RawTexture::Unload(RawTexture& inTexture)
 {
 	if (inTexture.data != nullptr)
 	{

@@ -49,8 +49,8 @@ namespace Zn
 			i32 size;
 			u8* data;
 
-			static bool create_texture_image(String path, RawTexture& outTexture);
-			static void destroy_image(RawTexture& inTexture);
+			static bool LoadFromFile(String path, RawTexture& outTexture);
+			static void Unload(RawTexture& inTexture);
 		};
 
 		struct VertexInputDescription

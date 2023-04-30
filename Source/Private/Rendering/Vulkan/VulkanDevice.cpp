@@ -448,7 +448,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanc
 	LoadMeshes();
 
 	{
-		auto test_texture = create_texture(IO::GetAbsolutePath("assets/texture.jpg"));
+		auto test_texture = CreateTexture(IO::GetAbsolutePath("assets/texture.jpg"));
 		textures.push_back(std::move(test_texture));
 	}
 
@@ -1336,23 +1336,31 @@ void Zn::VulkanDevice::LoadMeshes()
 void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 {
 	//this is the total size, in bytes, of the buffer we are allocating
-	const size_t allocationSize = OutMesh.Vertices.size() * sizeof(Vk::Vertex);
+	const u64 allocationSize = OutMesh.Vertices.size() * sizeof(Vk::Vertex);
 
-	//this buffer is going to be used as a Vertex Buffer
-	VkBufferUsageFlags usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	//let the VMA library know that this data should be writeable by CPU, but also readable by GPU
-	VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-	OutMesh.Buffer = CreateBuffer(allocationSize, usage, memoryUsage);
+	const VkBufferUsageFlags stagingUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	const VmaMemoryUsage stagingMemoryUsage = VMA_MEMORY_USAGE_CPU_ONLY;
 
-	//add the destruction of triangle mesh buffer to the deletion queue
+	Vk::AllocatedBuffer stagingBuffer = CreateBuffer(allocationSize, stagingUsage, stagingMemoryUsage);
+
+	CopyToGPU(stagingBuffer.Allocation, OutMesh.Vertices.data(), allocationSize);
+	
+	const VkBufferUsageFlags meshUsage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	const VmaMemoryUsage meshMemoryUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+	OutMesh.Buffer = CreateBuffer(allocationSize, meshUsage, meshMemoryUsage);
+
+	ImmediateSubmit([=](VkCommandBuffer cmd)
+	{
+		CopyBuffer(cmd, stagingBuffer.Buffer, OutMesh.Buffer.Buffer, allocationSize);
+	});
+
+	DestroyBuffer(stagingBuffer);
+
 	m_DestroyQueue.Enqueue([=]()
 	{
 		DestroyBuffer(OutMesh.Buffer);
 	});
-
-	//copy vertex data
-
-	CopyToGPU(OutMesh.Buffer.Allocation, OutMesh.Vertices.data(), OutMesh.Vertices.size() * sizeof(Vk::Vertex));
 }
 
 void Zn::VulkanDevice::CreateMeshPipeline()
@@ -1411,53 +1419,45 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 	}
 }
 
-Vk::AllocatedImage Zn::VulkanDevice::create_texture(const String& texture)
+Vk::AllocatedImage Zn::VulkanDevice::CreateTexture(const String& texture)
 {
-	struct Deleter
+	u32 textureWidth = 0;
+	u32 textureHeight = 0;
+	u32 textureSize = 0;
+
+	Vk::AllocatedBuffer stagingBuffer{};
+
 	{
-		Deleter(Vk::RawTexture& inTarget)
-			: target(inTarget)
+		Vk::RawTexture rawTexture{};
+
+		if (!Vk::RawTexture::LoadFromFile(texture, rawTexture))
 		{
+			ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Failed to load texture %s", texture.c_str());
+
+			return Vk::AllocatedImage{};
 		}
 
-		~Deleter()
-		{
-			if (target.data != nullptr)
-			{
-				Vk::RawTexture::destroy_image(target);
-			}
-		}
-		Vk::RawTexture& target;
-	};
+		textureWidth = static_cast<u32>(rawTexture.width);
+		textureHeight = static_cast<u32>(rawTexture.height);
+		textureSize = static_cast<u32>(rawTexture.size);
 
-	Vk::RawTexture rawTexture{};
-	if (!Vk::RawTexture::create_texture_image(texture, rawTexture))
-	{
-		ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Failed to create texture %s", texture.c_str());
+		stagingBuffer = CreateBuffer(textureSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
 
-		return Vk::AllocatedImage{};
+		CopyToGPU(stagingBuffer.Allocation, rawTexture.data, rawTexture.size);
+
+		Vk::RawTexture::Unload(rawTexture);
 	}
 
-	auto scopedDeleter = Deleter(rawTexture);
+	Vk::AllocatedImage outResult = CreateTextureImage(textureWidth, textureHeight, stagingBuffer);
 
-	Vk::AllocatedBuffer stagingTexture = create_staging_texture(rawTexture);
-
-	if (stagingTexture.Buffer == VK_NULL_HANDLE)
+	ImmediateSubmit([=](VkCommandBuffer cmd)
 	{
-		ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create stagin buffer for texture %s", texture.c_str());
+		TransitionImageLayout(cmd, outResult.Image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		CopyBufferToImage(cmd, stagingBuffer.Buffer, outResult.Image, textureWidth, textureHeight);
+		TransitionImageLayout(cmd, outResult.Image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	});
 
-		return Vk::AllocatedImage{};
-	}
-
-	auto outResult = create_texture_image(rawTexture.width, rawTexture.height, stagingTexture);
-
-	transition_image_layout(outResult.Image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-	copy_buffer_to_image(stagingTexture.Buffer, outResult.Image, rawTexture.width, rawTexture.height);
-
-	transition_image_layout(outResult.Image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-	DestroyBuffer(stagingTexture);
+	DestroyBuffer(stagingBuffer);
 
 	return outResult;
 }
@@ -1468,7 +1468,7 @@ Vk::AllocatedBuffer Zn::VulkanDevice::create_staging_texture(const Vk::RawTextur
 	{
 		VkBufferUsageFlags texture_usage_flags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
-		Vk::AllocatedBuffer buffer = CreateBuffer(inRawTexture.size, texture_usage_flags, VMA_MEMORY_USAGE_CPU_TO_GPU);
+		Vk::AllocatedBuffer buffer = CreateBuffer(inRawTexture.size, texture_usage_flags, VMA_MEMORY_USAGE_CPU_ONLY);
 
 		CopyToGPU(buffer.Allocation, inRawTexture.data, inRawTexture.size);
 
@@ -1478,14 +1478,19 @@ Vk::AllocatedBuffer Zn::VulkanDevice::create_staging_texture(const Vk::RawTextur
 	return Vk::AllocatedBuffer{};
 }
 
-Vk::AllocatedImage Zn::VulkanDevice::create_texture_image(i32 width, i32 height, const Vk::AllocatedBuffer& inStagingTexture)
+Vk::AllocatedImage Zn::VulkanDevice::CreateTextureImage(u32 width, u32 height, const Vk::AllocatedBuffer& inStagingTexture)
 {
 	Vk::AllocatedImage outImage{};
 
 	VkImageCreateInfo createInfo = Vk::AllocatedImage::GetImageCreateInfo(
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-		VkExtent3D{ static_cast<u32>(width), static_cast<u32>(height), 1 });
+		VkExtent3D
+		{ 
+			width, 
+			height,
+			1 
+		});
 
 	createInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -1505,59 +1510,56 @@ Vk::AllocatedImage Zn::VulkanDevice::create_texture_image(i32 width, i32 height,
 	return outImage;
 }
 
-void Zn::VulkanDevice::transition_image_layout(VkImage img, VkFormat fmt, VkImageLayout prevLayout, VkImageLayout newLayout)
+void Zn::VulkanDevice::TransitionImageLayout(VkCommandBuffer cmd, VkImage img, VkFormat fmt, VkImageLayout prevLayout, VkImageLayout newLayout)
 {
-	ImmediateSubmit([=](VkCommandBuffer cmd)
+	VkImageMemoryBarrier barrier{};
+
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.oldLayout = prevLayout;
+	barrier.newLayout = newLayout;
+
+	// If you are using the barrier to transfer queue family ownership, then these two fields should be the indices of the queue families.
+	// They must be set to VK_QUEUE_FAMILY_IGNORED if you don't want to do this (not the default value!).
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+	barrier.image = img;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+
+	VkPipelineStageFlags srcStage{};
+	VkPipelineStageFlags dstStage{};
+
+	if (prevLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 	{
-		VkImageMemoryBarrier barrier{};
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = prevLayout;
-		barrier.newLayout = newLayout;
+		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (prevLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-		// If you are using the barrier to transfer queue family ownership, then these two fields should be the indices of the queue families.
-		// They must be set to VK_QUEUE_FAMILY_IGNORED if you don't want to do this (not the default value!).
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else
+	{
+		_ASSERT(false); // Unsupported Transition
+	}
 
-		barrier.image = img;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-
-		VkPipelineStageFlags srcStage{};
-		VkPipelineStageFlags dstStage{};
-
-		if (prevLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-		{
-			barrier.srcAccessMask = 0;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		}
-		else if (prevLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		{
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-			srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-			dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		}
-		else
-		{
-			_ASSERT(false); // Unsupported Transition
-		}
-
-		vkCmdPipelineBarrier(cmd,
-							 srcStage, dstStage,
-							 0,
-							 0, nullptr,
-							 0, nullptr,
-							 1, &barrier);
-	});
+	vkCmdPipelineBarrier(cmd,
+						 srcStage, dstStage,
+						 0,
+						 0, nullptr,
+						 0, nullptr,
+						 1, &barrier);
 }
 
 VkCommandBufferBeginInfo Zn::VulkanDevice::CreateCmdBufferBeginInfo(VkCommandBufferUsageFlags flags)
@@ -1614,41 +1616,33 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(VkCommandBuffer)>&& fu
 	ZN_VK_CHECK(vkResetCommandPool(m_VkDevice, uploadContext.cmdPool, 0));
 }
 
-void Zn::VulkanDevice::copy_buffer(VkBuffer src, VkBuffer dst, VkDeviceSize size)
+void Zn::VulkanDevice::CopyBuffer(VkCommandBuffer cmd, VkBuffer src, VkBuffer dst, VkDeviceSize size)
 {
-	ImmediateSubmit(
-		[=](VkCommandBuffer cmd)
-	{
-		VkBufferCopy region{};
-		region.size = size;
-		vkCmdCopyBuffer(cmd, src, dst, 1, &region);
-	});
+	VkBufferCopy region{};
+	region.size = size;
+	vkCmdCopyBuffer(cmd, src, dst, 1, &region);
 }
 
-void Zn::VulkanDevice::copy_buffer_to_image(VkBuffer buffer, VkImage img, u32 width, u32 height)
+void Zn::VulkanDevice::CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage img, u32 width, u32 height)
 {
-	ImmediateSubmit(
-		[=](VkCommandBuffer cmd)
-	{
-		VkBufferImageCopy region{};
-		region.bufferOffset = 0;
-		region.bufferRowLength = 0;
-		region.bufferImageHeight = 0;
+	VkBufferImageCopy region{};
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
 
-		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		region.imageSubresource.mipLevel = 0;
-		region.imageSubresource.baseArrayLayer = 0;
-		region.imageSubresource.layerCount = 1;
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
 
-		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = {
-			width,
-			height,
-			1
-		};
+	region.imageOffset = { 0, 0, 0 };
+	region.imageExtent = {
+		width,
+		height,
+		1
+	};
 
-		vkCmdCopyBufferToImage(cmd, buffer, img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-	});
+	vkCmdCopyBufferToImage(cmd, buffer, img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 }
 
 VulkanDevice::DestroyQueue::~DestroyQueue()
