@@ -220,6 +220,30 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanc
 		ZN_VK_CHECK(vkAllocateCommandBuffers(m_VkDevice, &GfxCmdBufferCreateInfo, &m_VkCommandBuffers[Index]));
 	}
 
+	// Upload Context
+
+	VkCommandPoolCreateInfo uploadCmdPoolCreateInfo{};
+	uploadCmdPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	uploadCmdPoolCreateInfo.queueFamilyIndex = Indices.Graphics.value();
+	uploadCmdPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+	CreateVkObject(m_VkDevice, uploadContext.cmdPool, uploadCmdPoolCreateInfo, vkCreateCommandPool, vkDestroyCommandPool);
+
+	VkCommandBufferAllocateInfo uploadCmdBufferCreateInfo{};
+	uploadCmdBufferCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	
+	uploadCmdBufferCreateInfo.commandPool = uploadContext.cmdPool;
+	uploadCmdBufferCreateInfo.commandBufferCount = 1;
+	uploadCmdBufferCreateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+	ZN_VK_CHECK(vkAllocateCommandBuffers(m_VkDevice, &uploadCmdBufferCreateInfo, &uploadContext.cmdBuffer));
+
+	VkFenceCreateInfo uploadFenceCreateInfo{};
+	uploadFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	uploadFenceCreateInfo.flags = 0;
+	CreateVkObject(m_VkDevice, uploadContext.fence, uploadFenceCreateInfo, vkCreateFence, vkDestroyFence);
+
+
 	////// Render Pass
 
 	//	Color Attachment
@@ -429,7 +453,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanc
 	}
 
 	CreateMeshPipeline();
-
+	 
 	CreateScene();
 
 	m_IsInitialized = true;
@@ -462,6 +486,8 @@ void VulkanDevice::Cleanup()
 		m_VkCommandBuffers[Index] = VK_NULL_HANDLE;
 	}
 
+	uploadContext.cmdBuffer = VK_NULL_HANDLE;
+
 	m_VkFramebuffers.clear();
 	m_VkImageViews.clear();
 
@@ -491,7 +517,7 @@ void VulkanDevice::Cleanup()
 void Zn::VulkanDevice::BeginFrame()
 {
 	//wait until the GPU has finished rendering the last frame. Timeout of 1 second
-	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame], VK_TRUE, 1000000000));
+	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &m_VkRenderFences[m_CurrentFrame], VK_TRUE, kWaitTimeOneSecond));
 
 	if (m_IsMinimized)
 	{
@@ -1481,133 +1507,148 @@ Vk::AllocatedImage Zn::VulkanDevice::create_texture_image(i32 width, i32 height,
 
 void Zn::VulkanDevice::transition_image_layout(VkImage img, VkFormat fmt, VkImageLayout prevLayout, VkImageLayout newLayout)
 {
-	VkCommandBuffer cmdBuffer = create_single_command_buffer();
-
-	VkImageMemoryBarrier barrier{};
-
-	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.oldLayout = prevLayout;
-	barrier.newLayout = newLayout;
-
-	// If you are using the barrier to transfer queue family ownership, then these two fields should be the indices of the queue families.
-	// They must be set to VK_QUEUE_FAMILY_IGNORED if you don't want to do this (not the default value!).
-	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-	barrier.image = img;
-	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = 1;
-	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
-
-	VkPipelineStageFlags srcStage{};
-	VkPipelineStageFlags dstStage{};
-
-	if (prevLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	ImmediateSubmit([=](VkCommandBuffer cmd)
 	{
-		barrier.srcAccessMask = 0;
-		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		VkImageMemoryBarrier barrier{};
 
-		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-	}
-	else if (prevLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-	{
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = prevLayout;
+		barrier.newLayout = newLayout;
 
-		srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	}
-	else
-	{
-		_ASSERT(false); // Unsupported Transition
-	}
-	
-	vkCmdPipelineBarrier(cmdBuffer, 
-						 srcStage, dstStage,
-						 0, 
-						 0, nullptr, 
-						 0, nullptr, 
-						 1, &barrier);
+		// If you are using the barrier to transfer queue family ownership, then these two fields should be the indices of the queue families.
+		// They must be set to VK_QUEUE_FAMILY_IGNORED if you don't want to do this (not the default value!).
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-	end_single_command_buffer(cmdBuffer);
+		barrier.image = img;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		VkPipelineStageFlags srcStage{};
+		VkPipelineStageFlags dstStage{};
+
+		if (prevLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (prevLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else
+		{
+			_ASSERT(false); // Unsupported Transition
+		}
+
+		vkCmdPipelineBarrier(cmd,
+							 srcStage, dstStage,
+							 0,
+							 0, nullptr,
+							 0, nullptr,
+							 1, &barrier);
+	});
 }
 
-VkCommandBuffer Zn::VulkanDevice::create_single_command_buffer()
+VkCommandBufferBeginInfo Zn::VulkanDevice::CreateCmdBufferBeginInfo(VkCommandBufferUsageFlags flags)
 {
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = m_VkCommandPool;
-	allocInfo.commandBufferCount = 1;
-
-
-	VkCommandBuffer cmdBuffer{};
-
-	ZN_VK_CHECK(vkAllocateCommandBuffers(m_VkDevice, &allocInfo, &cmdBuffer));
-
-	//	begin the command buffer recording. We will use this command buffer exactly once, so we want to let Vulkan know that
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	beginInfo.flags = flags;
+	beginInfo.pInheritanceInfo = nullptr;
+	beginInfo.pNext = nullptr;
 
-	ZN_VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &beginInfo));
-
-	return cmdBuffer;
+	return beginInfo;
 }
 
-void Zn::VulkanDevice::end_single_command_buffer(VkCommandBuffer cmdBuffer)
+VkSubmitInfo Zn::VulkanDevice::CreateCmdBufferSubmitInfo(VkCommandBuffer* cmdBuffer)
 {
-	vkEndCommandBuffer(cmdBuffer);
-
 	VkSubmitInfo submitInfo{};
+	
+	memset(&submitInfo, 0, sizeof(submitInfo));
+
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &cmdBuffer;
+	submitInfo.pCommandBuffers = cmdBuffer;
 
-	ZN_VK_CHECK(vkQueueSubmit(m_VkGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE));
-	ZN_VK_CHECK(vkQueueWaitIdle(m_VkGraphicsQueue));
+	return submitInfo;
+}
 
-	vkFreeCommandBuffers(m_VkDevice, m_VkCommandPool, 1, &cmdBuffer);
+void Zn::VulkanDevice::ImmediateSubmit(std::function<void(VkCommandBuffer)>&& function)
+{
+	if (function == nullptr)
+	{
+		ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Trying to ImmediateSubmit with invalid function");
+		return;
+	}
+
+	VkCommandBuffer cmd = uploadContext.cmdBuffer;
+
+	VkCommandBufferBeginInfo beginInfo = CreateCmdBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	ZN_VK_CHECK(vkBeginCommandBuffer(cmd, &beginInfo));
+
+	function(cmd);
+
+	ZN_VK_CHECK(vkEndCommandBuffer(cmd));
+
+	VkSubmitInfo submitInfo = CreateCmdBufferSubmitInfo(&cmd);
+
+	// .fence will now block until the graphic commands finish execution
+	ZN_VK_CHECK(vkQueueSubmit(m_VkGraphicsQueue, 1, &submitInfo, uploadContext.fence));
+
+	ZN_VK_CHECK(vkWaitForFences(m_VkDevice, 1, &uploadContext.fence, true, kWaitTimeOneSecond));
+	ZN_VK_CHECK(vkResetFences(m_VkDevice, 1, &uploadContext.fence));
+
+	// reset the command buffers inside the command pool
+	ZN_VK_CHECK(vkResetCommandPool(m_VkDevice, uploadContext.cmdPool, 0));
 }
 
 void Zn::VulkanDevice::copy_buffer(VkBuffer src, VkBuffer dst, VkDeviceSize size)
 {
-	VkCommandBuffer cmdBuffer = create_single_command_buffer();
-
-	VkBufferCopy region{};
-	region.size = size;
-	vkCmdCopyBuffer(cmdBuffer, src, dst, 1, &region);
-
-	end_single_command_buffer(cmdBuffer);
+	ImmediateSubmit(
+		[=](VkCommandBuffer cmd)
+	{
+		VkBufferCopy region{};
+		region.size = size;
+		vkCmdCopyBuffer(cmd, src, dst, 1, &region);
+	});
 }
 
 void Zn::VulkanDevice::copy_buffer_to_image(VkBuffer buffer, VkImage img, u32 width, u32 height)
 {
-	VkCommandBuffer cmdBuffer = create_single_command_buffer();
+	ImmediateSubmit(
+		[=](VkCommandBuffer cmd)
+	{
+		VkBufferImageCopy region{};
+		region.bufferOffset = 0;
+		region.bufferRowLength = 0;
+		region.bufferImageHeight = 0;
 
-	VkBufferImageCopy region{};
-	region.bufferOffset = 0;
-	region.bufferRowLength = 0;
-	region.bufferImageHeight = 0;
+		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.mipLevel = 0;
+		region.imageSubresource.baseArrayLayer = 0;
+		region.imageSubresource.layerCount = 1;
 
-	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	region.imageSubresource.mipLevel = 0;
-	region.imageSubresource.baseArrayLayer = 0;
-	region.imageSubresource.layerCount = 1;
+		region.imageOffset = { 0, 0, 0 };
+		region.imageExtent = {
+			width,
+			height,
+			1
+		};
 
-	region.imageOffset = { 0, 0, 0 };
-	region.imageExtent = {
-		width,
-		height,
-		1
-	};
-
-	vkCmdCopyBufferToImage(cmdBuffer, buffer, img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,	&region);
-	
-	end_single_command_buffer(cmdBuffer);
+		vkCmdCopyBufferToImage(cmd, buffer, img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	});
 }
 
 VulkanDevice::DestroyQueue::~DestroyQueue()

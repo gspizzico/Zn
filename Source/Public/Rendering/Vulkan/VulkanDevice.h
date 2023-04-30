@@ -16,7 +16,6 @@ struct SDL_Window;
 
 namespace Zn
 {
-
 	class VulkanDevice
 	{
 
@@ -45,6 +44,8 @@ namespace Zn
 	private:
 
 		friend class VulkanRenderer;
+		
+		static constexpr u64 kWaitTimeOneSecond = 1000000000;
 
 		static constexpr size_t kMaxFramesInFlight = 2;
 
@@ -194,8 +195,20 @@ namespace Zn
 
 		// == Command Buffer ==
 
-		VkCommandBuffer create_single_command_buffer();
-		void end_single_command_buffer(VkCommandBuffer cmdBuffer);
+		struct UploadContext
+		{
+			VkCommandPool cmdPool{ VK_NULL_HANDLE };
+			VkCommandBuffer cmdBuffer{ VK_NULL_HANDLE };
+			VkFence fence{ VK_NULL_HANDLE };
+		};
+		
+		UploadContext uploadContext{};
+
+		VkCommandBufferBeginInfo CreateCmdBufferBeginInfo(VkCommandBufferUsageFlags flags = 0);
+		VkSubmitInfo CreateCmdBufferSubmitInfo(VkCommandBuffer* cmdBuffer);
+		
+		void ImmediateSubmit(std::function<void(VkCommandBuffer)>&& function);
+
 		void copy_buffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
 		void copy_buffer_to_image(VkBuffer buffer, VkImage img, u32 width, u32 height);
 
