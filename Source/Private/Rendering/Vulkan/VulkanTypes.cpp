@@ -42,9 +42,18 @@ VertexInputDescription Vertex::GetVertexInputDescription()
 	colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
 	colorAttribute.offset = offsetof(Vertex, Color);
 
+	//UV will be stored at Location 3
+	VkVertexInputAttributeDescription uvAttribute = {};
+	uvAttribute.binding = 0;
+	uvAttribute.location = 3;
+	uvAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+	uvAttribute.offset = offsetof(Vertex, UV);
+
 	description.Attributes.push_back(positionAttribute);
 	description.Attributes.push_back(normalAttribute);
 	description.Attributes.push_back(colorAttribute);
+	description.Attributes.push_back(uvAttribute);
+
 	return description;
 }
 

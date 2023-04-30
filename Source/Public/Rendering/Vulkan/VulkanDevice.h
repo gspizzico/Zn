@@ -166,7 +166,7 @@ namespace Zn
 
 		// == Camera ==
 		glm::vec3 camera_position{ 0.f, 0.f, 0.f };
-		glm::vec3 camera_direction { 0.0f, 0.0f, -1.f };
+		glm::vec3 camera_direction { 0.0f, 0.0f, 1.f };
 		glm::vec3 up_vector{ 0.0f, 1.f, 0.f };
 
 		Vk::AllocatedBuffer m_CameraBuffer[kMaxFramesInFlight];
@@ -189,7 +189,9 @@ namespace Zn
 		Vk::AllocatedImage CreateTextureImage(u32 width, u32 height, const Vk::AllocatedBuffer& inStagingTexture);
 		void TransitionImageLayout(VkCommandBuffer cmd, VkImage img, VkFormat fmt, VkImageLayout prevLayout, VkImageLayout newLayout);
 
-		Vector<Vk::AllocatedImage> textures;
+		UnorderedMap<String, Vk::AllocatedImage> textures;
+
+		VkDescriptorSetLayout singleTextureSetLayout;
 
 		// ===================
 

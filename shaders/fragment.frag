@@ -35,8 +35,11 @@ layout (std140, set = 0, binding = 1) uniform LightingUniforms
     uint num_directional_lights;
 } lighting;
 
+layout(set = 1, binding = 0) uniform sampler2D textureSampler;
+
 layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec3 inNormal;
+layout (location = 2) in vec2 inUV;
 
 layout(location = 0) out vec4 outColor;
 
@@ -70,21 +73,21 @@ void main()
     vec3 viewDir = normalize(-inPosition);
     vec3 normal = normalize(inNormal);
 
-    vec3 finalColor = vec3(0.0);
+    vec3 finalColor = texture(textureSampler, inUV).xyz;
 
-    for (uint i = 0; i < lighting.num_directional_lights; ++i) 
-    {
-        finalColor += applyDirectionalLight(lighting.directional_lights[i], normal, viewDir);
-    }
-
-    for (uint i = 0; i < lighting.num_point_lights; ++i) 
-    {
-        finalColor += applyPointLight(lighting.point_lights[i], normal, inPosition, viewDir);
-    }
-
-    vec3 ambientComponent = lighting.ambient_light.color.xyz * lighting.ambient_light.intensity;
-
-    finalColor += ambientComponent;
+     for (uint i = 0; i < lighting.num_directional_lights; ++i) 
+     {
+         finalColor += applyDirectionalLight(lighting.directional_lights[i], normal, viewDir);
+     }
+     
+     for (uint i = 0; i < lighting.num_point_lights; ++i) 
+     {
+         finalColor += applyPointLight(lighting.point_lights[i], normal, inPosition, viewDir);
+     }
+     
+     vec3 ambientComponent = lighting.ambient_light.color.xyz * lighting.ambient_light.intensity;
+     
+     finalColor += ambientComponent;
 
     outColor = vec4(finalColor, 1.0);
 }

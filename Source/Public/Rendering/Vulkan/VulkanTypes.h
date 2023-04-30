@@ -33,7 +33,8 @@ namespace Zn
 		struct AllocatedImage
 		{
 			VkImage Image;
-			VmaAllocation Allocation;
+			VkImageView imageView;
+			VmaAllocation Allocation;			
 
 			//	TODO: MOVE AWAY FROM HERE
 			static VkImageCreateInfo GetImageCreateInfo(VkFormat InFormat, VkImageUsageFlags InUsageFlags, VkExtent3D InExtent);
@@ -65,6 +66,7 @@ namespace Zn
 			glm::vec3 Position;
 			glm::vec3 Normal;
 			glm::vec3 Color;
+			glm::vec2 UV;
 
 			static VertexInputDescription GetVertexInputDescription();
 		};
@@ -96,13 +98,18 @@ namespace Zn
 
 			// Material parameters
 			UnorderedMap<String, f32> parameters;
+
+
+			VkDescriptorSet textureSet;
 		};
 
 		struct RenderObject
 		{
 			Vk::Mesh* mesh;
 			Vk::Material* material;
-			glm::mat4 transform;
+			glm::vec3 location;
+			glm::quat rotation;
+			glm::vec3 scale;
 		};
 
 		struct GPUCameraData

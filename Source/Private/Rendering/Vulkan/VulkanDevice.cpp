@@ -14,6 +14,8 @@
 
 #include <algorithm>
 
+#include <glm/gtx/matrix_decompose.hpp>
+
 // ImGui
 
 #include <imgui_impl_vulkan.h>
@@ -448,8 +450,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanc
 	LoadMeshes();
 
 	{
-		auto test_texture = CreateTexture(IO::GetAbsolutePath("assets/texture.jpg"));
-		textures.push_back(std::move(test_texture));
+		textures["texture"] = CreateTexture(IO::GetAbsolutePath("assets/texture.jpg"));
+		textures["viking_room"] = CreateTexture(IO::GetAbsolutePath("assets/VulkanTutorial/viking_room.png"));
 	}
 
 	CreateMeshPipeline();
@@ -470,9 +472,10 @@ void VulkanDevice::Cleanup()
 
 	CleanupSwapChain();
 
-	for (const Vk::AllocatedImage& texture : textures)
+	for (auto& textureKvp : textures)
 	{
-		vmaDestroyImage(m_VkAllocator, texture.Image, texture.Allocation);
+		vkDestroyImageView(m_VkDevice, textureKvp.second.imageView, nullptr);
+		vmaDestroyImage(m_VkAllocator, textureKvp.second.Image, textureKvp.second.Allocation);
 	}
 
 	textures.clear();
@@ -839,13 +842,33 @@ VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes
 
 void Zn::VulkanDevice::CreateDescriptors()
 {
+	// Create Descriptor Pool
+	VkDescriptorPoolSize PoolSize[4]
+	{
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 10 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 10 },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 }
+	};
+
+	VkDescriptorPoolCreateInfo PoolCreateInfo{};
+	PoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	PoolCreateInfo.flags = 0;
+	PoolCreateInfo.maxSets = 10;
+	PoolCreateInfo.poolSizeCount = 4;
+	PoolCreateInfo.pPoolSizes = &PoolSize[0];
+
+	CreateVkObject(m_VkDevice, m_VkDescriptorPool, PoolCreateInfo, vkCreateDescriptorPool, vkDestroyDescriptorPool);
+
+	// Global Set
+
 	VkDescriptorSetLayoutBinding bindings[2];
 
-	VkDescriptorSetLayoutBinding& CameraBufferBinding = bindings[0];
-	CameraBufferBinding.binding = 0;
-	CameraBufferBinding.descriptorCount = 1;
-	CameraBufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	CameraBufferBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	VkDescriptorSetLayoutBinding& cameraBufferBinding = bindings[0];
+	cameraBufferBinding.binding = 0;
+	cameraBufferBinding.descriptorCount = 1;
+	cameraBufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	cameraBufferBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
 	// #Lighting
 	VkDescriptorSetLayoutBinding& lightingBufferBinding = bindings[1];
@@ -854,25 +877,31 @@ void Zn::VulkanDevice::CreateDescriptors()
 	lightingBufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	lightingBufferBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	VkDescriptorSetLayoutCreateInfo SetCreateInfo{};
-	SetCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	SetCreateInfo.pNext = nullptr;
-	SetCreateInfo.bindingCount = 2;
-	SetCreateInfo.flags = 0;
-	SetCreateInfo.pBindings = &bindings[0];
+	VkDescriptorSetLayoutCreateInfo globalSetCreateInfo{};
+	globalSetCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	globalSetCreateInfo.pNext = nullptr;
+	globalSetCreateInfo.bindingCount = 2;
+	globalSetCreateInfo.flags = 0;
+	globalSetCreateInfo.pBindings = &bindings[0];
 
-	CreateVkObject(m_VkDevice, m_VkGlobalSetLayout, SetCreateInfo, vkCreateDescriptorSetLayout, vkDestroyDescriptorSetLayout);
+	CreateVkObject(m_VkDevice, m_VkGlobalSetLayout, globalSetCreateInfo, vkCreateDescriptorSetLayout, vkDestroyDescriptorSetLayout);
 
-	VkDescriptorPoolSize PoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10 };
+	// Single Texture Set
 
-	VkDescriptorPoolCreateInfo PoolCreateInfo{};
-	PoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	PoolCreateInfo.flags = 0;
-	PoolCreateInfo.maxSets = 10;
-	PoolCreateInfo.poolSizeCount = 1;
-	PoolCreateInfo.pPoolSizes = &PoolSize;
+	VkDescriptorSetLayoutBinding singleTextureSetBinding{};
+	singleTextureSetBinding.binding = 0;
+	singleTextureSetBinding.descriptorCount = 1;
+	singleTextureSetBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	singleTextureSetBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	CreateVkObject(m_VkDevice, m_VkDescriptorPool, PoolCreateInfo, vkCreateDescriptorPool, vkDestroyDescriptorPool);
+	VkDescriptorSetLayoutCreateInfo singleTextureSetCreateInfo{};
+	singleTextureSetCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	singleTextureSetCreateInfo.pNext = nullptr;
+	singleTextureSetCreateInfo.bindingCount = 1;
+	singleTextureSetCreateInfo.flags = 0;
+	singleTextureSetCreateInfo.pBindings = &singleTextureSetBinding;
+
+	CreateVkObject(m_VkDevice, singleTextureSetLayout, singleTextureSetCreateInfo, vkCreateDescriptorSetLayout, vkDestroyDescriptorSetLayout);
 
 	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
 	{
@@ -941,6 +970,8 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 		vkUpdateDescriptorSets(m_VkDevice, 2, &descriptorWrites[0], 0, nullptr);
 	}
+
+
 }
 
 void Zn::VulkanDevice::CreateSwapChain()
@@ -1149,13 +1180,13 @@ void Zn::VulkanDevice::RecreateSwapChain()
 
 	CreateSwapChain();
 
-	CreateImageViews();
+CreateImageViews();
 
-	CreateFramebuffers();
+CreateFramebuffers();
 }
 
 Vk::AllocatedBuffer Zn::VulkanDevice::CreateBuffer(size_t size, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
-{	
+{
 	VkBufferCreateInfo CreateInfo{};
 	CreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	CreateInfo.pNext = nullptr;
@@ -1221,7 +1252,7 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 	Vk::LightingUniforms lighting{};
 	lighting.directional_lights[0].direction = glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
 	lighting.directional_lights[0].color = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
-	lighting.directional_lights[0].intensity = 1.f;
+	lighting.directional_lights[0].intensity = 0.25f;
 	lighting.ambient_light.color = glm::vec4(0.f, 0.2f, 1.f, 0.f);
 	lighting.ambient_light.intensity = 0.15f;
 	lighting.num_directional_lights = 1;
@@ -1236,6 +1267,14 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 	{
 		Vk::RenderObject& object = InFirst[index];
 
+		static const auto identity = glm::mat4{ 1.f };
+		
+		glm::mat4 translation = glm::translate(identity, object.location);
+		glm::mat4 rotation = glm::mat4_cast(object.rotation);
+		glm::mat4 scale = glm::scale(identity, object.scale);
+
+		glm::mat4 transform = translation * rotation * scale;
+
 		// only bind the pipeline if it doesn't match what's already bound
 		if (object.material != last_material)
 		{
@@ -1243,11 +1282,16 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 			last_material = object.material;
 
 			vkCmdBindDescriptorSets(InCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->layout, 0, 1, &m_VkGlobalDescriptorSet[m_CurrentFrame], 0, nullptr);
+
+			if (object.material->textureSet != VK_NULL_HANDLE)
+			{
+				vkCmdBindDescriptorSets(InCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->layout, 1, 1, &object.material->textureSet, 0, nullptr);
+			}
 		}
 
 		Vk::MeshPushConstants constants
 		{
-			.RenderMatrix = object.transform
+			.RenderMatrix = transform
 		};
 
 		vkCmdPushConstants(InCommandBuffer, object.material->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Vk::MeshPushConstants), &constants);
@@ -1270,11 +1314,67 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 
 void Zn::VulkanDevice::CreateScene()
 {
+	Vk::RenderObject viking_room
+	{
+		.mesh = GetMesh("viking_room"),
+		.material = VulkanMaterialManager::get().get_material("default"),
+		.location = glm::vec3(0.f),
+		.rotation = glm::quat(),
+		.scale = glm::vec3(1.f)
+	};
+
+	// Sampler
+
+	VkDescriptorSetAllocateInfo singleTextureAllocateInfo{};
+	singleTextureAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	singleTextureAllocateInfo.descriptorPool = m_VkDescriptorPool;
+	singleTextureAllocateInfo.descriptorSetCount = 1;
+	singleTextureAllocateInfo.pSetLayouts = &singleTextureSetLayout;
+
+	ZN_VK_CHECK(vkAllocateDescriptorSets(m_VkDevice, &singleTextureAllocateInfo, &viking_room.material->textureSet));
+
+	const VkFilter samplerFilters = VK_FILTER_NEAREST;
+	const VkSamplerAddressMode samplerAddressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+	VkSamplerCreateInfo samplerCreateInfo{};
+	samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerCreateInfo.magFilter = samplerFilters;
+	samplerCreateInfo.minFilter = samplerFilters;
+	samplerCreateInfo.addressModeU = samplerAddressMode;
+	samplerCreateInfo.addressModeV = samplerAddressMode;
+	samplerCreateInfo.addressModeW = samplerAddressMode;
+
+	VkSampler sampler{};
+	CreateVkObject(m_VkDevice, sampler, samplerCreateInfo, vkCreateSampler, vkDestroySampler);
+
+	viking_room.material->texture_samplers["default"] = sampler;
+
+	//write to the descriptor set so that it points to our empire_diffuse texture
+	VkDescriptorImageInfo imageBufferInfo;
+	imageBufferInfo.sampler = sampler;
+	imageBufferInfo.imageView = textures["viking_room"].imageView;
+	imageBufferInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+	VkWriteDescriptorSet imageWrite{};
+	imageWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	imageWrite.pNext = nullptr;
+	imageWrite.dstBinding = 0;
+	imageWrite.dstSet = viking_room.material->textureSet;
+	imageWrite.descriptorCount = 1;
+	imageWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	imageWrite.pImageInfo = &imageBufferInfo;
+
+	vkUpdateDescriptorSets(m_VkDevice, 1, &imageWrite, 0, nullptr);
+
+	m_Renderables.push_back(viking_room);
+
 	Vk::RenderObject monkey
 	{
 		.mesh = GetMesh("monkey"),
 		.material = VulkanMaterialManager::get().get_material("default"),
-		.transform = glm::mat4(1.0f)
+		.location = glm::vec3(0.f, 0.f, 10.f),
+		.rotation = glm::quat(),
+		.scale = glm::vec3(1.f)
 	};
 
 	m_Renderables.push_back(monkey);
@@ -1283,15 +1383,13 @@ void Zn::VulkanDevice::CreateScene()
 	{
 		for (int32 y = -20; y <= 20; ++y)
 		{
-			glm::mat4 translation = glm::translate(glm::mat4{ 1.0f }, glm::vec3(x, 0, y));
-			glm::mat4 rotate = glm::rotate(glm::mat4{ 1.0f }, glm::radians(25.f), glm::vec3(1.0f, 0.0f, 0.f));
-			glm::mat4 scale = glm::scale(glm::mat4{ 1.0f }, glm::vec3(0.2f));
-
 			Vk::RenderObject triangle
-			{	
+			{
 				.mesh = GetMesh("triangle"),
 				.material = VulkanMaterialManager::get().get_material("default"),
-				.transform = translation * rotate * scale
+				.location = glm::vec3(x, 0, y),
+				.rotation = glm::quat(glm::vec3(glm::radians(25.f), 0.f, 0.f)),
+				.scale = glm::vec3(0.2f)
 			};
 
 			m_Renderables.push_back(triangle);
@@ -1318,6 +1416,10 @@ void Zn::VulkanDevice::LoadMeshes()
 	triangle.Vertices[1].Normal = glm::vec3(1.0f);
 	triangle.Vertices[2].Normal = glm::vec3(1.0f);
 
+	triangle.Vertices[0].UV = glm::vec2(1.0f);
+	triangle.Vertices[1].UV = glm::vec2(0.0, 1.f);
+	triangle.Vertices[2].UV = glm::vec2(0.0f);
+
 	//we don't care about the vertex normals
 
 	UploadMesh(triangle);
@@ -1325,12 +1427,20 @@ void Zn::VulkanDevice::LoadMeshes()
 	m_Meshes["triangle"] = triangle;
 
 	Vk::Mesh monkey{};
-
+	
 	Vk::Obj::LoadMesh(IO::GetAbsolutePath("assets/VulkanGuide/monkey_smooth.obj"), monkey);
-
+	
 	UploadMesh(monkey);
-
+	
 	m_Meshes["monkey"] = monkey;
+
+	Vk::Mesh vikingRoom{};
+
+	Vk::Obj::LoadMesh(IO::GetAbsolutePath("assets/VulkanTutorial/viking_room.obj"), vikingRoom);
+	 
+	UploadMesh(vikingRoom);
+	 
+	m_Meshes["viking_room"] = vikingRoom;
 }
 
 void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
@@ -1392,10 +1502,16 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
 		// Mesh pipeline with push constants 
 
+		VkDescriptorSetLayout layouts[2] =
+		{
+			m_VkGlobalSetLayout,
+			singleTextureSetLayout
+		};
+
 		VkPipelineLayoutCreateInfo layout_create_info{};
 		layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layout_create_info.setLayoutCount = 1;
-		layout_create_info.pSetLayouts = &m_VkGlobalSetLayout;
+		layout_create_info.setLayoutCount = 2;
+		layout_create_info.pSetLayouts = &layouts[0];
 
 		VkPushConstantRange push_constants{};
 		push_constants.offset = 0;
@@ -1408,7 +1524,7 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
 		CreateVkObject(m_VkDevice, material->layout, layout_create_info, vkCreatePipelineLayout, vkDestroyPipelineLayout);
 
-		material->pipeline= VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, material->vertex_shader, material->fragment_shader, m_VkSwapChainExtent, material->layout, vertex_description);
+		material->pipeline = VulkanPipeline::NewVkPipeline(m_VkDevice, m_VkRenderPass, material->vertex_shader, material->fragment_shader, m_VkSwapChainExtent, material->layout, vertex_description);
 
 		m_DestroyQueue.Enqueue([=]()
 		{
@@ -1458,6 +1574,21 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTexture(const String& texture)
 	});
 
 	DestroyBuffer(stagingBuffer);
+
+	VkImageViewCreateInfo imageViewInfo{};
+	imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imageViewInfo.pNext = nullptr;
+
+	imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imageViewInfo.image = outResult.Image;
+	imageViewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+	imageViewInfo.subresourceRange.baseMipLevel = 0;
+	imageViewInfo.subresourceRange.levelCount = 1;
+	imageViewInfo.subresourceRange.baseArrayLayer = 0;
+	imageViewInfo.subresourceRange.layerCount = 1;
+	imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+	ZN_VK_CHECK(vkCreateImageView(m_VkDevice, &imageViewInfo, nullptr, &outResult.imageView));
 
 	return outResult;
 }
@@ -1670,7 +1801,7 @@ void VulkanDevice::CreateVkObject(OwnerType Owner, TypePtr& OutObject, const Cre
 {
 	ZN_VK_CHECK(VkCreate(Owner, OutObject, CreateInfo, std::move(Create)));
 
-	m_DestroyQueue.Enqueue([this, &OutObject, Owner, Destructor = std::move(Destroy)]() mutable
+	m_DestroyQueue.Enqueue([this, OutObject, Owner, Destructor = std::move(Destroy)]() mutable
 	{
 		if (Owner != VK_NULL_HANDLE && OutObject != VK_NULL_HANDLE)
 		{

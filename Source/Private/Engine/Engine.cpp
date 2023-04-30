@@ -41,7 +41,11 @@ void Engine::Initialize()
 
 	m_Camera = std::make_shared<Camera>();
 	m_Camera->position = glm::vec3(0.f, 0.f, -10.f);
-	m_Camera->direction = glm::vec3(0.0f, 0.0f, -1.f);
+	m_Camera->worldUp = glm::vec3(0.0f, 1.f, 0.0f);
+	m_Camera->yaw = 90.f;
+	m_Camera->pitch = 0.f;
+
+	camera_rotate(glm::vec2(0.f), *m_Camera.get());
 
 	m_FrontEnd = std::make_shared<EngineFrontend>();
 }
@@ -57,7 +61,7 @@ void Engine::Update(float deltaTime)
 	ProcessInput();
 
 	// TEMP - Moving Camera
-	Renderer::get().set_camera(m_Camera->position, m_Camera->direction);
+	Renderer::get().set_camera(m_Camera->position, m_Camera->front);
 
 	Automation::AutomationTestManager::Get().Tick(deltaTime);
 
@@ -97,6 +101,15 @@ void Engine::RenderUI(float deltaTime)
 
 void Engine::ProcessInput()
 {
+	const u8* keyboardState = SDL_GetKeyboardState(nullptr);
+
+	if (keyboardState[SDL_SCANCODE_W]) camera_process_key_input(SDLK_w, m_DeltaTime, *m_Camera.get());
+	if (keyboardState[SDL_SCANCODE_A]) camera_process_key_input(SDLK_a, m_DeltaTime, *m_Camera.get());
+	if (keyboardState[SDL_SCANCODE_S]) camera_process_key_input(SDLK_s, m_DeltaTime, *m_Camera.get());
+	if (keyboardState[SDL_SCANCODE_D]) camera_process_key_input(SDLK_d, m_DeltaTime, *m_Camera.get());
+	if (keyboardState[SDL_SCANCODE_Q]) camera_process_key_input(SDLK_q, m_DeltaTime, *m_Camera.get());
+	if (keyboardState[SDL_SCANCODE_E]) camera_process_key_input(SDLK_e, m_DeltaTime, *m_Camera.get());
+
 	SharedPtr<InputState> input = Application::Get().GetInputState();
 
 	for (const SDL_Event& event : input->events)

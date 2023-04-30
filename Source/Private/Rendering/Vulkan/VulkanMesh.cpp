@@ -68,6 +68,9 @@ namespace Zn::Vk::Obj
 					NewVertex.Normal.y = VertexAttributes.normals[NumVertices * IndexData.normal_index + 1];
 					NewVertex.Normal.z = VertexAttributes.normals[NumVertices * IndexData.normal_index + 2];
 
+					NewVertex.UV.x = VertexAttributes.texcoords[2 * IndexData.texcoord_index + 0];
+					NewVertex.UV.y = 1.f - VertexAttributes.texcoords[2 * IndexData.texcoord_index + 1];
+
 					// TODO: Setting vertex color as vertex normal (display purposes)
 
 					NewVertex.Color = NewVertex.Normal;
