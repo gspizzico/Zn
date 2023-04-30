@@ -23,8 +23,8 @@ namespace Zn
 
 	private:
 
-		VkInstance instance{ VK_NULL_HANDLE };
-		VkSurfaceKHR surface{ VK_NULL_HANDLE };
+		vk::Instance instance;
+		vk::SurfaceKHR surface;
 
 		UniquePtr<VulkanDevice> device;
 	};

@@ -147,13 +147,10 @@ namespace VulkanValidation
 
 bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 {
-	VkApplicationInfo appCreateInfo{};
-	appCreateInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appCreateInfo.pApplicationName = "Zn";
-	appCreateInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	appCreateInfo.pEngineName = "Zn";
-	appCreateInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appCreateInfo.apiVersion = VK_API_VERSION_1_0;
+	vk::ApplicationInfo appInfo{};
+	appInfo.pApplicationName = "Zn";
+	appInfo.pEngineName = "Zn";
+	appInfo.apiVersion = VK_API_VERSION_1_0;
 
 	// Get the names of the Vulkan instance extensions needed to create a surface with SDL_Vulkan_CreateSurface
 	SDL_Window* window = SDL_GetWindowFromID(params.window->GetSDLWindowID());
@@ -163,9 +160,8 @@ bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 	Vector<const char*> requiredExtensions(numExtensions);
 	SDL_Vulkan_GetInstanceExtensions(window, &numExtensions, requiredExtensions.data());
 
-	VkInstanceCreateInfo instanceCreateInfo{};
-	instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	instanceCreateInfo.pApplicationInfo = &appCreateInfo;	
+	vk::InstanceCreateInfo instanceCreateInfo{};
+	instanceCreateInfo.pApplicationInfo = &appInfo;
 
 	Vector<const char*> enabledLayers;
 
@@ -188,17 +184,20 @@ bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 	instanceCreateInfo.enabledLayerCount = (u32) enabledLayers.size();
 	instanceCreateInfo.ppEnabledLayerNames = enabledLayers.data();
 
-	ZN_VK_CHECK(vkCreateInstance(&instanceCreateInfo, nullptr, &instance));
+	instance = vk::createInstance(instanceCreateInfo);
 
 #if ZN_VK_VALIDATION_LAYERS
 	VulkanValidation::InitializeDebugMessenger(instance);
 #endif
 
-	if (SDL_Vulkan_CreateSurface(window, instance, &surface) != SDL_TRUE)
+	VkSurfaceKHR sdlSurface;
+	if (SDL_Vulkan_CreateSurface(window, instance, &sdlSurface) != SDL_TRUE)
 	{
 		_ASSERT(false);
 		return false;
 	}
+
+	surface = sdlSurface;
 
 	device = std::make_unique<VulkanDevice>();
 
@@ -209,30 +208,25 @@ bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 
 void Zn::VulkanRenderer::shutdown()
 {
-	if (instance == VK_NULL_HANDLE)
+	if (!instance)
 	{
 		return;
-	}	
+	}
 
 	device = nullptr;
 
 	Zn::imgui_shutdown();
 
-	if (surface != VK_NULL_HANDLE)
+	if (surface)
 	{
-		vkDestroySurfaceKHR(instance, surface, nullptr);
-		surface = VK_NULL_HANDLE;
+		instance.destroySurfaceKHR(surface);
 	}
 
 #if ZN_VK_VALIDATION_LAYERS
 	VulkanValidation::DeinitializeDebugMessenger(instance);
 #endif
 
-	if (instance != VK_NULL_HANDLE)
-	{
-		vkDestroyInstance(instance, nullptr);
-		instance = VK_NULL_HANDLE;
-	}
+	instance.destroy();
 }
 
 bool Zn::VulkanRenderer::begin_frame()

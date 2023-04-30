@@ -2,6 +2,8 @@
 
 #include <optional>
 #include <vulkan/vulkan.h>
+#define VULKAN_HPP_NO_SPACESHIP_OPERATOR
+#include <vulkan/vulkan.hpp>
 #include <vma/vk_mem_alloc.h>
 #include <Core/Containers/Map.h>
 
