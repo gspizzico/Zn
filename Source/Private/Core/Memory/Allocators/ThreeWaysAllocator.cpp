@@ -13,6 +13,7 @@ ThreeWaysAllocator::ThreeWaysAllocator()
 	, region(kSmallAllocatorVM + kMediumAllocatorVM)
 	, m_Small(MemoryRange(region.Begin(), kSmallAllocatorVM))
 	, m_Medium(MemoryRange(Memory::AddOffset(region.Begin(), kSmallAllocatorVM), kMediumAllocatorVM))
+	, m_Large(VirtualMemory::AlignToPageSize(kLargeAllocatorPageSize))
 {
 }
 
@@ -26,22 +27,32 @@ void* ThreeWaysAllocator::Malloc(size_t size, size_t alignment /*= DEFAULT_ALIGN
 	{
 		return m_Medium.Allocate(size, alignment);
 	}
+	else
+	{
+		return m_Large.Allocate(size, alignment);
+	}
 
 	return nullptr;
 }
 
-void ThreeWaysAllocator::Free(void* ptr)
+bool ThreeWaysAllocator::Free(void* ptr)
 {
-	if (ptr && !m_Small.Free(ptr))
+	bool success = false;
+
+	if (ptr)
 	{
-		if (!m_Medium.Free(ptr))
+		success = m_Small.Free(ptr);
+
+		if (!success)
 		{
-			_ASSERT(false);
+			success = m_Medium.Free(ptr);
+		}
+
+		if (!success)
+		{
+			success = m_Large.Free(ptr);
 		}
 	}
-}
 
-bool Zn::ThreeWaysAllocator::IsInRange(void* ptr) const
-{
-	return region.Range().Contains(ptr);
+	return success;
 }

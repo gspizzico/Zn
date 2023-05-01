@@ -21,7 +21,7 @@ namespace Zn
 
 		auto Address = VirtualMemory::Allocate(AllocationSize);
 
-		m_Allocations.emplace(reinterpret_cast<uintptr_t>(Address));
+		m_Allocations.emplace(Address);
 
 		MemoryDebug::MarkUninitialized(Address, Memory::AddOffset(Address, AllocationSize));
 
@@ -32,7 +32,7 @@ namespace Zn
 	{
 		auto AllocationAddress = address;
 
-		auto Removed = m_Allocations.erase(reinterpret_cast<uintptr_t>(AllocationAddress));
+		auto Removed = m_Allocations.erase(AllocationAddress);
 
 		if (Removed != 0)
 		{

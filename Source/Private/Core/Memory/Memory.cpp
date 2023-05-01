@@ -126,12 +126,13 @@ namespace Zn
 namespace Zn::Allocators
 {
 	// TODO: Make Thread Safe
-	BaseAllocator* GAllocator = NULL;
+	BaseAllocator* GDefaultAllocator = nullptr;
+	BaseAllocator* GAllocator = nullptr;
 	bool GIsCreatingAllocator = false;
-	SystemAllocator GSystemAllocator{};
 
 	int CreateGAllocatorSafe()
 	{
+		GDefaultAllocator = new TrackedMalloc();
 		GAllocator = PlatformMemory::CreateAllocator();
 		return 1;
 	}
@@ -151,15 +152,12 @@ namespace Zn::Allocators
 				GIsCreatingAllocator = true;
 				CreateGAllocator();
 				GIsCreatingAllocator = false;
-			}			
+			}
 		}
 
-		auto Address = GAllocator ? GAllocator->Malloc(size) : nullptr;
+		auto allocator = GIsCreatingAllocator == false ? GAllocator : GDefaultAllocator;
 
-		if (Address == nullptr)
-		{
-			Address = GSystemAllocator.operator new(size);
-		}
+		auto Address = allocator->Malloc(size);
 
 		ZN_MEMTRACE_ALLOC(Address, size);
 
@@ -170,14 +168,14 @@ namespace Zn::Allocators
 	{
 		ZN_MEMTRACE_FREE(address);
 
-		if (GAllocator && GAllocator->IsInRange(address))
+		bool success = GAllocator && GAllocator->Free(address);
+
+		if (!success)
 		{
-			GAllocator->Free(address);
+			success = GDefaultAllocator->Free(address);
 		}
-		else
-		{
-			GSystemAllocator.operator delete(address);
-		}
+
+		_ASSERT(success || (address == nullptr));
 	}
 }
 

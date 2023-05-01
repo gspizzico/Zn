@@ -18,9 +18,7 @@ namespace Zn
 
 		virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) override;
 
-		virtual void Free(void* ptr) override;
-
-		virtual bool IsInRange(void* ptr) const override;
+		virtual bool Free(void* ptr) override;
 
 		//virtual void* Realloc(void* ptr, size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
 
@@ -30,6 +28,6 @@ namespace Zn
 
 		TinyAllocatorStrategy m_Small;
 		TLSFAllocator m_Medium;
-		// DirectAllocationStrategy m_Large;
+		DirectAllocationStrategy m_Large;
 	};
 }

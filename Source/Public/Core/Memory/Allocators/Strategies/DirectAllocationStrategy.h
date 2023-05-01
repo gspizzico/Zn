@@ -19,6 +19,6 @@ namespace Zn
 
 		size_t m_MinAllocationSize;
 
-		UnorderedSet<uintptr_t> m_Allocations;
+		UnorderedSet<void*> m_Allocations;
 	};
 }

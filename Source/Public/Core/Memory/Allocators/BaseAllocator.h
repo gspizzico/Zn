@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Core/Containers/Set.h>
+
 namespace Zn
 {
 	enum
@@ -31,10 +33,23 @@ namespace Zn
 
 		virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
 
-		virtual void Free(void* ptr) = 0;
-
-		virtual bool IsInRange(void* ptr) const = 0;
+		virtual bool Free(void* ptr) = 0;
 
 		//virtual void* Realloc(void* ptr, size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
+	};
+
+	class TrackedMalloc : public BaseAllocator
+	{
+	public:
+
+		virtual ~TrackedMalloc();
+
+		virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) override;
+
+		virtual bool Free(void* ptr) override;
+
+	private:
+
+		UnorderedSet<void*> allocations;
 	};
 }
