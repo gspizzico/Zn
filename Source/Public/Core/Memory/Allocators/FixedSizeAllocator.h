@@ -54,8 +54,6 @@ namespace Zn
 
 		FixedSizeAllocator(size_t allocationSize, SharedPtr<PageAllocator> memoryPool);
 
-		FixedSizeAllocator(size_t allocationSize, size_t pageSize);
-
 		void* Allocate();
 
 		void Free(void* address);

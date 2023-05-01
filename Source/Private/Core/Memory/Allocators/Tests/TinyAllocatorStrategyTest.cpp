@@ -28,6 +28,8 @@ namespace Zn::Automation
 
 		size_t m_Frames;
 
+		VirtualMemoryRegion m_Memory;
+
 		UniquePtr<Zn::TinyAllocatorStrategy> m_Allocator;
 
 	public:
@@ -36,12 +38,13 @@ namespace Zn::Automation
 			: m_AllocationSize(allocationSize)
 			, m_Allocations(allocations)
 			, m_Frames(frames)
+			, m_Memory(m_AllocationSize)
 			, m_Allocator(nullptr)
 		{}
 
 		virtual void Prepare()
 		{
-			m_Allocator = std::make_unique<Zn::TinyAllocatorStrategy>(m_AllocationSize);
+			m_Allocator = std::make_unique<Zn::TinyAllocatorStrategy>(m_Memory.Range());
 		}
 
 		virtual void Execute()

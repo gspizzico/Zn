@@ -4,8 +4,8 @@
 
 using namespace Zn;
 
-TinyAllocatorStrategy::TinyAllocatorStrategy(size_t capacity)
-	: m_Memory(capacity, VirtualMemory::AlignToPageSize(16 * (size_t) StorageUnit::KiloByte))
+TinyAllocatorStrategy::TinyAllocatorStrategy(MemoryRange inMemoryRange)
+	: m_Memory(inMemoryRange, VirtualMemory::GetPageSize())
 	, m_FreeLists()
 	, m_NumAllocations()
 	, m_NumFreePages(0)

@@ -25,6 +25,8 @@ using namespace Zn;
 
 void Engine::Initialize()
 {
+	ZN_TRACE_QUICKSCOPE();
+
 	// Initialize Renderer
 
 	if (!Renderer::initialize(RendererBackendType::Vulkan, Zn::RendererInitParams{ Application::Get().GetWindow() }))

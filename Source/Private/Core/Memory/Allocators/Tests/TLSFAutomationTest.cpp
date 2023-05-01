@@ -39,7 +39,9 @@ namespace Zn::Automation
 
 		virtual void Execute() override
 		{
-			auto Allocator = TLSFAllocator(1ull << 36ull);
+			VirtualMemoryRegion memory(1ull << 36ull);
+			
+			auto Allocator = TLSFAllocator(memory.Range());
 
 			std::array<std::vector<void*>, 2> Pointers;
 
@@ -146,7 +148,9 @@ namespace Zn::Automation
 
 			//////////////////////////////////////////////////////////////////////////////////////////////////
 
-			TLSFAllocator m_Allocator;
+			UniquePtr<TLSFAllocator> m_Allocator;
+
+			VirtualMemoryRegion m_Region = VirtualMemoryRegion(Memory::GetMemoryStatus().m_TotalPhys);
 
 			std::array<Allocation, kLargeMemoryAllocations> m_LargeMemoryAllocations;
 
@@ -168,6 +172,7 @@ namespace Zn::Automation
 		virtual void Prepare() override
 		{
 			m_AllocationData = std::make_unique<Data>();
+			m_AllocationData->m_Allocator = std::make_unique<TLSFAllocator>(m_AllocationData->m_Region.Range());
 
 			auto SpikesDistribution = CreateIntDistribution({ 0, Data::kNumberOfFrames });
 
@@ -210,7 +215,7 @@ namespace Zn::Automation
 		template<typename Array>
 		void Allocate(size_t allocation_size, size_t index, Array& storage)
 		{
-			auto AllocatedAddress = m_AllocationData->m_Allocator.Allocate(allocation_size);
+			auto AllocatedAddress = m_AllocationData->m_Allocator->Allocate(allocation_size);
 
 			Allocation Block = { AllocatedAddress, allocation_size };
 
@@ -283,7 +288,7 @@ namespace Zn::Automation
 			{
 				if (auto Roll = RollDice(gen); CanDeallocate && Roll >= 60)
 				{
-					m_AllocationData->m_Allocator.Free(m_AllocationData->m_LastFrameAllocations[RemainingDeallocations - 1].m_Address);
+					m_AllocationData->m_Allocator->Free(m_AllocationData->m_LastFrameAllocations[RemainingDeallocations - 1].m_Address);
 					--RemainingDeallocations;
 				}
 
@@ -294,7 +299,7 @@ namespace Zn::Automation
 
 			while (CanDeallocate && RemainingDeallocations > 0)
 			{
-				m_AllocationData->m_Allocator.Free(m_AllocationData->m_LastFrameAllocations[--RemainingDeallocations].m_Address);
+				m_AllocationData->m_Allocator->Free(m_AllocationData->m_LastFrameAllocations[--RemainingDeallocations].m_Address);
 			}
 
 			m_AllocationData->m_LastFrameAllocations = std::move(*CurrentFrameAllocations);

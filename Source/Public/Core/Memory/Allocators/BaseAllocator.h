@@ -33,6 +33,8 @@ namespace Zn
 
 		virtual void Free(void* ptr) = 0;
 
+		virtual bool IsInRange(void* ptr) const = 0;
+
 		//virtual void* Realloc(void* ptr, size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
 	};
 }

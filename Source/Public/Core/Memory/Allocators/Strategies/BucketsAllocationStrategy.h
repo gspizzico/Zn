@@ -22,8 +22,6 @@ namespace Zn
 
 		BucketsAllocationStrategy(SharedPtr<PageAllocator> memory, size_t max_allocation_size, size_t allocation_step = sizeof(uintptr_t));
 
-		BucketsAllocationStrategy(size_t reserve_memory_size, size_t max_allocation_size, size_t allocation_step = sizeof(uintptr_t));
-
 		void* Allocate(size_t size, size_t alignment = sizeof(uintptr_t));
 
 		void Free(void* address);

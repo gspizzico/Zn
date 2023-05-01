@@ -1,6 +1,8 @@
 #pragma once
+#include "Core/Memory/Memory.h"
 #include "Core/Memory/VirtualMemory.h"
 #include "Core/Containers/Set.h"
+#include "Core/Memory/Allocators/BaseAllocator.h"
 
 namespace Zn
 {
@@ -10,9 +12,7 @@ namespace Zn
 
 		static constexpr uint64_t kFreePagePattern = 0xfb;
 
-		PageAllocator(size_t pool_size, size_t page_size);
-
-		PageAllocator(size_t page_size);
+		PageAllocator(MemoryRange inMemoryRange, u32 pageSize);
 
 		size_t GetUsedMemory() const
 		{
@@ -39,7 +39,7 @@ namespace Zn
 
 		const MemoryRange& Range() const
 		{
-			return m_Memory.Range();
+			return m_Memory;
 		}
 
 	private:
@@ -50,7 +50,7 @@ namespace Zn
 
 		static constexpr float kEndDecommitThreshold = .8f;
 
-		struct CommittedMemoryTracker
+		struct CommittedMemoryTracker : public SystemAllocator
 		{
 			CommittedMemoryTracker() = default;
 
@@ -88,7 +88,7 @@ namespace Zn
 			static constexpr uint64_t kFullCommittedMask = 0xFFFFFFFFFFFFFFFF;
 		};
 
-		VirtualMemoryRegion m_Memory;
+		MemoryRange m_Memory;
 
 		CommittedMemoryTracker m_Tracker;
 

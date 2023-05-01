@@ -7,19 +7,13 @@ DEFINE_STATIC_LOG_CATEGORY(LogPoolAllocator, ELogVerbosity::Log)
 
 namespace Zn
 {
-	PageAllocator::PageAllocator(size_t poolSize, size_t page_size)
-		: m_Memory(VirtualMemory::AlignToPageSize(poolSize))
+	PageAllocator::PageAllocator(MemoryRange inMemoryRange, u32 pageSize)
+		: m_Memory(inMemoryRange)
 		, m_AllocatedPages(0)
-		, m_NextFreePage(nullptr)
-		, m_Tracker()
-	{
-		m_Tracker = CommittedMemoryTracker(Range(), page_size);
-		m_NextFreePage = Range().Begin();
+		, m_NextFreePage(inMemoryRange.Begin())
+		, m_Tracker(CommittedMemoryTracker(inMemoryRange, VirtualMemory::AlignToPageSize(pageSize)))
+	{	
 	}
-
-	PageAllocator::PageAllocator(size_t page_size)
-		: PageAllocator(Memory::GetMemoryStatus().m_TotalPhys, page_size)
-	{}
 
 	void* PageAllocator::Allocate()
 	{

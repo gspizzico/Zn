@@ -35,7 +35,9 @@ namespace Zn::Automation
 
 		virtual void Execute()
 		{
-			Zn::BucketsAllocationStrategy Strategy = BucketsAllocationStrategy(1ull << 29ull, 1ull << 8ull);
+			VirtualMemoryRegion memory(1ull << 29ull);
+
+			Zn::BucketsAllocationStrategy Strategy = BucketsAllocationStrategy(std::make_shared<PageAllocator>(memory.Range(), VirtualMemory::GetPageSize()), 1ull << 8ull);
 
 			std::chrono::high_resolution_clock hrc;
 

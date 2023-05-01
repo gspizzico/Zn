@@ -1,5 +1,6 @@
 #pragma once
 
+#define TRACY_CALLSTACK 12
 #include <tracy/Tracy.hpp>
 
 // Header file that defines macros for using Tracy.

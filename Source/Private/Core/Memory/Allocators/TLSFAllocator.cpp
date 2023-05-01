@@ -146,17 +146,13 @@ namespace Zn
 
 	//	===	TLSFAllocator ===
 
-	TLSFAllocator::TLSFAllocator()
-		:TLSFAllocator(Memory::GetMemoryStatus().m_TotalPhys)
-	{}
-
-	TLSFAllocator::TLSFAllocator(size_t capacity)
-		: m_Memory(capacity, VirtualMemory::AlignToPageSize(kBlockSize))
+	TLSFAllocator::TLSFAllocator(MemoryRange inMemoryRange)
+		: m_Memory(inMemoryRange, kBlockSize)
 		, m_FreeLists()
 		, m_FL(0)
 		, m_SL()
 	{
-		_ASSERT(capacity > kMaxAllocationSize);
+		_ASSERT(inMemoryRange.Size() > kMaxAllocationSize);
 		std::fill(m_SL.begin(), m_SL.end(), 0);
 	}
 

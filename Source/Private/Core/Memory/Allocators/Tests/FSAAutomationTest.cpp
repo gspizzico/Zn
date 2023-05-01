@@ -30,6 +30,8 @@ namespace Zn::Automation
 
 		size_t m_Frames;
 
+		Zn::VirtualMemoryRegion m_Region;
+
 		UniquePtr<Zn::FixedSizeAllocator> m_Allocator;
 
 	public:
@@ -39,12 +41,13 @@ namespace Zn::Automation
 			, m_PageSize(pageSize)
 			, m_Allocations(allocations)
 			, m_Frames(frames)
+			, m_Region(Memory::GetMemoryStatus().m_TotalPhys)
 			, m_Allocator(nullptr)
 		{}
 
 		virtual void Prepare()
 		{
-			m_Allocator = std::make_unique<Zn::FixedSizeAllocator>(m_AllocationSize, m_PageSize);
+			m_Allocator = std::make_unique<Zn::FixedSizeAllocator>(m_AllocationSize, std::make_shared<PageAllocator>(m_Region.Range(), m_PageSize));
 		}
 
 		virtual void Execute()

@@ -125,13 +125,17 @@ namespace Zn
 
 namespace Zn::Allocators
 {
+	// TODO: Make Thread Safe
 	BaseAllocator* GAllocator = NULL;
+	bool GIsCreatingAllocator = false;
+	SystemAllocator GSystemAllocator{};
 
 	int CreateGAllocatorSafe()
 	{
 		GAllocator = PlatformMemory::CreateAllocator();
 		return 1;
 	}
+
 	void CreateGAllocator()
 	{
 		// Thread-safe, but do we need it?
@@ -142,25 +146,38 @@ namespace Zn::Allocators
 	{
 		if (GAllocator == NULL)
 		{
-			CreateGAllocator();
+			if (GIsCreatingAllocator == false)
+			{
+				GIsCreatingAllocator = true;
+				CreateGAllocator();
+				GIsCreatingAllocator = false;
+			}			
 		}
 
-		_ASSERT(GAllocator);
-		auto Address = GAllocator->Malloc(size);
+		auto Address = GAllocator ? GAllocator->Malloc(size) : nullptr;
+
+		if (Address == nullptr)
+		{
+			Address = GSystemAllocator.operator new(size);
+		}
+
 		ZN_MEMTRACE_ALLOC(Address, size);
+
 		return Address;
 	}
 
 	void Delete(void* address)
 	{
-		if (GAllocator == NULL)
-		{
-			CreateGAllocator();
-			_ASSERT(GAllocator);
-		}
-
 		ZN_MEMTRACE_FREE(address);
-		GAllocator->Free(address);
+
+		if (GAllocator && GAllocator->IsInRange(address))
+		{
+			GAllocator->Free(address);
+		}
+		else
+		{
+			GSystemAllocator.operator delete(address);
+		}
 	}
 }
 
@@ -202,15 +219,5 @@ void operator delete[](void* mem)
 {
 	Zn::Allocators::Delete(mem);
 }
-
-//void operator delete  (void* ptr, std::size_t sz) noexcept
-//{
-//	free(ptr);
-//}
-//
-//void operator delete[](void* ptr, std::size_t sz) noexcept
-//{
-//	free(ptr);
-//}
 
 #pragma warning(pop)

@@ -90,9 +90,7 @@ namespace Zn
 			size_t							m_BlockSize;
 		};
 
-		TLSFAllocator();
-
-		TLSFAllocator(size_t capacity);
+		TLSFAllocator(MemoryRange inMemoryRange);
 
 		__declspec(allocator)void* Allocate(size_t size, size_t alignment = 1);
 

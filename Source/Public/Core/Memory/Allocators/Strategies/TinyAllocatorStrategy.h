@@ -11,7 +11,7 @@ namespace Zn
 	{
 	public:
 
-		TinyAllocatorStrategy(size_t capacity);
+		TinyAllocatorStrategy(MemoryRange inMemoryRange);
 
 		void* Allocate(size_t size, size_t alignment = sizeof(void*));
 

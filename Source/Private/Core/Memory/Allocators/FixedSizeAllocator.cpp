@@ -13,12 +13,7 @@ namespace Zn
 		, m_NextFreeBlock(nullptr)
 		, m_FreePageList()
 		, m_FullPageList()
-	{}
-
-	FixedSizeAllocator::FixedSizeAllocator(size_t allocationSize, size_t pageSize)
-		: FixedSizeAllocator(allocationSize, nullptr)
 	{
-		m_MemoryPool = std::make_shared<PageAllocator>(VirtualMemory::AlignToPageSize(pageSize));
 	}
 
 	void* FixedSizeAllocator::Allocate()

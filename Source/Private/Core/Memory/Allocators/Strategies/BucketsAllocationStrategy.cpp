@@ -24,13 +24,6 @@ namespace Zn
 		}
 	}
 
-	BucketsAllocationStrategy::BucketsAllocationStrategy(size_t reserve_memory_size, size_t max_allocation_size, size_t allocation_step /*=sizeof(uintptr_t)*/)
-		: BucketsAllocationStrategy(
-			  std::make_shared<PageAllocator>(PageAllocator(VirtualMemory::AlignToPageSize(reserve_memory_size), VirtualMemory::GetPageSize()))
-			, max_allocation_size
-			, allocation_step)
-	{}
-
 	void* BucketsAllocationStrategy::Allocate(size_t size, size_t alignment)
 	{
 		const size_t InternalAlignment = Memory::Align(alignment, m_AllocationStep);	// Always alignt to at least 8bytes

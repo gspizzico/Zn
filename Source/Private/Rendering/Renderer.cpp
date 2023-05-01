@@ -23,6 +23,8 @@ Renderer& Zn::Renderer::get()
 
 bool Zn::Renderer::initialize(RendererBackendType type, RendererInitParams data)
 {
+	ZN_TRACE_QUICKSCOPE();
+
 	_ASSERT(!instance);
 
 	switch (type)
