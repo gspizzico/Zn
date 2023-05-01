@@ -14,6 +14,8 @@ namespace Zn::Vk::Obj
 {
 	bool LoadMesh(String InFilename, Mesh& OutMesh)
 	{
+		ZN_TRACE_QUICKSCOPE();
+
 		// https://vkguide.dev/docs/chapter-3/obj_loading/
 #if ZN_WITH_TINYOBJ		
 		tinyobj::attrib_t VertexAttributes{};

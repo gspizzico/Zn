@@ -131,26 +131,26 @@ VulkanDevice::~VulkanDevice()
 	Cleanup();
 }
 
-void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanceHandle, VkSurfaceKHR InVkSurface)
+void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstance, vk::SurfaceKHR inSurface)
 {
-	m_VkInstance = InVkInstanceHandle;
-	m_VkSurface = InVkSurface;
+	instance = inInstance;
+	surface = inSurface;
 
 	m_WindowID = SDL_GetWindowID(InWindowHandle);
 
 	/////// Initialize GPU
 
-	Vector<VkPhysicalDevice> Devices = VkEnumerate<VkPhysicalDevice>(vkEnumeratePhysicalDevices, m_VkInstance);
+	Vector<vk::PhysicalDevice> devices = instance.enumeratePhysicalDevices();
 
-	m_VkGPU = SelectPhysicalDevice(Devices);
+	gpu = SelectPhysicalDevice(devices);
 
-	_ASSERT(m_VkGPU != VK_NULL_HANDLE);
+	_ASSERT(gpu);
 
 	/////// Initialize Logical Device
 
-	Vk::QueueFamilyIndices Indices = GetQueueFamilyIndices(m_VkGPU);
+	Vk::QueueFamilyIndices Indices = GetQueueFamilyIndices(gpu);
 
-	Vk::SwapChainDetails SwapChainDetails = GetSwapChainDetails(m_VkGPU);
+	Vk::SwapChainDetails SwapChainDetails = GetSwapChainDetails(gpu);
 
 	const bool IsSupported = SwapChainDetails.Formats.size() > 0 && SwapChainDetails.PresentModes.size() > 0;
 
@@ -174,15 +174,15 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanc
 	LogicalDeviceCreateInfo.ppEnabledExtensionNames = kDeviceExtensions.data();
 	LogicalDeviceCreateInfo.enabledExtensionCount = static_cast<uint32>(kDeviceExtensions.size());
 
-	ZN_VK_CHECK(vkCreateDevice(m_VkGPU, &LogicalDeviceCreateInfo, nullptr, &m_VkDevice));
+	ZN_VK_CHECK(vkCreateDevice(gpu, &LogicalDeviceCreateInfo, nullptr, &m_VkDevice));
 
 	vkGetDeviceQueue(m_VkDevice, Indices.Graphics.value(), 0, &m_VkGraphicsQueue);
 	vkGetDeviceQueue(m_VkDevice, Indices.Present.value(), 0, &m_VkPresentQueue);
 
 	//initialize the memory allocator
 	VmaAllocatorCreateInfo AllocatorCreateInfo{};
-	AllocatorCreateInfo.instance = m_VkInstance;
-	AllocatorCreateInfo.physicalDevice = m_VkGPU;
+	AllocatorCreateInfo.instance = instance;
+	AllocatorCreateInfo.physicalDevice = gpu;
 	AllocatorCreateInfo.device = m_VkDevice;
 	vmaCreateAllocator(&AllocatorCreateInfo, &m_VkAllocator);
 
@@ -409,8 +409,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanc
 
 		//this initializes imgui for Vulkan
 		ImGui_ImplVulkan_InitInfo ImGuiInitInfo{};
-		ImGuiInitInfo.Instance = m_VkInstance;
-		ImGuiInitInfo.PhysicalDevice = m_VkGPU;
+		ImGuiInitInfo.Instance = instance;
+		ImGuiInitInfo.PhysicalDevice = gpu;
 		ImGuiInitInfo.Device = m_VkDevice;
 		ImGuiInitInfo.Queue = m_VkGraphicsQueue;
 		ImGuiInitInfo.DescriptorPool = m_VkImGuiDescriptorPool;
@@ -480,6 +480,8 @@ void VulkanDevice::Cleanup()
 
 	textures.clear();
 
+	m_Meshes.clear();
+
 	m_DestroyQueue.Flush();	
 
 	ImGui_ImplVulkan_Shutdown();
@@ -496,10 +498,10 @@ void VulkanDevice::Cleanup()
 
 	vmaDestroyAllocator(m_VkAllocator);
 
-	//if (m_VkSurface != VK_NULL_HANDLE)
+	//if (surface != VK_NULL_HANDLE)
 	//{
-	//	vkDestroySurfaceKHR(m_VkInstance, m_VkSurface, nullptr/*allocator*/);
-	//	m_VkSurface = VK_NULL_HANDLE;
+	//	vkDestroySurfaceKHR(instance, surface, nullptr/*allocator*/);
+	//	surface = VK_NULL_HANDLE;
 	//}
 
 	if (m_VkDevice != VK_NULL_HANDLE)
@@ -508,10 +510,10 @@ void VulkanDevice::Cleanup()
 		m_VkDevice = VK_NULL_HANDLE;
 	}
 
-	//if (m_VkInstance != VK_NULL_HANDLE)
+	//if (instance != VK_NULL_HANDLE)
 	//{
-	//	vkDestroyInstance(m_VkInstance, nullptr/*allocator*/);
-	//	m_VkInstance = VK_NULL_HANDLE;
+	//	vkDestroyInstance(instance, nullptr/*allocator*/);
+	//	instance = VK_NULL_HANDLE;
 	//}
 
 	m_IsInitialized = false;
@@ -696,66 +698,64 @@ void Zn::VulkanDevice::OnWindowRestored()
 	m_IsMinimized = false;
 }
 
-bool VulkanDevice::HasRequiredDeviceExtensions(VkPhysicalDevice InDevice) const
+bool VulkanDevice::HasRequiredDeviceExtensions(vk::PhysicalDevice inDevice) const
 {
-	Vector<VkExtensionProperties> AvailableExtensions = VkEnumerate<VkExtensionProperties>(vkEnumerateDeviceExtensionProperties, InDevice, nullptr);
+	Vector<vk::ExtensionProperties> availableExtensions = inDevice.enumerateDeviceExtensionProperties();
 
 	static const Set<String> kRequiredDeviceExtensions(kDeviceExtensions.begin(), kDeviceExtensions.end());
-
-	size_t NumFoundExtensions =
-		std::count_if(AvailableExtensions.begin(), AvailableExtensions.end(), [](const VkExtensionProperties& InExtension)
+	
+	u32 numFoundExtensions =
+		std::count_if(availableExtensions.begin(), availableExtensions.end(), [](const vk::ExtensionProperties& extension)
 		{
-			return kRequiredDeviceExtensions.contains(InExtension.extensionName);
+			return kRequiredDeviceExtensions.contains(extension.extensionName);
 		});
 
-	return kRequiredDeviceExtensions.size() == NumFoundExtensions;
+	return kRequiredDeviceExtensions.size() == numFoundExtensions;
 }
 
-VkPhysicalDevice VulkanDevice::SelectPhysicalDevice(const Vector<VkPhysicalDevice>& InDevices) const
+vk::PhysicalDevice VulkanDevice::SelectPhysicalDevice(const Vector<vk::PhysicalDevice>& inDevices) const
 {
-	size_t NumDevices = InDevices.size();
+	u32 num = inDevices.size();
 
-	size_t BestIndex = std::numeric_limits<size_t>::max();
-	uint32 MaxScore = 0;
+	i32 selectedIndex = std::numeric_limits<size_t>::max();
+	u32 maxScore = 0;
 
-	for (size_t Index = 0; Index < NumDevices; ++Index)
+	for (i32 idx = 0; idx < num; ++idx)
 	{
-		VkPhysicalDevice Device = InDevices[Index];
+		vk::PhysicalDevice device = inDevices[idx];
 
-		uint32 Score = 0;
+		u32 deviceScore = 0;
 
-		const bool HasGraphicsQueue = GetQueueFamilyIndices(Device).Graphics.has_value();
+		const bool hasGraphicsQueue = GetQueueFamilyIndices(device).Graphics.has_value();
 
-		const bool HasRequiredExtensions = HasRequiredDeviceExtensions(Device);
+		const bool hasRequiredExtensions = HasRequiredDeviceExtensions(device);
 
-		if (HasGraphicsQueue && HasRequiredExtensions)
+		if (hasGraphicsQueue && hasRequiredExtensions)
 		{
-			VkPhysicalDeviceProperties Properties;
-			VkPhysicalDeviceFeatures Features;
-			vkGetPhysicalDeviceProperties(Device, &Properties);
-			vkGetPhysicalDeviceFeatures(Device, &Features);
+			vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
+			vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
 
-			if (Properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			if (deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
 			{
-				Score += 1000;
+				deviceScore += 1000;
 			}
 
 			// Texture size influences quality
-			Score += Properties.limits.maxImageDimension2D;
+			deviceScore += deviceProperties.limits.maxImageDimension2D;
 
 			// TODO: Add more criteria to choose GPU.
 		}
 
-		if (Score > MaxScore && Score != 0)
+		if (deviceScore > maxScore && deviceScore != 0)
 		{
-			MaxScore = Score;
-			BestIndex = Index;
+			maxScore = deviceScore;
+			selectedIndex = idx;
 		}
 	}
 
-	if (BestIndex != std::numeric_limits<size_t>::max())
+	if (selectedIndex != std::numeric_limits<size_t>::max())
 	{
-		return InDevices[BestIndex];
+		return inDevices[selectedIndex];
 	}
 	else
 	{
@@ -763,42 +763,39 @@ VkPhysicalDevice VulkanDevice::SelectPhysicalDevice(const Vector<VkPhysicalDevic
 	}
 }
 
-Vk::QueueFamilyIndices VulkanDevice::GetQueueFamilyIndices(VkPhysicalDevice InDevice) const
+Vk::QueueFamilyIndices VulkanDevice::GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const
 {
-	Vk::QueueFamilyIndices Indices;
+	Vk::QueueFamilyIndices outIndices;
 
-	Vector<VkQueueFamilyProperties> QueueFamilies = VkEnumerate<VkQueueFamilyProperties>(vkGetPhysicalDeviceQueueFamilyProperties, InDevice);
+	Vector<vk::QueueFamilyProperties> queueFamilies = inDevice.getQueueFamilyProperties();
 
-	for (size_t Index = 0; Index < QueueFamilies.size(); ++Index)
+	for (u32 idx = 0; idx < queueFamilies.size(); ++idx)
 	{
-		const VkQueueFamilyProperties& QueueFamily = QueueFamilies[Index];
+		const vk::QueueFamilyProperties& queueFamily = queueFamilies[idx];
 
-		if (QueueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
 		{
-			Indices.Graphics = static_cast<uint32>(Index);
+			outIndices.Graphics = idx;
 		}
 
-		VkBool32 PresentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(InDevice, static_cast<uint32>(Index), m_VkSurface, &PresentSupport);
-
 		// tbd: We could enforce that Graphics and Present are in the same queue but is not mandatory.
-		if (PresentSupport)
+		if (inDevice.getSurfaceSupportKHR(idx, surface) == VK_TRUE)
 		{
-			Indices.Present = static_cast<uint32>(Index);
+			outIndices.Present = idx;
 		}
 	}
 
-	return Indices;
+	return outIndices;
 }
 
 Vk::SwapChainDetails VulkanDevice::GetSwapChainDetails(VkPhysicalDevice InDevice) const
 {
 	Vk::SwapChainDetails Details;
 
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(InDevice, m_VkSurface, &Details.Capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(InDevice, surface, &Details.Capabilities);
 
-	Details.Formats = VkEnumerate<VkSurfaceFormatKHR>(vkGetPhysicalDeviceSurfaceFormatsKHR, InDevice, m_VkSurface);
-	Details.PresentModes = VkEnumerate<VkPresentModeKHR>(vkGetPhysicalDeviceSurfacePresentModesKHR, InDevice, m_VkSurface);
+	Details.Formats = VkEnumerate<VkSurfaceFormatKHR>(vkGetPhysicalDeviceSurfaceFormatsKHR, InDevice, surface);
+	Details.PresentModes = VkEnumerate<VkPresentModeKHR>(vkGetPhysicalDeviceSurfacePresentModesKHR, InDevice, surface);
 
 	return Details;
 }
@@ -976,9 +973,9 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 void Zn::VulkanDevice::CreateSwapChain()
 {
-	Vk::SwapChainDetails SwapChainDetails = GetSwapChainDetails(m_VkGPU);
+	Vk::SwapChainDetails SwapChainDetails = GetSwapChainDetails(gpu);
 
-	Vk::QueueFamilyIndices Indices = GetQueueFamilyIndices(m_VkGPU);
+	Vk::QueueFamilyIndices Indices = GetQueueFamilyIndices(gpu);
 
 	VkSurfaceFormatKHR Format{ VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
 
@@ -1030,7 +1027,7 @@ void Zn::VulkanDevice::CreateSwapChain()
 
 	VkSwapchainCreateInfoKHR SwapChainCreateInfo{};
 	SwapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	SwapChainCreateInfo.surface = m_VkSurface;
+	SwapChainCreateInfo.surface = surface;
 	SwapChainCreateInfo.minImageCount = ImageCount;
 	SwapChainCreateInfo.imageFormat = m_VkSwapChainFormat.format;
 	SwapChainCreateInfo.imageColorSpace = m_VkSwapChainFormat.colorSpace;

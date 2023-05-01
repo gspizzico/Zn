@@ -25,7 +25,7 @@ namespace Zn
 
 		~VulkanDevice();
 
-		void Initialize(SDL_Window* InWindowHandle, VkInstance InVkInstanceHandle, VkSurfaceKHR InVkSurface);
+		void Initialize(SDL_Window* InWindowHandle, vk::Instance inInstance, vk::SurfaceKHR inSurface);
 
 		void Cleanup();
 
@@ -49,11 +49,11 @@ namespace Zn
 
 		static constexpr size_t kMaxFramesInFlight = 2;
 
-		bool HasRequiredDeviceExtensions(VkPhysicalDevice InDevice) const;
+		bool HasRequiredDeviceExtensions(vk::PhysicalDevice inDevice) const;
 
-		VkPhysicalDevice SelectPhysicalDevice(const Vector<VkPhysicalDevice>& InDevices) const;
+		vk::PhysicalDevice SelectPhysicalDevice(const Vector<vk::PhysicalDevice>& inDevices) const;
 
-		Vk::QueueFamilyIndices GetQueueFamilyIndices(VkPhysicalDevice InDevice) const;
+		Vk::QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const;
 
 		Vk::SwapChainDetails GetSwapChainDetails(VkPhysicalDevice InDevice) const;
 
@@ -82,12 +82,13 @@ namespace Zn
 
 		u32 m_SwapChainImageIndex = 0;
 
-		VkInstance m_VkInstance{VK_NULL_HANDLE}; // Vulkan library handle
+		vk::Instance instance;
+		vk::SurfaceKHR surface;
+
 		VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands
-		VkPhysicalDevice m_VkGPU{ VK_NULL_HANDLE }; // Graphics Card Handle
+		vk::PhysicalDevice gpu{ VK_NULL_HANDLE }; // Graphics Card Handle
 		VkDebugUtilsMessengerEXT m_DebugMessenger{ VK_NULL_HANDLE }; // Debug message handler
 
-		VkSurfaceKHR m_VkSurface{ VK_NULL_HANDLE };
 		VkQueue m_VkGraphicsQueue{ VK_NULL_HANDLE };
 		VkQueue m_VkPresentQueue{ VK_NULL_HANDLE };
 		VkSwapchainKHR m_VkSwapChain{ VK_NULL_HANDLE };
