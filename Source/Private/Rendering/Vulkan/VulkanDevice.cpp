@@ -879,6 +879,11 @@ void Zn::VulkanDevice::CreateDescriptors()
 		poolSizes);
 
 	m_VkDescriptorPool = device.createDescriptorPool(poolCreateInfo);
+	
+	m_DestroyQueue.Enqueue([=]()
+	{
+		device.destroyDescriptorPool(m_VkDescriptorPool);
+	});
 
 	// Global Set
 
