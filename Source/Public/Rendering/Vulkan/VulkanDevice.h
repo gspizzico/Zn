@@ -55,9 +55,9 @@ namespace Zn
 
 		Vk::QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const;
 
-		Vk::SwapChainDetails GetSwapChainDetails(VkPhysicalDevice InDevice) const;
+		Vk::SwapChainDetails GetSwapChainDetails(vk::PhysicalDevice inGPU) const;
 
-		Vector<VkDeviceQueueCreateInfo> BuildQueueCreateInfo(const Vk::QueueFamilyIndices& InIndices) const;
+		Vector<vk::DeviceQueueCreateInfo> BuildQueueCreateInfo(const Vk::QueueFamilyIndices& InIndices) const;
 
 		VkShaderModule CreateShaderModule(const Vector<uint8>& InBytes);
 
@@ -85,22 +85,25 @@ namespace Zn
 		vk::Instance instance;
 		vk::SurfaceKHR surface;
 
-		VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands
+		// VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands
+		vk::Device device;
 		vk::PhysicalDevice gpu{ VK_NULL_HANDLE }; // Graphics Card Handle
 		VkDebugUtilsMessengerEXT m_DebugMessenger{ VK_NULL_HANDLE }; // Debug message handler
 
-		VkQueue m_VkGraphicsQueue{ VK_NULL_HANDLE };
-		VkQueue m_VkPresentQueue{ VK_NULL_HANDLE };
-		VkSwapchainKHR m_VkSwapChain{ VK_NULL_HANDLE };
+		vk::Queue graphicsQueue{ VK_NULL_HANDLE };
+		vk::Queue presentQueue{ VK_NULL_HANDLE };
+		vk::SwapchainKHR swapChain{ VK_NULL_HANDLE };
 
-		VkSurfaceFormatKHR m_VkSwapChainFormat{};
+		vk::SurfaceFormatKHR m_VkSwapChainFormat{};
 		VkExtent2D m_VkSwapChainExtent{};
 
 		Vector<VkImage> m_VkSwapChainImages;
 		Vector<VkImageView> m_VkImageViews;
 
-		VkCommandPool m_VkCommandPool{ VK_NULL_HANDLE };
-		VkCommandBuffer m_VkCommandBuffers[kMaxFramesInFlight]{VK_NULL_HANDLE, VK_NULL_HANDLE};
+		vk::CommandPool commandPool;
+		// VkCommandPool m_VkCommandPool{ VK_NULL_HANDLE };
+		// VkCommandBuffer m_VkCommandBuffers[kMaxFramesInFlight]{VK_NULL_HANDLE, VK_NULL_HANDLE};
+		Vector<vk::CommandBuffer> commandBuffers;
 
 		VkRenderPass m_VkRenderPass{ VK_NULL_HANDLE };
 		Vector<VkFramebuffer> m_VkFramebuffers{};
@@ -200,7 +203,7 @@ namespace Zn
 
 		struct UploadContext
 		{
-			VkCommandPool cmdPool{ VK_NULL_HANDLE };
+			vk::CommandPool commandPool{ VK_NULL_HANDLE };
 			VkCommandBuffer cmdBuffer{ VK_NULL_HANDLE };
 			VkFence fence{ VK_NULL_HANDLE };
 		};

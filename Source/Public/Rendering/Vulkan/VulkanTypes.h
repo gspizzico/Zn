@@ -21,9 +21,9 @@ namespace Zn
 
 		struct SwapChainDetails
 		{
-			VkSurfaceCapabilitiesKHR Capabilities;
-			Vector<VkSurfaceFormatKHR> Formats;
-			Vector<VkPresentModeKHR> PresentModes;
+			vk::SurfaceCapabilitiesKHR Capabilities;
+			Vector<vk::SurfaceFormatKHR> Formats;
+			Vector<vk::PresentModeKHR> PresentModes;
 		};
 
 		struct AllocatedBuffer
