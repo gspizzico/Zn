@@ -265,7 +265,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	// the renderpass will use this color attachment.
 	vk::AttachmentDescription ColorAttachmentDesc = {};
 	//the attachment will have the format needed by the swapchain
-	ColorAttachmentDesc.format = m_VkSwapChainFormat.format;
+	ColorAttachmentDesc.format = swapChainFormat.format;
 	//1 sample, we won't be doing MSAA
 	ColorAttachmentDesc.samples = vk::SampleCountFlagBits::e1;
 	// we Clear when this attachment is loaded
@@ -614,7 +614,7 @@ void VulkanDevice::Draw()
 	RenderPassBeginInfo.renderPass = m_VkRenderPass;
 	RenderPassBeginInfo.renderArea.offset.x = 0;
 	RenderPassBeginInfo.renderArea.offset.y = 0;
-	RenderPassBeginInfo.renderArea.extent = m_VkSwapChainExtent;
+	RenderPassBeginInfo.renderArea.extent = swapChainExtent;
 	RenderPassBeginInfo.framebuffer = m_VkFramebuffers[m_SwapChainImageIndex];
 
 	//	Connect clear values
@@ -878,11 +878,11 @@ void Zn::VulkanDevice::CreateDescriptors()
 		10,
 		poolSizes);
 
-	m_VkDescriptorPool = device.createDescriptorPool(poolCreateInfo);
+	descriptorPool = device.createDescriptorPool(poolCreateInfo);
 	
 	m_DestroyQueue.Enqueue([=]()
 	{
-		device.destroyDescriptorPool(m_VkDescriptorPool);
+		device.destroyDescriptorPool(descriptorPool);
 	});
 
 	// Global Set
@@ -904,11 +904,11 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	vk::DescriptorSetLayoutCreateInfo globalSetCreateInfo({}, bindings);
 
-	m_VkGlobalSetLayout = device.createDescriptorSetLayout(globalSetCreateInfo);
+	globalDescriptorSetLayout = device.createDescriptorSetLayout(globalSetCreateInfo);
 
 	m_DestroyQueue.Enqueue([=]()
 	{
-		device.destroyDescriptorSetLayout(m_VkGlobalSetLayout);
+		device.destroyDescriptorSetLayout(globalDescriptorSetLayout);
 	});
 
 	// Single Texture Set
@@ -928,6 +928,8 @@ void Zn::VulkanDevice::CreateDescriptors()
 		device.destroyDescriptorSetLayout(singleTextureSetLayout);
 	});
 
+	globalDescriptorSets.resize(kMaxFramesInFlight);
+
 	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
 	{
 		m_CameraBuffer[Index] = CreateBuffer(sizeof(Vk::GPUCameraData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
@@ -946,57 +948,59 @@ void Zn::VulkanDevice::CreateDescriptors()
 			DestroyBuffer(lighting_buffer[Index]);
 		});
 
-		VkDescriptorSetAllocateInfo SetAllocateInfo{};
-		SetAllocateInfo.pNext = nullptr;
-		SetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		SetAllocateInfo.descriptorPool = m_VkDescriptorPool;
-		SetAllocateInfo.descriptorSetCount = 1;
-		SetAllocateInfo.pSetLayouts = &m_VkGlobalSetLayout;
+		vk::DescriptorSetAllocateInfo descriptorSetAllocInfo{};
+		descriptorSetAllocInfo.descriptorPool = descriptorPool;
+		descriptorSetAllocInfo.descriptorSetCount = 1;
+		descriptorSetAllocInfo.pSetLayouts = &globalDescriptorSetLayout;
 
-		vkAllocateDescriptorSets(device, &SetAllocateInfo, &m_VkGlobalDescriptorSet[Index]);
+		globalDescriptorSets[Index] = device.allocateDescriptorSets(descriptorSetAllocInfo)[0];
 
-		VkDescriptorBufferInfo bufferInfo[2];
+		Vector<vk::DescriptorBufferInfo> bufferInfo =
+		{
+			vk::DescriptorBufferInfo
+			{
+				m_CameraBuffer[Index].Buffer,
+				0,
+				sizeof(Vk::GPUCameraData)
+			},
+			vk::DescriptorBufferInfo
+			{
+				lighting_buffer[Index].Buffer,
+				0,
+				sizeof(Vk::LightingUniforms)
+			}
+		};
 
-		VkDescriptorBufferInfo& cameraBufferInfo = bufferInfo[0];
-		cameraBufferInfo.buffer = m_CameraBuffer[Index].Buffer;
-		cameraBufferInfo.offset = 0;
-		cameraBufferInfo.range = sizeof(Vk::GPUCameraData);
+		Vector<vk::WriteDescriptorSet> descriptorSetWrites =
+		{
+			vk::WriteDescriptorSet
+			{
+				globalDescriptorSets[Index],
+				0,
+				0,
+				1,
+				vk::DescriptorType::eUniformBuffer,
+				nullptr,
+				&bufferInfo[0],
+				nullptr,
+				nullptr
+			},
+			vk::WriteDescriptorSet
+			{
+				globalDescriptorSets[Index],
+				1,
+				0,
+				1,
+				vk::DescriptorType::eUniformBuffer,
+				nullptr,
+				&bufferInfo[1],
+				nullptr,
+				nullptr
+			}
+		};
 
-		VkDescriptorBufferInfo& lightingBufferInfo = bufferInfo[1];
-		lightingBufferInfo.buffer = lighting_buffer[Index].Buffer;
-		lightingBufferInfo.offset = 0;
-		lightingBufferInfo.range = sizeof(Vk::LightingUniforms);
-
-		VkWriteDescriptorSet descriptorWrites[2];
-
-		VkWriteDescriptorSet& cameraWrite = descriptorWrites[0];
-
-		cameraWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		cameraWrite.pNext = nullptr;
-		// We are going to write into binding number 0
-		cameraWrite.dstBinding = 0;
-		cameraWrite.dstSet = m_VkGlobalDescriptorSet[Index];
-		cameraWrite.descriptorCount = 1;
-		cameraWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		cameraWrite.pBufferInfo = &bufferInfo[0];
-		cameraWrite.dstArrayElement = 0;
-
-		VkWriteDescriptorSet& lightingWrite = descriptorWrites[1];
-
-		lightingWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		lightingWrite.pNext = nullptr;
-		// We are going to write into binding number 1
-		lightingWrite.dstBinding = 1;
-		lightingWrite.dstSet = m_VkGlobalDescriptorSet[Index];
-		lightingWrite.descriptorCount = 1;
-		lightingWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		lightingWrite.pBufferInfo = &bufferInfo[1];
-		lightingWrite.dstArrayElement = 0;
-
-		vkUpdateDescriptorSets(device, 2, &descriptorWrites[0], 0, nullptr);
+		device.updateDescriptorSets(descriptorSetWrites, {});
 	}
-
-
 }
 
 void Zn::VulkanDevice::CreateSwapChain()
@@ -1049,16 +1053,16 @@ void Zn::VulkanDevice::CreateSwapChain()
 		ImageCount = std::min(ImageCount, SwapChainDetails.Capabilities.maxImageCount);
 	}
 
-	m_VkSwapChainFormat = surfaceFormat;
+	swapChainFormat = surfaceFormat;
 
-	m_VkSwapChainExtent = VkExtent2D(Width, Height);
+	swapChainExtent = vk::Extent2D(Width, Height);
 
 	vk::SwapchainCreateInfoKHR swapChainCreateInfo{};
 	swapChainCreateInfo.surface = surface;
 	swapChainCreateInfo.minImageCount = ImageCount;
-	swapChainCreateInfo.imageFormat = m_VkSwapChainFormat.format;
-	swapChainCreateInfo.imageColorSpace = m_VkSwapChainFormat.colorSpace;
-	swapChainCreateInfo.imageExtent = m_VkSwapChainExtent;
+	swapChainCreateInfo.imageFormat = swapChainFormat.format;
+	swapChainCreateInfo.imageColorSpace = swapChainFormat.colorSpace;
+	swapChainCreateInfo.imageExtent = swapChainExtent;
 	swapChainCreateInfo.imageArrayLayers = 1;
 	swapChainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
@@ -1097,7 +1101,7 @@ void Zn::VulkanDevice::CreateImageViews()
 		vk::ImageViewCreateInfo imageViewCreateInfo{};
 		imageViewCreateInfo.image = m_VkSwapChainImages[Index];
 		imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
-		imageViewCreateInfo.format = m_VkSwapChainFormat.format;
+		imageViewCreateInfo.format = swapChainFormat.format;
 
 		// RGBA
 		imageViewCreateInfo.components = {
@@ -1123,8 +1127,8 @@ void Zn::VulkanDevice::CreateImageViews()
 
 	VkExtent3D DepthImageExtent
 	{ 
-		m_VkSwapChainExtent.width, 
-		m_VkSwapChainExtent.height, 
+		swapChainExtent.width, 
+		swapChainExtent.height, 
 		1 
 	};
 
@@ -1167,8 +1171,8 @@ void Zn::VulkanDevice::CreateFramebuffers()
 
 	FramebufferCreateInfo.renderPass = m_VkRenderPass;
 	FramebufferCreateInfo.attachmentCount = 1;
-	FramebufferCreateInfo.width = m_VkSwapChainExtent.width;
-	FramebufferCreateInfo.height = m_VkSwapChainExtent.height;
+	FramebufferCreateInfo.width = swapChainExtent.width;
+	FramebufferCreateInfo.height = swapChainExtent.height;
 	FramebufferCreateInfo.layers = 1;
 
 	//grab how many images we have in the swapchain
@@ -1307,11 +1311,12 @@ void Zn::VulkanDevice::DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderOb
 			vkCmdBindPipeline(InCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipeline);
 			last_material = object.material;
 
-			vkCmdBindDescriptorSets(InCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->layout, 0, 1, &m_VkGlobalDescriptorSet[m_CurrentFrame], 0, nullptr);
+			vk::CommandBuffer cmd(InCommandBuffer);
+			cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 0, globalDescriptorSets[m_CurrentFrame], {});
 
-			if (object.material->textureSet != VK_NULL_HANDLE)
+			if (object.material->textureSet)
 			{
-				vkCmdBindDescriptorSets(InCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->layout, 1, 1, &object.material->textureSet, 0, nullptr);
+				cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 1, object.material->textureSet, {});
 			}
 		}
 
@@ -1351,13 +1356,12 @@ void Zn::VulkanDevice::CreateScene()
 
 	// Sampler
 
-	VkDescriptorSetAllocateInfo singleTextureAllocateInfo{};
-	singleTextureAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	singleTextureAllocateInfo.descriptorPool = m_VkDescriptorPool;
-	singleTextureAllocateInfo.descriptorSetCount = 1;
+	vk::DescriptorSetAllocateInfo singleTextureAllocateInfo{};
+	singleTextureAllocateInfo.descriptorPool = descriptorPool;
+	singleTextureAllocateInfo.descriptorSetCount = 1;	
 	singleTextureAllocateInfo.pSetLayouts = &singleTextureSetLayout;
 
-	ZN_VK_CHECK(vkAllocateDescriptorSets(device, &singleTextureAllocateInfo, &viking_room.material->textureSet));
+	viking_room.material->textureSet = device.allocateDescriptorSets(singleTextureAllocateInfo)[0];
 
 	const vk::Filter samplerFilters = vk::Filter::eNearest;
 	const vk::SamplerAddressMode samplerAddressMode = vk::SamplerAddressMode::eRepeat;
@@ -1532,7 +1536,7 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
 		vk::DescriptorSetLayout layouts[2] =
 		{
-			m_VkGlobalSetLayout,
+			globalDescriptorSetLayout,
 			singleTextureSetLayout
 		};
 
@@ -1554,7 +1558,7 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 			device.destroyPipelineLayout(material->layout);
 		});
 
-		material->pipeline = VulkanPipeline::NewVkPipeline(device, m_VkRenderPass, material->vertex_shader, material->fragment_shader, m_VkSwapChainExtent, material->layout, vertex_description);
+		material->pipeline = VulkanPipeline::NewVkPipeline(device, m_VkRenderPass, material->vertex_shader, material->fragment_shader, swapChainExtent, material->layout, vertex_description);
 
 		m_DestroyQueue.Enqueue([=]()
 		{

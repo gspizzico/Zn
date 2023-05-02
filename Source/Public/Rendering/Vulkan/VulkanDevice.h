@@ -94,8 +94,8 @@ namespace Zn
 		vk::Queue presentQueue{ VK_NULL_HANDLE };
 		vk::SwapchainKHR swapChain{ VK_NULL_HANDLE };
 
-		vk::SurfaceFormatKHR m_VkSwapChainFormat{};
-		VkExtent2D m_VkSwapChainExtent{};
+		vk::SurfaceFormatKHR swapChainFormat{};
+		vk::Extent2D swapChainExtent{};
 
 		Vector<VkImage> m_VkSwapChainImages;
 		Vector<VkImageView> m_VkImageViews;
@@ -111,9 +111,9 @@ namespace Zn
 		VkSemaphore m_VkPresentSemaphores[kMaxFramesInFlight], m_VkRenderSemaphores[kMaxFramesInFlight];
 		VkFence m_VkRenderFences[kMaxFramesInFlight];
 
-		VkDescriptorPool m_VkDescriptorPool{ VK_NULL_HANDLE };
-		VkDescriptorSetLayout m_VkGlobalSetLayout{ VK_NULL_HANDLE };
-		VkDescriptorSet m_VkGlobalDescriptorSet[kMaxFramesInFlight];
+		vk::DescriptorPool descriptorPool{};
+		vk::DescriptorSetLayout globalDescriptorSetLayout{};
+		Vector<vk::DescriptorSet> globalDescriptorSets;
 
 		VkDescriptorPool m_VkImGuiDescriptorPool{VK_NULL_HANDLE};
 
@@ -195,7 +195,7 @@ namespace Zn
 
 		UnorderedMap<String, Vk::AllocatedImage> textures;
 
-		VkDescriptorSetLayout singleTextureSetLayout;
+		vk::DescriptorSetLayout singleTextureSetLayout;
 
 		// ===================
 

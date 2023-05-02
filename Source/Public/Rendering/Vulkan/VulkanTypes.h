@@ -102,7 +102,7 @@ namespace Zn
 			UnorderedMap<String, f32> parameters;
 
 
-			VkDescriptorSet textureSet;
+			vk::DescriptorSet textureSet;
 		};
 
 		struct RenderObject
