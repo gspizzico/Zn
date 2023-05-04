@@ -106,7 +106,7 @@ namespace Zn
 		Vector<vk::CommandBuffer> commandBuffers;
 
 		VkRenderPass m_VkRenderPass{ VK_NULL_HANDLE };
-		Vector<VkFramebuffer> m_VkFramebuffers{};
+		Vector<vk::Framebuffer> frameBuffers{};
 		
 		VkSemaphore m_VkPresentSemaphores[kMaxFramesInFlight], m_VkRenderSemaphores[kMaxFramesInFlight];
 		VkFence m_VkRenderFences[kMaxFramesInFlight];

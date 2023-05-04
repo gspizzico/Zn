@@ -512,7 +512,7 @@ void VulkanDevice::Cleanup()
 
 	uploadContext.cmdBuffer = VK_NULL_HANDLE;
 
-	m_VkFramebuffers.clear();
+	frameBuffers.clear();
 	swapChainImageViews.clear();
 
 	allocator.destroy();
@@ -608,7 +608,7 @@ void VulkanDevice::Draw()
 	RenderPassBeginInfo.renderArea.offset.x = 0;
 	RenderPassBeginInfo.renderArea.offset.y = 0;
 	RenderPassBeginInfo.renderArea.extent = swapChainExtent;
-	RenderPassBeginInfo.framebuffer = m_VkFramebuffers[m_SwapChainImageIndex];
+	RenderPassBeginInfo.framebuffer = frameBuffers[m_SwapChainImageIndex];
 
 	//	Connect clear values
 	
@@ -1159,36 +1159,33 @@ void Zn::VulkanDevice::CreateImageViews()
 void Zn::VulkanDevice::CreateFramebuffers()
 {
 	//create the framebuffers for the swapchain images. This will connect the render-pass to the images for rendering
-	VkFramebufferCreateInfo FramebufferCreateInfo{};
-	FramebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-
-	FramebufferCreateInfo.renderPass = m_VkRenderPass;
-	FramebufferCreateInfo.attachmentCount = 1;
-	FramebufferCreateInfo.width = swapChainExtent.width;
-	FramebufferCreateInfo.height = swapChainExtent.height;
-	FramebufferCreateInfo.layers = 1;
+	vk::FramebufferCreateInfo framebufferCreateInfo{};
+	framebufferCreateInfo.renderPass = m_VkRenderPass;	
+	framebufferCreateInfo.attachmentCount = 1;
+	framebufferCreateInfo.width = swapChainExtent.width;
+	framebufferCreateInfo.height = swapChainExtent.height;
+	framebufferCreateInfo.layers = 1;
 
 	//grab how many images we have in the swapchain
 	const size_t NumImages = swapChainImages.size();
-	m_VkFramebuffers = Vector<VkFramebuffer>(NumImages);
+	frameBuffers = Vector<vk::Framebuffer>(NumImages);
 
 	//create framebuffers for each of the swapchain image views
-	for (size_t Index = 0; Index < NumImages; Index++)
+	for (size_t index = 0; index < NumImages; index++)
 	{
-		VkImageView Attachments[2] = { swapChainImageViews[Index], depthImageView };
+		vk::ImageView attachments[2] = { swapChainImageViews[index], depthImageView };
 
-		FramebufferCreateInfo.pAttachments = &Attachments[0];
-		FramebufferCreateInfo.attachmentCount = 2;
-
-		VkCreate(device, m_VkFramebuffers[Index], FramebufferCreateInfo, vkCreateFramebuffer);
+		framebufferCreateInfo.setAttachments(attachments);
+		
+		frameBuffers[index] = device.createFramebuffer(framebufferCreateInfo);
 	}
 }
 
 void Zn::VulkanDevice::CleanupSwapChain()
 {
-	for (size_t Index = 0; Index < m_VkFramebuffers.size(); ++Index)
+	for (size_t Index = 0; Index < frameBuffers.size(); ++Index)
 	{
-		vkDestroyFramebuffer(device, m_VkFramebuffers[Index], nullptr);
+		vkDestroyFramebuffer(device, frameBuffers[Index], nullptr);
 		vkDestroyImageView(device, swapChainImageViews[Index], nullptr);
 	}
 
