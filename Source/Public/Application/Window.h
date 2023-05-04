@@ -18,18 +18,12 @@ namespace Zn
 
 		bool ProcessEvent(SDL_Event event);
 
-		u32 GetSDLWindowID() const { return m_SDLWindowID; }
+		u32 GetSDLWindowID() const { return windowID; }
 
 	private:
 
-		SDL_Window* m_Window{ nullptr };
-		SDL_Surface* m_Canvas{ nullptr };
-		uint32 m_SDLWindowID{ 0 };
-
-		uint64 m_FrameNumber{ 0 };
-
-		void* m_NativeHandle{nullptr};
-
-		bool m_IsMinimized{ false };
+		SDL_Window* window{ nullptr };
+		uint32 windowID{ 0 };
+		void* nativeHandle{nullptr};
 	};
 }

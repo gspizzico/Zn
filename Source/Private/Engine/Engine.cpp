@@ -63,7 +63,7 @@ void Engine::Update(float deltaTime)
 	ProcessInput();
 
 	// TEMP - Moving Camera
-	Renderer::get().set_camera(m_Camera->position, m_Camera->front);
+	Renderer::Get().set_camera(m_Camera->position, m_Camera->front);
 
 	Automation::AutomationTestManager::Get().Tick(deltaTime);
 
@@ -72,7 +72,7 @@ void Engine::Update(float deltaTime)
 		RenderUI(dTime);
 	};
 
-	if (!Renderer::get().render_frame(deltaTime, engine_render))
+	if (!Renderer::Get().render_frame(deltaTime, engine_render))
 	{
 		Application::Get().RequestExit("Error - Rendering has failed.");
 	}

@@ -11,7 +11,7 @@ DEFINE_STATIC_LOG_CATEGORY(LogRenderer, ELogVerbosity::Log);
 
 UniquePtr<Renderer> Zn::Renderer::instance;
 
-Renderer& Zn::Renderer::get()
+Renderer& Zn::Renderer::Get()
 {
 	if (!instance)
 	{

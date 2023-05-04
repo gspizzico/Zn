@@ -18,9 +18,9 @@ Window::Window(const int width, const int height, const String& title)
 
 	static auto ZN_SDL_WINDOW_FLAGS = (SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_VULKAN);
 
-	m_Window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, ZN_SDL_WINDOW_FLAGS);
+	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, ZN_SDL_WINDOW_FLAGS);
 
-	if (m_Window == NULL)
+	if (window == NULL)
 	{
 		ZN_LOG(LogWindow, ELogVerbosity::Error, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
 		return; // #todo - exception / crash / invalid
@@ -28,25 +28,24 @@ Window::Window(const int width, const int height, const String& title)
 
 	SDL_SysWMinfo wmInfo;
 	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(m_Window, &wmInfo);
-	m_NativeHandle = (HWND) wmInfo.info.win.window;
-	m_SDLWindowID = SDL_GetWindowID(m_Window);
+	SDL_GetWindowWMInfo(window, &wmInfo);
+	nativeHandle = (HWND) wmInfo.info.win.window;
+	windowID = SDL_GetWindowID(window);
 }
 
 Window::~Window()
 {
-
-	if (m_Window != nullptr)
+	if (window != nullptr)
 	{
-		SDL_DestroyWindow(m_Window);
+		SDL_DestroyWindow(window);
 
-		m_Window = nullptr;
+		window = nullptr;
 	}
 }
 
 bool Zn::Window::ProcessEvent(SDL_Event event)
 {
-	if (event.window.windowID == m_SDLWindowID)
+	if (event.window.windowID == windowID)
 	{
 		if (event.window.event == SDL_WINDOWEVENT_CLOSE)
 		{
@@ -56,15 +55,15 @@ bool Zn::Window::ProcessEvent(SDL_Event event)
 		// TODO: Implement as events, so that we remove the strong-reference to Renderer
 		if (event.window.event == SDL_WINDOWEVENT_RESIZED)
 		{
-			Renderer::get().on_window_resized();
+			Renderer::Get().on_window_resized();
 		}
 		else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
 		{
-			Renderer::get().on_window_minimized();
+			Renderer::Get().on_window_minimized();
 		}
 		else if (event.window.event == SDL_WINDOWEVENT_RESTORED)
 		{
-			Renderer::get().on_window_restored();
+			Renderer::Get().on_window_restored();
 		}
 	}
 

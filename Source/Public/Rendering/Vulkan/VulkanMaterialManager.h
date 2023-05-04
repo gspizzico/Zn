@@ -14,10 +14,10 @@ namespace Zn
 	{
 	public:
 
-		static VulkanMaterialManager& get();
+		static VulkanMaterialManager& Get();
 
-		Vk::Material* create_material(const String& name);
-		Vk::Material* get_material(const String& name) const;
+		Vk::Material* CreateMaterial(const String& name);
+		Vk::Material* GetMaterial(const String& name) const;
 
 	private:
 

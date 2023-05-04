@@ -6,15 +6,15 @@ DEFINE_STATIC_LOG_CATEGORY(LogVulkanMaterialManager, ELogVerbosity::Log);
 
 using namespace Zn;
 
-Zn::VulkanMaterialManager& Zn::VulkanMaterialManager::get()
+Zn::VulkanMaterialManager& Zn::VulkanMaterialManager::Get()
 {
 	static VulkanMaterialManager instance;
 	return instance;
 }
 
-Zn::Vk::Material* Zn::VulkanMaterialManager::create_material(const String& name)
+Zn::Vk::Material* Zn::VulkanMaterialManager::CreateMaterial(const String& name)
 {
-	Vk::Material* foundMaterial = get_material(name);
+	Vk::Material* foundMaterial = GetMaterial(name);
 
 	if (foundMaterial == nullptr)
 	{
@@ -34,7 +34,7 @@ Zn::Vk::Material* Zn::VulkanMaterialManager::create_material(const String& name)
 	return foundMaterial;
 }
 
-Zn::Vk::Material* Zn::VulkanMaterialManager::get_material(const String& name) const
+Zn::Vk::Material* Zn::VulkanMaterialManager::GetMaterial(const String& name) const
 {
 	if (auto pMaterial = materials.find(name); pMaterial != materials.end())
 	{

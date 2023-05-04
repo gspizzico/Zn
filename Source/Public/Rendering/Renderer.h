@@ -17,7 +17,7 @@ namespace Zn
 	{
 	public:
 
-		static Renderer& get();
+		static Renderer& Get();
 
 		static bool initialize(RendererBackendType type, RendererInitParams data);
 		static bool destroy();

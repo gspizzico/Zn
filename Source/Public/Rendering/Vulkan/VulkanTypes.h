@@ -30,14 +30,14 @@ namespace Zn
 		struct AllocatedBuffer
 		{
 			vk::Buffer Buffer;
-			VmaAllocation Allocation;
+			vma::Allocation Allocation;
 		};
 
 		struct AllocatedImage
 		{
-			vk::Image Image;
-			VkImageView imageView;
-			vma::Allocation Allocation;			
+			vk::Image image;
+			vk::ImageView imageView;
+			vma::Allocation allocation;			
 
 			//	TODO: MOVE AWAY FROM HERE
 			static vk::ImageCreateInfo GetImageCreateInfo(vk::Format inFormat, vk::ImageUsageFlags inUsageFlags, vk::Extent3D inExtent);
@@ -92,12 +92,12 @@ namespace Zn
 			vk::Pipeline pipeline;
 			vk::PipelineLayout layout;
 
-			VkShaderModule vertex_shader;
-			VkShaderModule fragment_shader;
+			vk::ShaderModule vertexShader;
+			vk::ShaderModule fragmentShader;
 
 			// Textures
-			UnorderedMap<String, VkImageView> texture_image_views;
-			UnorderedMap<String, VkSampler> texture_samplers;
+			UnorderedMap<String, vk::ImageView> textureImageViews;
+			UnorderedMap<String, vk::Sampler> textureSamplers;
 
 			// Material parameters
 			UnorderedMap<String, f32> parameters;

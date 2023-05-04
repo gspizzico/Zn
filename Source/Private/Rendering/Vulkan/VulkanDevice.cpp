@@ -137,7 +137,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	instance = inInstance;
 	surface = inSurface;
 
-	m_WindowID = SDL_GetWindowID(InWindowHandle);
+	windowID = SDL_GetWindowID(InWindowHandle);
 
 	/////// Initialize GPU
 
@@ -205,7 +205,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	commandPool = device.createCommandPool(graphicsPoolCreateInfo);
 
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroyCommandPool(commandPool);
 	});
@@ -228,7 +228,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	uploadContext.commandPool = device.createCommandPool(graphicsPoolCreateInfo);
 
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroyCommandPool(uploadContext.commandPool);
 	});
@@ -245,7 +245,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	uploadFenceCreateInfo.flags = (vk::FenceCreateFlagBits) 0;
 	uploadContext.fence = device.createFence(uploadFenceCreateInfo);
 
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroyFence(uploadContext.fence);
 	});
@@ -350,7 +350,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	renderPass = device.createRenderPass(renderPassCreateInfo);
 
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroyRenderPass(renderPass);
 	});
@@ -368,7 +368,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
 	{
 		renderFences[Index] = device.createFence(FenceCreateInfo);
-		m_DestroyQueue.Enqueue([=]()
+		destroyQueue.Enqueue([=]()
 		{
 			device.destroyFence(renderFences[Index]);
 		});
@@ -382,7 +382,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 		presentSemaphores[Index] = device.createSemaphore(semaphoreCreateInfo);
 		renderSemaphores[Index] = device.createSemaphore(semaphoreCreateInfo);
 
-		m_DestroyQueue.Enqueue([=]()
+		destroyQueue.Enqueue([=]()
 		{
 			device.destroySemaphore(presentSemaphores[Index]);
 			device.destroySemaphore(renderSemaphores[Index]);
@@ -418,7 +418,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 		imguiDescriptorPool = device.createDescriptorPool(imGuiPoolCreateInfo);
 
-		m_DestroyQueue.Enqueue([=]()
+		destroyQueue.Enqueue([=]()
 		{
 			device.destroyDescriptorPool(imguiDescriptorPool);
 		});
@@ -470,12 +470,12 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	 
 	CreateScene();
 
-	m_IsInitialized = true;
+	isInitialized = true;
 }
 
 void VulkanDevice::Cleanup()
 {
-	if (m_IsInitialized == false)
+	if (isInitialized == false)
 	{
 		return;
 	}
@@ -487,14 +487,14 @@ void VulkanDevice::Cleanup()
 	for (auto& textureKvp : textures)
 	{
 		vkDestroyImageView(device, textureKvp.second.imageView, nullptr);
-		allocator.destroyImage(textureKvp.second.Image, textureKvp.second.Allocation);
+		allocator.destroyImage(textureKvp.second.image, textureKvp.second.allocation);
 	}
 
 	textures.clear();
 
-	m_Meshes.clear();
+	meshes.clear();
 
-	m_DestroyQueue.Flush();	
+	destroyQueue.Flush();	
 
 	ImGui_ImplVulkan_Shutdown();
 
@@ -527,44 +527,45 @@ void VulkanDevice::Cleanup()
 	//	instance = VK_NULL_HANDLE;
 	//}
 
-	m_IsInitialized = false;
+	isInitialized = false;
 }
 
 void Zn::VulkanDevice::BeginFrame()
 {
 	//wait until the GPU has finished rendering the last frame. Timeout of 1 second
 	
-	device.waitForFences({ renderFences[m_CurrentFrame] }, true, kWaitTimeOneSecond);
+	device.waitForFences({ renderFences[currentFrame] }, true, kWaitTimeOneSecond);
 
-	if (m_IsMinimized)
+	if (isMinimized)
 	{
 		return;
 	}
 
+	static constexpr auto kSwapChainWaitTime = 1000000000;
 	//request image from the swapchain, one second timeout
 	//m_VkPresentSemaphore is set to make sure that we can sync other operations with the swapchain having an image ready to render.
-	VkResult AcquireImageResult = vkAcquireNextImageKHR(device, swapChain, 1000000000, presentSemaphores[m_CurrentFrame], nullptr/*fence*/, &m_SwapChainImageIndex);
+	vk::Result acquireImageResult = device.acquireNextImageKHR(swapChain, kSwapChainWaitTime, presentSemaphores[currentFrame], nullptr/*fence*/, &swapChainImageIndex);
 
-	if (AcquireImageResult == VK_ERROR_OUT_OF_DATE_KHR)
+	if (acquireImageResult == vk::Result::eErrorOutOfDateKHR)
 	{
 		RecreateSwapChain();
 		return;
 	}
-	else if (AcquireImageResult != VK_SUCCESS && AcquireImageResult != VK_SUBOPTIMAL_KHR)
+	else if (acquireImageResult != vk::Result::eSuccess && acquireImageResult != vk::Result::eSuboptimalKHR)
 	{
 		_ASSERT(false);
 		return;
 	}
 
-	device.resetFences({ renderFences[m_CurrentFrame] });
+	device.resetFences({ renderFences[currentFrame] });
 
 	//now that we are sure that the commands finished executing, we can safely reset the command buffer to begin recording again.
-	commandBuffers[m_CurrentFrame].reset();
+	commandBuffers[currentFrame].reset();
 }
 
 void VulkanDevice::Draw()
 {
-	if (m_IsMinimized)
+	if (isMinimized)
 	{
 		return;
 	}
@@ -572,77 +573,98 @@ void VulkanDevice::Draw()
 	// Build ImGui render commands
 	ImGui::Render();
 
-	//naming it CmdBuffer for shorter writing
-	VkCommandBuffer CmdBuffer = commandBuffers[m_CurrentFrame];
+	//naming it commandBuffer for shorter writing
+	vk::CommandBuffer commandBuffer = commandBuffers[currentFrame];
 
 	//begin the command buffer recording. We will use this command buffer exactly once, so we want to let Vulkan know that
 	VkCommandBufferBeginInfo CmdBufferBeginInfo{};
 	CmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	ZN_VK_CHECK(vkBeginCommandBuffer(CmdBuffer, &CmdBufferBeginInfo));
+	commandBuffer.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
-	VkClearValue ClearColor;
-	ClearColor.color = { { 1.0f, 1.0f, 1.0f, 1.0f } };
+	vk::ClearValue clearColor(vk::ClearColorValue(1.0f, 1.0f, 1.0f, 1.0f));
 
-	VkClearValue DepthClear;
+	vk::ClearValue depthClear;
 	
 	//	make a clear-color from frame number. This will flash with a 120 frame period.
-	DepthClear.color = { { 0.0f, 0.0f, abs(sin(m_FrameNumber / 120.f)), 1.0f } };
-	DepthClear.depthStencil.depth = 1.f;
+	depthClear.color = vk::ClearColorValue{ 0.0f, 0.0f, abs(sin(frameNumber / 120.f)), 1.0f };
+	depthClear.depthStencil.depth = 1.f;
 
 	//start the main renderpass.
 	//We will use the clear color from above, and the framebuffer of the index the swapchain gave us
-	VkRenderPassBeginInfo RenderPassBeginInfo{};
-	RenderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	vk::RenderPassBeginInfo renderPassBeginInfo{};
 
-	RenderPassBeginInfo.renderPass = renderPass;
-	RenderPassBeginInfo.renderArea.offset.x = 0;
-	RenderPassBeginInfo.renderArea.offset.y = 0;
-	RenderPassBeginInfo.renderArea.extent = swapChainExtent;
-	RenderPassBeginInfo.framebuffer = frameBuffers[m_SwapChainImageIndex];
+	renderPassBeginInfo.renderPass = renderPass;
+	renderPassBeginInfo.renderArea.offset.x = 0;
+	renderPassBeginInfo.renderArea.offset.y = 0;
+	renderPassBeginInfo.renderArea.extent = swapChainExtent;
+	renderPassBeginInfo.framebuffer = frameBuffers[swapChainImageIndex];
 
 	//	Connect clear values
 	
-	VkClearValue ClearValues[2] = { ClearColor, DepthClear };
-	RenderPassBeginInfo.clearValueCount = 2;
-	RenderPassBeginInfo.pClearValues = &ClearValues[0];
+	vk::ClearValue clearValues[2] = { clearColor, depthClear };
+	renderPassBeginInfo.setClearValues(clearValues);
 
-	vkCmdBeginRenderPass(CmdBuffer, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
 	// *** Insert Commands here ***	
 	{
-		DrawObjects(CmdBuffer, m_Renderables.data(), m_Renderables.size());
+		// Model View Matrix
+
+		// Camera View	
+		const glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, upVector);
+
+		// Camera Projection
+		glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 200.f);
+		projection[1][1] *= -1;
+
+		Vk::GPUCameraData camera{};
+		camera.projection = projection;
+		camera.view = view;
+		camera.view_projection = projection * view;
+
+		CopyToGPU(cameraBuffer[currentFrame].Allocation, &camera, sizeof(Vk::GPUCameraData));
+
+		Vk::LightingUniforms lighting{};
+		lighting.directional_lights[0].direction = glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
+		lighting.directional_lights[0].color = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
+		lighting.directional_lights[0].intensity = 0.25f;
+		lighting.ambient_light.color = glm::vec4(0.f, 0.2f, 1.f, 0.f);
+		lighting.ambient_light.intensity = 0.15f;
+		lighting.num_directional_lights = 1;
+		lighting.num_point_lights = 0;
+
+		CopyToGPU(lightingBuffer[currentFrame].Allocation, &lighting, sizeof(Vk::LightingUniforms));
+
+		DrawObjects(commandBuffer, renderables.data(), renderables.size());
 
 		// Enqueue ImGui commands to CmdBuffer
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CmdBuffer);
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 	}
 
-
 	//finalize the render pass
-	vkCmdEndRenderPass(CmdBuffer);
+	commandBuffer.endRenderPass();
 	//finalize the command buffer (we can no longer add commands, but it can now be executed)
-	ZN_VK_CHECK(vkEndCommandBuffer(CmdBuffer));
-
-	
+	commandBuffer.end();
 }
 
 void Zn::VulkanDevice::EndFrame()
 {
-	if (m_IsMinimized)
+	if (isMinimized)
 	{
 		return;
 	}
 
-	auto& CmdBuffer = commandBuffers[m_CurrentFrame];
+	auto& CmdBuffer = commandBuffers[currentFrame];
 	////// Submit
 
 	//prepare the submission to the queue.
 	//we want to wait on the m_VkPresentSemaphore, as that semaphore is signaled when the swapchain is ready
 	//we will signal the m_VkRenderSemaphore, to signal that rendering has finished
 
-	vk::Semaphore waitSemaphores[] = { presentSemaphores[m_CurrentFrame] };
-	vk::Semaphore signalSemaphores[] = { renderSemaphores[m_CurrentFrame] };
+	vk::Semaphore waitSemaphores[] = { presentSemaphores[currentFrame] };
+	vk::Semaphore signalSemaphores[] = { renderSemaphores[currentFrame] };
 
 	vk::SubmitInfo submitInfo{};
 
@@ -662,7 +684,7 @@ void Zn::VulkanDevice::EndFrame()
 
 	//submit command buffer to the queue and execute it.
 	// _renderFence will now block until the graphic commands finish execution
-	graphicsQueue.submit(submitInfo, renderFences[m_CurrentFrame]);
+	graphicsQueue.submit(submitInfo, renderFences[currentFrame]);
 
 	////// Present
 
@@ -677,7 +699,7 @@ void Zn::VulkanDevice::EndFrame()
 	presentInfo.pWaitSemaphores = signalSemaphores;
 	presentInfo.waitSemaphoreCount = 1;
 
-	presentInfo.pImageIndices = &m_SwapChainImageIndex;
+	presentInfo.pImageIndices = &swapChainImageIndex;
 	
 	vk::Result presentResult = presentQueue.presentKHR(presentInfo);
 
@@ -690,8 +712,8 @@ void Zn::VulkanDevice::EndFrame()
 		_ASSERT(presentResult == vk::Result::eSuccess);
 	}
 
-	m_CurrentFrame = (m_CurrentFrame + 1) % kMaxFramesInFlight;
-	m_FrameNumber++;
+	currentFrame = (currentFrame + 1) % kMaxFramesInFlight;
+	frameNumber++;
 }
 
 void Zn::VulkanDevice::ResizeWindow()
@@ -701,12 +723,12 @@ void Zn::VulkanDevice::ResizeWindow()
 
 void Zn::VulkanDevice::OnWindowMinimized()
 {
-	m_IsMinimized = true;
+	isMinimized = true;
 }
 
 void Zn::VulkanDevice::OnWindowRestored()
 {
-	m_IsMinimized = false;
+	isMinimized = false;
 }
 
 bool VulkanDevice::HasRequiredDeviceExtensions(vk::PhysicalDevice inDevice) const
@@ -834,17 +856,13 @@ Vector<vk::DeviceQueueCreateInfo> VulkanDevice::BuildQueueCreateInfo(const Vk::Q
 	return outCreateInfo;
 }
 
-VkShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& InBytes)
+vk::ShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& bytes)
 {
-	VkShaderModuleCreateInfo ShaderCreateInfo{};
-	ShaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	ShaderCreateInfo.codeSize = InBytes.size();
-	ShaderCreateInfo.pCode = reinterpret_cast<const uint32_t*>(InBytes.data());
+	vk::ShaderModuleCreateInfo shaderCreateInfo{};
+	shaderCreateInfo.codeSize = bytes.size();
+	shaderCreateInfo.pCode = reinterpret_cast<const uint32_t*>(bytes.data());
 
-	VkShaderModule OutModule{ VK_NULL_HANDLE };
-	vkCreateShaderModule(device, &ShaderCreateInfo, nullptr, &OutModule);
-
-	return OutModule;
+	return device.createShaderModule(shaderCreateInfo);
 }
 
 void Zn::VulkanDevice::CreateDescriptors()
@@ -865,7 +883,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	descriptorPool = device.createDescriptorPool(poolCreateInfo);
 	
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroyDescriptorPool(descriptorPool);
 	});
@@ -891,7 +909,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	globalDescriptorSetLayout = device.createDescriptorSetLayout(globalSetCreateInfo);
 
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroyDescriptorSetLayout(globalDescriptorSetLayout);
 	});
@@ -908,7 +926,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	singleTextureSetLayout = device.createDescriptorSetLayout(singleTextureSetCreateInfo);
 
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroyDescriptorSetLayout(singleTextureSetLayout);
 	});
@@ -917,20 +935,20 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
 	{
-		m_CameraBuffer[Index] = CreateBuffer(sizeof(Vk::GPUCameraData), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+		cameraBuffer[Index] = CreateBuffer(sizeof(Vk::GPUCameraData), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
-		m_DestroyQueue.Enqueue([=]()
+		destroyQueue.Enqueue([=]()
 		{
-			DestroyBuffer(m_CameraBuffer[Index]);
+			DestroyBuffer(cameraBuffer[Index]);
 		});		
 
 		// Lighting
 
-		lighting_buffer[Index] = CreateBuffer(sizeof(Vk::LightingUniforms), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+		lightingBuffer[Index] = CreateBuffer(sizeof(Vk::LightingUniforms), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
-		m_DestroyQueue.Enqueue([=]()
+		destroyQueue.Enqueue([=]()
 		{
-			DestroyBuffer(lighting_buffer[Index]);
+			DestroyBuffer(lightingBuffer[Index]);
 		});
 
 		vk::DescriptorSetAllocateInfo descriptorSetAllocInfo{};
@@ -944,13 +962,13 @@ void Zn::VulkanDevice::CreateDescriptors()
 		{
 			vk::DescriptorBufferInfo
 			{
-				m_CameraBuffer[Index].Buffer,
+				cameraBuffer[Index].Buffer,
 				0,
 				sizeof(Vk::GPUCameraData)
 			},
 			vk::DescriptorBufferInfo
 			{
-				lighting_buffer[Index].Buffer,
+				lightingBuffer[Index].Buffer,
 				0,
 				sizeof(Vk::LightingUniforms)
 			}
@@ -1025,7 +1043,7 @@ void Zn::VulkanDevice::CreateSwapChain()
 		presentMode = vk::PresentModeKHR::eMailbox;
 	}
 
-	SDL_Window* WindowHandle = SDL_GetWindowFromID(m_WindowID);
+	SDL_Window* WindowHandle = SDL_GetWindowFromID(windowID);
 	int32 Width, Height = 0;
 	SDL_Vulkan_GetDrawableSize(WindowHandle, &Width, &Height);
 
@@ -1134,17 +1152,17 @@ void Zn::VulkanDevice::CreateImageViews()
 	depthImageAllocInfo.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 	// TODO: VK_CHECK
-	allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &m_DepthImage.Image, &m_DepthImage.Allocation, nullptr);
+	allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthImage.image, &depthImage.allocation, nullptr);
 
 	//	VK_IMAGE_ASPECT_DEPTH_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-	vk::ImageViewCreateInfo depthImageViewCreateInfo = Vk::AllocatedImage::GetImageViewCreateInfo(depthImageFormat, m_DepthImage.Image, vk::ImageAspectFlagBits::eDepth);
+	vk::ImageViewCreateInfo depthImageViewCreateInfo = Vk::AllocatedImage::GetImageViewCreateInfo(depthImageFormat, depthImage.image, vk::ImageAspectFlagBits::eDepth);
 
 	depthImageView = device.createImageView(depthImageViewCreateInfo);
 
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroyImageView(depthImageView);
-		allocator.destroyImage(m_DepthImage.Image, m_DepthImage.Allocation);
+		allocator.destroyImage(depthImage.image, depthImage.allocation);
 	});
 }
 
@@ -1175,18 +1193,18 @@ void Zn::VulkanDevice::CreateFramebuffers()
 
 void Zn::VulkanDevice::CleanupSwapChain()
 {
-	for (size_t Index = 0; Index < frameBuffers.size(); ++Index)
+	for (size_t index = 0; index < frameBuffers.size(); ++index)
 	{
-		vkDestroyFramebuffer(device, frameBuffers[Index], nullptr);
-		vkDestroyImageView(device, swapChainImageViews[Index], nullptr);
+		device.destroyFramebuffer(frameBuffers[index]);
+		device.destroyImageView(swapChainImageViews[index]);
 	}
 
-	vkDestroySwapchainKHR(device, swapChain, nullptr);
+	device.destroySwapchainKHR(swapChain);
 }
 
 void Zn::VulkanDevice::RecreateSwapChain()
 {	
-	vkDeviceWaitIdle(device);
+	device.waitIdle();
 
 	CleanupSwapChain();
 
@@ -1233,7 +1251,7 @@ void Zn::VulkanDevice::CopyToGPU(vma::Allocation allocation, void* src, size_t s
 
 Vk::Mesh* Zn::VulkanDevice::GetMesh(const String& InName)
 {
-	if (auto it = m_Meshes.find(InName); it != m_Meshes.end())
+	if (auto it = meshes.find(InName); it != meshes.end())
 	{
 		return &((*it).second);
 	}
@@ -1241,41 +1259,14 @@ Vk::Mesh* Zn::VulkanDevice::GetMesh(const String& InName)
 	return nullptr;
 }
 
-void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer InCommandBuffer, Vk::RenderObject* InFirst, int32 InCount)
+void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, int32 count)
 {
-	// Model View Matrix
+	Vk::Mesh* lastMesh = nullptr;
+	Vk::Material* lastMaterial = nullptr;
 
-	// Camera View	
-	const glm::mat4 view = glm::lookAt(camera_position, camera_position + camera_direction, up_vector);
-
-	// Camera Projection
-	glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 200.f);
-	projection[1][1] *= -1;
-
-	Vk::GPUCameraData camera{};
-	camera.projection = projection;
-	camera.view = view;
-	camera.view_projection = projection * view;
-
-	CopyToGPU(m_CameraBuffer[m_CurrentFrame].Allocation, &camera, sizeof(Vk::GPUCameraData));
-
-	Vk::LightingUniforms lighting{};
-	lighting.directional_lights[0].direction = glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
-	lighting.directional_lights[0].color = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
-	lighting.directional_lights[0].intensity = 0.25f;
-	lighting.ambient_light.color = glm::vec4(0.f, 0.2f, 1.f, 0.f);
-	lighting.ambient_light.intensity = 0.15f;
-	lighting.num_directional_lights = 1;
-	lighting.num_point_lights = 0;
-
-	CopyToGPU(lighting_buffer[m_CurrentFrame].Allocation, &lighting, sizeof(Vk::LightingUniforms));
-
-	Vk::Mesh* last_mesh = nullptr;
-	Vk::Material* last_material = nullptr;
-
-	for (int32 index = 0; index < InCount; ++index)
+	for (int32 index = 0; index < count; ++index)
 	{
-		Vk::RenderObject& object = InFirst[index];
+		Vk::RenderObject& object = first[index];
 
 		static const auto identity = glm::mat4{ 1.f };
 		
@@ -1286,17 +1277,17 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer InCommandBuffer, Vk::Render
 		glm::mat4 transform = translation * rotation * scale;
 
 		// only bind the pipeline if it doesn't match what's already bound
-		if (object.material != last_material)
+		if (object.material != lastMaterial)
 		{
-			InCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, object.material->pipeline);
+			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, object.material->pipeline);
 
-			last_material = object.material;
+			lastMaterial = object.material;
 			
-			InCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 0, globalDescriptorSets[m_CurrentFrame], {});
+			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 0, globalDescriptorSets[currentFrame], {});
 
 			if (object.material->textureSet)
 			{
-				InCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 1, object.material->textureSet, {});
+				commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 1, object.material->textureSet, {});
 			}
 		}
 
@@ -1305,21 +1296,21 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer InCommandBuffer, Vk::Render
 			.RenderMatrix = transform
 		};
 
-		InCommandBuffer.pushConstants(object.material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(Vk::MeshPushConstants), &constants);
+		commandBuffer.pushConstants(object.material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(Vk::MeshPushConstants), &constants);
 
 		// only bind the mesh if it's different from what's already bound
 
-		if (object.mesh != last_mesh)
+		if (object.mesh != lastMesh)
 		{
 			// bind the mesh v-buffer with offset 0
 			vk::DeviceSize offset = 0;
-			InCommandBuffer.bindVertexBuffers(0, 1, &object.mesh->Buffer.Buffer, &offset);
-			last_mesh = object.mesh;
+			commandBuffer.bindVertexBuffers(0, 1, &object.mesh->Buffer.Buffer, &offset);
+			lastMesh = object.mesh;
 		}
 
 		// Draw
 
-		InCommandBuffer.draw(object.mesh->Vertices.size(), 1, 0, 0);
+		commandBuffer.draw(object.mesh->Vertices.size(), 1, 0, 0);
 	}
 }
 
@@ -1328,7 +1319,7 @@ void Zn::VulkanDevice::CreateScene()
 	Vk::RenderObject viking_room
 	{
 		.mesh = GetMesh("viking_room"),
-		.material = VulkanMaterialManager::get().get_material("default"),
+		.material = VulkanMaterialManager::Get().GetMaterial("default"),
 		.location = glm::vec3(0.f),
 		.rotation = glm::quat(),
 		.scale = glm::vec3(1.f)
@@ -1354,12 +1345,12 @@ void Zn::VulkanDevice::CreateScene()
 	samplerCreateInfo.addressModeW = samplerAddressMode;
 
 	vk::Sampler sampler = device.createSampler(samplerCreateInfo);
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		device.destroySampler(sampler);
 	});
 
-	viking_room.material->texture_samplers["default"] = sampler;
+	viking_room.material->textureSamplers["default"] = sampler;
 
 	//write to the descriptor set so that it points to our empire_diffuse texture
 	vk::DescriptorImageInfo imageBufferInfo;
@@ -1380,18 +1371,18 @@ void Zn::VulkanDevice::CreateScene()
 			} 
 		}, {});
 
-	m_Renderables.push_back(viking_room);
+	renderables.push_back(viking_room);
 
 	Vk::RenderObject monkey
 	{
 		.mesh = GetMesh("monkey"),
-		.material = VulkanMaterialManager::get().get_material("default"),
+		.material = VulkanMaterialManager::Get().GetMaterial("default"),
 		.location = glm::vec3(0.f, 0.f, 10.f),
 		.rotation = glm::quat(),
 		.scale = glm::vec3(1.f)
 	};
 
-	m_Renderables.push_back(monkey);
+	renderables.push_back(monkey);
 
 	for (int32 x = -20; x <= 20; ++x)
 	{
@@ -1400,13 +1391,13 @@ void Zn::VulkanDevice::CreateScene()
 			Vk::RenderObject triangle
 			{
 				.mesh = GetMesh("triangle"),
-				.material = VulkanMaterialManager::get().get_material("default"),
+				.material = VulkanMaterialManager::Get().GetMaterial("default"),
 				.location = glm::vec3(x, 0, y),
 				.rotation = glm::quat(glm::vec3(glm::radians(25.f), 0.f, 0.f)),
 				.scale = glm::vec3(0.2f)
 			};
 
-			m_Renderables.push_back(triangle);
+			renderables.push_back(triangle);
 		}
 	}
 }
@@ -1438,7 +1429,7 @@ void Zn::VulkanDevice::LoadMeshes()
 
 	UploadMesh(triangle);
 
-	m_Meshes["triangle"] = triangle;
+	meshes["triangle"] = triangle;
 
 	Vk::Mesh monkey{};
 	
@@ -1446,7 +1437,7 @@ void Zn::VulkanDevice::LoadMeshes()
 	
 	UploadMesh(monkey);
 	
-	m_Meshes["monkey"] = monkey;
+	meshes["monkey"] = monkey;
 
 	Vk::Mesh vikingRoom{};
 
@@ -1454,7 +1445,7 @@ void Zn::VulkanDevice::LoadMeshes()
 	 
 	UploadMesh(vikingRoom);
 	 
-	m_Meshes["viking_room"] = vikingRoom;
+	meshes["viking_room"] = vikingRoom;
 }
 
 void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
@@ -1481,7 +1472,7 @@ void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 
 	DestroyBuffer(stagingBuffer);
 
-	m_DestroyQueue.Enqueue([=]()
+	destroyQueue.Enqueue([=]()
 	{
 		DestroyBuffer(OutMesh.Buffer);
 	});
@@ -1497,17 +1488,17 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
 	if (vertex_success && fragment_success)
 	{
-		Vk::Material* material = VulkanMaterialManager::get().create_material("default");
+		Vk::Material* material = VulkanMaterialManager::Get().CreateMaterial("default");
 
-		material->vertex_shader = CreateShaderModule(vertex_shader_data);
-		material->fragment_shader = CreateShaderModule(fragment_shader_data); 
+		material->vertexShader = CreateShaderModule(vertex_shader_data);
+		material->fragmentShader = CreateShaderModule(fragment_shader_data); 
 		
-		if (material->vertex_shader == VK_NULL_HANDLE)
+		if (!material->vertexShader)
 		{
 			ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create vertex shader.");
 		}
 
-		if (material->fragment_shader == VK_NULL_HANDLE)
+		if (!material->fragmentShader)
 		{
 			ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create fragment shader.");
 		}
@@ -1535,17 +1526,17 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
 		material->layout = device.createPipelineLayout(layoutCreateInfo);
 
-		m_DestroyQueue.Enqueue([=]()
+		destroyQueue.Enqueue([=]()
 		{
 			device.destroyPipelineLayout(material->layout);
 		});
 
-		material->pipeline = VulkanPipeline::NewVkPipeline(device, renderPass, material->vertex_shader, material->fragment_shader, swapChainExtent, material->layout, vertex_description);
+		material->pipeline = VulkanPipeline::NewVkPipeline(device, renderPass, material->vertexShader, material->fragmentShader, swapChainExtent, material->layout, vertex_description);
 
-		m_DestroyQueue.Enqueue([=]()
+		destroyQueue.Enqueue([=]()
 		{
-			device.destroyShaderModule(material->vertex_shader);
-			device.destroyShaderModule(material->fragment_shader);
+			device.destroyShaderModule(material->vertexShader);
+			device.destroyShaderModule(material->fragmentShader);
 			device.destroyPipeline(material->pipeline);
 		});
 	}
@@ -1584,9 +1575,9 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTexture(const String& texture)
 
 	ImmediateSubmit([=](vk::CommandBuffer cmd)
 	{
-		TransitionImageLayout(cmd, outResult.Image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-		CopyBufferToImage(cmd, stagingBuffer.Buffer, outResult.Image, textureWidth, textureHeight);
-		TransitionImageLayout(cmd, outResult.Image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+		TransitionImageLayout(cmd, outResult.image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+		CopyBufferToImage(cmd, stagingBuffer.Buffer, outResult.image, textureWidth, textureHeight);
+		TransitionImageLayout(cmd, outResult.image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 	});
 
 	DestroyBuffer(stagingBuffer);
@@ -1594,7 +1585,7 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTexture(const String& texture)
 	vk::ImageViewCreateInfo imageViewInfo{};
 
 	imageViewInfo.viewType = vk::ImageViewType::e2D;
-	imageViewInfo.image = outResult.Image;
+	imageViewInfo.image = outResult.image;
 	imageViewInfo.format = vk::Format::eR8G8B8A8Srgb;
 	imageViewInfo.subresourceRange.baseMipLevel = 0;
 	imageViewInfo.subresourceRange.levelCount = 1;
@@ -1633,7 +1624,7 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTextureImage(u32 width, u32 height, c
 	//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
 	allocationInfo.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal);
 	
-	allocator.createImage(&createInfo, &allocationInfo, &outImage.Image, &outImage.Allocation, nullptr);
+	allocator.createImage(&createInfo, &allocationInfo, &outImage.image, &outImage.allocation, nullptr);
 
 	return outImage;
 }
@@ -1763,7 +1754,7 @@ void VulkanDevice::CreateVkObject(OwnerType Owner, TypePtr& OutObject, const Cre
 {
 	ZN_VK_CHECK(VkCreate(Owner, OutObject, CreateInfo, std::move(Create)));
 
-	m_DestroyQueue.Enqueue([this, OutObject, Owner, Destructor = std::move(Destroy)]() mutable
+	destroyQueue.Enqueue([this, OutObject, Owner, Destructor = std::move(Destroy)]() mutable
 	{
 		if (Owner != VK_NULL_HANDLE && OutObject != VK_NULL_HANDLE)
 		{

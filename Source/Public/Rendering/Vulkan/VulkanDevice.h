@@ -59,7 +59,7 @@ namespace Zn
 
 		Vector<vk::DeviceQueueCreateInfo> BuildQueueCreateInfo(const Vk::QueueFamilyIndices& InIndices) const;
 
-		VkShaderModule CreateShaderModule(const Vector<uint8>& InBytes);
+		vk::ShaderModule CreateShaderModule(const Vector<uint8>& bytes);
 
 		void CreateDescriptors();
 		void CreateSwapChain();
@@ -70,29 +70,27 @@ namespace Zn
 
 		void RecreateSwapChain();
 
-		bool m_IsInitialized{ false };
+		bool isInitialized{ false };
 
-		bool m_IsMinimized{ false };
+		bool isMinimized{ false };
 
-		uint32 m_WindowID = 0;
+		uint32 windowID = 0;
 
-		size_t m_CurrentFrame = 0;
+		size_t currentFrame = 0;
 
-		size_t m_FrameNumber = 0;
+		size_t frameNumber = 0;
 
-		u32 m_SwapChainImageIndex = 0;
+		u32 swapChainImageIndex = 0;
 
 		vk::Instance instance;
 		vk::SurfaceKHR surface;
 
-		// VkDevice m_VkDevice{ VK_NULL_HANDLE }; // Vulkan Device to issue commands
 		vk::Device device;
-		vk::PhysicalDevice gpu{ VK_NULL_HANDLE }; // Graphics Card Handle
-		VkDebugUtilsMessengerEXT m_DebugMessenger{ VK_NULL_HANDLE }; // Debug message handler
+		vk::PhysicalDevice gpu;
 
-		vk::Queue graphicsQueue{ VK_NULL_HANDLE };
-		vk::Queue presentQueue{ VK_NULL_HANDLE };
-		vk::SwapchainKHR swapChain{ VK_NULL_HANDLE };
+		vk::Queue graphicsQueue;
+		vk::Queue presentQueue;
+		vk::SwapchainKHR swapChain;
 
 		vk::SurfaceFormatKHR swapChainFormat{};
 		vk::Extent2D swapChainExtent{};
@@ -101,8 +99,6 @@ namespace Zn
 		Vector<vk::ImageView> swapChainImageViews;
 
 		vk::CommandPool commandPool;
-		// VkCommandPool m_VkCommandPool{ VK_NULL_HANDLE };
-		// VkCommandBuffer m_VkCommandBuffers[kMaxFramesInFlight]{VK_NULL_HANDLE, VK_NULL_HANDLE};
 		Vector<vk::CommandBuffer> commandBuffers;
 
 		vk::RenderPass renderPass;
@@ -134,9 +130,9 @@ namespace Zn
 			std::deque<std::function<void()>> m_Queue{};
 		};
 
-		DestroyQueue m_DestroyQueue{};
+		DestroyQueue destroyQueue{};
 
-		vma::Allocator allocator{VK_NULL_HANDLE};
+		vma::Allocator allocator;
 
 		Vk::AllocatedBuffer CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage);
 		void DestroyBuffer(Vk::AllocatedBuffer buffer);
@@ -148,7 +144,7 @@ namespace Zn
 
 		vk::ImageView depthImageView;
 
-		Vk::AllocatedImage m_DepthImage;
+		Vk::AllocatedImage depthImage;
 
 		// Format of the depth image.
 		vk::Format depthImageFormat;
@@ -157,24 +153,24 @@ namespace Zn
 
 		// == Scene Management ==
 
-		Vector<Vk::RenderObject> m_Renderables;		
-		UnorderedMap<String, Vk::Mesh> m_Meshes;
+		Vector<Vk::RenderObject> renderables;		
+		UnorderedMap<String, Vk::Mesh> meshes;
 		
 		Vk::Mesh* GetMesh(const String& InName);
 
-		void DrawObjects(vk::CommandBuffer InCommandBuffer, Vk::RenderObject* InFirst, int32 InCount);
+		void DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, int32 count);
 
 		void CreateScene();
 
 		// ==================
 
 		// == Camera ==
-		glm::vec3 camera_position{ 0.f, 0.f, 0.f };
-		glm::vec3 camera_direction { 0.0f, 0.0f, 1.f };
-		glm::vec3 up_vector{ 0.0f, 1.f, 0.f };
+		glm::vec3 cameraPosition{ 0.f, 0.f, 0.f };
+		glm::vec3 cameraDirection { 0.0f, 0.0f, 1.f };
+		glm::vec3 upVector{ 0.0f, 1.f, 0.f };
 
-		Vk::AllocatedBuffer m_CameraBuffer[kMaxFramesInFlight];
-		Vk::AllocatedBuffer lighting_buffer[kMaxFramesInFlight];
+		Vk::AllocatedBuffer cameraBuffer[kMaxFramesInFlight];
+		Vk::AllocatedBuffer lightingBuffer[kMaxFramesInFlight];
 
 		// ==================
 
