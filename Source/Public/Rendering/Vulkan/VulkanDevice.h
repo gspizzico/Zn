@@ -105,17 +105,17 @@ namespace Zn
 		// VkCommandBuffer m_VkCommandBuffers[kMaxFramesInFlight]{VK_NULL_HANDLE, VK_NULL_HANDLE};
 		Vector<vk::CommandBuffer> commandBuffers;
 
-		VkRenderPass m_VkRenderPass{ VK_NULL_HANDLE };
+		vk::RenderPass renderPass;
 		Vector<vk::Framebuffer> frameBuffers{};
 		
-		VkSemaphore m_VkPresentSemaphores[kMaxFramesInFlight], m_VkRenderSemaphores[kMaxFramesInFlight];
-		VkFence m_VkRenderFences[kMaxFramesInFlight];
+		vk::Semaphore presentSemaphores[kMaxFramesInFlight], renderSemaphores[kMaxFramesInFlight];
+		vk::Fence renderFences[kMaxFramesInFlight];
 
 		vk::DescriptorPool descriptorPool{};
 		vk::DescriptorSetLayout globalDescriptorSetLayout{};
 		Vector<vk::DescriptorSet> globalDescriptorSets;
 
-		VkDescriptorPool m_VkImGuiDescriptorPool{VK_NULL_HANDLE};
+		vk::DescriptorPool imguiDescriptorPool;
 
 		static const Vector<const char*> kDeviceExtensions;
 
@@ -162,7 +162,7 @@ namespace Zn
 		
 		Vk::Mesh* GetMesh(const String& InName);
 
-		void DrawObjects(VkCommandBuffer InCommandBuffer, Vk::RenderObject* InFirst, int32 InCount);
+		void DrawObjects(vk::CommandBuffer InCommandBuffer, Vk::RenderObject* InFirst, int32 InCount);
 
 		void CreateScene();
 
@@ -189,9 +189,8 @@ namespace Zn
 		// == Texture ==
 
 		Vk::AllocatedImage CreateTexture(const String& texture);
-		Vk::AllocatedBuffer create_staging_texture(const Vk::RawTexture& inRawTexture);
 		Vk::AllocatedImage CreateTextureImage(u32 width, u32 height, const Vk::AllocatedBuffer& inStagingTexture);
-		void TransitionImageLayout(VkCommandBuffer cmd, VkImage img, VkFormat fmt, VkImageLayout prevLayout, VkImageLayout newLayout);
+		void TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout);
 
 		UnorderedMap<String, Vk::AllocatedImage> textures;
 
@@ -204,19 +203,15 @@ namespace Zn
 		struct UploadContext
 		{
 			vk::CommandPool commandPool{ VK_NULL_HANDLE };
-			VkCommandBuffer cmdBuffer{ VK_NULL_HANDLE };
-			VkFence fence{ VK_NULL_HANDLE };
+			vk::CommandBuffer cmdBuffer{ VK_NULL_HANDLE };
+			vk::Fence fence{ VK_NULL_HANDLE };
 		};
 		
 		UploadContext uploadContext{};
+				
+		void ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function);
 
-		VkCommandBufferBeginInfo CreateCmdBufferBeginInfo(VkCommandBufferUsageFlags flags = 0);
-		VkSubmitInfo CreateCmdBufferSubmitInfo(VkCommandBuffer* cmdBuffer);
-		
-		void ImmediateSubmit(std::function<void(VkCommandBuffer)>&& function);
-
-		void CopyBuffer(VkCommandBuffer cmd, VkBuffer src, VkBuffer dst, VkDeviceSize size);
-		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage img, u32 width, u32 height);
+		void CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height);
 
 		// ===================
 

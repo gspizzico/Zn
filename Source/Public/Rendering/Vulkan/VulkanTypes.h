@@ -29,7 +29,7 @@ namespace Zn
 
 		struct AllocatedBuffer
 		{
-			VkBuffer Buffer;
+			vk::Buffer Buffer;
 			VmaAllocation Allocation;
 		};
 
@@ -59,9 +59,9 @@ namespace Zn
 
 		struct VertexInputDescription
 		{
-			Vector<VkVertexInputBindingDescription> Bindings{};
-			Vector<VkVertexInputAttributeDescription> Attributes{};
-			VkPipelineVertexInputStateCreateFlags Flags{ 0 };
+			Vector<vk::VertexInputBindingDescription> Bindings{};
+			Vector<vk::VertexInputAttributeDescription> Attributes{};
+			vk::PipelineVertexInputStateCreateFlags Flags{ 0 };
 		};
 
 		struct Vertex
@@ -89,8 +89,8 @@ namespace Zn
 
 		struct Material
 		{
-			VkPipeline pipeline;
-			VkPipelineLayout layout;
+			vk::Pipeline pipeline;
+			vk::PipelineLayout layout;
 
 			VkShaderModule vertex_shader;
 			VkShaderModule fragment_shader;

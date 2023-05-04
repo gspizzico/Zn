@@ -4,217 +4,193 @@
 
 using namespace Zn;
 
-VkPipelineShaderStageCreateInfo VulkanPipeline::CreateShaderStage(VkShaderStageFlagBits InStageFlags, VkShaderModule InShaderModule)
+vk::PipelineShaderStageCreateInfo VulkanPipeline::CreateShaderStage(vk::ShaderStageFlagBits stageFlags, vk::ShaderModule shaderModule)
 {
-	VkPipelineShaderStageCreateInfo CreateInfo{};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vk::PipelineShaderStageCreateInfo createInfo{};
 
 	//shader stage
-	CreateInfo.stage = InStageFlags;
+	createInfo.stage = stageFlags;
 	//module containing the code for this shader stage
-	CreateInfo.module = InShaderModule;
+	createInfo.module = shaderModule;
 	//the entry point of the shader
-	CreateInfo.pName = "main";
-	return CreateInfo;
+	createInfo.pName = "main";
+	return createInfo;
 }
 
-VkPipelineVertexInputStateCreateInfo VulkanPipeline::CreateVertexInputState()
+vk::PipelineInputAssemblyStateCreateInfo VulkanPipeline::CreateInputAssembly(vk::PrimitiveTopology topology)
 {
-	VkPipelineVertexInputStateCreateInfo CreateInfo{};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vk::PipelineInputAssemblyStateCreateInfo createInfo{};
 
-	//no vertex bindings or attributes
-	CreateInfo.vertexBindingDescriptionCount = 0;
-	CreateInfo.vertexAttributeDescriptionCount = 0;
-	return CreateInfo;
-}
-
-VkPipelineInputAssemblyStateCreateInfo VulkanPipeline::CreateInputAssembly(VkPrimitiveTopology InTopology)
-{
-	VkPipelineInputAssemblyStateCreateInfo CreateInfo{};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-
-	CreateInfo.topology = InTopology;
+	createInfo.topology = topology;
 	//we are not going to use primitive restart on the entire tutorial so leave it on false
-	CreateInfo.primitiveRestartEnable = VK_FALSE;
-	return CreateInfo;
+	createInfo.primitiveRestartEnable = false;
+	return createInfo;
 }
 
-VkPipelineRasterizationStateCreateInfo VulkanPipeline::CreateRasterization(VkPolygonMode InPolygonMode)
+vk::PipelineRasterizationStateCreateInfo VulkanPipeline::CreateRasterization(vk::PolygonMode polygonMode)
 {
-	VkPipelineRasterizationStateCreateInfo CreateInfo{};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	vk::PipelineRasterizationStateCreateInfo createInfo{};
 
-	CreateInfo.depthClampEnable = VK_FALSE;
+	createInfo.depthClampEnable = false;
 	//discards all primitives before the rasterization stage if enabled which we don't want
-	CreateInfo.rasterizerDiscardEnable = VK_FALSE;
+	createInfo.rasterizerDiscardEnable = false;
 
-	CreateInfo.polygonMode = InPolygonMode;
-	CreateInfo.lineWidth = 1.0f;
+	createInfo.polygonMode = polygonMode;
+	createInfo.lineWidth = 1.0f;
 	//no backface cull
-	CreateInfo.cullMode = VK_CULL_MODE_NONE; // VK_CULL_MODE_BACK_BIT
-	CreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	createInfo.cullMode = vk::CullModeFlagBits::eNone; // VK_CULL_MODE_BACK_BIT
+	createInfo.frontFace = vk::FrontFace::eClockwise;
 	//no depth bias
-	CreateInfo.depthBiasEnable = VK_FALSE;
-	CreateInfo.depthBiasConstantFactor = 0.0f;
-	CreateInfo.depthBiasClamp = 0.0f;
-	CreateInfo.depthBiasSlopeFactor = 0.0f;
+	createInfo.depthBiasEnable = false;
+	createInfo.depthBiasConstantFactor = 0.0f;
+	createInfo.depthBiasClamp = 0.0f;
+	createInfo.depthBiasSlopeFactor = 0.0f;
 
-	return CreateInfo;
+	return createInfo;
 }
 
-VkPipelineMultisampleStateCreateInfo VulkanPipeline::CreateMSAA()
+vk::PipelineMultisampleStateCreateInfo VulkanPipeline::CreateMSAA()
 {
-	VkPipelineMultisampleStateCreateInfo CreateInfo{};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	vk::PipelineMultisampleStateCreateInfo createInfo{};
 
-	CreateInfo.sampleShadingEnable = VK_FALSE;
+	createInfo.sampleShadingEnable = false;
 	//multisampling defaulted to no multisampling (1 sample per pixel)
-	CreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-	CreateInfo.minSampleShading = 1.0f;
-	CreateInfo.pSampleMask = nullptr;
-	CreateInfo.alphaToCoverageEnable = VK_FALSE;
-	CreateInfo.alphaToOneEnable = VK_FALSE;
-	return CreateInfo;
+	createInfo.rasterizationSamples = vk::SampleCountFlagBits::e1;
+	createInfo.minSampleShading = 1.0f;
+	createInfo.pSampleMask = nullptr;
+	createInfo.alphaToCoverageEnable = false;
+	createInfo.alphaToOneEnable = false;
+	return createInfo;
 }
 
-VkPipelineColorBlendAttachmentState VulkanPipeline::CreateColorBlendAttachmentState()
+vk::PipelineColorBlendAttachmentState VulkanPipeline::CreateColorBlendAttachmentState()
 {
-	VkPipelineColorBlendAttachmentState BlendAttachment{};
-	BlendAttachment.colorWriteMask = (  VK_COLOR_COMPONENT_R_BIT 
-									  | VK_COLOR_COMPONENT_G_BIT 
-									  |	VK_COLOR_COMPONENT_B_BIT 
-									  | VK_COLOR_COMPONENT_A_BIT
+	vk::PipelineColorBlendAttachmentState blendAttachment{};
+	blendAttachment.colorWriteMask = (  vk::ColorComponentFlagBits::eR
+									  | vk::ColorComponentFlagBits::eG
+									  | vk::ColorComponentFlagBits::eB
+									  | vk::ColorComponentFlagBits::eA
 									 );
 
-	BlendAttachment.blendEnable = VK_FALSE;
-	return BlendAttachment;
+	blendAttachment.blendEnable = false;
+	return blendAttachment;
 }
 
-VkPipelineDepthStencilStateCreateInfo VulkanPipeline::CreateDepthStencil(bool InDepthTest, bool InDepthWrite, VkCompareOp InCompareOp)
+vk::PipelineDepthStencilStateCreateInfo VulkanPipeline::CreateDepthStencil(bool depthTest, bool depthWrite, vk::CompareOp compareOp)
 {
-	VkPipelineDepthStencilStateCreateInfo CreateInfo{};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	CreateInfo.pNext = nullptr;
+	vk::PipelineDepthStencilStateCreateInfo createInfo{};
 
 	//	Enable/Disable z-culling
-	CreateInfo.depthTestEnable = InDepthTest ? VK_TRUE : VK_FALSE;
+	createInfo.depthTestEnable = depthTest;
 	//	Actually write to depth buffer. Usually == DepthTest, but sometimes you might want to not read from d-buffer for special effects.
-	CreateInfo.depthWriteEnable = InDepthWrite ? VK_TRUE : VK_FALSE;
+	createInfo.depthWriteEnable = depthWrite;
 	//	VK_COMPARE_OP_ALWAYS does not do any depth test at all.
 	//	VK_COMPARE_OP_LESS = Draw if Z < whatever is on d-buffer
 	//	VK_COMPARE_OP_EQUAL = Draw if depth matches what is on d-buffer.
-	CreateInfo.depthCompareOp = InDepthTest ? InCompareOp : VK_COMPARE_OP_ALWAYS;
+	createInfo.depthCompareOp = depthTest ? compareOp : vk::CompareOp::eAlways;
 
-	CreateInfo.depthBoundsTestEnable = VK_FALSE;
+	createInfo.depthBoundsTestEnable = false;
 	//	Min and Max depth bounds lets us cap the depth test. 
 	//	If the depth is outside of bounds, the pixel will be skipped. 
-	CreateInfo.minDepthBounds = 0.f;	// Optional
-	CreateInfo.maxDepthBounds = 1.f;	// Optional
+	createInfo.minDepthBounds = 0.f;	// Optional
+	createInfo.maxDepthBounds = 1.f;	// Optional
 	
 	//	We won’t be using stencil test, so that’s set to VK_FALSE by default.
-	CreateInfo.stencilTestEnable = VK_FALSE;
+	createInfo.stencilTestEnable = false;
 
-	return CreateInfo;
+	return createInfo;
 }
 
-VkPipeline VulkanPipeline::NewVkPipeline(VkDevice InDevice, VkRenderPass InRenderPass,
-										VkShaderModule InVertexShader, VkShaderModule InFragmentShader,
-										VkExtent2D InSwapChainExtent, VkPipelineLayout InLayout,
-										const Vk::VertexInputDescription& InVertexInputDescription)
+vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device device, vk::RenderPass renderPass,
+										vk::ShaderModule vertexShader, vk::ShaderModule fragmentShader,
+										vk::Extent2D swapChainExtent, vk::PipelineLayout pipelineLayout,
+										const Vk::VertexInputDescription& vertexInputDescription)
 {
-	static const Vector<VkDynamicState> DynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+	static const Vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport , vk::DynamicState::eScissor };
 
 	// This allow us to change viewport/scissor when we draw instead of baking it into the pipeline.
-	VkPipelineDynamicStateCreateInfo DynamicStateCreateInfo{};
-	DynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	DynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(DynamicStates.size());
-	DynamicStateCreateInfo.pDynamicStates = DynamicStates.data();
+	vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
+	dynamicStateCreateInfo.setDynamicStates(dynamicStates);
 
-	VkPipelineShaderStageCreateInfo ShaderStages[] = { CreateShaderStage(VK_SHADER_STAGE_VERTEX_BIT, InVertexShader), CreateShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, InFragmentShader)};
-
-	VkPipelineVertexInputStateCreateInfo VertexInput = CreateVertexInputState();
-
-	const uint32 NumBindings = static_cast<uint32>(InVertexInputDescription.Bindings.size());
-	const uint32 NumAttributes = static_cast<uint32>(InVertexInputDescription.Attributes.size());
-
-	if (NumBindings > 0 && NumAttributes > 0)
+	vk::PipelineShaderStageCreateInfo shaderStages[] =
 	{
-		VertexInput.vertexBindingDescriptionCount = NumBindings;
-		VertexInput.pVertexBindingDescriptions = InVertexInputDescription.Bindings.data();
+		CreateShaderStage(vk::ShaderStageFlagBits::eVertex, vertexShader),
+		CreateShaderStage(vk::ShaderStageFlagBits::eFragment, fragmentShader)
+	};
 
-		VertexInput.vertexAttributeDescriptionCount = NumAttributes;
-		VertexInput.pVertexAttributeDescriptions = InVertexInputDescription.Attributes.data();
-		VertexInput.flags = InVertexInputDescription.Flags;
+	vk::PipelineVertexInputStateCreateInfo vertexInput{};
+
+	if (vertexInputDescription.Bindings.size() > 0 && vertexInputDescription.Attributes.size()> 0)
+	{
+		vertexInput.setVertexBindingDescriptions(vertexInputDescription.Bindings);
+		vertexInput.setVertexAttributeDescriptions(vertexInputDescription.Attributes);
+		vertexInput.flags = vertexInputDescription.Flags;
 	}
 
-	VkPipelineInputAssemblyStateCreateInfo InputAssembly = CreateInputAssembly(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	vk::PipelineInputAssemblyStateCreateInfo inputAssembly = CreateInputAssembly(vk::PrimitiveTopology::eTriangleList);
 
-	VkViewport Viewport{};
-	Viewport.x = 0;
-	Viewport.y = 0;
-	Viewport.width = (float) InSwapChainExtent.width;
-	Viewport.height = (float) InSwapChainExtent.height;
-	Viewport.minDepth = 0.0f;
-	Viewport.maxDepth = 1.0f;
+	vk::Viewport viewport{};
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.width = (float) swapChainExtent.width;
+	viewport.height = (float) swapChainExtent.height;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
 
-	VkRect2D Scissors{};
-	Scissors.offset = { 0,0 };
-	Scissors.extent = InSwapChainExtent;
+	vk::Rect2D scissors{};
+	scissors.offset = vk::Offset2D{ 0, 0 };
+	scissors.extent = swapChainExtent;
 
-	VkPipelineViewportStateCreateInfo ViewportState{};
-	ViewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	ViewportState.viewportCount = 1;
-	ViewportState.scissorCount = 1;
-	ViewportState.pViewports = &Viewport;
-	ViewportState.pScissors = &Scissors;
+	vk::PipelineViewportStateCreateInfo viewportState{};
+	viewportState.viewportCount = 1;
+	viewportState.scissorCount = 1;
+	viewportState.pViewports = &viewport;
+	viewportState.pScissors = &scissors;
 
 
-	VkPipelineRasterizationStateCreateInfo Rasterizer = CreateRasterization(VK_POLYGON_MODE_FILL);
+	vk::PipelineRasterizationStateCreateInfo rasterizer = CreateRasterization(vk::PolygonMode::eFill);
 	
-	VkPipelineMultisampleStateCreateInfo MSAA = CreateMSAA();
+	vk::PipelineMultisampleStateCreateInfo msaa = CreateMSAA();
 
-	VkPipelineColorBlendAttachmentState BlendAttachment = CreateColorBlendAttachmentState();
+	vk::PipelineColorBlendAttachmentState blendAttachment = CreateColorBlendAttachmentState();
 
 	//	setup dummy color blending. We aren't using transparent objects yet
 	//	the blending is just "no blend", but we do write to the color attachment
-	VkPipelineColorBlendStateCreateInfo ColorBlending{};
-	ColorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	vk::PipelineColorBlendStateCreateInfo colorBlending{};
 
-	ColorBlending.logicOpEnable = VK_FALSE;
-	ColorBlending.logicOp = VK_LOGIC_OP_COPY;
-	ColorBlending.attachmentCount = 1;
-	ColorBlending.pAttachments = &BlendAttachment;
+	colorBlending.logicOpEnable = false;
+	colorBlending.logicOp = vk::LogicOp::eCopy;
+	colorBlending.attachmentCount = 1;
+	colorBlending.pAttachments = &blendAttachment;
 
-	VkPipelineDepthStencilStateCreateInfo DepthStencil = CreateDepthStencil(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
+	vk::PipelineDepthStencilStateCreateInfo depthStencil = CreateDepthStencil(true, true, vk::CompareOp::eLessOrEqual);
 
-	VkGraphicsPipelineCreateInfo PipelineInfo = {};
-	PipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	vk::GraphicsPipelineCreateInfo pipelineInfo = {};
 	
-	PipelineInfo.stageCount = static_cast<uint32>(std::size(ShaderStages));
-	PipelineInfo.pStages = ShaderStages;
-	PipelineInfo.pVertexInputState = &VertexInput;
-	PipelineInfo.pInputAssemblyState = &InputAssembly;
-	PipelineInfo.pViewportState = &ViewportState;
-	PipelineInfo.pRasterizationState = &Rasterizer;
-	PipelineInfo.pMultisampleState = &MSAA;
-	PipelineInfo.pColorBlendState = &ColorBlending;
-	PipelineInfo.pDepthStencilState = &DepthStencil;
-	PipelineInfo.layout = InLayout;
-	PipelineInfo.renderPass = InRenderPass;
-	PipelineInfo.subpass = 0;
-	PipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+	pipelineInfo.setStages(shaderStages);
+	pipelineInfo.pVertexInputState = &vertexInput;
+	pipelineInfo.pInputAssemblyState = &inputAssembly;
+	pipelineInfo.pViewportState = &viewportState;
+	pipelineInfo.pRasterizationState = &rasterizer;
+	pipelineInfo.pMultisampleState = &msaa;
+	pipelineInfo.pColorBlendState = &colorBlending;
+	pipelineInfo.pDepthStencilState = &depthStencil;
+	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.renderPass = renderPass;
+	pipelineInfo.subpass = 0;
+	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	//it's easy to error out on create graphics pipeline, so we handle it a bit better than the common VK_CHECK case
-	VkPipeline OutVkPipeline;
-	if (vkCreateGraphicsPipelines(
-		InDevice, VK_NULL_HANDLE, 1, &PipelineInfo, nullptr, &OutVkPipeline) != VK_SUCCESS)
+
+	vk::ResultValue<vk::Pipeline> result = device.createGraphicsPipeline({}, pipelineInfo);
+
+	if (result.result == vk::Result::eSuccess)
 	{	
-		return VK_NULL_HANDLE; // failed to create graphics pipeline
+		return result.value;
 	}
 	else
 	{
-		return OutVkPipeline;
+		return vk::Pipeline{};
 	}
 
 }

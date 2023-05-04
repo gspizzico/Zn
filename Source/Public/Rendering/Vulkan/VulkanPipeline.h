@@ -1,5 +1,5 @@
 #pragma once
-#include <vulkan/vulkan.h>
+#include <Rendering/Vulkan/VulkanTypes.h>
 
 namespace Zn
 {
@@ -12,24 +12,22 @@ namespace Zn
 	{
 	public:
 
-		static VkPipelineShaderStageCreateInfo CreateShaderStage(VkShaderStageFlagBits InStageFlags, VkShaderModule InShaderModule);
+		static vk::PipelineShaderStageCreateInfo CreateShaderStage(vk::ShaderStageFlagBits stageFlags, vk::ShaderModule shaderModule);
 		
-		static VkPipelineVertexInputStateCreateInfo CreateVertexInputState();
+		static vk::PipelineInputAssemblyStateCreateInfo CreateInputAssembly(vk::PrimitiveTopology topology);
 		
-		static VkPipelineInputAssemblyStateCreateInfo CreateInputAssembly(VkPrimitiveTopology InTopology);
+		static vk::PipelineRasterizationStateCreateInfo CreateRasterization(vk::PolygonMode polygonMode);
 		
-		static VkPipelineRasterizationStateCreateInfo CreateRasterization(VkPolygonMode InPolygonMode);
+		static vk::PipelineMultisampleStateCreateInfo CreateMSAA();
 		
-		static VkPipelineMultisampleStateCreateInfo CreateMSAA();
-		
-		static VkPipelineColorBlendAttachmentState CreateColorBlendAttachmentState();
+		static vk::PipelineColorBlendAttachmentState CreateColorBlendAttachmentState();
 
-		static VkPipelineDepthStencilStateCreateInfo CreateDepthStencil(bool InDepthTest, bool InDepthWrite, VkCompareOp InCompareOp);
+		static vk::PipelineDepthStencilStateCreateInfo CreateDepthStencil(bool depthTest, bool depthWrite, vk::CompareOp compareOp);
 
-		static VkPipeline NewVkPipeline(VkDevice InDevice, VkRenderPass InRenderPass, 
-										VkShaderModule InVertexShader, VkShaderModule InFragmentShader, 
-										VkExtent2D InSwapChainExtent, VkPipelineLayout InLayout, 
-										const Vk::VertexInputDescription& InVertexInputDescription);
+		static vk::Pipeline NewVkPipeline(vk::Device device, vk::RenderPass renderPass, 
+										vk::ShaderModule vertexShader, vk::ShaderModule fragmentShader, 
+										vk::Extent2D swapChainExtent, vk::PipelineLayout pipelineLayout, 
+										const Vk::VertexInputDescription& vertexInputDescription);
 
 	};
 }
