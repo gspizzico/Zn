@@ -57,32 +57,25 @@ VertexInputDescription Vertex::GetVertexInputDescription()
 	return description;
 }
 
-VkImageCreateInfo AllocatedImage::GetImageCreateInfo(VkFormat InFormat, VkImageUsageFlags InUsageFlags, VkExtent3D InExtent)
+vk::ImageCreateInfo AllocatedImage::GetImageCreateInfo(vk::Format inFormat, vk::ImageUsageFlags inUsageFlags, vk::Extent3D inExtent)
 {
-	VkImageCreateInfo CreateInfo{};
-
-	CreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	CreateInfo.pNext = nullptr;
-
-	CreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	vk::ImageCreateInfo createInfo{};
+	createInfo.imageType = vk::ImageType::e2D;
 	//	Format holds what the data of the texture is, like holding a single float(for depth), or holding color.
-	CreateInfo.format = InFormat;
+	createInfo.format = inFormat;
 	//	Extent is the size of the image, in pixels.
-	CreateInfo.extent = InExtent;
-
+	createInfo.extent = inExtent;
 	//	MipLevels holds the amount of mipmap levels the image has.
 	//	TODO: Because we aren’t using them here, we leave the levels to 1.
-	CreateInfo.mipLevels = 1;
-
+	createInfo.mipLevels = 1;
 	//	Array layers is for layered textures.
 	//	You can create textures that are many - in - one, using layers. 
 	//	An example of layered textures is cubemaps, where you have 6 layers, one layer for each face of the cubemap.
 	//	We default it to 1 layer because we aren’t doing cubemaps.
-	CreateInfo.arrayLayers = 1;
-
+	createInfo.arrayLayers = 1;
 	//	Samples controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you are rendering to. 
 	//	TODO: We won’t be doing MSAA in this tutorial, so samples will be kept at 1 sample for the entire guide.
-	CreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	createInfo.samples = vk::SampleCountFlagBits::e1;
 
 	//	Tiling is very important. Tiling describes how the data for the texture is arranged in the GPU. 
 	//	For improved performance, GPUs do not store images as 2d arrays of pixels, but instead use complex custom formats, unique to the GPU brand and even models. 
@@ -91,43 +84,40 @@ VkImageCreateInfo AllocatedImage::GetImageCreateInfo(VkFormat InFormat, VkImageU
 	//	(it’s possible to change the tiling of a texture at any point, but this can be a costly operation). 
 	//	The other tiling we can care about is VK_IMAGE_TILING_LINEAR, which will store the image as a 2d array of pixels. 
 	//	While LINEAR tiling will be a lot slower, it will allow the cpu to safely write and read from that memory.
-	CreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	createInfo.tiling = vk::ImageTiling::eOptimal;
 	
 	//	This will control how the GPU handles the image memory.
-	CreateInfo.usage = InUsageFlags;
+	createInfo.usage = inUsageFlags;
 
-	return CreateInfo;
+	return createInfo;
 }
 
-VkImageViewCreateInfo AllocatedImage::GetImageViewCreateInfo(VkFormat InFormat, VkImage InImage, VkImageAspectFlagBits InAspectFlags)
+vk::ImageViewCreateInfo AllocatedImage::GetImageViewCreateInfo(vk::Format InFormat, vk::Image InImage, vk::ImageAspectFlagBits InAspectFlags)
 {
 	//	While imageType held the dimensionality of the texture, viewType has a lot more options, like VK_IMAGE_VIEW_TYPE_CUBE for cubemaps. 
-	VkImageViewCreateInfo CreateInfo{};
-
-	CreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	CreateInfo.pNext = nullptr;
+	vk::ImageViewCreateInfo createInfo{};
 
 	//	TODO: In here, we will have it matched to GetImageCreateInfo, and hardcode it to 2D images as it’s the most common case.
-	CreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	createInfo.viewType = vk::ImageViewType::e2D;
 
 	//	Image has to point to the image this imageview is being created from. 
 	//	As imageViews “wrap” an image, you need to point to the original one. 
 	//	Format has to match the format in the image this view was created from. 
-	CreateInfo.image = InImage;
-	CreateInfo.format = InFormat;
+	createInfo.image = InImage;
+	createInfo.format = InFormat;
 
 	//	subresourceRange holds the information about where the image points to. 
 	//	This is used for layered images, where you might have multiple layers in one image, and want to create an imageview that points to a specific layer. 
 	//	It’s also possible to control the mipmap levels with it. 
-	CreateInfo.subresourceRange.baseMipLevel = 0;
-	CreateInfo.subresourceRange.levelCount = 1;
-	CreateInfo.subresourceRange.baseArrayLayer = 0;
-	CreateInfo.subresourceRange.layerCount = 1;
+	createInfo.subresourceRange.baseMipLevel = 0;
+	createInfo.subresourceRange.levelCount = 1;
+	createInfo.subresourceRange.baseArrayLayer = 0;
+	createInfo.subresourceRange.layerCount = 1;
 	
 	//	aspectMask is similar to the usageFlags from the image. It’s about what this image is used for.
-	CreateInfo.subresourceRange.aspectMask = InAspectFlags;
+	createInfo.subresourceRange.aspectMask = InAspectFlags;
 
-	return CreateInfo;
+	return createInfo;
 }
 
 bool Zn::Vk::RawTexture::LoadFromFile(String path, RawTexture& outTexture)

@@ -65,7 +65,7 @@
     <IncludePath>$(SolutionDir)Source\Public\;$(SolutionDir)Source\ThirdParty\tracy\public;$(VULKAN_SDK)\Include\;$(IncludePath);$(SolutionDir)Source\ThirdParty\imgui\backends\;$(SolutionDir)Source\ThirdParty\imgui\;$(SolutionDir)\Source\ThirdParty\SDL\include\</IncludePath>
     <LibraryPath>$(LibraryPath);</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\VulkanMemoryAllocator\include</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -75,7 +75,7 @@
     <IncludePath>$(SolutionDir)Source\Public\;$(SolutionDir)Source\ThirdParty\tracy\public;$(VULKAN_SDK)\Include\;$(IncludePath);$(SolutionDir)Source\ThirdParty\imgui\backends\;$(SolutionDir)Source\ThirdParty\imgui\;$(SolutionDir)\Source\ThirdParty\SDL\include\</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\VulkanMemoryAllocator\include</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -85,7 +85,7 @@
     <IncludePath>$(SolutionDir)Source\Public\;$(SolutionDir)Source\ThirdParty\tracy\public;$(VULKAN_SDK)\Include\;$(IncludePath);$(SolutionDir)Source\ThirdParty\imgui\backends\;$(SolutionDir)Source\ThirdParty\imgui\;$(SolutionDir)\Source\ThirdParty\SDL\include\</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\VulkanMemoryAllocator\include</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -95,7 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ZN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
@@ -120,7 +120,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZN_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -146,7 +146,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZN_RELEASE;TRACY_ENABLE;TRACY_ONLY_LOCALHOST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
     </ClCompile>

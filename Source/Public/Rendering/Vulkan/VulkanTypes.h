@@ -4,7 +4,8 @@
 #include <vulkan/vulkan.h>
 #define VULKAN_HPP_NO_SPACESHIP_OPERATOR
 #include <vulkan/vulkan.hpp>
-#include <vma/vk_mem_alloc.h>
+//#include <vma/vk_mem_alloc.h>
+#include <vk_mem_alloc.hpp>
 #include <Core/Containers/Map.h>
 
 
@@ -34,14 +35,14 @@ namespace Zn
 
 		struct AllocatedImage
 		{
-			VkImage Image;
+			vk::Image Image;
 			VkImageView imageView;
-			VmaAllocation Allocation;			
+			vma::Allocation Allocation;			
 
 			//	TODO: MOVE AWAY FROM HERE
-			static VkImageCreateInfo GetImageCreateInfo(VkFormat InFormat, VkImageUsageFlags InUsageFlags, VkExtent3D InExtent);
+			static vk::ImageCreateInfo GetImageCreateInfo(vk::Format inFormat, vk::ImageUsageFlags inUsageFlags, vk::Extent3D inExtent);
 			//	TODO: MOVE AWAY FROM HERE
-			static VkImageViewCreateInfo GetImageViewCreateInfo(VkFormat InFormat, VkImage InImage, VkImageAspectFlagBits InAspectFlags);
+			static vk::ImageViewCreateInfo GetImageViewCreateInfo(vk::Format InFormat, vk::Image InImage, vk::ImageAspectFlagBits InAspectFlags);
 		};
 
 		struct RawTexture

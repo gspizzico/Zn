@@ -1,5 +1,6 @@
 #include <Znpch.h>
 #define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
 #include <Rendering/Vulkan/VulkanDevice.h>
 #include <SDL.h>
 #include <SDL_vulkan.h>
@@ -179,11 +180,12 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	presentQueue = device.getQueue(Indices.Present.value(), 0);
 
 	//initialize the memory allocator
-	VmaAllocatorCreateInfo AllocatorCreateInfo{};
-	AllocatorCreateInfo.instance = instance;
-	AllocatorCreateInfo.physicalDevice = gpu;
-	AllocatorCreateInfo.device = device;
-	vmaCreateAllocator(&AllocatorCreateInfo, &m_VkAllocator);
+	vma::AllocatorCreateInfo allocatorCreateInfo;
+	allocatorCreateInfo.instance = instance;
+	allocatorCreateInfo.physicalDevice = gpu;
+	allocatorCreateInfo.device = device;
+
+	allocator = vma::createAllocator(allocatorCreateInfo);
 
 	CreateDescriptors();
 
@@ -252,16 +254,6 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	//	Color Attachment
 
-	VULKAN_HPP_NAMESPACE::AttachmentDescriptionFlags flags = {};
-	VULKAN_HPP_NAMESPACE::Format                     format = VULKAN_HPP_NAMESPACE::Format::eUndefined;
-	VULKAN_HPP_NAMESPACE::SampleCountFlagBits        samples = VULKAN_HPP_NAMESPACE::SampleCountFlagBits::e1;
-	VULKAN_HPP_NAMESPACE::AttachmentLoadOp           loadOp = VULKAN_HPP_NAMESPACE::AttachmentLoadOp::eLoad;
-	VULKAN_HPP_NAMESPACE::AttachmentStoreOp          storeOp = VULKAN_HPP_NAMESPACE::AttachmentStoreOp::eStore;
-	VULKAN_HPP_NAMESPACE::AttachmentLoadOp           stencilLoadOp = VULKAN_HPP_NAMESPACE::AttachmentLoadOp::eLoad;
-	VULKAN_HPP_NAMESPACE::AttachmentStoreOp          stencilStoreOp = VULKAN_HPP_NAMESPACE::AttachmentStoreOp::eStore;
-	VULKAN_HPP_NAMESPACE::ImageLayout                initialLayout = VULKAN_HPP_NAMESPACE::ImageLayout::eUndefined;
-	VULKAN_HPP_NAMESPACE::ImageLayout                finalLayout = VULKAN_HPP_NAMESPACE::ImageLayout::eUndefined;
-
 	// the renderpass will use this color attachment.
 	vk::AttachmentDescription ColorAttachmentDesc = {};
 	//the attachment will have the format needed by the swapchain
@@ -294,7 +286,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	//	.format = m_DepthFormat; is set to the depth format that we created the depth image at.
 	//	.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; 
 	DepthAttachmentDesc.flags = 0;
-	DepthAttachmentDesc.format = m_DepthFormat;
+	// TODO
+	DepthAttachmentDesc.format = (VkFormat) depthImageFormat;
 	DepthAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
 	DepthAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	DepthAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -501,7 +494,7 @@ void VulkanDevice::Cleanup()
 	for (auto& textureKvp : textures)
 	{
 		vkDestroyImageView(device, textureKvp.second.imageView, nullptr);
-		vmaDestroyImage(m_VkAllocator, textureKvp.second.Image, textureKvp.second.Allocation);
+		allocator.destroyImage(textureKvp.second.Image, textureKvp.second.Allocation);
 	}
 
 	textures.clear();
@@ -520,9 +513,9 @@ void VulkanDevice::Cleanup()
 	uploadContext.cmdBuffer = VK_NULL_HANDLE;
 
 	m_VkFramebuffers.clear();
-	m_VkImageViews.clear();
+	swapChainImageViews.clear();
 
-	vmaDestroyAllocator(m_VkAllocator);
+	allocator.destroy();
 
 	//if (surface != VK_NULL_HANDLE)
 	//{
@@ -932,7 +925,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
 	{
-		m_CameraBuffer[Index] = CreateBuffer(sizeof(Vk::GPUCameraData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+		m_CameraBuffer[Index] = CreateBuffer(sizeof(Vk::GPUCameraData), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
 		m_DestroyQueue.Enqueue([=]()
 		{
@@ -941,7 +934,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 		// Lighting
 
-		lighting_buffer[Index] = CreateBuffer(sizeof(Vk::LightingUniforms), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+		lighting_buffer[Index] = CreateBuffer(sizeof(Vk::LightingUniforms), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
 		m_DestroyQueue.Enqueue([=]()
 		{
@@ -1092,14 +1085,14 @@ void Zn::VulkanDevice::CreateSwapChain()
 
 void Zn::VulkanDevice::CreateImageViews()
 {
-	m_VkSwapChainImages = VkEnumerate<VkImage>(vkGetSwapchainImagesKHR, device, swapChain);
+	swapChainImages = device.getSwapchainImagesKHR(swapChain);
 
-	m_VkImageViews.resize(m_VkSwapChainImages.size());
+	swapChainImageViews.resize(swapChainImages.size());
 
-	for (size_t Index = 0; Index < m_VkSwapChainImages.size(); ++Index)
+	for (size_t Index = 0; Index < swapChainImages.size(); ++Index)
 	{
 		vk::ImageViewCreateInfo imageViewCreateInfo{};
-		imageViewCreateInfo.image = m_VkSwapChainImages[Index];
+		imageViewCreateInfo.image = swapChainImages[Index];
 		imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
 		imageViewCreateInfo.format = swapChainFormat.format;
 
@@ -1120,12 +1113,12 @@ void Zn::VulkanDevice::CreateImageViews()
 
 		imageViewCreateInfo.setSubresourceRange(subresourceRange);
 
-		m_VkImageViews[Index] = device.createImageView(imageViewCreateInfo);
+		swapChainImageViews[Index] = device.createImageView(imageViewCreateInfo);
 	}
 
 	// Initialize Depth Buffer
 
-	VkExtent3D DepthImageExtent
+	vk::Extent3D depthImageExtent
 	{ 
 		swapChainExtent.width, 
 		swapChainExtent.height, 
@@ -1134,32 +1127,32 @@ void Zn::VulkanDevice::CreateImageViews()
 
 	//	Hardcoding to 32 bit float.
 	//	Most GPUs support this depth format, so it’s fine to use it. You might want to choose other formats for other uses, or if you use Stencil buffer.
-	m_DepthFormat = VK_FORMAT_D32_SFLOAT;
+	depthImageFormat = vk::Format::eD32Sfloat;
 
 	//	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-	VkImageCreateInfo DepthImageCreateInfo = Vk::AllocatedImage::GetImageCreateInfo(m_DepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, DepthImageExtent);
-
+	vk::ImageCreateInfo depthImageCreateInfo = Vk::AllocatedImage::GetImageCreateInfo(depthImageFormat, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent);
 
 	//	Allocate from GPU memory.
 
-	VmaAllocationCreateInfo DepthImageAllocInfo{};
+	vma::AllocationCreateInfo depthImageAllocInfo{};
 	//	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
-	DepthImageAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	depthImageAllocInfo.usage = vma::MemoryUsage::eGpuOnly;
 	//	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags. 
 	//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
-	DepthImageAllocInfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	depthImageAllocInfo.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-	ZN_VK_CHECK(vmaCreateImage(m_VkAllocator, &DepthImageCreateInfo, &DepthImageAllocInfo, &m_DepthImage.Image, &m_DepthImage.Allocation, nullptr));
+	// TODO: VK_CHECK
+	allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &m_DepthImage.Image, &m_DepthImage.Allocation, nullptr);
 
 	//	VK_IMAGE_ASPECT_DEPTH_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-	VkImageViewCreateInfo DepthImageViewCreateInfo = Vk::AllocatedImage::GetImageViewCreateInfo(m_DepthFormat, m_DepthImage.Image, VK_IMAGE_ASPECT_DEPTH_BIT);
+	vk::ImageViewCreateInfo depthImageViewCreateInfo = Vk::AllocatedImage::GetImageViewCreateInfo(depthImageFormat, m_DepthImage.Image, vk::ImageAspectFlagBits::eDepth);
 
-	ZN_VK_CHECK(vkCreateImageView(device, &DepthImageViewCreateInfo, nullptr, &m_DepthImageView));
+	depthImageView = device.createImageView(depthImageViewCreateInfo);
 
 	m_DestroyQueue.Enqueue([=]()
 	{
-		vkDestroyImageView(device, m_DepthImageView, nullptr);
-		vmaDestroyImage(m_VkAllocator, m_DepthImage.Image, m_DepthImage.Allocation);
+		device.destroyImageView(depthImageView);
+		allocator.destroyImage(m_DepthImage.Image, m_DepthImage.Allocation);
 	});
 }
 
@@ -1176,13 +1169,13 @@ void Zn::VulkanDevice::CreateFramebuffers()
 	FramebufferCreateInfo.layers = 1;
 
 	//grab how many images we have in the swapchain
-	const size_t NumImages = m_VkSwapChainImages.size();
+	const size_t NumImages = swapChainImages.size();
 	m_VkFramebuffers = Vector<VkFramebuffer>(NumImages);
 
 	//create framebuffers for each of the swapchain image views
 	for (size_t Index = 0; Index < NumImages; Index++)
 	{
-		VkImageView Attachments[2] = { m_VkImageViews[Index], m_DepthImageView };
+		VkImageView Attachments[2] = { swapChainImageViews[Index], depthImageView };
 
 		FramebufferCreateInfo.pAttachments = &Attachments[0];
 		FramebufferCreateInfo.attachmentCount = 2;
@@ -1196,7 +1189,7 @@ void Zn::VulkanDevice::CleanupSwapChain()
 	for (size_t Index = 0; Index < m_VkFramebuffers.size(); ++Index)
 	{
 		vkDestroyFramebuffer(device, m_VkFramebuffers[Index], nullptr);
-		vkDestroyImageView(device, m_VkImageViews[Index], nullptr);
+		vkDestroyImageView(device, swapChainImageViews[Index], nullptr);
 	}
 
 	vkDestroySwapchainKHR(device, swapChain, nullptr);
@@ -1210,45 +1203,43 @@ void Zn::VulkanDevice::RecreateSwapChain()
 
 	CreateSwapChain();
 
-CreateImageViews();
+	CreateImageViews();
 
-CreateFramebuffers();
+	CreateFramebuffers();
 }
 
-Vk::AllocatedBuffer Zn::VulkanDevice::CreateBuffer(size_t size, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
+Vk::AllocatedBuffer Zn::VulkanDevice::CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage)
 {
-	VkBufferCreateInfo CreateInfo{};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	CreateInfo.pNext = nullptr;
+	vk::BufferCreateInfo createInfo{};
+	createInfo.size = size;
+	createInfo.usage = usage;
 
-	CreateInfo.size = size;
-	CreateInfo.usage = usage;
-
-	VmaAllocationCreateInfo AllocationInfo{};
-	AllocationInfo.usage = memoryUsage;
-	AllocationInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	vma::AllocationCreateInfo allocationInfo{};
+	allocationInfo.usage = memoryUsage;
+	allocationInfo.requiredFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
 	Vk::AllocatedBuffer OutBuffer{};
 
-	ZN_VK_CHECK(vmaCreateBuffer(m_VkAllocator, &CreateInfo, &AllocationInfo, &OutBuffer.Buffer, &OutBuffer.Allocation, nullptr));
+	auto bufferAllocationPair = allocator.createBuffer(createInfo, allocationInfo);
+
+	OutBuffer.Buffer = bufferAllocationPair.first;
+	OutBuffer.Allocation = bufferAllocationPair.second;
 
 	return OutBuffer;
 }
 
 void Zn::VulkanDevice::DestroyBuffer(Vk::AllocatedBuffer buffer)
 {
-	vmaDestroyBuffer(m_VkAllocator, buffer.Buffer, buffer.Allocation);
+	allocator.destroyBuffer(buffer.Buffer, buffer.Allocation);
 }
 
-void Zn::VulkanDevice::CopyToGPU(VmaAllocation allocation, void* src, size_t size)
+void Zn::VulkanDevice::CopyToGPU(vma::Allocation allocation, void* src, size_t size)
 {
-	void* dst;
-
-	vmaMapMemory(m_VkAllocator, allocation, &dst);
+	void* dst = allocator.mapMemory(allocation);
 
 	memcpy(dst, src, size);
 
-	vmaUnmapMemory(m_VkAllocator, allocation);
+	allocator.unmapMemory(allocation);
 }
 
 Vk::Mesh* Zn::VulkanDevice::GetMesh(const String& InName)
@@ -1480,15 +1471,15 @@ void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 	//this is the total size, in bytes, of the buffer we are allocating
 	const u64 allocationSize = OutMesh.Vertices.size() * sizeof(Vk::Vertex);
 
-	const VkBufferUsageFlags stagingUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	const VmaMemoryUsage stagingMemoryUsage = VMA_MEMORY_USAGE_CPU_ONLY;
+	const vk::BufferUsageFlags stagingUsage = vk::BufferUsageFlagBits::eTransferSrc;
+	const vma::MemoryUsage stagingMemoryUsage = vma::MemoryUsage::eCpuOnly;
 
 	Vk::AllocatedBuffer stagingBuffer = CreateBuffer(allocationSize, stagingUsage, stagingMemoryUsage);
 
 	CopyToGPU(stagingBuffer.Allocation, OutMesh.Vertices.data(), allocationSize);
 	
-	const VkBufferUsageFlags meshUsage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-	const VmaMemoryUsage meshMemoryUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+	const vk::BufferUsageFlags meshUsage = vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst;
+	const vma::MemoryUsage meshMemoryUsage = vma::MemoryUsage::eGpuOnly;
 
 	OutMesh.Buffer = CreateBuffer(allocationSize, meshUsage, meshMemoryUsage);
 
@@ -1591,7 +1582,7 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTexture(const String& texture)
 		textureHeight = static_cast<u32>(rawTexture.height);
 		textureSize = static_cast<u32>(rawTexture.size);
 
-		stagingBuffer = CreateBuffer(textureSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+		stagingBuffer = CreateBuffer(textureSize, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
 
 		CopyToGPU(stagingBuffer.Allocation, rawTexture.data, rawTexture.size);
 
@@ -1631,9 +1622,9 @@ Vk::AllocatedBuffer Zn::VulkanDevice::create_staging_texture(const Vk::RawTextur
 {
 	if (inRawTexture.data)
 	{
-		VkBufferUsageFlags texture_usage_flags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		vk::BufferUsageFlags texture_usage_flags = vk::BufferUsageFlagBits::eTransferSrc;
 
-		Vk::AllocatedBuffer buffer = CreateBuffer(inRawTexture.size, texture_usage_flags, VMA_MEMORY_USAGE_CPU_ONLY);
+		Vk::AllocatedBuffer buffer = CreateBuffer(inRawTexture.size, texture_usage_flags, vma::MemoryUsage::eCpuOnly);
 
 		CopyToGPU(buffer.Allocation, inRawTexture.data, inRawTexture.size);
 
@@ -1647,30 +1638,29 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTextureImage(u32 width, u32 height, c
 {
 	Vk::AllocatedImage outImage{};
 
-	VkImageCreateInfo createInfo = Vk::AllocatedImage::GetImageCreateInfo(
-		VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-		VkExtent3D
+	vk::ImageCreateInfo createInfo = Vk::AllocatedImage::GetImageCreateInfo(
+		vk::Format::eR8G8B8A8Srgb,		
+		vk::ImageUsageFlagBits::eTransferDst| vk::ImageUsageFlagBits::eSampled,
+		vk::Extent3D
 		{ 
 			width, 
 			height,
 			1 
 		});
 
-	createInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	createInfo.initialLayout = vk::ImageLayout::eUndefined;
+	createInfo.sharingMode = vk::SharingMode::eExclusive;
 
 	//	Allocate from GPU memory.
 
-	VmaAllocationCreateInfo allocationInfo{};
+	vma::AllocationCreateInfo allocationInfo{};
 	//	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
-	allocationInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	allocationInfo.usage = vma::MemoryUsage::eGpuOnly;
 	//	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags. 
 	//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
-	allocationInfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-	ZN_VK_CHECK(vmaCreateImage(m_VkAllocator, &createInfo, &allocationInfo, &outImage.Image, &outImage.Allocation, nullptr));
-
+	allocationInfo.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	
+	allocator.createImage(&createInfo, &allocationInfo, &outImage.Image, &outImage.Allocation, nullptr);
 
 	return outImage;
 }

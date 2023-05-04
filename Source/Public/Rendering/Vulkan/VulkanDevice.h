@@ -97,8 +97,8 @@ namespace Zn
 		vk::SurfaceFormatKHR swapChainFormat{};
 		vk::Extent2D swapChainExtent{};
 
-		Vector<VkImage> m_VkSwapChainImages;
-		Vector<VkImageView> m_VkImageViews;
+		Vector<vk::Image> swapChainImages;
+		Vector<vk::ImageView> swapChainImageViews;
 
 		vk::CommandPool commandPool;
 		// VkCommandPool m_VkCommandPool{ VK_NULL_HANDLE };
@@ -136,22 +136,22 @@ namespace Zn
 
 		DestroyQueue m_DestroyQueue{};
 
-		VmaAllocator m_VkAllocator{VK_NULL_HANDLE};
+		vma::Allocator allocator{VK_NULL_HANDLE};
 
-		Vk::AllocatedBuffer CreateBuffer(size_t size, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);		
+		Vk::AllocatedBuffer CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage);
 		void DestroyBuffer(Vk::AllocatedBuffer buffer);
 
 		// TODO: Naming might be incorrect
-		void CopyToGPU(VmaAllocation allocation, void* src, size_t size);
+		void CopyToGPU(vma::Allocation allocation, void* src, size_t size);
 
 		// == Depth Buffer ==
 
-		VkImageView m_DepthImageView;
+		vk::ImageView depthImageView;
 
 		Vk::AllocatedImage m_DepthImage;
 
 		// Format of the depth image.
-		VkFormat m_DepthFormat;
+		vk::Format depthImageFormat;
 
 		// ==================
 

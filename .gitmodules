@@ -16,3 +16,6 @@
 [submodule "Source/ThirdParty/stb"]
 	path = Source/ThirdParty/stb
 	url = https://github.com/nothings/stb
+[submodule "Source/ThirdParty/VulkanMemoryAllocator-Hpp"]
+	path = Source/ThirdParty/VulkanMemoryAllocator-Hpp
+	url = https://github.com/YaaZ/VulkanMemoryAllocator-Hpp
