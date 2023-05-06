@@ -14,110 +14,92 @@ VertexInputDescription Vertex::GetVertexInputDescription()
 	VertexInputDescription description;
 
 	//we will have just 1 vertex buffer binding, with a per-vertex rate
-	VkVertexInputBindingDescription mainBinding = {};
-	mainBinding.binding = 0;
-	mainBinding.stride = sizeof(Vertex);
-	mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	description.Bindings =
+	{
+		{
+			.binding = 0,
+			.stride = sizeof(Vertex),
+			.inputRate = vk::VertexInputRate::eVertex,
+		}
+	};
 
-	description.Bindings.push_back(mainBinding);
-
-	//Position will be stored at Location 0
-	VkVertexInputAttributeDescription positionAttribute = {};
-	positionAttribute.binding = 0;
-	positionAttribute.location = 0;
-	positionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-	positionAttribute.offset = offsetof(Vertex, Position);
-
-	//Normal will be stored at Location 1
-	VkVertexInputAttributeDescription normalAttribute = {};
-	normalAttribute.binding = 0;
-	normalAttribute.location = 1;
-	normalAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-	normalAttribute.offset = offsetof(Vertex, Normal);
-
-	//Color will be stored at Location 2
-	VkVertexInputAttributeDescription colorAttribute = {};
-	colorAttribute.binding = 0;
-	colorAttribute.location = 2;
-	colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-	colorAttribute.offset = offsetof(Vertex, Color);
-
-	//UV will be stored at Location 3
-	VkVertexInputAttributeDescription uvAttribute = {};
-	uvAttribute.binding = 0;
-	uvAttribute.location = 3;
-	uvAttribute.format = VK_FORMAT_R32G32_SFLOAT;
-	uvAttribute.offset = offsetof(Vertex, UV);
-
-	description.Attributes.push_back(positionAttribute);
-	description.Attributes.push_back(normalAttribute);
-	description.Attributes.push_back(colorAttribute);
-	description.Attributes.push_back(uvAttribute);
+	description.Attributes =
+	{
+		{
+			.location = 0,
+			.binding = 0,
+			.format = vk::Format::eR32G32B32A32Sfloat,
+			.offset = offsetof(Vertex, Position)
+		},
+		{
+			.location = 1,
+			.binding = 0,
+			.format = vk::Format::eR32G32B32A32Sfloat,
+			.offset = offsetof(Vertex, Normal)
+		},
+		{
+			.location = 2,
+			.binding = 0,
+			.format = vk::Format::eR32G32B32A32Sfloat,
+			.offset = offsetof(Vertex, Color)
+		},
+		{
+			.location = 3,
+			.binding = 0,
+			.format = vk::Format::eR32G32Sfloat,
+			.offset = offsetof(Vertex, UV)
+		},
+	};
 
 	return description;
 }
 
 vk::ImageCreateInfo AllocatedImage::GetImageCreateInfo(vk::Format inFormat, vk::ImageUsageFlags inUsageFlags, vk::Extent3D inExtent)
 {
-	vk::ImageCreateInfo createInfo{};
-	createInfo.imageType = vk::ImageType::e2D;
-	//	Format holds what the data of the texture is, like holding a single float(for depth), or holding color.
-	createInfo.format = inFormat;
-	//	Extent is the size of the image, in pixels.
-	createInfo.extent = inExtent;
-	//	MipLevels holds the amount of mipmap levels the image has.
-	//	TODO: Because we aren’t using them here, we leave the levels to 1.
-	createInfo.mipLevels = 1;
-	//	Array layers is for layered textures.
-	//	You can create textures that are many - in - one, using layers. 
-	//	An example of layered textures is cubemaps, where you have 6 layers, one layer for each face of the cubemap.
-	//	We default it to 1 layer because we aren’t doing cubemaps.
-	createInfo.arrayLayers = 1;
-	//	Samples controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you are rendering to. 
-	//	TODO: We won’t be doing MSAA in this tutorial, so samples will be kept at 1 sample for the entire guide.
-	createInfo.samples = vk::SampleCountFlagBits::e1;
-
-	//	Tiling is very important. Tiling describes how the data for the texture is arranged in the GPU. 
-	//	For improved performance, GPUs do not store images as 2d arrays of pixels, but instead use complex custom formats, unique to the GPU brand and even models. 
-	//	VK_IMAGE_TILING_OPTIMAL tells Vulkan to let the driver decide how the GPU arranges the memory of the image. 
-	//	If you use VK_IMAGE_TILING_OPTIMAL, it won’t be possible to read the data from CPU or to write it without changing its tiling first 
-	//	(it’s possible to change the tiling of a texture at any point, but this can be a costly operation). 
-	//	The other tiling we can care about is VK_IMAGE_TILING_LINEAR, which will store the image as a 2d array of pixels. 
-	//	While LINEAR tiling will be a lot slower, it will allow the cpu to safely write and read from that memory.
-	createInfo.tiling = vk::ImageTiling::eOptimal;
+	//	.format = texture data type, like holding a single float(for depth), or holding color.
+	//	.extent = size of the image, in pixels.
+	//	.mipLevels = num of mipmap levels the image has. TODO: Because we aren’t using them here, we leave the levels to 1.
+	//	.arrayLayers = used for layered textures.
+	//					You can create textures that are many - in - one, using layers. 
+	//					An example of layered textures is cubemaps, where you have 6 layers, one layer for each face of the cubemap.
+	//					We default it to 1 layer because we aren’t doing cubemaps.
+	//	.samples = controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you are rendering to. 
+	//					TODO: We won’t be doing MSAA in this tutorial, so samples will be kept at 1 sample.
+	//  .tiling = if you use VK_IMAGE_TILING_OPTIMAL, it won’t be possible to read the data from CPU or to write it without changing its tiling first 
+	//					(it’s possible to change the tiling of a texture at any point, but this can be a costly operation). 
+	//					The other tiling we can care about is VK_IMAGE_TILING_LINEAR, which will store the image as a 2d array of pixels. 
+	//	.usage = controls how the GPU handles the image memory.
 	
-	//	This will control how the GPU handles the image memory.
-	createInfo.usage = inUsageFlags;
-
-	return createInfo;
+	return {
+		.imageType = vk::ImageType::e2D,
+		.format = inFormat,
+		.extent = inExtent,
+		.mipLevels = 1,
+		.arrayLayers = 1,
+		.samples = vk::SampleCountFlagBits::e1,
+		.tiling = vk::ImageTiling::eOptimal,
+		.usage = inUsageFlags
+	}; 
 }
 
 vk::ImageViewCreateInfo AllocatedImage::GetImageViewCreateInfo(vk::Format InFormat, vk::Image InImage, vk::ImageAspectFlagBits InAspectFlags)
 {
-	//	While imageType held the dimensionality of the texture, viewType has a lot more options, like VK_IMAGE_VIEW_TYPE_CUBE for cubemaps. 
-	vk::ImageViewCreateInfo createInfo{};
 
-	//	TODO: In here, we will have it matched to GetImageCreateInfo, and hardcode it to 2D images as it’s the most common case.
-	createInfo.viewType = vk::ImageViewType::e2D;
-
-	//	Image has to point to the image this imageview is being created from. 
-	//	As imageViews “wrap” an image, you need to point to the original one. 
-	//	Format has to match the format in the image this view was created from. 
-	createInfo.image = InImage;
-	createInfo.format = InFormat;
-
-	//	subresourceRange holds the information about where the image points to. 
-	//	This is used for layered images, where you might have multiple layers in one image, and want to create an imageview that points to a specific layer. 
-	//	It’s also possible to control the mipmap levels with it. 
-	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-	createInfo.subresourceRange.layerCount = 1;
-	
-	//	aspectMask is similar to the usageFlags from the image. It’s about what this image is used for.
-	createInfo.subresourceRange.aspectMask = InAspectFlags;
-
-	return createInfo;
+	return {
+		.image = InImage,
+		//	While imageType held the dimensionality of the texture, viewType has a lot more options, like VK_IMAGE_VIEW_TYPE_CUBE for cubemaps. 
+		.viewType = vk::ImageViewType::e2D,
+		//	TODO: In here, we will have it matched to GetImageCreateInfo, and hardcode it to 2D images as it’s the most common case.
+		.format = InFormat,
+		.subresourceRange = 
+		{
+			.aspectMask = InAspectFlags,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		}
+	};
 }
 
 bool Zn::Vk::RawTexture::LoadFromFile(String path, RawTexture& outTexture)

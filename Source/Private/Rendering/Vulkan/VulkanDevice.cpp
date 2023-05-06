@@ -442,20 +442,6 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 			device.destroyDescriptorPool(imguiDescriptorPool);
 		});
 
-		VkInstance                      Instance;
-		VkPhysicalDevice                PhysicalDevice;
-		VkDevice                        Device;
-		uint32_t                        QueueFamily;
-		VkQueue                         Queue;
-		VkPipelineCache                 PipelineCache;
-		VkDescriptorPool                DescriptorPool;
-		uint32_t                        Subpass;
-		uint32_t                        MinImageCount;          // >= 2
-		uint32_t                        ImageCount;             // >= MinImageCount
-		VkSampleCountFlagBits           MSAASamples;            // >= VK_SAMPLE_COUNT_1_BIT (0 -> default to VK_SAMPLE_COUNT_1_BIT)
-		const VkAllocationCallbacks* Allocator;
-		void                            (*CheckVkResultFn)(VkResult err);
-
 		//this initializes imgui for Vulkan
 		ImGui_ImplVulkan_InitInfo imguiInitInfo
 		{
@@ -619,7 +605,10 @@ void VulkanDevice::Draw()
 	CmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	commandBuffer.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+	commandBuffer.begin(vk::CommandBufferBeginInfo
+						{ 
+							.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit
+						});
 
 	vk::ClearValue clearColor(vk::ClearColorValue(1.0f, 1.0f, 1.0f, 1.0f));
 
@@ -906,7 +895,7 @@ vk::ShaderModule Zn::VulkanDevice::CreateShaderModule(const Vector<uint8>& bytes
 void Zn::VulkanDevice::CreateDescriptors()
 {
 	// Create Descriptor Pool
-	Vector<vk::DescriptorPoolSize> poolSizes =
+	vk::DescriptorPoolSize poolSizes[] =
 	{
 		{ vk::DescriptorType::eUniformBuffer, 10 },
 		{ vk::DescriptorType::eUniformBufferDynamic, 10 },
@@ -914,10 +903,13 @@ void Zn::VulkanDevice::CreateDescriptors()
 		{ vk::DescriptorType::eCombinedImageSampler, 10 }
 	};
 
-	vk::DescriptorPoolCreateInfo poolCreateInfo(
-		(vk::DescriptorPoolCreateFlagBits) 0,
-		10,
-		poolSizes);
+	vk::DescriptorPoolCreateInfo poolCreateInfo
+	{
+		.flags = (vk::DescriptorPoolCreateFlagBits) 0,
+		.maxSets = 10,
+		.poolSizeCount = ArrayLength(poolSizes),
+		.pPoolSizes = ArrayData(poolSizes)
+	};
 
 	descriptorPool = device.createDescriptorPool(poolCreateInfo);
 	
@@ -943,7 +935,11 @@ void Zn::VulkanDevice::CreateDescriptors()
 	lightingBufferBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
 	lightingBufferBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
-	vk::DescriptorSetLayoutCreateInfo globalSetCreateInfo({}, bindings);
+	vk::DescriptorSetLayoutCreateInfo globalSetCreateInfo
+	{
+		.bindingCount = ArrayLength(bindings),
+		.pBindings = ArrayData(bindings)
+	};
 
 	globalDescriptorSetLayout = device.createDescriptorSetLayout(globalSetCreateInfo);
 
@@ -954,13 +950,19 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	// Single Texture Set
 
-	vk::DescriptorSetLayoutBinding singleTextureSetBinding{};
-	singleTextureSetBinding.binding = 0;
-	singleTextureSetBinding.descriptorCount = 1;
-	singleTextureSetBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-	singleTextureSetBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+	vk::DescriptorSetLayoutBinding singleTextureSetBinding
+	{
+		.binding = 0,
+		.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+		.descriptorCount = 1,
+		.stageFlags = vk::ShaderStageFlagBits::eFragment,
+	};
 
-	vk::DescriptorSetLayoutCreateInfo singleTextureSetCreateInfo({}, singleTextureSetBinding);
+	vk::DescriptorSetLayoutCreateInfo singleTextureSetCreateInfo
+	{
+		.bindingCount = 1,
+		.pBindings = &singleTextureSetBinding
+	};
 
 	singleTextureSetLayout = device.createDescriptorSetLayout(singleTextureSetCreateInfo);
 
@@ -996,7 +998,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 		globalDescriptorSets[Index] = device.allocateDescriptorSets(descriptorSetAllocInfo)[0];
 
-		Vector<vk::DescriptorBufferInfo> bufferInfo =
+		vk::DescriptorBufferInfo bufferInfo[] =
 		{
 			vk::DescriptorBufferInfo
 			{
@@ -1016,27 +1018,21 @@ void Zn::VulkanDevice::CreateDescriptors()
 		{
 			vk::WriteDescriptorSet
 			{
-				globalDescriptorSets[Index],
-				0,
-				0,
-				1,
-				vk::DescriptorType::eUniformBuffer,
-				nullptr,
-				&bufferInfo[0],
-				nullptr,
-				nullptr
+				.dstSet = globalDescriptorSets[Index],
+				.dstBinding = 0,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = vk::DescriptorType::eUniformBuffer,
+				.pBufferInfo = &bufferInfo[0],
 			},
 			vk::WriteDescriptorSet
 			{
-				globalDescriptorSets[Index],
-				1,
-				0,
-				1,
-				vk::DescriptorType::eUniformBuffer,
-				nullptr,
-				&bufferInfo[1],
-				nullptr,
-				nullptr
+				.dstSet = globalDescriptorSets[Index],
+				.dstBinding = 1,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = vk::DescriptorType::eUniformBuffer,
+				.pBufferInfo = &bufferInfo[1],
 			}
 		};
 
@@ -1098,35 +1094,32 @@ void Zn::VulkanDevice::CreateSwapChain()
 
 	swapChainExtent = vk::Extent2D(Width, Height);
 
-	vk::SwapchainCreateInfoKHR swapChainCreateInfo{};
-	swapChainCreateInfo.surface = surface;
-	swapChainCreateInfo.minImageCount = ImageCount;
-	swapChainCreateInfo.imageFormat = swapChainFormat.format;
-	swapChainCreateInfo.imageColorSpace = swapChainFormat.colorSpace;
-	swapChainCreateInfo.imageExtent = swapChainExtent;
-	swapChainCreateInfo.imageArrayLayers = 1;
-	swapChainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+	vk::SwapchainCreateInfoKHR swapChainCreateInfo
+	{
+		.surface = surface,
+		.minImageCount = ImageCount,
+		.imageFormat = swapChainFormat.format,
+		.imageColorSpace = swapChainFormat.colorSpace,
+		.imageExtent = swapChainExtent,
+		.imageArrayLayers = 1,
+		.imageUsage = vk::ImageUsageFlagBits::eColorAttachment,
+		.imageSharingMode = vk::SharingMode::eExclusive,
+		.queueFamilyIndexCount = 0,
+		.pQueueFamilyIndices = nullptr,
+		.preTransform = SwapChainDetails.Capabilities.currentTransform,
+		.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
+		.presentMode = presentMode,
+		.clipped = true
+	};
 
-	uint32 QueueFamilyIndicesArray[] = { Indices.Graphics.value(), Indices.Present.value() };
+	uint32 queueFamilyIndicesArray[] = { Indices.Graphics.value(), Indices.Present.value() };
 
 	if (Indices.Graphics.value() != Indices.Present.value())
 	{
 		swapChainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-		swapChainCreateInfo.queueFamilyIndexCount = 2;
-		swapChainCreateInfo.pQueueFamilyIndices = QueueFamilyIndicesArray;
+		swapChainCreateInfo.queueFamilyIndexCount = ArrayLength(queueFamilyIndicesArray);
+		swapChainCreateInfo.pQueueFamilyIndices = ArrayData(queueFamilyIndicesArray);
 	}
-	else
-	{
-		swapChainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
-		swapChainCreateInfo.queueFamilyIndexCount = 0;
-		swapChainCreateInfo.pQueueFamilyIndices = nullptr;
-	}
-
-	swapChainCreateInfo.preTransform = SwapChainDetails.Capabilities.currentTransform;
-	swapChainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-
-	swapChainCreateInfo.presentMode = presentMode;
-	swapChainCreateInfo.clipped = true;
 
 	swapChain = device.createSwapchainKHR(swapChainCreateInfo);
 }
@@ -1139,27 +1132,28 @@ void Zn::VulkanDevice::CreateImageViews()
 
 	for (size_t Index = 0; Index < swapChainImages.size(); ++Index)
 	{
-		vk::ImageViewCreateInfo imageViewCreateInfo{};
-		imageViewCreateInfo.image = swapChainImages[Index];
-		imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
-		imageViewCreateInfo.format = swapChainFormat.format;
-
-		// RGBA
-		imageViewCreateInfo.components = {
-			vk::ComponentSwizzle::eIdentity,
-			vk::ComponentSwizzle::eIdentity,
-			vk::ComponentSwizzle::eIdentity,
-			vk::ComponentSwizzle::eIdentity
+		vk::ImageViewCreateInfo imageViewCreateInfo
+		{
+			.image = swapChainImages[Index],
+			.viewType = vk::ImageViewType::e2D,
+			.format = swapChainFormat.format,
+			// RGBA
+			.components = 
+			{
+				vk::ComponentSwizzle::eIdentity,
+				vk::ComponentSwizzle::eIdentity,
+				vk::ComponentSwizzle::eIdentity,
+				vk::ComponentSwizzle::eIdentity
+			},
+			.subresourceRange = 
+			{
+				.aspectMask = vk::ImageAspectFlagBits::eColor,
+				.baseMipLevel = 0,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1,
+			}
 		};
-
-		vk::ImageSubresourceRange subresourceRange{};
-		subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-		subresourceRange.baseMipLevel = 0;
-		subresourceRange.levelCount = 1;
-		subresourceRange.baseArrayLayer = 0;
-		subresourceRange.layerCount = 1;
-
-		imageViewCreateInfo.setSubresourceRange(subresourceRange);
 
 		swapChainImageViews[Index] = device.createImageView(imageViewCreateInfo);
 	}
@@ -1182,12 +1176,14 @@ void Zn::VulkanDevice::CreateImageViews()
 
 	//	Allocate from GPU memory.
 
-	vma::AllocationCreateInfo depthImageAllocInfo{};
-	//	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
-	depthImageAllocInfo.usage = vma::MemoryUsage::eGpuOnly;
-	//	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags. 
-	//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
-	depthImageAllocInfo.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	vma::AllocationCreateInfo depthImageAllocInfo
+	{
+		//	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
+		.usage = vma::MemoryUsage::eGpuOnly,
+		//	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags. 
+		//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
+		.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal),
+	};
 
 	// TODO: VK_CHECK
 	allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthImage.image, &depthImage.allocation, nullptr);
@@ -1207,19 +1203,21 @@ void Zn::VulkanDevice::CreateImageViews()
 void Zn::VulkanDevice::CreateFramebuffers()
 {
 	//create the framebuffers for the swapchain images. This will connect the render-pass to the images for rendering
-	vk::FramebufferCreateInfo framebufferCreateInfo{};
-	framebufferCreateInfo.renderPass = renderPass;	
-	framebufferCreateInfo.attachmentCount = 1;
-	framebufferCreateInfo.width = swapChainExtent.width;
-	framebufferCreateInfo.height = swapChainExtent.height;
-	framebufferCreateInfo.layers = 1;
+	vk::FramebufferCreateInfo framebufferCreateInfo
+	{
+		.renderPass = renderPass,
+		.attachmentCount = 1,
+		.width = swapChainExtent.width,
+		.height = swapChainExtent.height,
+		.layers = 1
+	};
 
 	//grab how many images we have in the swapchain
-	const size_t NumImages = swapChainImages.size();
-	frameBuffers = Vector<vk::Framebuffer>(NumImages);
+	const size_t numImages = swapChainImages.size();
+	frameBuffers = Vector<vk::Framebuffer>(numImages);
 
 	//create framebuffers for each of the swapchain image views
-	for (size_t index = 0; index < NumImages; index++)
+	for (size_t index = 0; index < numImages; index++)
 	{
 		vk::ImageView attachments[2] = { swapChainImageViews[index], depthImageView };
 
@@ -1255,13 +1253,17 @@ void Zn::VulkanDevice::RecreateSwapChain()
 
 Vk::AllocatedBuffer Zn::VulkanDevice::CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage)
 {
-	vk::BufferCreateInfo createInfo{};
-	createInfo.size = size;
-	createInfo.usage = usage;
+	vk::BufferCreateInfo createInfo
+	{
+		.size = size,
+		.usage = usage
+	};
 
-	vma::AllocationCreateInfo allocationInfo{};
-	allocationInfo.usage = memoryUsage;
-	allocationInfo.requiredFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+	vma::AllocationCreateInfo allocationInfo
+	{
+		.usage = memoryUsage,
+		.requiredFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+	};
 
 	Vk::AllocatedBuffer OutBuffer{};
 
@@ -1365,22 +1367,26 @@ void Zn::VulkanDevice::CreateScene()
 
 	// Sampler
 
-	vk::DescriptorSetAllocateInfo singleTextureAllocateInfo{};
-	singleTextureAllocateInfo.descriptorPool = descriptorPool;
-	singleTextureAllocateInfo.descriptorSetCount = 1;	
-	singleTextureAllocateInfo.pSetLayouts = &singleTextureSetLayout;
+	vk::DescriptorSetAllocateInfo singleTextureAllocateInfo
+	{
+		.descriptorPool = descriptorPool,
+		.descriptorSetCount = 1,
+		.pSetLayouts = &singleTextureSetLayout,
+	};
 
 	viking_room.material->textureSet = device.allocateDescriptorSets(singleTextureAllocateInfo)[0];
 
 	const vk::Filter samplerFilters = vk::Filter::eNearest;
 	const vk::SamplerAddressMode samplerAddressMode = vk::SamplerAddressMode::eRepeat;
 
-	vk::SamplerCreateInfo samplerCreateInfo{};
-	samplerCreateInfo.magFilter = samplerFilters;
-	samplerCreateInfo.minFilter = samplerFilters;
-	samplerCreateInfo.addressModeU = samplerAddressMode;
-	samplerCreateInfo.addressModeV = samplerAddressMode;
-	samplerCreateInfo.addressModeW = samplerAddressMode;
+	vk::SamplerCreateInfo samplerCreateInfo
+	{
+		.magFilter = samplerFilters,
+		.minFilter = samplerFilters,
+		.addressModeU = samplerAddressMode,
+		.addressModeV = samplerAddressMode,
+		.addressModeW = samplerAddressMode,
+	};
 
 	vk::Sampler sampler = device.createSampler(samplerCreateInfo);
 	destroyQueue.Enqueue([=]()
@@ -1400,12 +1406,12 @@ void Zn::VulkanDevice::CreateScene()
 		{
 			vk::WriteDescriptorSet
 			{
-				viking_room.material->textureSet,
-				0,
-				0,
-				1,
-				vk::DescriptorType::eCombinedImageSampler,
-				&imageBufferInfo
+				.dstSet = viking_room.material->textureSet,
+				.dstBinding = 0,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+				.pImageInfo = &imageBufferInfo
 			} 
 		}, {});
 
@@ -1551,14 +1557,19 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 			singleTextureSetLayout
 		};
 
-		vk::PipelineLayoutCreateInfo layoutCreateInfo({}, layouts);
+		vk::PipelineLayoutCreateInfo layoutCreateInfo
+		{
+			.setLayoutCount = ArrayLength(layouts),
+			.pSetLayouts = ArrayData(layouts)
+		};
 
-		vk::PushConstantRange pushConstants{};
-		pushConstants.offset = 0;
-		pushConstants.size = sizeof(Vk::MeshPushConstants);
-		//this push constant range is accessible only in the vertex shader
-		pushConstants.stageFlags = vk::ShaderStageFlagBits::eVertex;
-
+		vk::PushConstantRange pushConstants
+		{
+			//this push constant range is accessible only in the vertex shader
+			.stageFlags = vk::ShaderStageFlagBits::eVertex,
+			.offset = 0,
+			.size = sizeof(Vk::MeshPushConstants),
+		};
 
 		layoutCreateInfo.setPushConstantRanges(pushConstants);
 
@@ -1620,16 +1631,20 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTexture(const String& texture)
 
 	DestroyBuffer(stagingBuffer);
 
-	vk::ImageViewCreateInfo imageViewInfo{};
-
-	imageViewInfo.viewType = vk::ImageViewType::e2D;
-	imageViewInfo.image = outResult.image;
-	imageViewInfo.format = vk::Format::eR8G8B8A8Srgb;
-	imageViewInfo.subresourceRange.baseMipLevel = 0;
-	imageViewInfo.subresourceRange.levelCount = 1;
-	imageViewInfo.subresourceRange.baseArrayLayer = 0;
-	imageViewInfo.subresourceRange.layerCount = 1;
-	imageViewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+	vk::ImageViewCreateInfo imageViewInfo
+	{
+		.image = outResult.image,
+		.viewType = vk::ImageViewType::e2D,
+		.format = vk::Format::eR8G8B8A8Srgb,
+		.subresourceRange = 
+		{
+			.aspectMask = vk::ImageAspectFlagBits::eColor,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		}
+	};
 
 	outResult.imageView = device.createImageView(imageViewInfo);
 
@@ -1655,12 +1670,14 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTextureImage(u32 width, u32 height, c
 
 	//	Allocate from GPU memory.
 
-	vma::AllocationCreateInfo allocationInfo{};
-	//	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
-	allocationInfo.usage = vma::MemoryUsage::eGpuOnly;
-	//	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags. 
-	//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
-	allocationInfo.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal);
+	vma::AllocationCreateInfo allocationInfo
+	{
+		//	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
+		.usage = vma::MemoryUsage::eGpuOnly,
+		//	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags. 
+		//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
+		.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal)
+	};
 	
 	allocator.createImage(&createInfo, &allocationInfo, &outImage.image, &outImage.allocation, nullptr);
 
@@ -1669,22 +1686,24 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTextureImage(u32 width, u32 height, c
 
 void Zn::VulkanDevice::TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout)
 {
-	vk::ImageMemoryBarrier barrier{};
-
-	barrier.oldLayout = prevLayout;
-	barrier.newLayout = newLayout;
-
-	// If you are using the barrier to transfer queue family ownership, then these two fields should be the indices of the queue families.
-	// They must be set to VK_QUEUE_FAMILY_IGNORED if you don't want to do this (not the default value!).
-	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-	barrier.image = img;
-	barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = 1;
-	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
+	vk::ImageMemoryBarrier barrier
+	{
+		.oldLayout = prevLayout,
+		.newLayout = newLayout,
+		// If you are using the barrier to transfer queue family ownership, then these two fields should be the indices of the queue families.
+		// They must be set to VK_QUEUE_FAMILY_IGNORED if you don't want to do this (not the default value!).
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = img,
+		.subresourceRange =
+		{
+			.aspectMask = vk::ImageAspectFlagBits::eColor,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		}
+	};
 
 	vk::PipelineStageFlags srcStage{};
 	vk::PipelineStageFlags dstStage{};
@@ -1725,7 +1744,7 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& 
 
 	vk::CommandBuffer cmd = uploadContext.cmdBuffer;
 
-	cmd.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+	cmd.begin({ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 
 	function(cmd);
 
@@ -1747,21 +1766,24 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& 
 
 void Zn::VulkanDevice::CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height)
 {
-	vk::BufferImageCopy region{};
-	region.bufferOffset = 0;
-	region.bufferRowLength = 0;
-	region.bufferImageHeight = 0;
-
-	region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-	region.imageSubresource.mipLevel = 0;
-	region.imageSubresource.baseArrayLayer = 0;
-	region.imageSubresource.layerCount = 1;
-
-	region.imageOffset = vk::Offset3D{ 0, 0, 0 };
-	region.imageExtent = vk::Extent3D{
-		width,
-		height,
-		1
+	vk::BufferImageCopy region
+	{
+		.bufferOffset = 0,
+		.bufferRowLength = 0,
+		.bufferImageHeight = 0,
+		.imageSubresource = 
+		{
+			.aspectMask = vk::ImageAspectFlagBits::eColor,
+			.mipLevel = 0,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		},
+		.imageOffset = vk::Offset3D{ 0, 0, 0 },
+		.imageExtent = vk::Extent3D{
+			width,
+			height,
+			1
+		}
 	};
 
 	cmd.copyBufferToImage(buffer, img, vk::ImageLayout::eTransferDstOptimal, { region });

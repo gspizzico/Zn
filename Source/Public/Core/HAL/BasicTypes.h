@@ -74,4 +74,22 @@ namespace Zn
 		Highest,
 		TimeCritical
 	};
+
+	template<typename T, u32 N>
+	constexpr u32 ArrayLength(const T(&)[N]) noexcept
+	{
+		return N;
+	}
+
+	template<typename T, u32 N>
+	constexpr u32 ArrayElementSize(const T(&)[N]) noexcept
+	{
+		return sizeof(T);
+	}
+
+	template<typename T, u32 N>
+	constexpr const T* ArrayData(const T(&arr)[N]) noexcept
+	{
+		return &arr[0];
+	}
 }
