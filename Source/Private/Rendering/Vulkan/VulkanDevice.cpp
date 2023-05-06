@@ -165,14 +165,14 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	vk::PhysicalDeviceFeatures deviceFeatures{};
 	
-	vk::DeviceCreateInfo deviceCreateInfo{};
-
-	deviceCreateInfo.pQueueCreateInfos = queueFamilies.data();
-	deviceCreateInfo.queueCreateInfoCount = static_cast<u32>(queueFamilies.size());
-	deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-
-	deviceCreateInfo.ppEnabledExtensionNames = kDeviceExtensions.data();
-	deviceCreateInfo.enabledExtensionCount = static_cast<u32>(kDeviceExtensions.size());
+	vk::DeviceCreateInfo deviceCreateInfo
+	{
+		.queueCreateInfoCount = static_cast<u32>(queueFamilies.size()),
+		.pQueueCreateInfos = queueFamilies.data(),
+		.enabledExtensionCount = static_cast<u32>(kDeviceExtensions.size()),
+		.ppEnabledExtensionNames = kDeviceExtensions.data(),
+		.pEnabledFeatures = &deviceFeatures
+	};
 
 	device = gpu.createDevice(deviceCreateInfo, nullptr);
 	
@@ -180,10 +180,12 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	presentQueue = device.getQueue(Indices.Present.value(), 0);
 
 	//initialize the memory allocator
-	vma::AllocatorCreateInfo allocatorCreateInfo;
-	allocatorCreateInfo.instance = instance;
-	allocatorCreateInfo.physicalDevice = gpu;
-	allocatorCreateInfo.device = device;
+	vma::AllocatorCreateInfo allocatorCreateInfo
+	{
+		.physicalDevice = gpu,
+		.device = device,
+		.instance = instance
+	};
 
 	allocator = vma::createAllocator(allocatorCreateInfo);
 
@@ -197,11 +199,13 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	////// Command Pool
 
-	vk::CommandPoolCreateInfo graphicsPoolCreateInfo{};
-	//the command pool will be one that can submit graphics commands
-	graphicsPoolCreateInfo.queueFamilyIndex = Indices.Graphics.value();
-	//we also want the pool to allow for resetting of individual command buffers
-	graphicsPoolCreateInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+	vk::CommandPoolCreateInfo graphicsPoolCreateInfo
+	{
+		//we also want the pool to allow for resetting of individual command buffers
+		.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+		//the command pool will be one that can submit graphics commands
+		.queueFamilyIndex = Indices.Graphics.value()
+	};
 
 	commandPool = device.createCommandPool(graphicsPoolCreateInfo);
 
@@ -212,19 +216,22 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	////// Command Buffer
 
-	vk::CommandBufferAllocateInfo graphicsCmdCreateInfo(
-		commandPool,
-		vk::CommandBufferLevel::ePrimary, 
-		kMaxFramesInFlight
-	);
+	vk::CommandBufferAllocateInfo graphicsCmdCreateInfo
+	{
+		.commandPool = commandPool,
+		.level = vk::CommandBufferLevel::ePrimary,
+		.commandBufferCount = kMaxFramesInFlight
+	};
 
 	commandBuffers = device.allocateCommandBuffers(graphicsCmdCreateInfo);
 
 	// Upload Context
 
-	vk::CommandPoolCreateInfo uploadCmdPoolCreateInfo{};
-	uploadCmdPoolCreateInfo.queueFamilyIndex = Indices.Graphics.value();
-	uploadCmdPoolCreateInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+	vk::CommandPoolCreateInfo uploadCmdPoolCreateInfo
+	{
+		.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+		.queueFamilyIndex = Indices.Graphics.value()
+	};
 
 	uploadContext.commandPool = device.createCommandPool(graphicsPoolCreateInfo);
 
@@ -233,16 +240,16 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 		device.destroyCommandPool(uploadContext.commandPool);
 	});
 
-	vk::CommandBufferAllocateInfo uploadCmdBufferCreateInfo(
-		uploadContext.commandPool,
-		vk::CommandBufferLevel::ePrimary,
-		1
-	);
+	vk::CommandBufferAllocateInfo uploadCmdBufferCreateInfo
+	{
+		.commandPool = uploadContext.commandPool,
+		.level = vk::CommandBufferLevel::ePrimary,
+		.commandBufferCount = 1
+	};
 	
 	uploadContext.cmdBuffer = device.allocateCommandBuffers(uploadCmdBufferCreateInfo)[0];
 
 	vk::FenceCreateInfo uploadFenceCreateInfo{};
-	uploadFenceCreateInfo.flags = (vk::FenceCreateFlagBits) 0;
 	uploadContext.fence = device.createFence(uploadFenceCreateInfo);
 
 	destroyQueue.Enqueue([=]()
@@ -255,97 +262,104 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	//	Color Attachment
 
 	// the renderpass will use this color attachment.
-	vk::AttachmentDescription colorAttachmentDesc = {};
-	//the attachment will have the format needed by the swapchain
-	colorAttachmentDesc.format = swapChainFormat.format;
-	//1 sample, we won't be doing MSAA
-	colorAttachmentDesc.samples = vk::SampleCountFlagBits::e1;
-	// we Clear when this attachment is loaded
-	colorAttachmentDesc.loadOp = vk::AttachmentLoadOp::eClear;
-	// we keep the attachment stored when the renderpass ends
-	colorAttachmentDesc.storeOp = vk::AttachmentStoreOp::eStore;
-	//we don't care about stencil
-	colorAttachmentDesc.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-	colorAttachmentDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-	//we don't know or care about the starting layout of the attachment
-	colorAttachmentDesc.initialLayout = vk::ImageLayout::eUndefined;
-	//after the renderpass ends, the image has to be on a layout ready for display
-	colorAttachmentDesc.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+	vk::AttachmentDescription colorAttachmentDesc
+	{
+		//the attachment will have the format needed by the swapchain
+		.format = swapChainFormat.format,
+		//1 sample, we won't be doing MSAA
+		.samples = vk::SampleCountFlagBits::e1,
+		// we Clear when this attachment is loaded
+		.loadOp = vk::AttachmentLoadOp::eClear,
+		// we keep the attachment stored when the renderpass ends
+		.storeOp = vk::AttachmentStoreOp::eStore,
+		//we don't care about stencil
+		.stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+		.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+		//we don't know or care about the starting layout of the attachment
+		.initialLayout = vk::ImageLayout::eUndefined,
+		//after the renderpass ends, the image has to be on a layout ready for display
+		.finalLayout = vk::ImageLayout::ePresentSrcKHR
+	};	
 
-	vk::AttachmentReference colorAttachmentRef{};
-	//attachment number will index into the pAttachments array in the parent renderpass itself
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+	vk::AttachmentReference colorAttachmentRef
+	{
+		//attachment number will index into the pAttachments array in the parent renderpass itself
+		.attachment = 0,
+		.layout = vk::ImageLayout::eColorAttachmentOptimal
+	};
 
 	//	Depth Attachment
 
-	vk::AttachmentDescription depthAttachmentDesc{};
+	vk::AttachmentDescription depthAttachmentDesc
+	{
+		//	Depth attachment
+		//	Both the depth attachment and its reference are copypaste of the color one, as it works the same, but with a small change:
+		//	.format = m_DepthFormat; is set to the depth format that we created the depth image at.
+		//	.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; 
+		.flags = vk::AttachmentDescriptionFlags(0),
+		// TODO
+		.format = depthImageFormat,
+		.samples = vk::SampleCountFlagBits::e1,
+		.loadOp = vk::AttachmentLoadOp::eClear,
+		.storeOp = vk::AttachmentStoreOp::eStore,
+		.stencilLoadOp = vk::AttachmentLoadOp::eClear,
+		.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+		.initialLayout = vk::ImageLayout::eUndefined,
+		.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal
+	};
 
-	//	Depth attachment
-	//	Both the depth attachment and its reference are copypaste of the color one, as it works the same, but with a small change:
-	//	.format = m_DepthFormat; is set to the depth format that we created the depth image at.
-	//	.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; 
-	depthAttachmentDesc.flags = vk::AttachmentDescriptionFlags(0);
-	// TODO
-	depthAttachmentDesc.format = depthImageFormat;
-	depthAttachmentDesc.samples = vk::SampleCountFlagBits::e1;
-	depthAttachmentDesc.loadOp = vk::AttachmentLoadOp::eClear;
-	depthAttachmentDesc.storeOp = vk::AttachmentStoreOp::eStore;
-	depthAttachmentDesc.stencilLoadOp = vk::AttachmentLoadOp::eClear;
-	depthAttachmentDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-	depthAttachmentDesc.initialLayout = vk::ImageLayout::eUndefined;
-	depthAttachmentDesc.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-
-	vk::AttachmentReference depthAttachmentRef{};
-	depthAttachmentRef.attachment = 1;
-	depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+	vk::AttachmentReference depthAttachmentRef
+	{
+		.attachment = 1,
+		.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal
+	};
 
 	// Main Subpass
 
 	//we are going to create 1 subpass, which is the minimum you can do
-	vk::SubpassDescription subpassDesc = {};
-	subpassDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-	subpassDesc.pColorAttachments = &colorAttachmentRef;
-	subpassDesc.colorAttachmentCount = 1;
-	subpassDesc.pDepthStencilAttachment = &depthAttachmentRef;
-
-	vk::RenderPassCreateInfo renderPassCreateInfo{};
-
-	vk::AttachmentDescription attachments[2] = { colorAttachmentDesc, depthAttachmentDesc };
-	//connect the color attachment to the info
-	renderPassCreateInfo.setAttachments(attachments);
-	//connect the subpass to the info
-	renderPassCreateInfo.subpassCount = 1;
-	renderPassCreateInfo.pSubpasses = &subpassDesc;
+	vk::SubpassDescription subpassDesc
+	{
+		.pipelineBindPoint = vk::PipelineBindPoint::eGraphics,
+		.colorAttachmentCount = 1,
+		.pColorAttachments = &colorAttachmentRef,
+		.pDepthStencilAttachment = &depthAttachmentRef
+	};
 
 	/*
 	* https://vulkan-tutorial.com/Drawing_a_triangle/Drawing/Rendering_and_presentation | Subpass dependencies
 	*/
-	vk::SubpassDependency colorDependency{};
-	colorDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	colorDependency.dstSubpass = 0;
-
-	colorDependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-	colorDependency.srcAccessMask = vk::AccessFlags(0);
-
-	colorDependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-	colorDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+	vk::SubpassDependency colorDependency
+	{
+		.srcSubpass = VK_SUBPASS_EXTERNAL,
+		.dstSubpass = 0,
+		.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+		.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+		.srcAccessMask = vk::AccessFlags(0),
+		.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
+	};
 
 	//	Add a new dependency that synchronizes access to depth attachments.
 	//	Without this multiple frames can be rendered simultaneously by the GPU.
 
-	vk::SubpassDependency depthDependency{};
-	depthDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	depthDependency.dstSubpass = 0;
-	
-	depthDependency.srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests;
-	depthDependency.srcAccessMask = vk::AccessFlags(0);
+	vk::SubpassDependency depthDependency
+	{
+		.srcSubpass = VK_SUBPASS_EXTERNAL,
+		.dstSubpass = 0,	
+		.srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
+		.dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
+		.srcAccessMask = vk::AccessFlags(0),
+		.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite
+	};
 
-	depthDependency.dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests;
-	depthDependency.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-
+	vk::AttachmentDescription attachments[2] = { colorAttachmentDesc, depthAttachmentDesc };
 	vk::SubpassDependency dependencies[2] = { colorDependency, depthDependency };
+	vk::RenderPassCreateInfo renderPassCreateInfo
+	{
+		.subpassCount = 1,
+		.pSubpasses = &subpassDesc
+	};
 
+	renderPassCreateInfo.setAttachments(attachments);
 	renderPassCreateInfo.setDependencies(dependencies);
 
 	renderPass = device.createRenderPass(renderPassCreateInfo);
@@ -361,16 +375,18 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	////// Sync Structures
 
-	vk::FenceCreateInfo FenceCreateInfo{};
 	//we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
-	FenceCreateInfo.flags = vk::FenceCreateFlagBits::eSignaled;
-
-	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
+	vk::FenceCreateInfo fenceCreateInfo
 	{
-		renderFences[Index] = device.createFence(FenceCreateInfo);
+		.flags = vk::FenceCreateFlagBits::eSignaled
+	};
+
+	for (size_t index = 0; index < kMaxFramesInFlight; ++index)
+	{
+		renderFences[index] = device.createFence(fenceCreateInfo);
 		destroyQueue.Enqueue([=]()
 		{
-			device.destroyFence(renderFences[Index]);
+			device.destroyFence(renderFences[index]);
 		});
 	}
 
@@ -396,7 +412,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 		// 1: create descriptor pool for IMGUI
 			// the size of the pool is very oversize, but it's copied from imgui demo itself.
 
-		Vector<vk::DescriptorPoolSize> ImGuiPoolSizes =
+		Vector<vk::DescriptorPoolSize> imguiPoolSizes =
 		{
 			{ vk::DescriptorType::eSampler, 1000 },
 			{ vk::DescriptorType::eCombinedImageSampler, 1000 },
@@ -411,48 +427,70 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 			{ vk::DescriptorType::eInputAttachment, 1000 }
 		};
 		
-		vk::DescriptorPoolCreateInfo imGuiPoolCreateInfo(
-			vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-			1000, 
-			ImGuiPoolSizes);
+		vk::DescriptorPoolCreateInfo imguiPoolCreateInfo
+		{
+			.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+			.maxSets = 1000,			
+		};
 
-		imguiDescriptorPool = device.createDescriptorPool(imGuiPoolCreateInfo);
+		imguiPoolCreateInfo.setPoolSizes(imguiPoolSizes);
+
+		imguiDescriptorPool = device.createDescriptorPool(imguiPoolCreateInfo);
 
 		destroyQueue.Enqueue([=]()
 		{
 			device.destroyDescriptorPool(imguiDescriptorPool);
 		});
 
-		//this initializes imgui for Vulkan
-		ImGui_ImplVulkan_InitInfo ImGuiInitInfo{};
-		ImGuiInitInfo.Instance = instance;
-		ImGuiInitInfo.PhysicalDevice = gpu;
-		ImGuiInitInfo.Device = device;
-		ImGuiInitInfo.Queue = graphicsQueue;
-		ImGuiInitInfo.DescriptorPool = imguiDescriptorPool;
-		ImGuiInitInfo.MinImageCount = 3;
-		ImGuiInitInfo.ImageCount = 3;
-		ImGuiInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		VkInstance                      Instance;
+		VkPhysicalDevice                PhysicalDevice;
+		VkDevice                        Device;
+		uint32_t                        QueueFamily;
+		VkQueue                         Queue;
+		VkPipelineCache                 PipelineCache;
+		VkDescriptorPool                DescriptorPool;
+		uint32_t                        Subpass;
+		uint32_t                        MinImageCount;          // >= 2
+		uint32_t                        ImageCount;             // >= MinImageCount
+		VkSampleCountFlagBits           MSAASamples;            // >= VK_SAMPLE_COUNT_1_BIT (0 -> default to VK_SAMPLE_COUNT_1_BIT)
+		const VkAllocationCallbacks* Allocator;
+		void                            (*CheckVkResultFn)(VkResult err);
 
-		ImGui_ImplVulkan_Init(&ImGuiInitInfo, renderPass);
+		//this initializes imgui for Vulkan
+		ImGui_ImplVulkan_InitInfo imguiInitInfo
+		{
+			.Instance = instance,
+			.PhysicalDevice = gpu,
+			.Device = device,
+			.Queue = graphicsQueue,
+			.DescriptorPool = imguiDescriptorPool,
+			.MinImageCount = 3,
+			.ImageCount = 3,
+			.MSAASamples = VK_SAMPLE_COUNT_1_BIT
+		};
+
+		ImGui_ImplVulkan_Init(&imguiInitInfo, renderPass);
 
 		// Upload Fonts
 
 		vk::CommandBuffer commandBuffer = commandBuffers[0];
 		commandBuffer.reset();
 
-
-		vk::CommandBufferBeginInfo commandBufferBeginInfo{};
-		commandBufferBeginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-
-		commandBuffer.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+		commandBuffer.begin(vk::CommandBufferBeginInfo
+							{ 
+								.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit 
+							});
 
 		ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
 
 		commandBuffer.end();
 
 		vk::CommandBuffer commandBuffers[1] = { commandBuffer };
-		graphicsQueue.submit(vk::SubmitInfo({}, {}, commandBuffers, {}));
+		graphicsQueue.submit(vk::SubmitInfo
+							 { 
+								 .commandBufferCount = 1, 
+								 .pCommandBuffers = &commandBuffers[0] 
+							 });
 
 		device.waitIdle();
 
