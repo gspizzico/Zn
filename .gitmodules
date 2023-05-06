@@ -19,3 +19,6 @@
 [submodule "Source/ThirdParty/VulkanMemoryAllocator-Hpp"]
 	path = Source/ThirdParty/VulkanMemoryAllocator-Hpp
 	url = https://github.com/YaaZ/VulkanMemoryAllocator-Hpp
+[submodule "Source/ThirdParty/wyhash"]
+	path = Source/ThirdParty/wyhash
+	url = https://github.com/wangyi-fudan/wyhash
