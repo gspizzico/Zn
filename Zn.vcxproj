@@ -99,6 +99,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +124,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,6 +151,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

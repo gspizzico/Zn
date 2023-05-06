@@ -127,7 +127,7 @@ namespace Zn
 
 		private:
 
-			std::deque<std::function<void()>> m_Queue{};
+			std::deque<std::function<void()>> queue{};
 		};
 
 		DestroyQueue destroyQueue{};
@@ -158,7 +158,7 @@ namespace Zn
 		
 		Vk::Mesh* GetMesh(const String& InName);
 
-		void DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, int32 count);
+		void DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, u64 count);
 
 		void CreateScene();
 
@@ -208,10 +208,5 @@ namespace Zn
 		void ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function);
 
 		void CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height);
-
-		// ===================
-
-		template<typename TypePtr, typename OwnerType, typename CreateInfoType, typename VkCreateFunction, typename VkDestroyFunction>
-		void CreateVkObject(OwnerType Owner, TypePtr& OutObject, const CreateInfoType& CreateInfo, VkCreateFunction&& Create, VkDestroyFunction&& Destroy);
 	};	
 }

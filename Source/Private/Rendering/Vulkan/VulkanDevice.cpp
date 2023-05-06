@@ -28,16 +28,13 @@
 #define ZN_VK_VALIDATION_VERBOSE (0)
 
 #define ZN_VK_CHECK(expression)\
-if(expression != VK_SUCCESS)\
-{\
-_ASSERT(false);\
-}
+if(vk::Result result = expression; result != vk::Result::eSuccess) _ASSERT(false);
 
 #define ZN_VK_CHECK_RETURN(expression)\
-if(expression != VK_SUCCESS)\
+if(vk::Result result = expression; result != vk::Result::eSuccess)\
 {\
-_ASSERT(false);\
-return;\
+	_ASSERT(false);\
+	return;\
 }
 
 DEFINE_STATIC_LOG_CATEGORY(LogVulkan, ELogVerbosity::Log);
@@ -80,43 +77,6 @@ namespace
 			return kPerformance;
 			default:
 			return kGeneral;
-		}
-	}
-
-	template<typename OutputType, typename VkFunction, typename ...Args>
-	Vector<OutputType> VkEnumerate(VkFunction&& InFunction, Args&&... InArgs)
-	{
-		uint32 Count = 0;
-		InFunction(std::forward<Args>(InArgs)..., &Count, nullptr);
-
-		Vector<OutputType> Output(Count);
-		InFunction(std::forward<Args>(InArgs)..., &Count, Output.data());
-
-		return Output;
-	}
-
-	template<typename TypePtr, typename OwnerType, typename CreateInfoType, typename VkCreateFunction>
-	VkResult VkCreate(OwnerType Owner, TypePtr& Object, const CreateInfoType& CreateInfo, VkCreateFunction&& InFunction)
-	{
-		return InFunction(Owner, &CreateInfo, nullptr, &Object);
-	}
-
-	template<typename TypePtr, typename OwnerType, typename VkDestroyFunction>
-	void VkDestroy(TypePtr& Object, OwnerType Owner, VkDestroyFunction&& InFunction)
-	{
-		if (Object != VK_NULL_HANDLE)
-		{
-			InFunction(Owner, Object, nullptr);
-			Object = VK_NULL_HANDLE;
-		}
-	}
-
-	template<typename TypePtr, typename OwnerType, typename VkDestroyFunction>
-	void VkDestroy(const TypePtr& Object, OwnerType Owner, VkDestroyFunction&& InFunction)
-	{
-		if (Object != VK_NULL_HANDLE)
-		{
-			InFunction(Owner, Object, nullptr);
 		}
 	}
 }
@@ -504,7 +464,7 @@ void VulkanDevice::Cleanup()
 		return;
 	}
 
-	ZN_VK_CHECK(vkDeviceWaitIdle(device));
+	device.waitIdle();
 
 	CleanupSwapChain();
 
@@ -558,7 +518,7 @@ void Zn::VulkanDevice::BeginFrame()
 {
 	//wait until the GPU has finished rendering the last frame. Timeout of 1 second
 	
-	device.waitForFences({ renderFences[currentFrame] }, true, kWaitTimeOneSecond);
+	ZN_VK_CHECK(device.waitForFences({ renderFences[currentFrame] }, true, kWaitTimeOneSecond));
 
 	if (isMinimized)
 	{
@@ -764,7 +724,7 @@ bool VulkanDevice::HasRequiredDeviceExtensions(vk::PhysicalDevice inDevice) cons
 
 	static const Set<String> kRequiredDeviceExtensions(kDeviceExtensions.begin(), kDeviceExtensions.end());
 	
-	u32 numFoundExtensions =
+	auto numFoundExtensions =
 		std::count_if(availableExtensions.begin(), availableExtensions.end(), [](const vk::ExtensionProperties& extension)
 		{
 			return kRequiredDeviceExtensions.contains(extension.extensionName);
@@ -775,9 +735,9 @@ bool VulkanDevice::HasRequiredDeviceExtensions(vk::PhysicalDevice inDevice) cons
 
 vk::PhysicalDevice VulkanDevice::SelectPhysicalDevice(const Vector<vk::PhysicalDevice>& inDevices) const
 {
-	u32 num = inDevices.size();
+	i32 num = inDevices.size();
 
-	i32 selectedIndex = std::numeric_limits<size_t>::max();
+	i32 selectedIndex = std::numeric_limits<i32>::max();
 	u32 maxScore = 0;
 
 	for (i32 idx = 0; idx < num; ++idx)
@@ -1185,8 +1145,7 @@ void Zn::VulkanDevice::CreateImageViews()
 		.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal),
 	};
 
-	// TODO: VK_CHECK
-	allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthImage.image, &depthImage.allocation, nullptr);
+	ZN_VK_CHECK(allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthImage.image, &depthImage.allocation, nullptr));
 
 	//	VK_IMAGE_ASPECT_DEPTH_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
 	vk::ImageViewCreateInfo depthImageViewCreateInfo = Vk::AllocatedImage::GetImageViewCreateInfo(depthImageFormat, depthImage.image, vk::ImageAspectFlagBits::eDepth);
@@ -1299,12 +1258,12 @@ Vk::Mesh* Zn::VulkanDevice::GetMesh(const String& InName)
 	return nullptr;
 }
 
-void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, int32 count)
+void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, u64 count)
 {
 	Vk::Mesh* lastMesh = nullptr;
 	Vk::Material* lastMaterial = nullptr;
 
-	for (int32 index = 0; index < count; ++index)
+	for (u32 index = 0; index < count; ++index)
 	{
 		Vk::RenderObject& object = first[index];
 
@@ -1679,7 +1638,7 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTextureImage(u32 width, u32 height, c
 		.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal)
 	};
 	
-	allocator.createImage(&createInfo, &allocationInfo, &outImage.image, &outImage.allocation, nullptr);
+	ZN_VK_CHECK(allocator.createImage(&createInfo, &allocationInfo, &outImage.image, &outImage.allocation, nullptr));
 
 	return outImage;
 }
@@ -1750,14 +1709,16 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& 
 
 	cmd.end();
 
-	vk::SubmitInfo submitInfo{};
-	submitInfo.pCommandBuffers = &cmd;
-	submitInfo.commandBufferCount = 1;
+	vk::SubmitInfo submitInfo
+	{
+		.commandBufferCount = 1,
+		.pCommandBuffers = &cmd
+	};
 
 	// .fence will now block until the graphic commands finish execution
 	graphicsQueue.submit(submitInfo, uploadContext.fence);
 	
-	device.waitForFences({ uploadContext.fence }, true, kWaitTimeOneSecond);
+	ZN_VK_CHECK(device.waitForFences({ uploadContext.fence }, true, kWaitTimeOneSecond));
 	device.resetFences({ uploadContext.fence });
 	
 	// reset the command buffers inside the command pool
@@ -1807,18 +1768,4 @@ void Zn::VulkanDevice::DestroyQueue::Flush()
 
 		m_Queue.pop_front();
 	}
-}
-
-template<typename TypePtr, typename OwnerType, typename CreateInfoType, typename VkCreateFunction, typename VkDestroyFunction>
-void VulkanDevice::CreateVkObject(OwnerType Owner, TypePtr& OutObject, const CreateInfoType& CreateInfo, VkCreateFunction&& Create, VkDestroyFunction&& Destroy)
-{
-	ZN_VK_CHECK(VkCreate(Owner, OutObject, CreateInfo, std::move(Create)));
-
-	destroyQueue.Enqueue([this, OutObject, Owner, Destructor = std::move(Destroy)]() mutable
-	{
-		if (Owner != VK_NULL_HANDLE && OutObject != VK_NULL_HANDLE)
-		{
-			VkDestroy(OutObject, Owner, Destructor);
-		}
-	});
 }
