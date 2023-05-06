@@ -23,6 +23,7 @@
 #include <imgui_impl_sdl.h>
 
 
+
 #define ZN_VK_VALIDATION_LAYERS (ZN_DEBUG)
 
 #define ZN_VK_VALIDATION_VERBOSE (0)
@@ -135,6 +136,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	};
 
 	device = gpu.createDevice(deviceCreateInfo, nullptr);
+	
+	VULKAN_HPP_DEFAULT_DISPATCHER.init(device);
 	
 	graphicsQueue = device.getQueue(Indices.Graphics.value(), 0);
 	presentQueue = device.getQueue(Indices.Present.value(), 0);

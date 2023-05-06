@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <ImGui/ImGuiWrapper.h>
 
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
+
 DEFINE_STATIC_LOG_CATEGORY(LogVulkan_2, ELogVerbosity::Log);
 DEFINE_STATIC_LOG_CATEGORY(LogVulkanValidation_2, ELogVerbosity::Verbose);
 
@@ -22,10 +24,10 @@ static const Zn::Vector<const char*> kValidationLayers = { "VK_LAYER_KHRONOS_val
 namespace VulkanValidation
 {
 	bool SupportsValidationLayers()
-	{
-		Zn::Vector<VkLayerProperties> availableLayers = VkEnumerate<VkLayerProperties>(vkEnumerateInstanceLayerProperties);
+	{	
+		Zn::Vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
 
-		return std::any_of(availableLayers.begin(), availableLayers.end(), [](const VkLayerProperties& it)
+		return std::any_of(availableLayers.begin(), availableLayers.end(), [](const vk::LayerProperties& it)
 		{
 			for (const auto& layerName : kValidationLayers)
 			{
@@ -39,38 +41,19 @@ namespace VulkanValidation
 		});
 	}
 
-	ELogVerbosity VkMessageSeverityToZnVerbosity(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
+	ELogVerbosity VkMessageSeverityToZnVerbosity(vk::DebugUtilsMessageSeverityFlagBitsEXT severity)
 	{
 		switch (severity)
 		{
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+			case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
 			return ELogVerbosity::Verbose;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+			case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
 			return ELogVerbosity::Log;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
 			return ELogVerbosity::Warning;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
 			default:
 			return ELogVerbosity::Error;
-		}
-	}
-
-	const String& VkMessageTypeToString(VkDebugUtilsMessageTypeFlagBitsEXT type)
-	{
-		static const String kGeneral = "VkGeneral";
-		static const String kValidation = "VkValidation";
-		static const String kPerformance = "VkPerf";
-
-		switch (type)
-		{
-			case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
-			return kGeneral;
-			case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:
-			return kValidation;
-			case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT:
-			return kPerformance;
-			default:
-			return kGeneral;
 		}
 	}
 
@@ -79,9 +62,9 @@ namespace VulkanValidation
 									  const VkDebugUtilsMessengerCallbackDataEXT* data,
 									  void* userData)
 	{
-		ELogVerbosity verbosity = VkMessageSeverityToZnVerbosity(severity);
+		ELogVerbosity verbosity = VkMessageSeverityToZnVerbosity(vk::DebugUtilsMessageSeverityFlagBitsEXT(severity));
 
-		const String& messageType = VkMessageTypeToString(static_cast<VkDebugUtilsMessageTypeFlagBitsEXT>(type));
+		const String& messageType = vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(type));
 
 		ZN_LOG(LogVulkanValidation_2, verbosity, "[%s] %s", messageType.c_str(), data->pMessage);
 
@@ -93,53 +76,34 @@ namespace VulkanValidation
 		return VK_FALSE;
 	}
 
-	VkDebugUtilsMessengerCreateInfoEXT GetDebugMessengerCreateInfo()
+	vk::DebugUtilsMessengerCreateInfoEXT GetDebugMessengerCreateInfo()
 	{
-		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-
-		debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo
+		{
 #if ZN_VK_VALIDATION_VERBOSE
-		debugCreateInfo.messageSeverity = (VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
+		.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 #else
-		debugCreateInfo.messageSeverity = (VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
+		.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
 #endif
-		debugCreateInfo.messageType = (VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
-		debugCreateInfo.pfnUserCallback = VulkanValidation::OnDebugMessage;
-		debugCreateInfo.pUserData = nullptr;
+		.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
+		.pfnUserCallback = VulkanValidation::OnDebugMessage
+		};
 
 		return debugCreateInfo;
 	}
 
-	VkDebugUtilsMessengerEXT GDebugMessenger{ VK_NULL_HANDLE };
+	vk::DebugUtilsMessengerEXT GDebugMessenger{};
 
-	void InitializeDebugMessenger(VkInstance instance)
+	void InitializeDebugMessenger(vk::Instance instance)
 	{
-		VkDebugUtilsMessengerCreateInfoEXT DebugUtilsInfo = GetDebugMessengerCreateInfo();
-
-		// Load function
-		auto vkCreateDebugUtilsMessengerEXTPtr = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-		if (vkCreateDebugUtilsMessengerEXTPtr != nullptr)
-		{
-			vkCreateDebugUtilsMessengerEXTPtr(instance, &DebugUtilsInfo, nullptr/*Allocator*/, &GDebugMessenger);
-		}
-		else
-		{
-			ZN_LOG(LogVulkanValidation_2, ELogVerbosity::Error, "vkCreateDebugUtilsMessengerEXT not available.");
-		}
+		GDebugMessenger = instance.createDebugUtilsMessengerEXT(GetDebugMessengerCreateInfo());
 	}
 
-	void DeinitializeDebugMessenger(VkInstance instance)
+	void DeinitializeDebugMessenger(vk::Instance instance)
 	{
-		if (GDebugMessenger != VK_NULL_HANDLE)
+		if (GDebugMessenger)
 		{
-			// Load function
-			auto vkDestroyDebugUtilsMessengerEXTPtr = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-			if (vkDestroyDebugUtilsMessengerEXTPtr != nullptr)
-			{
-				vkDestroyDebugUtilsMessengerEXTPtr(instance, GDebugMessenger, nullptr/*Allocator*/);
-
-				GDebugMessenger = VK_NULL_HANDLE;
-			}
+			instance.destroyDebugUtilsMessengerEXT(GDebugMessenger);
 		}
 	}
 }
@@ -147,10 +111,17 @@ namespace VulkanValidation
 
 bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 {
-	vk::ApplicationInfo appInfo{};
-	appInfo.pApplicationName = "Zn";
-	appInfo.pEngineName = "Zn";
-	appInfo.apiVersion = VK_API_VERSION_1_0;
+	// Initialize vk::DynamicLoader - It's needed to call .dll functions.
+	vk::DynamicLoader dynamicLoader;
+	auto pGetInstance = dynamicLoader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
+	VULKAN_HPP_DEFAULT_DISPATCHER.init(pGetInstance);
+
+	vk::ApplicationInfo appInfo
+	{
+		.pApplicationName = "Zn",
+		.pEngineName = "Zn",
+		.apiVersion = VK_API_VERSION_1_0,
+	};
 
 	// Get the names of the Vulkan instance extensions needed to create a surface with SDL_Vulkan_CreateSurface
 	SDL_Window* window = SDL_GetWindowFromID(params.window->GetSDLWindowID());
@@ -160,8 +131,10 @@ bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 	Vector<const char*> requiredExtensions(numExtensions);
 	SDL_Vulkan_GetInstanceExtensions(window, &numExtensions, requiredExtensions.data());
 
-	vk::InstanceCreateInfo instanceCreateInfo{};
-	instanceCreateInfo.pApplicationInfo = &appInfo;
+	vk::InstanceCreateInfo instanceCreateInfo
+	{
+		.pApplicationInfo = &appInfo
+	};
 
 	Vector<const char*> enabledLayers;
 
@@ -185,6 +158,7 @@ bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 	instanceCreateInfo.ppEnabledLayerNames = enabledLayers.data();
 
 	instance = vk::createInstance(instanceCreateInfo);
+	VULKAN_HPP_DEFAULT_DISPATCHER.init(instance);
 
 #if ZN_VK_VALIDATION_LAYERS
 	VulkanValidation::InitializeDebugMessenger(instance);
