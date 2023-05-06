@@ -1757,15 +1757,15 @@ VulkanDevice::DestroyQueue::~DestroyQueue()
 
 void Zn::VulkanDevice::DestroyQueue::Enqueue(std::function<void()> && InDestructor)
 {
-	m_Queue.emplace_back(std::move(InDestructor));
+	queue.emplace_back(std::move(InDestructor));
 }
 
 void Zn::VulkanDevice::DestroyQueue::Flush()
 {
-	while (!m_Queue.empty())
+	while (!queue.empty())
 	{
-		std::invoke(m_Queue.front());
+		std::invoke(queue.front());
 
-		m_Queue.pop_front();
+		queue.pop_front();
 	}
 }
