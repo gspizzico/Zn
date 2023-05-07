@@ -169,6 +169,7 @@
     <ClCompile Include="Source\Private\Engine\Importer\TextureImporter.cpp" />
     <ClCompile Include="Source\Private\Rendering\RHI\Vulkan.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMaterialManager.cpp" />
+    <ClCompile Include="Source\Private\Engine\Importer\MeshImporter.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -231,7 +232,6 @@
     <ClCompile Include="Source\Private\Rendering\D3D11\D3D11.cpp" />
     <ClCompile Include="Source\Private\Rendering\Renderer.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanDevice.cpp" />
-    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMesh.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanPipeline.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanTypes.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsAPI.cpp" />
@@ -260,11 +260,13 @@
     <ClInclude Include="Source\Public\Core\Event.h" />
     <ClInclude Include="Source\Public\Core\Hash.h" />
     <ClInclude Include="Source\Public\Core\Random.h" />
+    <ClInclude Include="Source\Public\Engine\Importer\MeshImporter.h" />
     <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />
-    <ClInclude Include="Source\Public\Engine\Texture.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHI.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHIMesh.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHITexture.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHITypes.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHIVertex.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\Vulkan\Vulkan.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMaterialManager.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.h" />
@@ -325,7 +327,6 @@
     <ClInclude Include="Source\Public\Rendering\RendererTypes.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanDevice.h" />
-    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMesh.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanPipeline.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanTypes.h" />
     <ClInclude Include="Source\Public\Windows\WindowsAPI.h" />

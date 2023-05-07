@@ -7,6 +7,7 @@
 
 namespace Zn
 {
+	struct RHIMesh;
 	namespace Vk
 	{
 		struct QueueFamilyIndices
@@ -73,7 +74,7 @@ namespace Zn
 
 		struct RenderObject
 		{
-			Vk::Mesh* mesh;
+			RHIMesh* mesh;
 			Vk::Material* material;
 			glm::vec3 location;
 			glm::quat rotation;

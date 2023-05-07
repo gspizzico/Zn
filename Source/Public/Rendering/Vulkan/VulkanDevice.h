@@ -6,7 +6,6 @@
 #include <Core/Containers/Map.h>
 #include <Rendering/RHI/Vulkan/Vulkan.h>
 #include <Rendering/Vulkan/VulkanTypes.h>
-#include <Rendering/Vulkan/VulkanMesh.h>
 #include <Rendering/RHI/RHITypes.h>
 
 struct SDL_Window;
@@ -14,6 +13,7 @@ struct SDL_Window;
 namespace Zn
 {
 	struct RHITexture;
+	struct RHIMesh;
 	class Texture;
 	struct ResourceHandle;
 
@@ -144,9 +144,9 @@ namespace Zn
 		// == Scene Management ==
 
 		Vector<Vk::RenderObject> renderables;		
-		UnorderedMap<String, Vk::Mesh> meshes;
+		UnorderedMap<ResourceHandle, RHIMesh*> meshes;
 		
-		Vk::Mesh* GetMesh(const String& InName);
+		RHIMesh* GetMesh(const String& InName);
 
 		void DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, u64 count);
 
@@ -168,6 +168,9 @@ namespace Zn
 
 		void UploadMesh(Vk::Mesh& OutMesh);
 
+		RHIBuffer CreateRHIBuffer(void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const;
+
+		
 		void CreateMeshPipeline();
 
 		// ===================

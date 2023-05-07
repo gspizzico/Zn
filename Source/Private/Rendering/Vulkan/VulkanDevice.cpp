@@ -17,8 +17,10 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include <Engine/Importer/TextureImporter.h>
+#include <Engine/Importer/MeshImporter.h>
 #include <Rendering/RHI/RHITypes.h>
 #include <Rendering/RHI/RHITexture.h>
+#include <Rendering/RHI/RHIMesh.h>
 
 // ImGui
 
@@ -32,7 +34,10 @@ namespace
 {
 	static const String defaultTexturePath = "assets/texture.jpg";
 	static const String vikingRoomTexturePath = "assets/VulkanTutorial/viking_room.png";
+	static const String vikingRoomMeshPath = "assets/VulkanTutorial/viking_room.obj";
+	static const String monkeyMeshPath = "assets/VulkanGuide/monkey_smooth.obj";
 	static const ResourceHandle depthTextureHandle = ResourceHandle(HashCalculate("__RHIDepthTexture"));
+	static const String triangleMeshName = "__Triangle";
 }
 
 namespace
@@ -467,6 +472,11 @@ void VulkanDevice::Cleanup()
 		device.destroyImageView(textureKvp.second->imageView);
 		allocator.destroyImage(textureKvp.second->image, textureKvp.second->allocation);
 		delete textureKvp.second;
+	}
+
+	for (auto& meshKvp : meshes)
+	{
+		allocator.destroyBuffer(meshKvp.second->vertexBuffer.data, meshKvp.second->vertexBuffer.allocation);
 	}
 
 	textures.clear();
@@ -1255,11 +1265,11 @@ void Zn::VulkanDevice::CopyToGPU(vma::Allocation allocation, void* src, size_t s
 	allocator.unmapMemory(allocation);
 }
 
-Vk::Mesh* Zn::VulkanDevice::GetMesh(const String& InName)
+RHIMesh* Zn::VulkanDevice::GetMesh(const String& InName)
 {
-	if (auto it = meshes.find(InName); it != meshes.end())
+	if (auto it = meshes.find(HashCalculate(InName)); it != meshes.end())
 	{
-		return &((*it).second);
+		return it->second;
 	}
 
 	return nullptr;
@@ -1267,7 +1277,7 @@ Vk::Mesh* Zn::VulkanDevice::GetMesh(const String& InName)
 
 void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, u64 count)
 {
-	Vk::Mesh* lastMesh = nullptr;
+	RHIMesh* lastMesh = nullptr;
 	Vk::Material* lastMaterial = nullptr;
 
 	for (u32 index = 0; index < count; ++index)
@@ -1310,13 +1320,13 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderOb
 		{
 			// bind the mesh v-buffer with offset 0
 			vk::DeviceSize offset = 0;
-			commandBuffer.bindVertexBuffers(0, 1, &object.mesh->Buffer.data, &offset);
+			commandBuffer.bindVertexBuffers(0, 1, &object.mesh->vertexBuffer.data, &offset);
 			lastMesh = object.mesh;
 		}
 
 		// Draw
 
-		commandBuffer.draw(object.mesh->Vertices.size(), 1, 0, 0);
+		commandBuffer.draw(object.mesh->vertices.size(), 1, 0, 0);
 	}
 }
 
@@ -1324,7 +1334,7 @@ void Zn::VulkanDevice::CreateScene()
 {
 	Vk::RenderObject viking_room
 	{
-		.mesh = GetMesh("viking_room"),
+		.mesh = GetMesh(vikingRoomMeshPath),
 		.material = VulkanMaterialManager::Get().GetMaterial("default"),
 		.location = glm::vec3(0.f),
 		.rotation = glm::quat(),
@@ -1385,7 +1395,7 @@ void Zn::VulkanDevice::CreateScene()
 
 	Vk::RenderObject monkey
 	{
-		.mesh = GetMesh("monkey"),
+		.mesh = GetMesh(monkeyMeshPath),
 		.material = VulkanMaterialManager::Get().GetMaterial("default"),
 		.location = glm::vec3(0.f, 0.f, 10.f),
 		.rotation = glm::quat(),
@@ -1394,14 +1404,17 @@ void Zn::VulkanDevice::CreateScene()
 
 	renderables.push_back(monkey);
 
+	RHIMesh* triangleMesh = GetMesh(triangleMeshName);
+	Vk::Material* defaultMaterial = VulkanMaterialManager::Get().GetMaterial("default");
+
 	for (int32 x = -20; x <= 20; ++x)
 	{
 		for (int32 y = -20; y <= 20; ++y)
 		{
 			Vk::RenderObject triangle
 			{
-				.mesh = GetMesh("triangle"),
-				.material = VulkanMaterialManager::Get().GetMaterial("default"),
+				.mesh = triangleMesh,
+				.material = defaultMaterial,
 				.location = glm::vec3(x, 0, y),
 				.rotation = glm::quat(glm::vec3(glm::radians(25.f), 0.f, 0.f)),
 				.scale = glm::vec3(0.2f)
@@ -1414,48 +1427,74 @@ void Zn::VulkanDevice::CreateScene()
 
 void Zn::VulkanDevice::LoadMeshes()
 {
-	Vk::Mesh triangle{};
+	RHIMesh* triangle = new RHIMesh();
 
-	triangle.Vertices.resize(3);
+	triangle->vertices.resize(3);
 
 	//vertex positions
-	triangle.Vertices[0].Position = { 1.f, 1.f, 0.f };
-	triangle.Vertices[1].Position = { -1.f, 1.f, 0.0f };
-	triangle.Vertices[2].Position = { 0.f, -0.5f, 0.0f };
+	triangle->vertices[0].position = { 1.f, 1.f, 0.f };
+	triangle->vertices[1].position = { -1.f, 1.f, 0.0f };
+	triangle->vertices[2].position = { 0.f, -0.5f, 0.0f };
 
-	triangle.Vertices[0].Color = { 1.0f, 0.f, 0.f };
-	triangle.Vertices[1].Color = { 0.0f, 1.0f, 0.0f };
-	triangle.Vertices[2].Color = { 0.0f, 0.0f, 1.0f };
+	triangle->vertices[0].color = { 1.0f, 0.f, 0.f };
+	triangle->vertices[1].color = { 0.0f, 1.0f, 0.0f };
+	triangle->vertices[2].color = { 0.0f, 0.0f, 1.0f };
 
-	triangle.Vertices[0].Normal = glm::vec3(1.0f);
-	triangle.Vertices[1].Normal = glm::vec3(1.0f);
-	triangle.Vertices[2].Normal = glm::vec3(1.0f);
+	triangle->vertices[0].normal = glm::vec3(1.0f);
+	triangle->vertices[1].normal = glm::vec3(1.0f);
+	triangle->vertices[2].normal = glm::vec3(1.0f);
 
-	triangle.Vertices[0].UV = glm::vec2(1.0f);
-	triangle.Vertices[1].UV = glm::vec2(0.0, 1.f);
-	triangle.Vertices[2].UV = glm::vec2(0.0f);
+	triangle->vertices[0].uv = glm::vec2(1.0f);
+	triangle->vertices[1].uv = glm::vec2(0.0, 1.f);
+	triangle->vertices[2].uv = glm::vec2(0.0f);
 
 	//we don't care about the vertex normals
 
-	UploadMesh(triangle);
+	triangle->vertexBuffer = CreateRHIBuffer(
+		triangle->vertices.data(), 
+		triangle->vertices.size() * sizeof(RHIVertex), 
+		vk::BufferUsageFlagBits::eVertexBuffer, 
+		vma::MemoryUsage::eGpuOnly);
 
-	meshes["triangle"] = triangle;
+	meshes.insert({ ResourceHandle(HashCalculate(triangleMeshName)) , triangle });
 
-	Vk::Mesh monkey{};
-	
-	Vk::Obj::LoadMesh(IO::GetAbsolutePath("assets/VulkanGuide/monkey_smooth.obj"), monkey);
-	
-	UploadMesh(monkey);
-	
-	meshes["monkey"] = monkey;
+	RHIMesh* monkey = new RHIMesh();
 
-	Vk::Mesh vikingRoom{};
+	if (!MeshImporter::Import(IO::GetAbsolutePath(monkeyMeshPath), *monkey))
+	{
+		delete monkey;
+		monkey = nullptr;
+	}
 
-	Vk::Obj::LoadMesh(IO::GetAbsolutePath("assets/VulkanTutorial/viking_room.obj"), vikingRoom);
-	 
-	UploadMesh(vikingRoom);
-	 
-	meshes["viking_room"] = vikingRoom;
+	RHIMesh* vikingRoom = new RHIMesh();
+
+	if (!MeshImporter::Import(IO::GetAbsolutePath(vikingRoomMeshPath), *vikingRoom))
+	{
+		delete vikingRoom;
+		vikingRoom = nullptr;
+	}
+
+	if (monkey)
+	{
+		monkey->vertexBuffer = CreateRHIBuffer(
+			monkey->vertices.data(),
+			monkey->vertices.size() * sizeof(RHIVertex),
+			vk::BufferUsageFlagBits::eVertexBuffer,
+			vma::MemoryUsage::eGpuOnly);
+
+		meshes.insert({ ResourceHandle(HashCalculate(monkeyMeshPath)), monkey });
+	}
+
+	if (vikingRoom)
+	{
+		vikingRoom->vertexBuffer = CreateRHIBuffer(
+			vikingRoom->vertices.data(),
+			vikingRoom->vertices.size() * sizeof(RHIVertex),
+			vk::BufferUsageFlagBits::eVertexBuffer,
+			vma::MemoryUsage::eGpuOnly);
+
+		meshes.insert({ ResourceHandle(HashCalculate(vikingRoomMeshPath)), vikingRoom });
+	}
 }
 
 void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
@@ -1486,6 +1525,23 @@ void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 	{
 		DestroyBuffer(OutMesh.Buffer);
 	});
+}
+
+RHIBuffer Zn::VulkanDevice::CreateRHIBuffer(void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const
+{
+	RHIBuffer stagingBuffer = CreateBuffer(size, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+	CopyToGPU(stagingBuffer.allocation, data, size);
+	
+	RHIBuffer outputBuffer = CreateBuffer(size, bufferUsage | vk::BufferUsageFlagBits::eTransferDst, memoryUsage);
+
+	ImmediateSubmit([=](vk::CommandBuffer cmd)
+	{
+		cmd.copyBuffer(stagingBuffer.data, outputBuffer.data, { vk::BufferCopy(0, 0, size) });
+	});
+
+	DestroyBuffer(stagingBuffer);
+
+	return outputBuffer;
 }
 
 void Zn::VulkanDevice::CreateMeshPipeline()
