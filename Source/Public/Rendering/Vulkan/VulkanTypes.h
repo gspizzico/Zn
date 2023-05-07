@@ -8,6 +8,8 @@
 namespace Zn
 {
 	struct RHIMesh;
+	struct Material;
+
 	namespace Vk
 	{
 		struct QueueFamilyIndices
@@ -23,42 +25,16 @@ namespace Zn
 			Vector<vk::PresentModeKHR> PresentModes;
 		};
 
-		struct VertexInputDescription
-		{
-			Vector<vk::VertexInputBindingDescription> Bindings{};
-			Vector<vk::VertexInputAttributeDescription> Attributes{};
-			vk::PipelineVertexInputStateCreateFlags Flags{ 0 };
-		};
-
 		struct MeshPushConstants
 		{
 			glm::vec4 Data;
 			glm::mat4 RenderMatrix;
 		};
 
-		struct Material
-		{
-			vk::Pipeline pipeline;
-			vk::PipelineLayout layout;
-
-			vk::ShaderModule vertexShader;
-			vk::ShaderModule fragmentShader;
-
-			// Textures
-			UnorderedMap<String, vk::ImageView> textureImageViews;
-			UnorderedMap<String, vk::Sampler> textureSamplers;
-
-			// Material parameters
-			UnorderedMap<String, f32> parameters;
-
-
-			vk::DescriptorSet textureSet;
-		};
-
 		struct RenderObject
 		{
 			RHIMesh* mesh;
-			Vk::Material* material;
+			Material* material;
 			glm::vec3 location;
 			glm::quat rotation;
 			glm::vec3 scale;

@@ -522,6 +522,7 @@
     <ClInclude Include="Source\Public\Rendering\RHI\RHIVertex.h" />
     <ClInclude Include="Source\Public\Engine\Importer\MeshImporter.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHIInputLayout.h" />
+    <ClInclude Include="Source\Public\Rendering\Material.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\PreLinking.bat">

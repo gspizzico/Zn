@@ -1,6 +1,7 @@
 #include <Znpch.h>
 #include <Rendering/Vulkan/VulkanMaterialManager.h>
-#include <Rendering/Vulkan/VulkanTypes.h>
+#include <Rendering/Material.h>
+#include <Rendering/RHI/RHI.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogVulkanMaterialManager, ELogVerbosity::Log);
 
@@ -12,13 +13,13 @@ Zn::VulkanMaterialManager& Zn::VulkanMaterialManager::Get()
 	return instance;
 }
 
-Zn::Vk::Material* Zn::VulkanMaterialManager::CreateMaterial(const String& name)
+Zn::Material* Zn::VulkanMaterialManager::CreateMaterial(const String& name)
 {
-	Vk::Material* foundMaterial = GetMaterial(name);
+	Material* foundMaterial = GetMaterial(name);
 
 	if (foundMaterial == nullptr)
 	{
-		UniquePtr<Vk::Material> material = std::make_unique<Vk::Material>();
+		UniquePtr<Material> material = std::make_unique<Material>();
 
 		foundMaterial = material.get();
 
@@ -34,7 +35,7 @@ Zn::Vk::Material* Zn::VulkanMaterialManager::CreateMaterial(const String& name)
 	return foundMaterial;
 }
 
-Zn::Vk::Material* Zn::VulkanMaterialManager::GetMaterial(const String& name) const
+Zn::Material* Zn::VulkanMaterialManager::GetMaterial(const String& name) const
 {
 	if (auto pMaterial = materials.find(name); pMaterial != materials.end())
 	{

@@ -262,6 +262,7 @@
     <ClInclude Include="Source\Public\Core\Random.h" />
     <ClInclude Include="Source\Public\Engine\Importer\MeshImporter.h" />
     <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />
+    <ClInclude Include="Source\Public\Rendering\Material.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHI.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHIInputLayout.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHIMesh.h" />

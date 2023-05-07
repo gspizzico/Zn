@@ -21,6 +21,7 @@
 #include <Rendering/RHI/RHITypes.h>
 #include <Rendering/RHI/RHITexture.h>
 #include <Rendering/RHI/RHIMesh.h>
+#include <Rendering/Material.h>
 
 // ImGui
 
@@ -1278,7 +1279,7 @@ RHIMesh* Zn::VulkanDevice::GetMesh(const String& InName)
 void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, u64 count)
 {
 	RHIMesh* lastMesh = nullptr;
-	Vk::Material* lastMaterial = nullptr;
+	Material* lastMaterial = nullptr;
 
 	for (u32 index = 0; index < count; ++index)
 	{
@@ -1405,7 +1406,7 @@ void Zn::VulkanDevice::CreateScene()
 	renderables.push_back(monkey);
 
 	RHIMesh* triangleMesh = GetMesh(triangleMeshName);
-	Vk::Material* defaultMaterial = VulkanMaterialManager::Get().GetMaterial("default");
+	Material* defaultMaterial = VulkanMaterialManager::Get().GetMaterial("default");
 
 	for (int32 x = -20; x <= 20; ++x)
 	{
@@ -1525,7 +1526,7 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
 	if (vertex_success && fragment_success)
 	{
-		Vk::Material* material = VulkanMaterialManager::Get().CreateMaterial("default");
+		Material* material = VulkanMaterialManager::Get().CreateMaterial("default");
 
 		material->vertexShader = CreateShaderModule(vertex_shader_data);
 		material->fragmentShader = CreateShaderModule(fragment_shader_data); 

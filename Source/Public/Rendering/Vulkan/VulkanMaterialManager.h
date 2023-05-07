@@ -4,11 +4,8 @@
 #include <Core/Containers/Map.h>
 
 namespace Zn
-{
-	namespace Vk
-	{
-		struct Material;
-	}
+{	
+	struct Material;
 
 	class VulkanMaterialManager
 	{
@@ -16,11 +13,11 @@ namespace Zn
 
 		static VulkanMaterialManager& Get();
 
-		Vk::Material* CreateMaterial(const String& name);
-		Vk::Material* GetMaterial(const String& name) const;
+		Material* CreateMaterial(const String& name);
+		Material* GetMaterial(const String& name) const;
 
 	private:
 
-		UnorderedMap<String, UniquePtr<Vk::Material>> materials;
+		UnorderedMap<String, UniquePtr<Material>> materials;
 	};
 }
