@@ -263,6 +263,7 @@
     <ClInclude Include="Source\Public\Engine\Importer\MeshImporter.h" />
     <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHI.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHIInputLayout.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHIMesh.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHITexture.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHITypes.h" />

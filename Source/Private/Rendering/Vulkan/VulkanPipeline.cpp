@@ -1,8 +1,49 @@
 #include <Znpch.h>
 #include <Rendering/Vulkan/VulkanPipeline.h>
-#include <Rendering/Vulkan/VulkanTypes.h>
+#include <Rendering/RHI/RHI.h>
+#include <Rendering/RHI/RHIVertex.h>
+#include <Rendering/RHI/RHIInputLayout.h>
 
 using namespace Zn;
+
+const RHIInputLayout VulkanPipeline::defaultInputLayout =
+{
+	.bindings =
+	{
+		{
+			.binding = 0,
+			.stride = sizeof(RHIVertex),
+			.inputRate = vk::VertexInputRate::eVertex,
+		}
+	},
+	.attributes =
+	{
+		{
+			.location = 0,
+			.binding = 0,
+			.format = vk::Format::eR32G32B32A32Sfloat,
+			.offset = offsetof(RHIVertex, position)
+		},
+		{
+			.location = 1,
+			.binding = 0,
+			.format = vk::Format::eR32G32B32A32Sfloat,
+			.offset = offsetof(RHIVertex, normal)
+		},
+		{
+			.location = 2,
+			.binding = 0,
+			.format = vk::Format::eR32G32B32A32Sfloat,
+			.offset = offsetof(RHIVertex, color)
+		},
+		{
+			.location = 3,
+			.binding = 0,
+			.format = vk::Format::eR32G32Sfloat,
+			.offset = offsetof(RHIVertex, uv)
+		},
+	}
+};
 
 vk::PipelineShaderStageCreateInfo VulkanPipeline::CreateShaderStage(vk::ShaderStageFlagBits stageFlags, vk::ShaderModule shaderModule)
 {
@@ -104,7 +145,7 @@ vk::PipelineDepthStencilStateCreateInfo VulkanPipeline::CreateDepthStencil(bool 
 vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device device, vk::RenderPass renderPass,
 										vk::ShaderModule vertexShader, vk::ShaderModule fragmentShader,
 										vk::Extent2D swapChainExtent, vk::PipelineLayout pipelineLayout,
-										const Vk::VertexInputDescription& vertexInputDescription)
+										const RHIInputLayout& inputLayout)
 {
 	static const Vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport , vk::DynamicState::eScissor };
 
@@ -120,11 +161,11 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device device, vk::RenderPass ren
 
 	vk::PipelineVertexInputStateCreateInfo vertexInput{};
 
-	if (vertexInputDescription.Bindings.size() > 0 && vertexInputDescription.Attributes.size()> 0)
+	if (inputLayout.bindings.size() > 0 && inputLayout.attributes.size()> 0)
 	{
-		vertexInput.setVertexBindingDescriptions(vertexInputDescription.Bindings);
-		vertexInput.setVertexAttributeDescriptions(vertexInputDescription.Attributes);
-		vertexInput.flags = vertexInputDescription.Flags;
+		vertexInput.setVertexBindingDescriptions(inputLayout.bindings);
+		vertexInput.setVertexAttributeDescriptions(inputLayout.attributes);
+		vertexInput.flags = inputLayout.flags;
 	}
 
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly = CreateInputAssembly(vk::PrimitiveTopology::eTriangleList);

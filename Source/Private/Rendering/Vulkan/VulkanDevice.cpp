@@ -1497,39 +1497,10 @@ void Zn::VulkanDevice::LoadMeshes()
 	}
 }
 
-void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
-{
-	//this is the total size, in bytes, of the buffer we are allocating
-	const u64 allocationSize = OutMesh.Vertices.size() * sizeof(Vk::Vertex);
-
-	const vk::BufferUsageFlags stagingUsage = vk::BufferUsageFlagBits::eTransferSrc;
-	const vma::MemoryUsage stagingMemoryUsage = vma::MemoryUsage::eCpuOnly;
-
-	RHIBuffer stagingBuffer = CreateBuffer(allocationSize, stagingUsage, stagingMemoryUsage);
-
-	CopyToGPU(stagingBuffer.allocation, OutMesh.Vertices.data(), allocationSize);
-	
-	const vk::BufferUsageFlags meshUsage = vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst;
-	const vma::MemoryUsage meshMemoryUsage = vma::MemoryUsage::eGpuOnly;
-
-	OutMesh.Buffer = CreateBuffer(allocationSize, meshUsage, meshMemoryUsage);
-
-	ImmediateSubmit([=](vk::CommandBuffer cmd)
-	{
-		cmd.copyBuffer(stagingBuffer.data, OutMesh.Buffer.data, { vk::BufferCopy(0, 0, allocationSize) });
-	});
-
-	DestroyBuffer(stagingBuffer);
-
-	destroyQueue.Enqueue([=]()
-	{
-		DestroyBuffer(OutMesh.Buffer);
-	});
-}
-
 RHIBuffer Zn::VulkanDevice::CreateRHIBuffer(void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const
 {
 	RHIBuffer stagingBuffer = CreateBuffer(size, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+	
 	CopyToGPU(stagingBuffer.allocation, data, size);
 	
 	RHIBuffer outputBuffer = CreateBuffer(size, bufferUsage | vk::BufferUsageFlagBits::eTransferDst, memoryUsage);
@@ -1569,8 +1540,6 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 			ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create fragment shader.");
 		}
 
-		Vk::VertexInputDescription vertex_description = Vk::Vertex::GetVertexInputDescription();
-
 		// Mesh pipeline with push constants 
 
 		vk::DescriptorSetLayout layouts[2] =
@@ -1602,7 +1571,7 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 			device.destroyPipelineLayout(material->layout);
 		});
 
-		material->pipeline = VulkanPipeline::NewVkPipeline(device, renderPass, material->vertexShader, material->fragmentShader, swapChainExtent, material->layout, vertex_description);
+		material->pipeline = VulkanPipeline::NewVkPipeline(device, renderPass, material->vertexShader, material->fragmentShader, swapChainExtent, material->layout);
 
 		destroyQueue.Enqueue([=]()
 		{

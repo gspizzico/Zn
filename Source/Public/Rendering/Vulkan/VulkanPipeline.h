@@ -3,14 +3,13 @@
 
 namespace Zn
 {
-	namespace Vk
-	{
-		struct VertexInputDescription;
-	}
+	struct RHIInputLayout;
 
 	class VulkanPipeline
 	{
 	public:
+		
+		static const RHIInputLayout defaultInputLayout;
 
 		static vk::PipelineShaderStageCreateInfo CreateShaderStage(vk::ShaderStageFlagBits stageFlags, vk::ShaderModule shaderModule);
 		
@@ -27,7 +26,7 @@ namespace Zn
 		static vk::Pipeline NewVkPipeline(vk::Device device, vk::RenderPass renderPass, 
 										vk::ShaderModule vertexShader, vk::ShaderModule fragmentShader, 
 										vk::Extent2D swapChainExtent, vk::PipelineLayout pipelineLayout, 
-										const Vk::VertexInputDescription& vertexInputDescription);
+										const RHIInputLayout& inputLayout = defaultInputLayout);
 
 	};
 }

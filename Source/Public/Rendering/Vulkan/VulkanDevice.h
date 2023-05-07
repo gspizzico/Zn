@@ -166,8 +166,6 @@ namespace Zn
 
 		void LoadMeshes();
 
-		void UploadMesh(Vk::Mesh& OutMesh);
-
 		RHIBuffer CreateRHIBuffer(void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const;
 
 		

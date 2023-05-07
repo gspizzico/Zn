@@ -30,27 +30,10 @@ namespace Zn
 			vk::PipelineVertexInputStateCreateFlags Flags{ 0 };
 		};
 
-		struct Vertex
-		{
-			glm::vec3 Position;
-			glm::vec3 Normal;
-			glm::vec3 Color;
-			glm::vec2 UV;
-
-			static VertexInputDescription GetVertexInputDescription();
-		};
-
 		struct MeshPushConstants
 		{
 			glm::vec4 Data;
 			glm::mat4 RenderMatrix;
-		};
-
-		struct Mesh
-		{
-			Vector<Vertex> Vertices;
-
-			RHIBuffer Buffer;
 		};
 
 		struct Material
