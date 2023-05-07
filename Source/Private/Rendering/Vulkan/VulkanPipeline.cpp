@@ -147,12 +147,6 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device device, vk::RenderPass ren
 										vk::Extent2D swapChainExtent, vk::PipelineLayout pipelineLayout,
 										const RHIInputLayout& inputLayout)
 {
-	static const Vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport , vk::DynamicState::eScissor };
-
-	// This allow us to change viewport/scissor when we draw instead of baking it into the pipeline.
-	vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
-	dynamicStateCreateInfo.setDynamicStates(dynamicStates);
-
 	vk::PipelineShaderStageCreateInfo shaderStages[] =
 	{
 		CreateShaderStage(vk::ShaderStageFlagBits::eVertex, vertexShader),
@@ -170,24 +164,33 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device device, vk::RenderPass ren
 
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly = CreateInputAssembly(vk::PrimitiveTopology::eTriangleList);
 
-	vk::Viewport viewport{};
-	viewport.x = 0;
-	viewport.y = 0;
-	viewport.width = (float) swapChainExtent.width;
-	viewport.height = (float) swapChainExtent.height;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
+	vk::Viewport viewport
+	{
+		.x = 0,
+		.y = 0,
+		.width = static_cast<f32>(swapChainExtent.width),
+		.height = static_cast<f32>(swapChainExtent.height),
+		.minDepth = 0.0f,
+		.maxDepth = 1.0f,
+	};
 
-	vk::Rect2D scissors{};
-	scissors.offset = vk::Offset2D{ 0, 0 };
-	scissors.extent = swapChainExtent;
+	vk::Rect2D scissors
+	{
+		.offset =
+		{
+			.x = 0,
+			.y = 0
+		},
+		.extent = swapChainExtent,
+	};
 
-	vk::PipelineViewportStateCreateInfo viewportState{};
-	viewportState.viewportCount = 1;
-	viewportState.scissorCount = 1;
-	viewportState.pViewports = &viewport;
-	viewportState.pScissors = &scissors;
-
+	vk::PipelineViewportStateCreateInfo viewportState
+	{
+		.viewportCount = 1,
+		.pViewports = &viewport,
+		.scissorCount = 1,
+		.pScissors = &scissors
+	};
 
 	vk::PipelineRasterizationStateCreateInfo rasterizer = CreateRasterization(vk::PolygonMode::eFill);
 	
@@ -206,6 +209,12 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device device, vk::RenderPass ren
 
 	vk::PipelineDepthStencilStateCreateInfo depthStencil = CreateDepthStencil(true, true, vk::CompareOp::eLessOrEqual);
 
+	static const vk::DynamicState dynamicStates[] = {vk::DynamicState::eViewport , vk::DynamicState::eScissor};
+
+	// This allow us to change viewport/scissor when we draw instead of baking it into the pipeline.
+	vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo;
+	dynamicStateCreateInfo.setDynamicStates(dynamicStates);
+
 	vk::GraphicsPipelineCreateInfo pipelineInfo = {};
 	
 	pipelineInfo.setStages(shaderStages);
@@ -220,6 +229,7 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device device, vk::RenderPass ren
 	pipelineInfo.renderPass = renderPass;
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+	pipelineInfo.pDynamicState = &dynamicStateCreateInfo;
 
 	//it's easy to error out on create graphics pipeline, so we handle it a bit better than the common VK_CHECK case
 

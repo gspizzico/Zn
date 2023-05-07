@@ -567,9 +567,6 @@ void VulkanDevice::Draw()
 	vk::CommandBuffer commandBuffer = commandBuffers[currentFrame];
 
 	//begin the command buffer recording. We will use this command buffer exactly once, so we want to let Vulkan know that
-	VkCommandBufferBeginInfo CmdBufferBeginInfo{};
-	CmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	CmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 	commandBuffer.begin(vk::CommandBufferBeginInfo
 						{ 
@@ -1235,6 +1232,50 @@ void Zn::VulkanDevice::RecreateSwapChain()
 	CreateFramebuffers();
 }
 
+void Zn::VulkanDevice::SetViewport(vk::CommandBuffer cmd)
+{
+	static constexpr f32 ratio = 16.f / 9.f;
+
+	f32 width = static_cast<float>(swapChainExtent.width);
+	f32 height = static_cast<float>(swapChainExtent.height);
+
+	if (width / height > ratio)
+	{
+		width = (height * ratio);
+	}
+	else if (width / height < ratio)
+	{
+		height = (width / ratio);
+	}
+
+	// Compute offset to always render in the center.
+	const f32 xOffset = (swapChainExtent.width - width) * 0.5f;
+	const f32 yOffset = (swapChainExtent.height- height) * 0.5f;
+
+	vk::Viewport viewport
+	{
+		.x = xOffset,
+		.y = yOffset,
+		.width = width,
+		.height = height,
+		.minDepth = 0.0f,
+		.maxDepth = 1.0f,
+	};
+
+	vk::Rect2D scissors
+	{
+		.offset = vk::Offset2D
+		{
+			.x = static_cast<i32>(xOffset),
+			.y = static_cast<i32>(yOffset)
+		},
+		.extent = swapChainExtent,
+	};
+
+	cmd.setViewport(0, { viewport });
+	cmd.setScissor(0, { scissors });
+}
+
 RHIBuffer Zn::VulkanDevice::CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage) const
 {
 	vk::BufferCreateInfo createInfo
@@ -1297,6 +1338,8 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
 		if (object.material != lastMaterial)
 		{
 			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, object.material->pipeline);
+
+			SetViewport(commandBuffer);
 
 			lastMaterial = object.material;
 			
@@ -1566,7 +1609,7 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 		layoutCreateInfo.setPushConstantRanges(pushConstants);
 
 		material->layout = device.createPipelineLayout(layoutCreateInfo);
-
+		
 		destroyQueue.Enqueue([=]()
 		{
 			device.destroyPipelineLayout(material->layout);

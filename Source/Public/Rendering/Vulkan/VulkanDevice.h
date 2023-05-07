@@ -71,6 +71,8 @@ namespace Zn
 
 		void RecreateSwapChain();
 
+		void SetViewport(vk::CommandBuffer cmd);
+
 		bool isInitialized{ false };
 
 		bool isMinimized{ false };
