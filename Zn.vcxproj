@@ -279,7 +279,6 @@
     <ClInclude Include="Source\Public\Application\ApplicationInput.h" />
     <ClInclude Include="Source\Public\Engine\Camera.h" />
     <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
-    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanUtils.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTest.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTestManager.h" />
     <ClInclude Include="Source\Public\Core\Async\CallableJob.h" />

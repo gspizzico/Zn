@@ -1,7 +1,6 @@
 #include "Znpch.h"
 #include "Rendering/RHI/RHI.h"
 #include "Rendering/Vulkan/VulkanRenderer.h"
-#include "Rendering/Vulkan/VulkanUtils.h"
 #include "Application/Window.h"
 
 #include <Core/Log/LogMacros.h>

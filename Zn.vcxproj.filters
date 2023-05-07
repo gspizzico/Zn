@@ -502,7 +502,6 @@
     <ClInclude Include="Source\Public\Rendering\Renderer.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="Source\Public\Rendering\RendererTypes.h" />
-    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanUtils.h" />
     <ClInclude Include="Source\Public\Engine\Camera.h" />
     <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
     <ClInclude Include="Source\Public\Application\Application.h" />

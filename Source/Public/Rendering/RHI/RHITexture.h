@@ -11,6 +11,8 @@ namespace Zn
 
 		i32 height;
 
+		vk::Format format;
+
 		vk::Image image;
 
 		vk::ImageView imageView;

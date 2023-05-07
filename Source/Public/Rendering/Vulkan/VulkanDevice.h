@@ -141,17 +141,6 @@ namespace Zn
 		// TODO: Naming might be incorrect
 		void CopyToGPU(vma::Allocation allocation, void* src, size_t size) const;
 
-		// == Depth Buffer ==
-
-		vk::ImageView depthImageView;
-
-		Vk::AllocatedImage depthImage;
-
-		// Format of the depth image.
-		vk::Format depthImageFormat;
-
-		// ==================
-
 		// == Scene Management ==
 
 		Vector<Vk::RenderObject> renderables;		
@@ -186,7 +175,7 @@ namespace Zn
 		// == Texture ==
 
 		RHITexture* CreateTexture(const String& texture);
-		RHITexture* CreateRHITexture(i32 width, i32 height) const;
+		RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
 		void TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
 
 		// UnorderedMap<String, Vk::AllocatedImage> textures;
@@ -210,5 +199,8 @@ namespace Zn
 		void ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function) const;
 
 		void CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height) const;
+
+		vk::ImageCreateInfo MakeImageCreateInfo(vk::Format format, vk::ImageUsageFlags usageFlags, vk::Extent3D extent) const;
+		vk::ImageViewCreateInfo MakeImageViewCreateInfo(vk::Format format, vk::Image image, vk::ImageAspectFlagBits aspectFlags) const;
 	};	
 }

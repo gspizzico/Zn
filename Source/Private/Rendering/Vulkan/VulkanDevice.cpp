@@ -32,6 +32,7 @@ namespace
 {
 	static const String defaultTexturePath = "assets/texture.jpg";
 	static const String vikingRoomTexturePath = "assets/VulkanTutorial/viking_room.png";
+	static const ResourceHandle depthTextureHandle = ResourceHandle(HashCalculate("__RHIDepthTexture"));
 }
 
 namespace
@@ -251,7 +252,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 		//	.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; 
 		.flags = vk::AttachmentDescriptionFlags(0),
 		// TODO
-		.format = depthImageFormat,
+		.format = textures[depthTextureHandle]->format,
 		.samples = vk::SampleCountFlagBits::e1,
 		.loadOp = vk::AttachmentLoadOp::eClear,
 		.storeOp = vk::AttachmentStoreOp::eStore,
@@ -1114,43 +1115,50 @@ void Zn::VulkanDevice::CreateImageViews()
 
 	// Initialize Depth Buffer
 
-	vk::Extent3D depthImageExtent
-	{ 
-		swapChainExtent.width, 
-		swapChainExtent.height, 
-		1 
-	};
-
-	//	Hardcoding to 32 bit float.
-	//	Most GPUs support this depth format, so it’s fine to use it. You might want to choose other formats for other uses, or if you use Stencil buffer.
-	depthImageFormat = vk::Format::eD32Sfloat;
-
-	//	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-	vk::ImageCreateInfo depthImageCreateInfo = Vk::AllocatedImage::GetImageCreateInfo(depthImageFormat, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent);
-
-	//	Allocate from GPU memory.
-
-	vma::AllocationCreateInfo depthImageAllocInfo
+	if (auto result = textures.insert(
+		{
+			depthTextureHandle,
+			new RHITexture
+			{
+				.width = static_cast<i32>(swapChainExtent.width),
+				.height = static_cast<i32>(swapChainExtent.height),
+				//	Hardcoding to 32 bit float.
+				//	Most GPUs support this depth format, so it’s fine to use it. You might want to choose other formats for other uses, or if you use Stencil buffer.
+				.format = vk::Format::eD32Sfloat
+			}
+		}
+	); result.second)
 	{
-		//	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
-		.usage = vma::MemoryUsage::eGpuOnly,
-		//	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags. 
-		//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
-		.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal),
-	};
+		RHITexture* depthTexture = result.first->second;
 
-	ZN_VK_CHECK(allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthImage.image, &depthImage.allocation, nullptr));
+		vk::Extent3D depthImageExtent
+		{
+			swapChainExtent.width,
+			swapChainExtent.height,
+			1
+		};
 
-	//	VK_IMAGE_ASPECT_DEPTH_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-	vk::ImageViewCreateInfo depthImageViewCreateInfo = Vk::AllocatedImage::GetImageViewCreateInfo(depthImageFormat, depthImage.image, vk::ImageAspectFlagBits::eDepth);
+		//	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
+		vk::ImageCreateInfo depthImageCreateInfo = MakeImageCreateInfo(depthTexture->format, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent);
 
-	depthImageView = device.createImageView(depthImageViewCreateInfo);
+		//	Allocate from GPU memory.
 
-	destroyQueue.Enqueue([=]()
-	{
-		device.destroyImageView(depthImageView);
-		allocator.destroyImage(depthImage.image, depthImage.allocation);
-	});
+		vma::AllocationCreateInfo depthImageAllocInfo
+		{
+			//	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
+			.usage = vma::MemoryUsage::eGpuOnly,
+			//	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags. 
+			//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
+			.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal),
+		};		
+
+		ZN_VK_CHECK(allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthTexture->image, &depthTexture->allocation, nullptr));
+
+		//	VK_IMAGE_ASPECT_DEPTH_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
+		vk::ImageViewCreateInfo depthImageViewCreateInfo = MakeImageViewCreateInfo(depthTexture->format, depthTexture->image, vk::ImageAspectFlagBits::eDepth);
+
+		depthTexture->imageView = device.createImageView(depthImageViewCreateInfo);
+	}
 }
 
 void Zn::VulkanDevice::CreateFramebuffers()
@@ -1169,10 +1177,12 @@ void Zn::VulkanDevice::CreateFramebuffers()
 	const size_t numImages = swapChainImages.size();
 	frameBuffers = Vector<vk::Framebuffer>(numImages);
 
+	RHITexture* depthTexture = textures[depthTextureHandle];
+
 	//create framebuffers for each of the swapchain image views
 	for (size_t index = 0; index < numImages; index++)
 	{
-		vk::ImageView attachments[2] = { swapChainImageViews[index], depthImageView };
+		vk::ImageView attachments[2] = { swapChainImageViews[index], depthTexture->imageView };
 
 		framebufferCreateInfo.setAttachments(attachments);
 		
@@ -1186,6 +1196,16 @@ void Zn::VulkanDevice::CleanupSwapChain()
 	{
 		device.destroyFramebuffer(frameBuffers[index]);
 		device.destroyImageView(swapChainImageViews[index]);
+	}
+
+	if (RHITexture* depthTexture = textures[depthTextureHandle])
+	{
+		device.destroyImageView(depthTexture->imageView);
+		allocator.destroyImage(depthTexture->image, depthTexture->allocation);
+
+		delete depthTexture;
+
+		textures.erase(depthTextureHandle);
 	}
 
 	device.destroySwapchainKHR(swapChain);
@@ -1567,7 +1587,7 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
 
 	RHITexture* texture = nullptr;
 
-	if (auto result = textures.insert({ textureHandle, CreateRHITexture(width, height) }); result.second)
+	if (auto result = textures.insert({ textureHandle, CreateRHITexture(width, height, vk::Format::eR8G8B8A8Srgb) }); result.second)
 	{
 		texture = result.first->second;
 	}
@@ -1601,10 +1621,10 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
 	return texture;
 }
 
-RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height) const
+RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format format) const
 {
-	vk::ImageCreateInfo createInfo = Vk::AllocatedImage::GetImageCreateInfo(
-		vk::Format::eR8G8B8A8Srgb,
+	vk::ImageCreateInfo createInfo = MakeImageCreateInfo(
+		format,
 		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		vk::Extent3D
 		{
@@ -1719,6 +1739,54 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& 
 	// reset the command buffers inside the command pool
 	device.resetCommandPool(uploadContext.commandPool, vk::CommandPoolResetFlags(0));
 }
+
+vk::ImageCreateInfo Zn::VulkanDevice::MakeImageCreateInfo(vk::Format format, vk::ImageUsageFlags usageFlags, vk::Extent3D extent) const
+{
+	//	.format = texture data type, like holding a single float(for depth), or holding color.
+	//	.extent = size of the image, in pixels.
+	//	.mipLevels = num of mipmap levels the image has. TODO: Because we aren’t using them here, we leave the levels to 1.
+	//	.arrayLayers = used for layered textures.
+	//					You can create textures that are many - in - one, using layers. 
+	//					An example of layered textures is cubemaps, where you have 6 layers, one layer for each face of the cubemap.
+	//					We default it to 1 layer because we aren’t doing cubemaps.
+	//	.samples = controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you are rendering to. 
+	//					TODO: We won’t be doing MSAA in this tutorial, so samples will be kept at 1 sample.
+	//  .tiling = if you use VK_IMAGE_TILING_OPTIMAL, it won’t be possible to read the data from CPU or to write it without changing its tiling first 
+	//					(it’s possible to change the tiling of a texture at any point, but this can be a costly operation). 
+	//					The other tiling we can care about is VK_IMAGE_TILING_LINEAR, which will store the image as a 2d array of pixels. 
+	//	.usage = controls how the GPU handles the image memory.
+
+	return {
+		.imageType = vk::ImageType::e2D,
+		.format = format,
+		.extent = extent,
+		.mipLevels = 1,
+		.arrayLayers = 1,
+		.samples = vk::SampleCountFlagBits::e1,
+		.tiling = vk::ImageTiling::eOptimal,
+		.usage = usageFlags
+	};
+}
+vk::ImageViewCreateInfo Zn::VulkanDevice::MakeImageViewCreateInfo(vk::Format format, vk::Image image, vk::ImageAspectFlagBits aspectFlags) const
+{
+	return {
+		.image = image,
+		//	While imageType held the dimensionality of the texture, viewType has a lot more options, like VK_IMAGE_VIEW_TYPE_CUBE for cubemaps. 
+		.viewType = vk::ImageViewType::e2D,
+		//	TODO: In here, we will have it matched to GetImageCreateInfo, and hardcode it to 2D images as it’s the most common case.
+		.format = format,
+		.subresourceRange =
+		{
+			.aspectMask = aspectFlags,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		}
+	};
+}
+
+
 
 void Zn::VulkanDevice::CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height) const
 {

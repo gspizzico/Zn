@@ -22,18 +22,6 @@ namespace Zn
 			Vector<vk::PresentModeKHR> PresentModes;
 		};
 
-		struct AllocatedImage
-		{
-			vk::Image image;
-			vk::ImageView imageView;
-			vma::Allocation allocation;			
-
-			//	TODO: MOVE AWAY FROM HERE
-			static vk::ImageCreateInfo GetImageCreateInfo(vk::Format inFormat, vk::ImageUsageFlags inUsageFlags, vk::Extent3D inExtent);
-			//	TODO: MOVE AWAY FROM HERE
-			static vk::ImageViewCreateInfo GetImageViewCreateInfo(vk::Format InFormat, vk::Image InImage, vk::ImageAspectFlagBits InAspectFlags);
-		};
-
 		struct VertexInputDescription
 		{
 			Vector<vk::VertexInputBindingDescription> Bindings{};
