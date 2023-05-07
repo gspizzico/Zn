@@ -271,4 +271,3 @@ void Zn::VulkanRenderer::set_camera(glm::vec3 position, glm::vec3 direction)
 		device->cameraDirection = direction;
 	}
 }
-#undef VMA_IMPLEMENTATION
