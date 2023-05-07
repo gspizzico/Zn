@@ -54,11 +54,11 @@ namespace Zn
 
 		vk::PhysicalDevice SelectPhysicalDevice(const Vector<vk::PhysicalDevice>& inDevices) const;
 
-		Vk::QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const;
+		QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const;
 
-		Vk::SwapChainDetails GetSwapChainDetails(vk::PhysicalDevice inGPU) const;
+		SwapChainDetails GetSwapChainDetails(vk::PhysicalDevice inGPU) const;
 
-		Vector<vk::DeviceQueueCreateInfo> BuildQueueCreateInfo(const Vk::QueueFamilyIndices& InIndices) const;
+		Vector<vk::DeviceQueueCreateInfo> BuildQueueCreateInfo(const QueueFamilyIndices& InIndices) const;
 
 		vk::ShaderModule CreateShaderModule(const Vector<uint8>& bytes);
 
@@ -143,12 +143,12 @@ namespace Zn
 
 		// == Scene Management ==
 
-		Vector<Vk::RenderObject> renderables;		
+		Vector<RenderObject> renderables;		
 		UnorderedMap<ResourceHandle, RHIMesh*> meshes;
 		
 		RHIMesh* GetMesh(const String& InName);
 
-		void DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, u64 count);
+		void DrawObjects(vk::CommandBuffer commandBuffer, RenderObject* first, u64 count);
 
 		void CreateScene();
 
@@ -179,7 +179,7 @@ namespace Zn
 		RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
 		void TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
 
-		// UnorderedMap<String, Vk::AllocatedImage> textures;
+		// UnorderedMap<String, AllocatedImage> textures;
 		UnorderedMap<ResourceHandle, RHITexture*> textures;
 
 		vk::DescriptorSetLayout singleTextureSetLayout;

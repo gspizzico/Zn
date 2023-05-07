@@ -107,9 +107,9 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 
 	/////// Initialize Logical Device
 
-	Vk::QueueFamilyIndices Indices = GetQueueFamilyIndices(gpu);
+	QueueFamilyIndices Indices = GetQueueFamilyIndices(gpu);
 
-	Vk::SwapChainDetails SwapChainDetails = GetSwapChainDetails(gpu);
+	SwapChainDetails SwapChainDetails = GetSwapChainDetails(gpu);
 
 	const bool IsSupported = SwapChainDetails.Formats.size() > 0 && SwapChainDetails.PresentModes.size() > 0;
 
@@ -612,14 +612,14 @@ void VulkanDevice::Draw()
 		glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 200.f);
 		projection[1][1] *= -1;
 
-		Vk::GPUCameraData camera{};
+		GPUCameraData camera{};
 		camera.projection = projection;
 		camera.view = view;
 		camera.view_projection = projection * view;
 
-		CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(Vk::GPUCameraData));
+		CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(GPUCameraData));
 
-		Vk::LightingUniforms lighting{};
+		LightingUniforms lighting{};
 		lighting.directional_lights[0].direction = glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
 		lighting.directional_lights[0].color = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
 		lighting.directional_lights[0].intensity = 0.25f;
@@ -628,7 +628,7 @@ void VulkanDevice::Draw()
 		lighting.num_directional_lights = 1;
 		lighting.num_point_lights = 0;
 
-		CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(Vk::LightingUniforms));
+		CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(LightingUniforms));
 
 		DrawObjects(commandBuffer, renderables.data(), renderables.size());
 
@@ -789,9 +789,9 @@ vk::PhysicalDevice VulkanDevice::SelectPhysicalDevice(const Vector<vk::PhysicalD
 	}
 }
 
-Vk::QueueFamilyIndices VulkanDevice::GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const
+QueueFamilyIndices VulkanDevice::GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const
 {
-	Vk::QueueFamilyIndices outIndices;
+	QueueFamilyIndices outIndices;
 
 	Vector<vk::QueueFamilyProperties> queueFamilies = inDevice.getQueueFamilyProperties();
 
@@ -814,9 +814,9 @@ Vk::QueueFamilyIndices VulkanDevice::GetQueueFamilyIndices(vk::PhysicalDevice in
 	return outIndices;
 }
 
-Vk::SwapChainDetails VulkanDevice::GetSwapChainDetails(vk::PhysicalDevice inGPU) const
+SwapChainDetails VulkanDevice::GetSwapChainDetails(vk::PhysicalDevice inGPU) const
 {
-	Vk::SwapChainDetails outDetails
+	SwapChainDetails outDetails
 	{
 		.Capabilities = inGPU.getSurfaceCapabilitiesKHR(surface),
 		.Formats = inGPU.getSurfaceFormatsKHR(surface),
@@ -826,7 +826,7 @@ Vk::SwapChainDetails VulkanDevice::GetSwapChainDetails(vk::PhysicalDevice inGPU)
 	return outDetails;
 }
 
-Vector<vk::DeviceQueueCreateInfo> VulkanDevice::BuildQueueCreateInfo(const Vk::QueueFamilyIndices& InIndices) const
+Vector<vk::DeviceQueueCreateInfo> VulkanDevice::BuildQueueCreateInfo(const QueueFamilyIndices& InIndices) const
 {
 	UnorderedSet<u32> queues = { InIndices.Graphics.value(), InIndices.Present.value() };
 
@@ -941,7 +941,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
 	{
-		cameraBuffer[Index] = CreateBuffer(sizeof(Vk::GPUCameraData), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+		cameraBuffer[Index] = CreateBuffer(sizeof(GPUCameraData), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
 		destroyQueue.Enqueue([=]()
 		{
@@ -950,7 +950,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 		// Lighting
 
-		lightingBuffer[Index] = CreateBuffer(sizeof(Vk::LightingUniforms), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+		lightingBuffer[Index] = CreateBuffer(sizeof(LightingUniforms), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
 		destroyQueue.Enqueue([=]()
 		{
@@ -970,13 +970,13 @@ void Zn::VulkanDevice::CreateDescriptors()
 			{
 				cameraBuffer[Index].data,
 				0,
-				sizeof(Vk::GPUCameraData)
+				sizeof(GPUCameraData)
 			},
 			vk::DescriptorBufferInfo
 			{
 				lightingBuffer[Index].data,
 				0,
-				sizeof(Vk::LightingUniforms)
+				sizeof(LightingUniforms)
 			}
 		};
 
@@ -1008,9 +1008,9 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 void Zn::VulkanDevice::CreateSwapChain()
 {
-	Vk::SwapChainDetails SwapChainDetails = GetSwapChainDetails(gpu);
+	SwapChainDetails SwapChainDetails = GetSwapChainDetails(gpu);
 
-	Vk::QueueFamilyIndices Indices = GetQueueFamilyIndices(gpu);
+	QueueFamilyIndices Indices = GetQueueFamilyIndices(gpu);
 
 	vk::SurfaceFormatKHR surfaceFormat = { vk::Format::eUndefined, vk::ColorSpaceKHR::eSrgbNonlinear };
 
@@ -1276,14 +1276,14 @@ RHIMesh* Zn::VulkanDevice::GetMesh(const String& InName)
 	return nullptr;
 }
 
-void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderObject* first, u64 count)
+void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject* first, u64 count)
 {
 	RHIMesh* lastMesh = nullptr;
 	Material* lastMaterial = nullptr;
 
 	for (u32 index = 0; index < count; ++index)
 	{
-		Vk::RenderObject& object = first[index];
+		RenderObject& object = first[index];
 
 		static const auto identity = glm::mat4{ 1.f };
 		
@@ -1308,12 +1308,12 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderOb
 			}
 		}
 
-		Vk::MeshPushConstants constants
+		MeshPushConstants constants
 		{
 			.RenderMatrix = transform
 		};
 
-		commandBuffer.pushConstants(object.material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(Vk::MeshPushConstants), &constants);
+		commandBuffer.pushConstants(object.material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MeshPushConstants), &constants);
 
 		// only bind the mesh if it's different from what's already bound
 
@@ -1333,7 +1333,7 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderOb
 
 void Zn::VulkanDevice::CreateScene()
 {
-	Vk::RenderObject viking_room
+	RenderObject viking_room
 	{
 		.mesh = GetMesh(vikingRoomMeshPath),
 		.material = VulkanMaterialManager::Get().GetMaterial("default"),
@@ -1394,7 +1394,7 @@ void Zn::VulkanDevice::CreateScene()
 
 	renderables.push_back(viking_room);
 
-	Vk::RenderObject monkey
+	RenderObject monkey
 	{
 		.mesh = GetMesh(monkeyMeshPath),
 		.material = VulkanMaterialManager::Get().GetMaterial("default"),
@@ -1412,7 +1412,7 @@ void Zn::VulkanDevice::CreateScene()
 	{
 		for (int32 y = -20; y <= 20; ++y)
 		{
-			Vk::RenderObject triangle
+			RenderObject triangle
 			{
 				.mesh = triangleMesh,
 				.material = defaultMaterial,
@@ -1560,7 +1560,7 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 			//this push constant range is accessible only in the vertex shader
 			.stageFlags = vk::ShaderStageFlagBits::eVertex,
 			.offset = 0,
-			.size = sizeof(Vk::MeshPushConstants),
+			.size = sizeof(MeshPushConstants),
 		};
 
 		layoutCreateInfo.setPushConstantRanges(pushConstants);
