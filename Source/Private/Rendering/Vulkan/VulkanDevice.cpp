@@ -1,5 +1,5 @@
 #include <Znpch.h>
-#define VMA_IMPLEMENTATION
+#include <Rendering/RHI/Vulkan/Vulkan.h>
 #include <vk_mem_alloc.h>
 #include <Rendering/Vulkan/VulkanDevice.h>
 #include <SDL.h>
@@ -16,6 +16,10 @@
 #include <algorithm>
 
 #include <glm/gtx/matrix_decompose.hpp>
+
+#include <Engine/Importer/TextureImporter.h>
+#include <Rendering/RHI/RHITypes.h>
+#include <Rendering/RHI/RHITexture.h>
 
 // ImGui
 
@@ -43,6 +47,12 @@ DEFINE_STATIC_LOG_CATEGORY(LogVulkan, ELogVerbosity::Log);
 DEFINE_STATIC_LOG_CATEGORY(LogVulkanValidation, ELogVerbosity::Verbose);
 
 using namespace Zn;
+
+namespace
+{
+	static const String defaultTexturePath = "assets/texture.jpg";
+	static const String vikingRoomTexturePath = "assets/VulkanTutorial/viking_room.png";
+}
 
 namespace
 {
@@ -449,8 +459,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 	LoadMeshes();
 
 	{
-		textures["texture"] = CreateTexture(IO::GetAbsolutePath("assets/texture.jpg"));
-		textures["viking_room"] = CreateTexture(IO::GetAbsolutePath("assets/VulkanTutorial/viking_room.png"));
+		CreateTexture(defaultTexturePath);
+		CreateTexture(vikingRoomTexturePath);
 	}
 
 	CreateMeshPipeline();
@@ -473,8 +483,9 @@ void VulkanDevice::Cleanup()
 
 	for (auto& textureKvp : textures)
 	{
-		vkDestroyImageView(device, textureKvp.second.imageView, nullptr);
-		allocator.destroyImage(textureKvp.second.image, textureKvp.second.allocation);
+		device.destroyImageView(textureKvp.second->imageView);
+		allocator.destroyImage(textureKvp.second->image, textureKvp.second->allocation);
+		delete textureKvp.second;
 	}
 
 	textures.clear();
@@ -614,7 +625,7 @@ void VulkanDevice::Draw()
 		camera.view = view;
 		camera.view_projection = projection * view;
 
-		CopyToGPU(cameraBuffer[currentFrame].Allocation, &camera, sizeof(Vk::GPUCameraData));
+		CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(Vk::GPUCameraData));
 
 		Vk::LightingUniforms lighting{};
 		lighting.directional_lights[0].direction = glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
@@ -625,7 +636,7 @@ void VulkanDevice::Draw()
 		lighting.num_directional_lights = 1;
 		lighting.num_point_lights = 0;
 
-		CopyToGPU(lightingBuffer[currentFrame].Allocation, &lighting, sizeof(Vk::LightingUniforms));
+		CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(Vk::LightingUniforms));
 
 		DrawObjects(commandBuffer, renderables.data(), renderables.size());
 
@@ -965,13 +976,13 @@ void Zn::VulkanDevice::CreateDescriptors()
 		{
 			vk::DescriptorBufferInfo
 			{
-				cameraBuffer[Index].Buffer,
+				cameraBuffer[Index].data,
 				0,
 				sizeof(Vk::GPUCameraData)
 			},
 			vk::DescriptorBufferInfo
 			{
-				lightingBuffer[Index].Buffer,
+				lightingBuffer[Index].data,
 				0,
 				sizeof(Vk::LightingUniforms)
 			}
@@ -1213,7 +1224,7 @@ void Zn::VulkanDevice::RecreateSwapChain()
 	CreateFramebuffers();
 }
 
-Vk::AllocatedBuffer Zn::VulkanDevice::CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage)
+RHIBuffer Zn::VulkanDevice::CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage) const
 {
 	vk::BufferCreateInfo createInfo
 	{
@@ -1227,22 +1238,15 @@ Vk::AllocatedBuffer Zn::VulkanDevice::CreateBuffer(size_t size, vk::BufferUsageF
 		.requiredFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 	};
 
-	Vk::AllocatedBuffer OutBuffer{};
-
-	auto bufferAllocationPair = allocator.createBuffer(createInfo, allocationInfo);
-
-	OutBuffer.Buffer = bufferAllocationPair.first;
-	OutBuffer.Allocation = bufferAllocationPair.second;
-
-	return OutBuffer;
+	return RHIBuffer(allocator.createBuffer(createInfo, allocationInfo));
 }
 
-void Zn::VulkanDevice::DestroyBuffer(Vk::AllocatedBuffer buffer)
+void Zn::VulkanDevice::DestroyBuffer(RHIBuffer buffer) const
 {
-	allocator.destroyBuffer(buffer.Buffer, buffer.Allocation);
+	allocator.destroyBuffer(buffer.data, buffer.allocation);
 }
 
-void Zn::VulkanDevice::CopyToGPU(vma::Allocation allocation, void* src, size_t size)
+void Zn::VulkanDevice::CopyToGPU(vma::Allocation allocation, void* src, size_t size) const
 {
 	void* dst = allocator.mapMemory(allocation);
 
@@ -1306,7 +1310,7 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, Vk::RenderOb
 		{
 			// bind the mesh v-buffer with offset 0
 			vk::DeviceSize offset = 0;
-			commandBuffer.bindVertexBuffers(0, 1, &object.mesh->Buffer.Buffer, &offset);
+			commandBuffer.bindVertexBuffers(0, 1, &object.mesh->Buffer.data, &offset);
 			lastMesh = object.mesh;
 		}
 
@@ -1361,7 +1365,7 @@ void Zn::VulkanDevice::CreateScene()
 	//write to the descriptor set so that it points to our empire_diffuse texture
 	vk::DescriptorImageInfo imageBufferInfo;
 	imageBufferInfo.sampler = sampler;
-	imageBufferInfo.imageView = textures["viking_room"].imageView;
+	imageBufferInfo.imageView = textures[HashCalculate(vikingRoomTexturePath)]->imageView;
 	imageBufferInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
 	device.updateDescriptorSets(
@@ -1462,9 +1466,9 @@ void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 	const vk::BufferUsageFlags stagingUsage = vk::BufferUsageFlagBits::eTransferSrc;
 	const vma::MemoryUsage stagingMemoryUsage = vma::MemoryUsage::eCpuOnly;
 
-	Vk::AllocatedBuffer stagingBuffer = CreateBuffer(allocationSize, stagingUsage, stagingMemoryUsage);
+	RHIBuffer stagingBuffer = CreateBuffer(allocationSize, stagingUsage, stagingMemoryUsage);
 
-	CopyToGPU(stagingBuffer.Allocation, OutMesh.Vertices.data(), allocationSize);
+	CopyToGPU(stagingBuffer.allocation, OutMesh.Vertices.data(), allocationSize);
 	
 	const vk::BufferUsageFlags meshUsage = vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst;
 	const vma::MemoryUsage meshMemoryUsage = vma::MemoryUsage::eGpuOnly;
@@ -1473,7 +1477,7 @@ void Zn::VulkanDevice::UploadMesh(Vk::Mesh & OutMesh)
 
 	ImmediateSubmit([=](vk::CommandBuffer cmd)
 	{
-		cmd.copyBuffer(stagingBuffer.Buffer, OutMesh.Buffer.Buffer, { vk::BufferCopy(0, 0, allocationSize) });
+		cmd.copyBuffer(stagingBuffer.data, OutMesh.Buffer.data, { vk::BufferCopy(0, 0, allocationSize) });
 	});
 
 	DestroyBuffer(stagingBuffer);
@@ -1553,49 +1557,53 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 	}
 }
 
-Vk::AllocatedImage Zn::VulkanDevice::CreateTexture(const String& texture)
+RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
 {
-	u32 textureWidth = 0;
-	u32 textureHeight = 0;
-	u32 textureSize = 0;
+	ResourceHandle textureHandle = HashCalculate(path);
 
-	Vk::AllocatedBuffer stagingBuffer{};
-
+	if (auto it = textures.find(textureHandle); it != std::end(textures))
 	{
-		Vk::RawTexture rawTexture{};
-
-		if (!Vk::RawTexture::LoadFromFile(texture, rawTexture))
-		{
-			ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Failed to load texture %s", texture.c_str());
-
-			return Vk::AllocatedImage{};
-		}
-
-		textureWidth = static_cast<u32>(rawTexture.width);
-		textureHeight = static_cast<u32>(rawTexture.height);
-		textureSize = static_cast<u32>(rawTexture.size);
-
-		stagingBuffer = CreateBuffer(textureSize, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
-
-		CopyToGPU(stagingBuffer.Allocation, rawTexture.data, rawTexture.size);
-
-		Vk::RawTexture::Unload(rawTexture);
+		return it->second;
 	}
 
-	Vk::AllocatedImage outResult = CreateTextureImage(textureWidth, textureHeight, stagingBuffer);
+	RHIBuffer stagingBuffer{};
+
+	i32 width = 0;
+	i32 height = 0;
+
+	if (SharedPtr<TextureSource> sourceTexture = TextureImporter::Import(IO::GetAbsolutePath(path)))
+	{
+		width = sourceTexture->width;
+		height = sourceTexture->height;
+
+		stagingBuffer = CreateBuffer(sourceTexture->size, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+		CopyToGPU(stagingBuffer.allocation, sourceTexture->data, sourceTexture->size);
+	}
+	else
+	{
+		ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Failed to load texture %s", path.c_str());
+		return nullptr;
+	}
+
+	RHITexture* texture = nullptr;
+
+	if (auto result = textures.insert({ textureHandle, CreateRHITexture(width, height) }); result.second)
+	{
+		texture = result.first->second;
+	}
 
 	ImmediateSubmit([=](vk::CommandBuffer cmd)
 	{
-		TransitionImageLayout(cmd, outResult.image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-		CopyBufferToImage(cmd, stagingBuffer.Buffer, outResult.image, textureWidth, textureHeight);
-		TransitionImageLayout(cmd, outResult.image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+		TransitionImageLayout(cmd, texture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+		CopyBufferToImage(cmd, stagingBuffer.data, texture->image, width, height);
+		TransitionImageLayout(cmd, texture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 	});
 
 	DestroyBuffer(stagingBuffer);
 
 	vk::ImageViewCreateInfo imageViewInfo
 	{
-		.image = outResult.image,
+		.image = texture->image,
 		.viewType = vk::ImageViewType::e2D,
 		.format = vk::Format::eR8G8B8A8Srgb,
 		.subresourceRange = 
@@ -1608,23 +1616,21 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTexture(const String& texture)
 		}
 	};
 
-	outResult.imageView = device.createImageView(imageViewInfo);
+	texture->imageView = device.createImageView(imageViewInfo);
 
-	return outResult;
+	return texture;
 }
 
-Vk::AllocatedImage Zn::VulkanDevice::CreateTextureImage(u32 width, u32 height, const Vk::AllocatedBuffer& inStagingTexture)
+RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height) const
 {
-	Vk::AllocatedImage outImage{};
-
 	vk::ImageCreateInfo createInfo = Vk::AllocatedImage::GetImageCreateInfo(
-		vk::Format::eR8G8B8A8Srgb,		
-		vk::ImageUsageFlagBits::eTransferDst| vk::ImageUsageFlagBits::eSampled,
+		vk::Format::eR8G8B8A8Srgb,
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		vk::Extent3D
-		{ 
-			width, 
-			height,
-			1 
+		{
+			static_cast<u32>(width),
+			static_cast<u32>(height),
+			1
 		});
 
 	createInfo.initialLayout = vk::ImageLayout::eUndefined;
@@ -1640,13 +1646,19 @@ Vk::AllocatedImage Zn::VulkanDevice::CreateTextureImage(u32 width, u32 height, c
 		//	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
 		.requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal)
 	};
-	
-	ZN_VK_CHECK(allocator.createImage(&createInfo, &allocationInfo, &outImage.image, &outImage.allocation, nullptr));
 
-	return outImage;
+	RHITexture* texture = new RHITexture 
+	{
+		.width = width,
+		.height = height
+	};
+
+	ZN_VK_CHECK(allocator.createImage(&createInfo, &allocationInfo, &texture->image, &texture->allocation, nullptr));
+
+	return texture;
 }
 
-void Zn::VulkanDevice::TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout)
+void Zn::VulkanDevice::TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const
 {
 	vk::ImageMemoryBarrier barrier
 	{
@@ -1696,7 +1708,7 @@ void Zn::VulkanDevice::TransitionImageLayout(vk::CommandBuffer cmd, vk::Image im
 						{}, {}, { barrier });
 }
 
-void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function)
+void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function) const
 {
 	if (function == nullptr)
 	{
@@ -1728,7 +1740,7 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& 
 	device.resetCommandPool(uploadContext.commandPool, vk::CommandPoolResetFlags(0));
 }
 
-void Zn::VulkanDevice::CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height)
+void Zn::VulkanDevice::CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height) const
 {
 	vk::BufferImageCopy region
 	{

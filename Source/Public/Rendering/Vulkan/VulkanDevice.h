@@ -3,19 +3,20 @@
 #include <optional>
 #include <deque>
 #include <functional>
-#include <vulkan/vulkan.h>
-#include <vma/vk_mem_alloc.h>
 #include <Core/Containers/Map.h>
+#include <Rendering/RHI/Vulkan/Vulkan.h>
 #include <Rendering/Vulkan/VulkanTypes.h>
 #include <Rendering/Vulkan/VulkanMesh.h>
-
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
+#include <Rendering/RHI/RHITypes.h>
 
 struct SDL_Window;
 
 namespace Zn
 {
+	struct RHITexture;
+	class Texture;
+	struct ResourceHandle;
+
 	class VulkanDevice
 	{
 
@@ -134,11 +135,11 @@ namespace Zn
 
 		vma::Allocator allocator;
 
-		Vk::AllocatedBuffer CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage);
-		void DestroyBuffer(Vk::AllocatedBuffer buffer);
+		RHIBuffer CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage) const;
+		void DestroyBuffer(RHIBuffer buffer) const;
 
 		// TODO: Naming might be incorrect
-		void CopyToGPU(vma::Allocation allocation, void* src, size_t size);
+		void CopyToGPU(vma::Allocation allocation, void* src, size_t size) const;
 
 		// == Depth Buffer ==
 
@@ -169,8 +170,8 @@ namespace Zn
 		glm::vec3 cameraDirection { 0.0f, 0.0f, 1.f };
 		glm::vec3 upVector{ 0.0f, 1.f, 0.f };
 
-		Vk::AllocatedBuffer cameraBuffer[kMaxFramesInFlight];
-		Vk::AllocatedBuffer lightingBuffer[kMaxFramesInFlight];
+		RHIBuffer cameraBuffer[kMaxFramesInFlight];
+		RHIBuffer lightingBuffer[kMaxFramesInFlight];
 
 		// ==================
 
@@ -184,11 +185,12 @@ namespace Zn
 
 		// == Texture ==
 
-		Vk::AllocatedImage CreateTexture(const String& texture);
-		Vk::AllocatedImage CreateTextureImage(u32 width, u32 height, const Vk::AllocatedBuffer& inStagingTexture);
-		void TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout);
+		RHITexture* CreateTexture(const String& texture);
+		RHITexture* CreateRHITexture(i32 width, i32 height) const;
+		void TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
 
-		UnorderedMap<String, Vk::AllocatedImage> textures;
+		// UnorderedMap<String, Vk::AllocatedImage> textures;
+		UnorderedMap<ResourceHandle, RHITexture*> textures;
 
 		vk::DescriptorSetLayout singleTextureSetLayout;
 
@@ -205,8 +207,8 @@ namespace Zn
 		
 		UploadContext uploadContext{};
 				
-		void ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function);
+		void ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function) const;
 
-		void CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height);
+		void CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height) const;
 	};	
 }

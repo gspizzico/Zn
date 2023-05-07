@@ -166,6 +166,8 @@
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Private\Engine\Importer\TextureImporter.cpp" />
+    <ClCompile Include="Source\Private\Rendering\RHI\Vulkan.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMaterialManager.cpp" />
     <ClCompile Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -258,6 +260,11 @@
     <ClInclude Include="Source\Public\Core\Event.h" />
     <ClInclude Include="Source\Public\Core\Hash.h" />
     <ClInclude Include="Source\Public\Core\Random.h" />
+    <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />
+    <ClInclude Include="Source\Public\Engine\Texture.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHITexture.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHITypes.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\Vulkan\Vulkan.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMaterialManager.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_vulkan.h" />

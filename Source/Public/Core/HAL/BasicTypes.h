@@ -49,6 +49,15 @@ using u64 = uint64_t;
 using f32 = float;
 using f64 = double;
 
+static constexpr u64 u64_max = std::numeric_limits<u64>::max();
+static constexpr i64 i64_max = std::numeric_limits<i64>::max();
+static constexpr u32 u32_max = std::numeric_limits<u32>::max();
+static constexpr i32 i32_max = std::numeric_limits<i32>::max();
+static constexpr u16 u16_max = std::numeric_limits<u16>::max();
+static constexpr i16 i16_max = std::numeric_limits<i16>::max();
+static constexpr u8 u8_max = std::numeric_limits<u8>::max();
+static constexpr i8 i8_max = std::numeric_limits<i8>::max();
+
 namespace Zn
 {
 	using String = std::string;

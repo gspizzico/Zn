@@ -2,6 +2,8 @@
 
 #include <Core/Build.h>
 #include <Core/HAL/BasicTypes.h>
+#include <Core/Hash.h>
+#include <Core/Random.h>
 #include <Core/Containers/Vector.h>
 #include <Core/Log/Log.h>
 #include <Core/Log/LogMacros.h>

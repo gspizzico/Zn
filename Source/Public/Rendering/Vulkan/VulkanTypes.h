@@ -1,16 +1,9 @@
 #pragma once
 
 #include <optional>
-#include <vulkan/vulkan.h>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
-#define VULKAN_HPP_NO_SPACESHIP_OPERATOR
-#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
-#include <vulkan/vulkan.hpp>
-//#include <vma/vk_mem_alloc.h>
-#include <vk_mem_alloc.hpp>
+#include <Rendering/RHI/Vulkan/Vulkan.h>
+#include <Rendering/RHI/RHITypes.h>
 #include <Core/Containers/Map.h>
-
-
 
 namespace Zn
 {
@@ -29,12 +22,6 @@ namespace Zn
 			Vector<vk::PresentModeKHR> PresentModes;
 		};
 
-		struct AllocatedBuffer
-		{
-			vk::Buffer Buffer;
-			vma::Allocation Allocation;
-		};
-
 		struct AllocatedImage
 		{
 			vk::Image image;
@@ -45,18 +32,6 @@ namespace Zn
 			static vk::ImageCreateInfo GetImageCreateInfo(vk::Format inFormat, vk::ImageUsageFlags inUsageFlags, vk::Extent3D inExtent);
 			//	TODO: MOVE AWAY FROM HERE
 			static vk::ImageViewCreateInfo GetImageViewCreateInfo(vk::Format InFormat, vk::Image InImage, vk::ImageAspectFlagBits InAspectFlags);
-		};
-
-		struct RawTexture
-		{
-			i32 width;
-			i32 height;
-			i32 channels;
-			i32 size;
-			u8* data;
-
-			static bool LoadFromFile(String path, RawTexture& outTexture);
-			static void Unload(RawTexture& inTexture);
 		};
 
 		struct VertexInputDescription
@@ -86,7 +61,7 @@ namespace Zn
 		{
 			Vector<Vertex> Vertices;
 
-			AllocatedBuffer Buffer;
+			RHIBuffer Buffer;
 		};
 
 		struct Material
