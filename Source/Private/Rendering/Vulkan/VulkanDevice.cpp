@@ -129,7 +129,6 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
 		.pQueueCreateInfos = queueFamilies.data(),
 		.enabledExtensionCount = static_cast<u32>(kDeviceExtensions.size()),
 		.ppEnabledExtensionNames = kDeviceExtensions.data(),
-		.pEnabledFeatures = &deviceFeatures
 	};
 
 	device = gpu.createDevice(deviceCreateInfo, nullptr);
@@ -478,6 +477,11 @@ void VulkanDevice::Cleanup()
 	for (auto& meshKvp : meshes)
 	{
 		allocator.destroyBuffer(meshKvp.second->vertexBuffer.data, meshKvp.second->vertexBuffer.allocation);
+		
+		if (meshKvp.second->indexBuffer.data)
+		{
+			allocator.destroyBuffer(meshKvp.second->indexBuffer.data, meshKvp.second->indexBuffer.allocation);
+		}
 	}
 
 	textures.clear();
@@ -1365,12 +1369,24 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
 			// bind the mesh v-buffer with offset 0
 			vk::DeviceSize offset = 0;
 			commandBuffer.bindVertexBuffers(0, 1, &object.mesh->vertexBuffer.data, &offset);
+
+			if (object.mesh->indexBuffer.data)
+			{
+				commandBuffer.bindIndexBuffer(object.mesh->indexBuffer.data, 0, vk::IndexType::eUint32);
+			}
 			lastMesh = object.mesh;
 		}
 
 		// Draw
 
-		commandBuffer.draw(object.mesh->vertices.size(), 1, 0, 0);
+		if (object.mesh->indexBuffer.data)
+		{
+			commandBuffer.drawIndexed(object.mesh->indices.size(), 1, 0, 0, 0);
+		}
+		else
+		{
+			commandBuffer.draw(object.mesh->vertices.size(), 1, 0, 0);
+		}
 	}
 }
 
@@ -1526,6 +1542,12 @@ void Zn::VulkanDevice::LoadMeshes()
 			vk::BufferUsageFlagBits::eVertexBuffer,
 			vma::MemoryUsage::eGpuOnly);
 
+		monkey->indexBuffer = CreateRHIBuffer(
+			monkey->indices.data(),
+			monkey->indices.size() * sizeof(i32),
+			vk::BufferUsageFlagBits::eIndexBuffer,
+			vma::MemoryUsage::eGpuOnly);
+
 		meshes.insert({ ResourceHandle(HashCalculate(monkeyMeshPath)), monkey });
 	}
 
@@ -1535,6 +1557,12 @@ void Zn::VulkanDevice::LoadMeshes()
 			vikingRoom->vertices.data(),
 			vikingRoom->vertices.size() * sizeof(RHIVertex),
 			vk::BufferUsageFlagBits::eVertexBuffer,
+			vma::MemoryUsage::eGpuOnly);
+
+		vikingRoom->indexBuffer = CreateRHIBuffer(
+			vikingRoom->indices.data(),
+			vikingRoom->indices.size() * sizeof(i32),
+			vk::BufferUsageFlagBits::eIndexBuffer,
 			vma::MemoryUsage::eGpuOnly);
 
 		meshes.insert({ ResourceHandle(HashCalculate(vikingRoomMeshPath)), vikingRoom });

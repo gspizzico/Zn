@@ -10,7 +10,9 @@ namespace Zn
 	struct RHIMesh
 	{
 		Vector<RHIVertex> vertices;
+		Vector<i32> indices;
 
 		RHIBuffer vertexBuffer;
+		RHIBuffer indexBuffer;
 	};
 }
