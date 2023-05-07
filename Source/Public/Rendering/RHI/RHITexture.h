@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Core/HAL/BasicTypes.h>
-#include <Rendering/Vulkan/VulkanTypes.h>
+#include <Rendering/RHI/Vulkan/Vulkan.h>
 
 namespace Zn
 {

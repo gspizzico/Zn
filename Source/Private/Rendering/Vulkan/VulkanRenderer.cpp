@@ -1,5 +1,5 @@
 #include "Znpch.h"
-#include "Rendering/Vulkan/Vulkan.h"
+#include "Rendering/RHI/RHI.h"
 #include "Rendering/Vulkan/VulkanRenderer.h"
 #include "Rendering/Vulkan/VulkanUtils.h"
 #include "Application/Window.h"
@@ -8,11 +8,6 @@
 
 #include <algorithm>
 #include <ImGui/ImGuiWrapper.h>
-
-VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
-
-DEFINE_STATIC_LOG_CATEGORY(LogVulkan_2, ELogVerbosity::Log);
-DEFINE_STATIC_LOG_CATEGORY(LogVulkanValidation_2, ELogVerbosity::Verbose);
 
 using namespace Zn;
 
@@ -66,7 +61,7 @@ namespace VulkanValidation
 
 		const String& messageType = vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(type));
 
-		ZN_LOG(LogVulkanValidation_2, verbosity, "[%s] %s", messageType.c_str(), data->pMessage);
+		ZN_LOG(LogVulkanValidation, verbosity, "[%s] %s", messageType.c_str(), data->pMessage);
 
 		if (verbosity >= ELogVerbosity::Error)
 		{
@@ -216,7 +211,7 @@ bool Zn::VulkanRenderer::render_frame(float deltaTime, std::function<void(float)
 {
 	if (!begin_frame())
 	{
-		ZN_LOG(LogVulkan_2, ELogVerbosity::Error, "Failed to begin_frame.");
+		ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to begin_frame.");
 		return false;
 	}
 
@@ -229,7 +224,7 @@ bool Zn::VulkanRenderer::render_frame(float deltaTime, std::function<void(float)
 
 	if (!end_frame())
 	{
-		ZN_LOG(LogVulkan_2, ELogVerbosity::Error, "Failed to end_frame.");
+		ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to end_frame.");
 	}
 
 	return true;

@@ -1,9 +1,8 @@
 #include <Znpch.h>
-#include <Rendering/RHI/Vulkan/Vulkan.h>
-#include <vk_mem_alloc.h>
 #include <Rendering/Vulkan/VulkanDevice.h>
+#include <Rendering/RHI/RHI.h>
+#include <vk_mem_alloc.h>
 #include <SDL.h>
-#include <SDL_vulkan.h>
 
 #include <Core/Containers/Set.h>
 #include <Core/IO/IO.h>
@@ -26,25 +25,6 @@
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_sdl.h>
 
-
-
-#define ZN_VK_VALIDATION_LAYERS (ZN_DEBUG)
-
-#define ZN_VK_VALIDATION_VERBOSE (0)
-
-#define ZN_VK_CHECK(expression)\
-if(vk::Result result = expression; result != vk::Result::eSuccess) _ASSERT(false);
-
-#define ZN_VK_CHECK_RETURN(expression)\
-if(vk::Result result = expression; result != vk::Result::eSuccess)\
-{\
-	_ASSERT(false);\
-	return;\
-}
-
-DEFINE_STATIC_LOG_CATEGORY(LogVulkan, ELogVerbosity::Log);
-// Verbosity set to ::Verbose, since messages are filtered through flags using ZN_VK_VALIDATION_VERBOSE
-DEFINE_STATIC_LOG_CATEGORY(LogVulkanValidation, ELogVerbosity::Verbose);
 
 using namespace Zn;
 

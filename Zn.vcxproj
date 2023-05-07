@@ -262,6 +262,7 @@
     <ClInclude Include="Source\Public\Core\Random.h" />
     <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />
     <ClInclude Include="Source\Public\Engine\Texture.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHI.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHITexture.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHITypes.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\Vulkan\Vulkan.h" />
@@ -324,7 +325,6 @@
     <ClInclude Include="Source\Public\Rendering\Renderer.h" />
     <ClInclude Include="Source\Public\Rendering\RendererTypes.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanRenderer.h" />
-    <ClInclude Include="Source\Public\Rendering\Vulkan\Vulkan.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanDevice.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMesh.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanPipeline.h" />
