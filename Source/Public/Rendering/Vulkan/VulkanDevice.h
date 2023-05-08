@@ -114,6 +114,8 @@ namespace Zn
 		vk::DescriptorSetLayout globalDescriptorSetLayout{};
 		Vector<vk::DescriptorSet> globalDescriptorSets;
 
+		RHIBuffer meshDataUBO[kMaxFramesInFlight];
+
 		vk::DescriptorPool imguiDescriptorPool;
 
 		static const Vector<const char*> kDeviceExtensions;

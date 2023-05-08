@@ -39,44 +39,13 @@ namespace
 	static const String monkeyMeshPath = "assets/VulkanGuide/monkey_smooth.obj";
 	static const ResourceHandle depthTextureHandle = ResourceHandle(HashCalculate("__RHIDepthTexture"));
 	static const String triangleMeshName = "__Triangle";
-}
 
-namespace
-{
-	ELogVerbosity VkMessageSeverityToZnVerbosity(VkDebugUtilsMessageSeverityFlagBitsEXT InSeverity)
+	static const u32 minMeshDataBufferSize = 65535;
+
+	struct alignas(16) MeshData
 	{
-		switch (InSeverity)
-		{
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-			return ELogVerbosity::Verbose;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-			return ELogVerbosity::Log;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-			return ELogVerbosity::Warning;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-			default:
-			return ELogVerbosity::Error;
-		}
-	}
-
-	const String& VkMessageTypeToString(VkDebugUtilsMessageTypeFlagBitsEXT InType)
-	{
-		static const String kGeneral = "VkGeneral";
-		static const String kValidation = "VkValidation";
-		static const String kPerformance = "VkPerf";
-
-		switch (InType)
-		{
-			case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
-			return kGeneral;
-			case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:
-			return kValidation;
-			case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT:
-			return kPerformance;
-			default:
-			return kGeneral;
-		}
-	}
+		glm::mat4 m;
+	};
 }
 
 const Vector<const char*> VulkanDevice::kDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -631,6 +600,24 @@ void VulkanDevice::Draw()
 
 		CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(LightingUniforms));
 
+		Vector<MeshData> meshData;
+		meshData.reserve(renderables.size());
+
+		for (const RenderObject& object : renderables)
+		{
+			static const auto identity = glm::mat4{ 1.f };
+
+			glm::mat4 translation = glm::translate(identity, object.location);
+			glm::mat4 rotation = glm::mat4_cast(object.rotation);
+			glm::mat4 scale = glm::scale(identity, object.scale);
+
+			glm::mat4 transform = translation * rotation * scale;
+
+			meshData.push_back(MeshData{ .m = transform });
+		}
+
+		CopyToGPU(meshDataUBO[currentFrame].allocation, meshData.data(), meshData.size() * sizeof(MeshData));
+
 		DrawObjects(commandBuffer, renderables.data(), renderables.size());
 
 		// Enqueue ImGui commands to CmdBuffer
@@ -887,20 +874,30 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	// Global Set
 
-	vk::DescriptorSetLayoutBinding bindings[2];
-
-	vk::DescriptorSetLayoutBinding& cameraBufferBinding = bindings[0];
-	cameraBufferBinding.binding = 0;
-	cameraBufferBinding.descriptorCount = 1;
-	cameraBufferBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-	cameraBufferBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-
-	// #Lighting
-	vk::DescriptorSetLayoutBinding& lightingBufferBinding = bindings[1];
-	lightingBufferBinding.binding = 1;
-	lightingBufferBinding.descriptorCount = 1;
-	lightingBufferBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-	lightingBufferBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+	vk::DescriptorSetLayoutBinding bindings[] =
+	{
+		// Camera
+		{
+				.binding = 0,
+				.descriptorType = vk::DescriptorType::eUniformBuffer,
+				.descriptorCount = 1,
+				.stageFlags = vk::ShaderStageFlagBits::eVertex,
+		},
+		// Lighting
+		{
+				.binding = 1,
+				.descriptorType = vk::DescriptorType::eUniformBuffer,
+				.descriptorCount = 1,
+				.stageFlags = vk::ShaderStageFlagBits::eFragment,
+		},
+		// Matrices
+		{
+				.binding = 2,
+				.descriptorType = vk::DescriptorType::eUniformBufferDynamic,
+				.descriptorCount =1,
+				.stageFlags = vk::ShaderStageFlagBits::eVertex
+		}
+	};
 
 	vk::DescriptorSetLayoutCreateInfo globalSetCreateInfo
 	{
@@ -942,6 +939,8 @@ void Zn::VulkanDevice::CreateDescriptors()
 
 	for (size_t Index = 0; Index < kMaxFramesInFlight; ++Index)
 	{
+		// Camera
+
 		cameraBuffer[Index] = CreateBuffer(sizeof(GPUCameraData), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
 		destroyQueue.Enqueue([=]()
@@ -956,6 +955,15 @@ void Zn::VulkanDevice::CreateDescriptors()
 		destroyQueue.Enqueue([=]()
 		{
 			DestroyBuffer(lightingBuffer[Index]);
+		});
+
+		// Matrices
+
+		meshDataUBO[Index] = CreateBuffer(sizeof(MeshData) * minMeshDataBufferSize, vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+
+		destroyQueue.Enqueue([=]()
+		{
+			DestroyBuffer(meshDataUBO[Index]);
 		});
 
 		vk::DescriptorSetAllocateInfo descriptorSetAllocInfo{};
@@ -978,6 +986,12 @@ void Zn::VulkanDevice::CreateDescriptors()
 				lightingBuffer[Index].data,
 				0,
 				sizeof(LightingUniforms)
+			},
+			vk::DescriptorBufferInfo
+			{
+				meshDataUBO[Index].data,
+				0,
+				sizeof(MeshData)
 			}
 		};
 
@@ -1000,6 +1014,15 @@ void Zn::VulkanDevice::CreateDescriptors()
 				.descriptorCount = 1,
 				.descriptorType = vk::DescriptorType::eUniformBuffer,
 				.pBufferInfo = &bufferInfo[1],
+			},
+			vk::WriteDescriptorSet
+			{
+				.dstSet = globalDescriptorSets[Index],
+				.dstBinding = 2,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = vk::DescriptorType::eUniformBufferDynamic,
+				.pBufferInfo = &bufferInfo[2],
 			}
 		};
 
@@ -1347,13 +1370,17 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
 
 			lastMaterial = object.material;
 			
-			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 0, globalDescriptorSets[currentFrame], {});
-
 			if (object.material->textureSet)
 			{
 				commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 1, object.material->textureSet, {});
 			}
 		}
+
+		// TODO: Rebinding global for every mesh.
+		// I think we can make a different set that is refreshed at this rate rather than rebinding 3 sets all the time.
+		u32 offset = sizeof(MeshData) * index;
+
+		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 0, globalDescriptorSets[currentFrame], { offset });
 
 		MeshPushConstants constants
 		{
@@ -1398,7 +1425,7 @@ void Zn::VulkanDevice::CreateScene()
 		.material = VulkanMaterialManager::Get().GetMaterial("default"),
 		.location = glm::vec3(0.f),
 		.rotation = glm::quat(),
-		.scale = glm::vec3(1.f)
+		.scale = glm::vec3(1.f),
 	};
 
 	// Sampler
@@ -1448,7 +1475,7 @@ void Zn::VulkanDevice::CreateScene()
 				.descriptorCount = 1,
 				.descriptorType = vk::DescriptorType::eCombinedImageSampler,
 				.pImageInfo = &imageBufferInfo
-			} 
+			}
 		}, {});
 
 	renderables.push_back(viking_room);

@@ -16,6 +16,11 @@ layout(set = 0, binding = 0) uniform CameraBuffer
 	mat4 view_projection;
 } camera;
 
+layout(set = 0, binding = 2) uniform RenderMatrix
+{
+	mat4 value;
+} render_matrix;
+
 //push constants block
 layout( push_constant ) uniform constants
 {
@@ -25,7 +30,7 @@ layout( push_constant ) uniform constants
 
 void main()
 {
-	mat4 transform = camera.view_projection * PushConstants.render_matrix;
+	mat4 transform = camera.view_projection * render_matrix.value;
 
 	gl_Position = transform * vec4(vPosition, 1.0f);	
 	outNormal = normalize(mat3(camera.view_projection) * vNormal);
