@@ -114,7 +114,7 @@ bool Zn::VulkanRenderer::initialize(RendererInitParams params)
 	{
 		.pApplicationName = "Zn",
 		.pEngineName = "Zn",
-		.apiVersion = VK_API_VERSION_1_0,
+		.apiVersion = VK_API_VERSION_1_3,
 	};
 
 	// Get the names of the Vulkan instance extensions needed to create a surface with SDL_Vulkan_CreateSurface
