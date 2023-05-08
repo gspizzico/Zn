@@ -19,6 +19,7 @@ echo ====== Clean Completed ======
 echo ====== Running SDL Build ======
 py %~dp0sdl_build.py %~2 %~1
 echo ====== SDL Build Completed======
+py %~dp0vk_compile_shaders.py
 goto :End
 	
 :ErrorEmpty
