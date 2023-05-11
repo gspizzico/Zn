@@ -3,54 +3,51 @@
 
 namespace Zn
 {
-	class ThreadedJob;
+class ThreadedJob;
 
-	class Thread
-	{
-	public:
+class Thread
+{
+  public:
+    friend class ThreadManager;
 
-		friend class ThreadManager;
+    enum class Type
+    {
+        MainThread,
+        HighPriorityWorkerThread,
+        WorkerThread
+    };
 
-		enum class Type
-		{
-			MainThread,
-			HighPriorityWorkerThread,
-			WorkerThread
-		};
+    static Thread* New(String name, ThreadedJob* job);
 
-		static Thread* New(String name, ThreadedJob* job);
+    uint32 GetId() const
+    {
+        return m_ThreadId;
+    }
 
-		uint32 GetId() const
-		{
-			return m_ThreadId;
-		}
+    // Thread::Type GetType() const { return m_Type; }
 
-		//Thread::Type GetType() const { return m_Type; }
+    bool IsCurrentThread() const;
 
-		bool IsCurrentThread() const;
+    virtual bool HasValidHandle() const = 0;
 
-		virtual bool HasValidHandle() const = 0;
+    virtual void WaitUntilCompletion() = 0;
 
-		virtual void WaitUntilCompletion() = 0;
+    virtual bool Wait(uint32 ms) = 0;
 
-		virtual bool Wait(uint32 ms) = 0;
+    virtual ~Thread();
 
-		virtual ~Thread();
+  protected:
+    virtual bool Start(ThreadedJob* job) = 0;
 
-	protected:
+    uint32 Main();
 
-		virtual bool Start(ThreadedJob* job) = 0;
+    uint32 m_ThreadId = 0;
 
-		uint32 Main();
+    ThreadedJob* m_Job {nullptr};
 
-		uint32 m_ThreadId = 0;
+  private:
+    String m_Name;
 
-		ThreadedJob* m_Job{ nullptr };
-
-	private:
-
-		String m_Name;
-
-		//Thread::Type m_Type;
-	};
-}
+    // Thread::Type m_Type;
+};
+} // namespace Zn

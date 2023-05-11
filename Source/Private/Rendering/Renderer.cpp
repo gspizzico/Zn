@@ -13,52 +13,52 @@ UniquePtr<Renderer> Zn::Renderer::instance;
 
 Renderer& Zn::Renderer::Get()
 {
-	if (!instance)
-	{
-		throw std::runtime_error("Renderer not initialized.");
-	}
+    if (!instance)
+    {
+        throw std::runtime_error("Renderer not initialized.");
+    }
 
-	return *instance;
+    return *instance;
 }
 
 bool Zn::Renderer::initialize(RendererBackendType type, RendererInitParams data)
 {
-	ZN_TRACE_QUICKSCOPE();
+    ZN_TRACE_QUICKSCOPE();
 
-	_ASSERT(!instance);
+    _ASSERT(!instance);
 
-	switch (type)
-	{
-		case RendererBackendType::Vulkan:
-		instance.reset(new VulkanRenderer());
-		break;
-		case RendererBackendType::DX12:
-		// TODO: Implement DX12
-		return false;
-	}
+    switch (type)
+    {
+    case RendererBackendType::Vulkan:
+        instance.reset(new VulkanRenderer());
+        break;
+    case RendererBackendType::DX12:
+        // TODO: Implement DX12
+        return false;
+    }
 
-	Zn::imgui_initialize();
+    Zn::imgui_initialize();
 
-	if (!instance->initialize(data))
-	{
-		Zn::imgui_shutdown();
+    if (!instance->initialize(data))
+    {
+        Zn::imgui_shutdown();
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 bool Zn::Renderer::destroy()
 {
-	if (instance)
-	{
-		instance->shutdown();
-		
-		instance = nullptr;
+    if (instance)
+    {
+        instance->shutdown();
 
-		return true;
-	}
+        instance = nullptr;
 
-	return false;
+        return true;
+    }
+
+    return false;
 }

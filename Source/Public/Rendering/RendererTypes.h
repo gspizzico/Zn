@@ -4,8 +4,8 @@
 
 namespace Zn
 {
-	struct RendererInitParams
-	{
-		SharedPtr<class Window> window;
-	};
-}
+struct RendererInitParams
+{
+    SharedPtr<class Window> window;
+};
+} // namespace Zn

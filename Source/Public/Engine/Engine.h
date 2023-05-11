@@ -3,37 +3,35 @@
 
 namespace Zn
 {
-	struct Camera;
+struct Camera;
 
-	class EngineFrontend;
-	class Window;
+class EngineFrontend;
+class Window;
 
-	class Engine
-	{
-	public:
+class Engine
+{
+  public:
+    void Initialize();
 
-		void Initialize();
+    void Update(float deltaTime);
 
-		void Update(float deltaTime);
-		
-		void Start();
-		void Shutdown();
+    void Start();
+    void Shutdown();
 
-	private:
+  private:
+    // Render editor ImGui
+    void RenderUI(float deltaTime);
 
-		// Render editor ImGui 
-		void RenderUI(float deltaTime);
+    void ProcessInput();
 
-		void ProcessInput();
+    bool PumpMessages();
 
-		bool PumpMessages();
+    float m_DeltaTime {0.f};
 
-		float m_DeltaTime{ 0.f };
+    SharedPtr<Window> m_Window;
 
-		SharedPtr<Window> m_Window;
+    SharedPtr<Camera> m_Camera;
 
-		SharedPtr<Camera> m_Camera;
-
-		SharedPtr<EngineFrontend> m_FrontEnd;
-	};
-}
+    SharedPtr<EngineFrontend> m_FrontEnd;
+};
+} // namespace Zn

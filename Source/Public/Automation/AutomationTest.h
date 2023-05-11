@@ -6,107 +6,102 @@
 
 namespace Zn::Automation
 {
-	class AutomationTest
-	{
-	public:
+class AutomationTest
+{
+  public:
+    enum class Result : uint8_t
+    {
+        kOk        = 1,
+        kCannotRun = 1 << 1,
+        kFailed    = 1 << 2,
+        kCritical  = 1 << 3,
+        kNone      = 1 << 4
+    };
 
-		enum class Result : uint8_t
-		{
-			kOk = 1,
-			kCannotRun = 1 << 1,
-			kFailed = 1 << 2,
-			kCritical = 1 << 3,
-			kNone = 1 << 4
-		};
+    enum class State
+    {
+        kUninitialized,
+        kReady,
+        kRunning,
+        kComplete,
+        kReadyToExit
+    };
 
-		enum class State
-		{
-			kUninitialized,
-			kReady,
-			kRunning,
-			kComplete,
-			kReadyToExit
-		};
+    virtual ~AutomationTest() = default;
 
-		virtual ~AutomationTest() = default;
+    AutomationTest() = default;
 
-		AutomationTest() = default;
+    AutomationTest(const AutomationTest&);
 
-		AutomationTest(const AutomationTest&);
+    State Run();
 
-		State Run();
+    void Terminate(bool bForce);
 
-		void Terminate(bool bForce);
+    void Reset();
 
-		void Reset();
+    virtual void Prepare() {};
 
-		virtual void Prepare()
-		{};
+    virtual void Execute() {};
 
-		virtual void Execute()
-		{};
+    virtual void Cleanup() {};
 
-		virtual void Cleanup()
-		{};
+    Name GetName() const
+    {
+        return m_Name;
+    };
 
-		Name GetName() const
-		{
-			return m_Name;
-		};
+    virtual String GetErrorMessage() const
+    {
+        return String();
+    };
 
-		virtual String GetErrorMessage() const
-		{
-			return String();
-		};
+    State GetState() const
+    {
+        return m_State;
+    }
 
-		State GetState() const
-		{
-			return m_State;
-		}
+    virtual bool ShouldQuitWhenCriticalError() const
+    {
+        return false;
+    }
 
-		virtual bool ShouldQuitWhenCriticalError() const
-		{
-			return false;
-		}
+    virtual bool HasAsyncOperationsPending() const
+    {
+        return false;
+    }
 
-		virtual bool HasAsyncOperationsPending() const
-		{
-			return false;
-		}
+    virtual void Sync() {};
 
-		virtual void Sync()
-		{};
+  protected:
+    friend class AutomationTestManager;
 
-	protected:
+    Name m_Name;
 
-		friend class AutomationTestManager;
+    std::mutex mtx_State;
 
-		Name m_Name;
+    State m_State = State::kUninitialized;
 
-		std::mutex	mtx_State;
+    Result m_Result = Result::kNone;
 
-		State		m_State = State::kUninitialized;
+    double m_StartTime = 0.0;
+};
+} // namespace Zn::Automation
 
-		Result		m_Result = Result::kNone;
-
-		double		m_StartTime = 0.0;
-	};
-}
-
-#define ZN_TEST_VERIFY(Expression, ResultType)\
-{\
-	using namespace Zn::Automation;\
-	static_assert(ResultType == AutomationTest::Result::kCritical ||ResultType == AutomationTest::Result::kFailed);\
-	std::scoped_lock Lock(this->mtx_State); \
-	if(this->m_State == AutomationTest::State::kReadyToExit) return;\
-	if (!(Expression))\
-	{\
-		this->m_Result = ResultType; \
-		if (ResultType == AutomationTest::Result::kCritical)\
-		return; \
-	}\
-	else\
-	{\
-	m_Result = AutomationTest::Result::kOk; \
-	}\
-}
+#define ZN_TEST_VERIFY(Expression, ResultType)                                                                                                                 \
+    {                                                                                                                                                          \
+        using namespace Zn::Automation;                                                                                                                        \
+        static_assert(ResultType == AutomationTest::Result::kCritical || ResultType == AutomationTest::Result::kFailed);                                       \
+        std::scoped_lock Lock(this->mtx_State);                                                                                                                \
+        if (this->m_State == AutomationTest::State::kReadyToExit)                                                                                              \
+            return;                                                                                                                                            \
+        if (!(Expression))                                                                                                                                     \
+        {                                                                                                                                                      \
+            this->m_Result = ResultType;                                                                                                                       \
+            if (ResultType == AutomationTest::Result::kCritical)                                                                                               \
+                return;                                                                                                                                        \
+        }                                                                                                                                                      \
+        else                                                                                                                                                   \
+        {                                                                                                                                                      \
+            m_Result = AutomationTest::Result::kOk;                                                                                                            \
+        }                                                                                                                                                      \
+    }

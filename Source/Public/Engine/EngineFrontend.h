@@ -5,20 +5,19 @@
 #include <Core/Containers/Map.h>
 
 namespace Zn
-{	
-	class EngineFrontend
-	{
-	public:		
+{
+class EngineFrontend
+{
+  public:
+    EngineFrontend() = default;
 
-		EngineFrontend() = default;
+    void DrawMainMenu();
+    void DrawAutomationWindow();
 
-		void DrawMainMenu();
-		void DrawAutomationWindow();
-		
-		bool bAutomationWindow = false;
-		bool bIsRequestingExit = false;
+    bool bAutomationWindow = false;
+    bool bIsRequestingExit = false;
 
-		Map<Name, bool> SelectedTests;
-	};
+    Map<Name, bool> SelectedTests;
+};
 
-}
+} // namespace Zn

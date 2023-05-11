@@ -13,111 +13,112 @@ DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_FSAAutomationTest, ELogVerbosity::L
 
 namespace Zn::Automation
 {
-	class FSAAutomationTest : public AutomationTest
-	{
-	private:
+class FSAAutomationTest : public AutomationTest
+{
+  private:
+    std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
+    {
+        return std::uniform_int_distribution<size_t>(range.first, range.second);
+    }
 
-		std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
-		{
-			return std::uniform_int_distribution<size_t>(range.first, range.second);
-		}
+    size_t m_AllocationSize;
 
-		size_t m_AllocationSize;
+    size_t m_PageSize;
 
-		size_t m_PageSize;
+    size_t m_Allocations;
 
-		size_t m_Allocations;
+    size_t m_Frames;
 
-		size_t m_Frames;
+    Zn::VirtualMemoryRegion m_Region;
 
-		Zn::VirtualMemoryRegion m_Region;
+    UniquePtr<Zn::FixedSizeAllocator> m_Allocator;
 
-		UniquePtr<Zn::FixedSizeAllocator> m_Allocator;
+  public:
+    FSAAutomationTest(size_t allocationSize, size_t pageSize, size_t allocations, size_t frames)
+        : m_AllocationSize(allocationSize)
+        , m_PageSize(pageSize)
+        , m_Allocations(allocations)
+        , m_Frames(frames)
+        , m_Region(Memory::GetMemoryStatus().m_TotalPhys)
+        , m_Allocator(nullptr)
+    {
+    }
 
-	public:
+    virtual void Prepare()
+    {
+        m_Allocator = std::make_unique<Zn::FixedSizeAllocator>(m_AllocationSize, std::make_shared<PageAllocator>(m_Region.Range(), m_PageSize));
+    }
 
-		FSAAutomationTest(size_t allocationSize, size_t pageSize, size_t allocations, size_t frames)
-			: m_AllocationSize(allocationSize)
-			, m_PageSize(pageSize)
-			, m_Allocations(allocations)
-			, m_Frames(frames)
-			, m_Region(Memory::GetMemoryStatus().m_TotalPhys)
-			, m_Allocator(nullptr)
-		{}
+    virtual void Execute()
+    {
+        std::chrono::high_resolution_clock hrc;
 
-		virtual void Prepare()
-		{
-			m_Allocator = std::make_unique<Zn::FixedSizeAllocator>(m_AllocationSize, std::make_shared<PageAllocator>(m_Region.Range(), m_PageSize));
-		}
+        std::vector<void*> PreviousAllocations;
 
-		virtual void Execute()
-		{
-			std::chrono::high_resolution_clock hrc;
+        for (int frame = 0; frame < m_Frames; frame++)
+        {
+            size_t ToDeallocate = 0;
 
-			std::vector<void*> PreviousAllocations;
+            if (frame > 0)
+            {
+                std::random_device rd;
+                std::mt19937       gen(rd());
 
-			for (int frame = 0; frame < m_Frames; frame++)
-			{
-				size_t ToDeallocate = 0;
+                auto RollDice = CreateIntDistribution({m_Allocations / 2, PreviousAllocations.size()});
 
-				if (frame > 0)
-				{
-					std::random_device rd;
-					std::mt19937 gen(rd());
+                ToDeallocate += RollDice(gen);
 
-					auto RollDice = CreateIntDistribution({ m_Allocations / 2,  PreviousAllocations.size() });
+                std::shuffle(
+                    PreviousAllocations.begin(), PreviousAllocations.end(),
+                    std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
+            }
 
-					ToDeallocate += RollDice(gen);
+            std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);
 
-					std::shuffle(PreviousAllocations.begin(), PreviousAllocations.end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
-				}
+            int allocation   = 0;
+            int deallocation = 0;
 
-				std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);
+            for (;;)
+            {
+                if (deallocation == ToDeallocate && allocation == m_Allocations)
+                    break;
 
-				int allocation = 0;
-				int deallocation = 0;
+                if (deallocation < ToDeallocate)
+                {
+                    m_Allocator->Free(PreviousAllocations[deallocation]);
+                    deallocation++;
+                }
+                if (allocation < m_Allocations)
+                {
+                    CurrentFrameAllocations[allocation] = m_Allocator->Allocate();
+                    allocation++;
+                }
+            }
 
-				for (;;)
-				{
-					if (deallocation == ToDeallocate && allocation == m_Allocations)
-						break;
+            PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
 
-					if (deallocation < ToDeallocate)
-					{
-						m_Allocator->Free(PreviousAllocations[deallocation]);
-						deallocation++;
-					}
-					if (allocation < m_Allocations)
-					{
-						CurrentFrameAllocations[allocation] = m_Allocator->Allocate();
-						allocation++;
-					}
-				}
+            PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
+        }
 
-				PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
+        for (auto& address : PreviousAllocations)
+        {
+            m_Allocator->Free(address);
+        }
 
-				PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
-			}
+        m_Result = Result::kOk;
+    }
 
-			for (auto& address : PreviousAllocations)
-			{
-				m_Allocator->Free(address);
-			}
+    virtual void Cleanup() override
+    {
+        AutomationTest::Cleanup();
 
-			m_Result = Result::kOk;
-		}
-
-		virtual void Cleanup() override
-		{
-			AutomationTest::Cleanup();
-
-			m_Allocator = nullptr;
-		}
-	};
-}
+        m_Allocator = nullptr;
+    }
+};
+} // namespace Zn::Automation
 
 DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_8, Zn::Automation::FSAAutomationTest, 8, 1 << 14, 3000, 1);
-//DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_16, Zn::Automation::FSAAutomationTest, 16, 1 << 14, 3000, 600);
-//DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_24, Zn::Automation::FSAAutomationTest, 24, 1 << 14, 3000, 1);
+// DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_16, Zn::Automation::FSAAutomationTest, 16, 1 << 14, 3000, 600);
+// DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_24, Zn::Automation::FSAAutomationTest, 24, 1 << 14, 3000, 1);
 DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_32, Zn::Automation::FSAAutomationTest, 32, 1 << 14, 3000, 1);
-//DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_38, Zn::Automation::FSAAutomationTest, 38, 1 << 14, 3000, 600);
+// DEFINE_AUTOMATION_STARTUP_TEST(FSAAutomationTest_38, Zn::Automation::FSAAutomationTest, 38, 1 << 14, 3000, 600);

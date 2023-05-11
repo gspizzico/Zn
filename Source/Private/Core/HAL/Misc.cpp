@@ -5,18 +5,18 @@
 
 namespace Zn
 {
-	SystemInfo Misc::GetSystemInfo()
-	{
-		return PlatformMisc::GetSystemInfo();
-	}
-
-	void Misc::Exit(bool bWithErrors)
-	{
-		PlatformMisc::Exit(bWithErrors);
-	}
-
-	Guid Misc::GenerateGuid()
-	{
-		return PlatformMisc::GenerateGuid();
-	}
+SystemInfo Misc::GetSystemInfo()
+{
+    return PlatformMisc::GetSystemInfo();
 }
+
+void Misc::Exit(bool bWithErrors)
+{
+    PlatformMisc::Exit(bWithErrors);
+}
+
+Guid Misc::GenerateGuid()
+{
+    return PlatformMisc::GenerateGuid();
+}
+} // namespace Zn

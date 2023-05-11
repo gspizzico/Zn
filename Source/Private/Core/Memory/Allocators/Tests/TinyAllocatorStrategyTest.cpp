@@ -13,107 +13,107 @@ DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_TinyAllocatorStrategyTest, ELogVerb
 
 namespace Zn::Automation
 {
-	class TinyAllocatorStrategyTest : public AutomationTest
-	{
-	private:
+class TinyAllocatorStrategyTest : public AutomationTest
+{
+  private:
+    std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
+    {
+        return std::uniform_int_distribution<size_t>(range.first, range.second);
+    }
 
-		std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
-		{
-			return std::uniform_int_distribution<size_t>(range.first, range.second);
-		}
+    size_t m_AllocationSize;
 
-		size_t m_AllocationSize;
+    size_t m_Allocations;
 
-		size_t m_Allocations;
+    size_t m_Frames;
 
-		size_t m_Frames;
+    VirtualMemoryRegion m_Memory;
 
-		VirtualMemoryRegion m_Memory;
+    UniquePtr<Zn::TinyAllocatorStrategy> m_Allocator;
 
-		UniquePtr<Zn::TinyAllocatorStrategy> m_Allocator;
+  public:
+    TinyAllocatorStrategyTest(size_t allocationSize, size_t allocations, size_t frames)
+        : m_AllocationSize(allocationSize)
+        , m_Allocations(allocations)
+        , m_Frames(frames)
+        , m_Memory(m_AllocationSize)
+        , m_Allocator(nullptr)
+    {
+    }
 
-	public:
+    virtual void Prepare()
+    {
+        m_Allocator = std::make_unique<Zn::TinyAllocatorStrategy>(m_Memory.Range());
+    }
 
-		TinyAllocatorStrategyTest(size_t allocationSize, size_t allocations, size_t frames)
-			: m_AllocationSize(allocationSize)
-			, m_Allocations(allocations)
-			, m_Frames(frames)
-			, m_Memory(m_AllocationSize)
-			, m_Allocator(nullptr)
-		{}
+    virtual void Execute()
+    {
+        std::vector<std::pair<void*, size_t>> PreviousAllocations;
 
-		virtual void Prepare()
-		{
-			m_Allocator = std::make_unique<Zn::TinyAllocatorStrategy>(m_Memory.Range());
-		}
+        std::chrono::high_resolution_clock hrc;
 
-		virtual void Execute()
-		{
-			std::vector<std::pair<void*, size_t>> PreviousAllocations;
+        for (int frame = 0; frame < m_Frames; frame++)
+        {
+            size_t ToDeallocate = 0;
 
-			std::chrono::high_resolution_clock hrc;
+            if (frame > 0)
+            {
+                std::random_device rd;
+                std::mt19937       gen(rd());
 
-			for (int frame = 0; frame < m_Frames; frame++)
-			{
-				size_t ToDeallocate = 0;
+                auto RollDice = CreateIntDistribution({m_Allocations / 2, PreviousAllocations.size()});
 
-				if (frame > 0)
-				{
-					std::random_device rd;
-					std::mt19937 gen(rd());
+                ToDeallocate += RollDice(gen);
 
-					auto RollDice = CreateIntDistribution({ m_Allocations / 2,  PreviousAllocations.size() });
+                std::shuffle(
+                    PreviousAllocations.begin(), PreviousAllocations.end(),
+                    std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
+            }
 
-					ToDeallocate += RollDice(gen);
+            std::vector<std::pair<void*, size_t>> CurrentFrameAllocations(m_Allocations, std::pair<void*, size_t>(nullptr, 0));
 
-					std::shuffle(PreviousAllocations.begin(), PreviousAllocations.end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
-				}
+            int allocation   = 0;
+            int deallocation = 0;
 
-				std::vector<std::pair<void*, size_t>> CurrentFrameAllocations(m_Allocations, std::pair<void*, size_t>(nullptr, 0));
+            std::random_device rd;
+            std::mt19937       gen(rd());
 
-				int allocation = 0;
-				int deallocation = 0;
+            auto FrameAllocationDistribution = CreateIntDistribution({sizeof(uintptr_t), 255});
 
-				std::random_device rd;
-				std::mt19937 gen(rd());
+            for (;;)
+            {
+                if (deallocation == ToDeallocate && allocation == m_Allocations)
+                    break;
 
-				auto FrameAllocationDistribution = CreateIntDistribution({ sizeof(uintptr_t), 255 });
+                if (deallocation < ToDeallocate)
+                {
+                    m_Allocator->Free(PreviousAllocations[deallocation].first);
+                    deallocation++;
+                }
+                if (allocation < m_Allocations)
+                {
+                    auto AllocationSize                 = FrameAllocationDistribution(gen);
+                    auto Value                          = m_Allocator->Allocate(AllocationSize);
+                    CurrentFrameAllocations[allocation] = std::pair<void*, size_t>(Value, AllocationSize);
+                    allocation++;
+                }
+            }
 
-				for (;;)
-				{
-					if (deallocation == ToDeallocate && allocation == m_Allocations)
-						break;
+            PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
 
-					if (deallocation < ToDeallocate)
-					{
-						m_Allocator->Free(PreviousAllocations[deallocation].first);
-						deallocation++;
-					}
-					if (allocation < m_Allocations)
-					{
-						auto AllocationSize = FrameAllocationDistribution(gen);
-						auto Value = m_Allocator->Allocate(AllocationSize);
-						CurrentFrameAllocations[allocation] = std::pair<void*, size_t>(Value, AllocationSize);
-						allocation++;
-					}
-				}
+            PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
+        }
 
-				PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
+        m_Result = Result::kOk;
+    }
 
-				PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
+    virtual void Cleanup() override
+    {
+        AutomationTest::Cleanup();
 
-			}
-
-			m_Result = Result::kOk;
-		}
-
-		virtual void Cleanup() override
-		{
-			AutomationTest::Cleanup();
-
-			m_Allocator = nullptr;
-		}
-	};
-}
+        m_Allocator = nullptr;
+    }
+};
+} // namespace Zn::Automation
 
 DEFINE_AUTOMATION_STARTUP_TEST(TinyAllocatorTest, Zn::Automation::TinyAllocatorStrategyTest, size_t(Zn::StorageUnit::GigaByte) * 1, 250000, 2);

@@ -4,12 +4,11 @@
 
 namespace Zn
 {
-	struct RHIMesh;
+struct RHIMesh;
 
-	class MeshImporter
-	{
-	public:
-
-		static bool Import(const String& fileName, RHIMesh& mesh);
-	};
-}
+class MeshImporter
+{
+  public:
+    static bool Import(const String& fileName, RHIMesh& mesh);
+};
+} // namespace Zn

@@ -5,18 +5,18 @@
 
 namespace Zn
 {
-	struct RHITexture
-	{
-		i32 width;
+struct RHITexture
+{
+    i32 width;
 
-		i32 height;
+    i32 height;
 
-		vk::Format format;
+    vk::Format format;
 
-		vk::Image image;
+    vk::Image image;
 
-		vk::ImageView imageView;
+    vk::ImageView imageView;
 
-		vma::Allocation allocation;
-	};
-}
+    vma::Allocation allocation;
+};
+} // namespace Zn

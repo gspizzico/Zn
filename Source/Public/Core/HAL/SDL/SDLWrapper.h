@@ -2,22 +2,20 @@
 
 namespace Zn
 {
-	class SDLWrapper
-	{
-	public:
+class SDLWrapper
+{
+  public:
+    static bool Initialize();
 
-		static bool Initialize();
+    static void Shutdown();
 
-		static void Shutdown();
+    static bool IsInitialized();
 
-		static bool IsInitialized();
+  private:
+    SDLWrapper() = default;
 
-	private:
+    static SDLWrapper& Get();
 
-		SDLWrapper() = default;
-
-		static SDLWrapper& Get();
-
-		bool m_Initialized{ false };
-	};
-}
+    bool m_Initialized {false};
+};
+} // namespace Zn

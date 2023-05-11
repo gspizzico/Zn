@@ -3,30 +3,27 @@
 
 namespace Zn
 {
-	struct RHIInputLayout;
+struct RHIInputLayout;
 
-	class VulkanPipeline
-	{
-	public:
-		
-		static const RHIInputLayout defaultInputLayout;
+class VulkanPipeline
+{
+  public:
+    static const RHIInputLayout defaultInputLayout;
 
-		static vk::PipelineShaderStageCreateInfo CreateShaderStage(vk::ShaderStageFlagBits stageFlags, vk::ShaderModule shaderModule);
-		
-		static vk::PipelineInputAssemblyStateCreateInfo CreateInputAssembly(vk::PrimitiveTopology topology);
-		
-		static vk::PipelineRasterizationStateCreateInfo CreateRasterization(vk::PolygonMode polygonMode);
-		
-		static vk::PipelineMultisampleStateCreateInfo CreateMSAA();
-		
-		static vk::PipelineColorBlendAttachmentState CreateColorBlendAttachmentState();
+    static vk::PipelineShaderStageCreateInfo CreateShaderStage(vk::ShaderStageFlagBits stageFlags, vk::ShaderModule shaderModule);
 
-		static vk::PipelineDepthStencilStateCreateInfo CreateDepthStencil(bool depthTest, bool depthWrite, vk::CompareOp compareOp);
+    static vk::PipelineInputAssemblyStateCreateInfo CreateInputAssembly(vk::PrimitiveTopology topology);
 
-		static vk::Pipeline NewVkPipeline(vk::Device device, vk::RenderPass renderPass, 
-										vk::ShaderModule vertexShader, vk::ShaderModule fragmentShader, 
-										vk::Extent2D swapChainExtent, vk::PipelineLayout pipelineLayout, 
-										const RHIInputLayout& inputLayout = defaultInputLayout);
+    static vk::PipelineRasterizationStateCreateInfo CreateRasterization(vk::PolygonMode polygonMode);
 
-	};
-}
+    static vk::PipelineMultisampleStateCreateInfo CreateMSAA();
+
+    static vk::PipelineColorBlendAttachmentState CreateColorBlendAttachmentState();
+
+    static vk::PipelineDepthStencilStateCreateInfo CreateDepthStencil(bool depthTest, bool depthWrite, vk::CompareOp compareOp);
+
+    static vk::Pipeline NewVkPipeline(
+        vk::Device device, vk::RenderPass renderPass, vk::ShaderModule vertexShader, vk::ShaderModule fragmentShader, vk::Extent2D swapChainExtent,
+        vk::PipelineLayout pipelineLayout, const RHIInputLayout& inputLayout = defaultInputLayout);
+};
+} // namespace Zn

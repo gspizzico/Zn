@@ -15,336 +15,337 @@ DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_TLSFAllocator2, ELogVerbosity::Log)
 
 namespace Zn::Automation
 {
-	class TLSFAutomationTest : public AutomationTest
-	{
-	public:
+class TLSFAutomationTest : public AutomationTest
+{
+  public:
+    TLSFAutomationTest()
+        : m_Iterations(2)
+        , m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
+        , m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
+    {
+    }
 
-		TLSFAutomationTest()
-			: m_Iterations(2)
-			, m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
-			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
-		{}
+    TLSFAutomationTest(size_t iterations)
+        : m_Iterations(iterations)
+        , m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
+        , m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
+    {
+    }
 
-		TLSFAutomationTest(size_t iterations)
-			: m_Iterations(iterations)
-			, m_MinAllocationSize(TLSFAllocator::FreeBlock::kMinBlockSize)
-			, m_MaxAllocationSize(TLSFAllocator::kMaxAllocationSize)
-		{}
+    TLSFAutomationTest(size_t iterations, size_t min_allocation_size, size_t max_allocation_size)
+        : m_Iterations(iterations)
+        , m_MinAllocationSize(std::clamp<size_t>(min_allocation_size, sizeof(uintptr_t), TLSFAllocator::kMaxAllocationSize))
+        , m_MaxAllocationSize(std::clamp<size_t>(max_allocation_size, m_MinAllocationSize, TLSFAllocator::kMaxAllocationSize))
+    {
+    }
 
-		TLSFAutomationTest(size_t iterations, size_t min_allocation_size, size_t max_allocation_size)
-			: m_Iterations(iterations)
-			, m_MinAllocationSize(std::clamp<size_t>(min_allocation_size, sizeof(uintptr_t), TLSFAllocator::kMaxAllocationSize))
-			, m_MaxAllocationSize(std::clamp<size_t>(max_allocation_size, m_MinAllocationSize, TLSFAllocator::kMaxAllocationSize))
-		{}
+    virtual void Execute() override
+    {
+        VirtualMemoryRegion memory(1ull << 36ull);
 
-		virtual void Execute() override
-		{
-			VirtualMemoryRegion memory(1ull << 36ull);
-			
-			auto Allocator = TLSFAllocator(memory.Range());
+        auto Allocator = TLSFAllocator(memory.Range());
 
-			std::array<std::vector<void*>, 2> Pointers;
+        std::array<std::vector<void*>, 2> Pointers;
 
-			std::array<std::vector<size_t>, 2> SizesArray;
+        std::array<std::vector<size_t>, 2> SizesArray;
 
-			Pointers[0] = std::vector<void*>(m_Iterations, 0);
-			Pointers[1] = std::vector<void*>(m_Iterations, 0);
+        Pointers[0] = std::vector<void*>(m_Iterations, 0);
+        Pointers[1] = std::vector<void*>(m_Iterations, 0);
 
-			SizesArray[0] = std::vector<size_t>(m_Iterations, 0);
-			SizesArray[1] = std::vector<size_t>(m_Iterations, 0);
+        SizesArray[0] = std::vector<size_t>(m_Iterations, 0);
+        SizesArray[1] = std::vector<size_t>(m_Iterations, 0);
 
-			uint8 flip_flop = 0;
+        uint8 flip_flop = 0;
 
-			for (int32 k = static_cast<int32>(m_Iterations - 1); k >= 0; k--)
-			{
-				std::chrono::high_resolution_clock hrc;
-				std::random_device rd;
-				std::mt19937 gen(rd());
-				std::uniform_int_distribution<size_t> dis(m_MinAllocationSize, (int) m_MaxAllocationSize);
+        for (int32 k = static_cast<int32>(m_Iterations - 1); k >= 0; k--)
+        {
+            std::chrono::high_resolution_clock    hrc;
+            std::random_device                    rd;
+            std::mt19937                          gen(rd());
+            std::uniform_int_distribution<size_t> dis(m_MinAllocationSize, (int) m_MaxAllocationSize);
 
-				auto& MemoryBlocks = Pointers[flip_flop];
+            auto& MemoryBlocks = Pointers[flip_flop];
 
-				auto& Sizes = SizesArray[flip_flop];
+            auto& Sizes = SizesArray[flip_flop];
 
-				auto PreviousIterationAllocations = (k < (m_Iterations - 1)) ? &Pointers[!flip_flop] : nullptr;
+            auto PreviousIterationAllocations = (k < (m_Iterations - 1)) ? &Pointers[!flip_flop] : nullptr;
 
-				if (PreviousIterationAllocations)
-				{
-					std::shuffle(PreviousIterationAllocations->begin(), PreviousIterationAllocations->end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
-				}
+            if (PreviousIterationAllocations)
+            {
+                std::shuffle(
+                    PreviousIterationAllocations->begin(), PreviousIterationAllocations->end(),
+                    std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
+            }
 
+            for (size_t i = 0; i < m_Iterations; ++i)
+            {
+                if (PreviousIterationAllocations)
+                {
+                    Allocator.Free((*PreviousIterationAllocations)[i]);
+                }
 
-				for (size_t i = 0; i < m_Iterations; ++i)
-				{
-					if (PreviousIterationAllocations)
-					{
-						Allocator.Free((*PreviousIterationAllocations)[i]);
-					}
-
-					auto Size = Memory::Align(dis(gen), sizeof(unsigned long));
-					Sizes[i] = (Size);
-					MemoryBlocks[i] = (Allocator.Allocate(Size));
-				}
+                auto Size       = Memory::Align(dis(gen), sizeof(unsigned long));
+                Sizes[i]        = (Size);
+                MemoryBlocks[i] = (Allocator.Allocate(Size));
+            }
 #if ZN_LOGGING
-				static constexpr size_t kZero = 0;
-				auto total_allocated = std::accumulate(Sizes.begin(), Sizes.end(), kZero);
-				ZN_LOG(LogAutomationTest_TLSFAllocator, ELogVerbosity::Verbose, "Allocated %i bytes", total_allocated);
+            static constexpr size_t kZero           = 0;
+            auto                    total_allocated = std::accumulate(Sizes.begin(), Sizes.end(), kZero);
+            ZN_LOG(LogAutomationTest_TLSFAllocator, ELogVerbosity::Verbose, "Allocated %i bytes", total_allocated);
 
-				if (auto PreviousIterationSizes = (k < (m_Iterations - 1)) ? &SizesArray[!flip_flop] : nullptr)
-				{
-					auto total_freed = std::accumulate(PreviousIterationSizes->begin(), PreviousIterationSizes->end(), kZero);
-					ZN_LOG(LogAutomationTest_TLSFAllocator, ELogVerbosity::Verbose, "Freed %i bytes", total_freed);
-				}
+            if (auto PreviousIterationSizes = (k < (m_Iterations - 1)) ? &SizesArray[!flip_flop] : nullptr)
+            {
+                auto total_freed = std::accumulate(PreviousIterationSizes->begin(), PreviousIterationSizes->end(), kZero);
+                ZN_LOG(LogAutomationTest_TLSFAllocator, ELogVerbosity::Verbose, "Freed %i bytes", total_freed);
+            }
 #endif
 
-				flip_flop = static_cast<uint8>(!flip_flop);
-			}
+            flip_flop = static_cast<uint8>(!flip_flop);
+        }
 
-			m_Result = Result::kOk;
-		}
+        m_Result = Result::kOk;
+    }
 
-		virtual bool ShouldQuitWhenCriticalError() const override
-		{
-			return false;
-		}
+    virtual bool ShouldQuitWhenCriticalError() const override
+    {
+        return false;
+    }
 
-	private:
+  private:
+    size_t m_Iterations;
 
-		size_t m_Iterations;
+    size_t m_MinAllocationSize;
 
-		size_t m_MinAllocationSize;
+    size_t m_MaxAllocationSize;
+};
 
-		size_t m_MaxAllocationSize;
-	};
+class TLSFAutomationTest2 : public AutomationTest
+{
+  private:
+    struct Allocation
+    {
+        void*  m_Address;
+        size_t m_Size;
+    };
 
-	class TLSFAutomationTest2 : public AutomationTest
-	{
-	private:
+    struct Data
+    {
+        // Large Memory
+        static constexpr size_t kLargeMemoryAllocations = 15000;
 
-		struct Allocation
-		{
-			void* m_Address;
-			size_t	m_Size;
-		};
+        static constexpr std::pair<size_t, size_t> kLargeMemoryAllocationRange = {8192, TLSFAllocator::kMaxAllocationSize};
 
-		struct Data
-		{
-			// Large Memory
-			static constexpr size_t kLargeMemoryAllocations = 15000;
+        // Frame Memory
+        static constexpr size_t kFrameMemoryAllocations = 18000;
 
-			static constexpr std::pair<size_t, size_t> kLargeMemoryAllocationRange = { 8192, TLSFAllocator::kMaxAllocationSize };
+        static constexpr std::pair<size_t, size_t> kFrameAllocationRange = {8, 512};
 
-			// Frame Memory
-			static constexpr size_t kFrameMemoryAllocations = 18000;
+        static constexpr size_t kNumberOfFrames = 60 * 10;
 
-			static constexpr std::pair<size_t, size_t> kFrameAllocationRange = { 8, 512 };
+        // Memory Spikes
+        static constexpr size_t kMemorySpikesNum = kNumberOfFrames / 4;
 
-			static constexpr size_t kNumberOfFrames = 60 * 10;
+        static constexpr std::pair<size_t, size_t> kMemorySpikeAllocationRange = {2048, 16384};
 
-			// Memory Spikes
-			static constexpr size_t kMemorySpikesNum = kNumberOfFrames / 4;
+        //////////////////////////////////////////////////////////////////////////////////////////////////
 
-			static constexpr std::pair<size_t, size_t> kMemorySpikeAllocationRange = { 2048, 16384 };
+        UniquePtr<TLSFAllocator> m_Allocator;
 
-			//////////////////////////////////////////////////////////////////////////////////////////////////
+        VirtualMemoryRegion m_Region = VirtualMemoryRegion(Memory::GetMemoryStatus().m_TotalPhys);
 
-			UniquePtr<TLSFAllocator> m_Allocator;
+        std::array<Allocation, kLargeMemoryAllocations> m_LargeMemoryAllocations;
 
-			VirtualMemoryRegion m_Region = VirtualMemoryRegion(Memory::GetMemoryStatus().m_TotalPhys);
+        std::array<Allocation, kFrameMemoryAllocations> m_LastFrameAllocations;
 
-			std::array<Allocation, kLargeMemoryAllocations> m_LargeMemoryAllocations;
+        std::array<Allocation, kMemorySpikesNum> m_SpikesAllocations;
+    };
 
-			std::array<Allocation, kFrameMemoryAllocations> m_LastFrameAllocations;
+    std::unique_ptr<Data> m_AllocationData;
 
-			std::array<Allocation, kMemorySpikesNum>		m_SpikesAllocations;
-		};
+    std::array<int, Data::kMemorySpikesNum> m_MemorySpikeFramesIndices;
 
-		std::unique_ptr<Data> m_AllocationData;
+    size_t m_CurrentFrameSpikeIndex;
 
-		std::array<int, Data::kMemorySpikesNum> m_MemorySpikeFramesIndices;
+    size_t m_NextSpikeIndex;
 
-		size_t m_CurrentFrameSpikeIndex;
+  public:
+    virtual void Prepare() override
+    {
+        m_AllocationData              = std::make_unique<Data>();
+        m_AllocationData->m_Allocator = std::make_unique<TLSFAllocator>(m_AllocationData->m_Region.Range());
 
-		size_t m_NextSpikeIndex;
+        auto SpikesDistribution = CreateIntDistribution({0, Data::kNumberOfFrames});
 
-	public:
+        std::random_device rd;
+        std::mt19937       gen(rd());
 
-		virtual void Prepare() override
-		{
-			m_AllocationData = std::make_unique<Data>();
-			m_AllocationData->m_Allocator = std::make_unique<TLSFAllocator>(m_AllocationData->m_Region.Range());
+        size_t ComputedFrames = 0;
 
-			auto SpikesDistribution = CreateIntDistribution({ 0, Data::kNumberOfFrames });
+        auto IsDuplicate = [this, &ComputedFrames](const auto Index) -> bool
+        {
+            auto Predicate = [Index](const auto& Element)
+            {
+                return Index == Element;
+            };
+            return std::any_of(m_MemorySpikeFramesIndices.cbegin(), m_MemorySpikeFramesIndices.cbegin() + ComputedFrames, Predicate);
+        };
 
-			std::random_device rd;
-			std::mt19937 gen(rd());
+        m_MemorySpikeFramesIndices.fill(-1);
 
-			size_t ComputedFrames = 0;
+        while (ComputedFrames < Data::kMemorySpikesNum)
+        {
+            auto Index = SpikesDistribution(gen);
+            if (!IsDuplicate(Index))
+            {
+                m_MemorySpikeFramesIndices[ComputedFrames++] = static_cast<int>(Index);
+            }
+        }
 
-			auto IsDuplicate = [this, &ComputedFrames](const auto Index) -> bool
-			{
-				auto Predicate = [Index](const auto& Element)
-				{
-					return Index == Element;
-				};
-				return std::any_of(m_MemorySpikeFramesIndices.cbegin(), m_MemorySpikeFramesIndices.cbegin() + ComputedFrames, Predicate);
-			};
+        std::sort(std::begin(m_MemorySpikeFramesIndices), std::end(m_MemorySpikeFramesIndices));
 
-			m_MemorySpikeFramesIndices.fill(-1);
+        m_CurrentFrameSpikeIndex = 0;
+        m_NextSpikeIndex         = m_MemorySpikeFramesIndices[m_CurrentFrameSpikeIndex];
+    }
 
-			while (ComputedFrames < Data::kMemorySpikesNum)
-			{
-				auto Index = SpikesDistribution(gen);
-				if (!IsDuplicate(Index))
-				{
-					m_MemorySpikeFramesIndices[ComputedFrames++] = static_cast<int>(Index);
-				}
-			}
+    std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
+    {
+        return std::uniform_int_distribution<size_t>(range.first, range.second);
+    }
 
-			std::sort(std::begin(m_MemorySpikeFramesIndices), std::end(m_MemorySpikeFramesIndices));
+    template<typename Array> void Allocate(size_t allocation_size, size_t index, Array& storage)
+    {
+        auto AllocatedAddress = m_AllocationData->m_Allocator->Allocate(allocation_size);
 
-			m_CurrentFrameSpikeIndex = 0;
-			m_NextSpikeIndex = m_MemorySpikeFramesIndices[m_CurrentFrameSpikeIndex];
-		}
+        Allocation Block = {AllocatedAddress, allocation_size};
 
-		std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
-		{
-			return std::uniform_int_distribution<size_t>(range.first, range.second);
-		}
+        storage[index] = std::move(Block);
+    }
 
-		template<typename Array>
-		void Allocate(size_t allocation_size, size_t index, Array& storage)
-		{
-			auto AllocatedAddress = m_AllocationData->m_Allocator->Allocate(allocation_size);
+    void TryAllocateSpike(int frame)
+    {
+        if (frame == m_NextSpikeIndex)
+        {
+            auto SpikeDistribution = CreateIntDistribution({Data::kMemorySpikeAllocationRange});
 
-			Allocation Block = { AllocatedAddress, allocation_size };
+            std::random_device rd;
+            std::mt19937       gen(rd());
 
-			storage[index] = std::move(Block);
-		}
+            auto AllocationSize = Memory::Align(SpikeDistribution(gen), sizeof(uintptr_t));
 
-		void TryAllocateSpike(int frame)
-		{
-			if (frame == m_NextSpikeIndex)
-			{
-				auto SpikeDistribution = CreateIntDistribution({ Data::kMemorySpikeAllocationRange });
+            Allocate(AllocationSize, m_CurrentFrameSpikeIndex, m_AllocationData->m_SpikesAllocations);
 
-				std::random_device rd;
-				std::mt19937 gen(rd());
+            m_CurrentFrameSpikeIndex++;
+            if (m_CurrentFrameSpikeIndex < m_MemorySpikeFramesIndices.size())
+            {
+                m_NextSpikeIndex = m_MemorySpikeFramesIndices[m_CurrentFrameSpikeIndex];
+            }
+            else
+            {
+                m_NextSpikeIndex         = -1;
+                m_CurrentFrameSpikeIndex = -1;
+            }
+        }
+    }
 
-				auto AllocationSize = Memory::Align(SpikeDistribution(gen), sizeof(uintptr_t));
+    void AllocateLargeMemory() // Simulate large block of memory being allocated.
+    {
+        std::random_device rd;
+        std::mt19937       gen(rd());
 
-				Allocate(AllocationSize, m_CurrentFrameSpikeIndex, m_AllocationData->m_SpikesAllocations);
+        std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kLargeMemoryAllocationRange);
 
-				m_CurrentFrameSpikeIndex++;
-				if (m_CurrentFrameSpikeIndex < m_MemorySpikeFramesIndices.size())
-				{
-					m_NextSpikeIndex = m_MemorySpikeFramesIndices[m_CurrentFrameSpikeIndex];
-				}
-				else
-				{
-					m_NextSpikeIndex = -1;
-					m_CurrentFrameSpikeIndex = -1;
-				}
-			}
-		}
+        for (int i = 0; i < Data::kLargeMemoryAllocations; ++i)
+        {
+            auto AllocationSize = Memory::Align(dis(gen), sizeof(uintptr_t));
 
-		void AllocateLargeMemory()		// Simulate large block of memory being allocated.
-		{
-			std::random_device rd;
-			std::mt19937 gen(rd());
+            Allocate(AllocationSize, i, m_AllocationData->m_LargeMemoryAllocations);
+        }
+    }
 
-			std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kLargeMemoryAllocationRange);
+    void AllocateFrameMemory(const int frame, const int max_frames)
+    {
+        TryAllocateSpike(frame);
 
-			for (int i = 0; i < Data::kLargeMemoryAllocations; ++i)
-			{
-				auto AllocationSize = Memory::Align(dis(gen), sizeof(uintptr_t));
+        using TFrameAllocations                                    = decltype(Data::m_LastFrameAllocations);
+        std::unique_ptr<TFrameAllocations> CurrentFrameAllocations = std::make_unique<TFrameAllocations>();
 
-				Allocate(AllocationSize, i, m_AllocationData->m_LargeMemoryAllocations);
-			}
-		}
+        std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kFrameAllocationRange);
 
-		void AllocateFrameMemory(const int frame, const int max_frames)
-		{
-			TryAllocateSpike(frame);
+        std::chrono::high_resolution_clock hrc;
+        std::shuffle(
+            m_AllocationData->m_LastFrameAllocations.begin(), m_AllocationData->m_LastFrameAllocations.end(),
+            std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
 
-			using TFrameAllocations = decltype(Data::m_LastFrameAllocations);
-			std::unique_ptr<TFrameAllocations> CurrentFrameAllocations = std::make_unique<TFrameAllocations>();
+        std::random_device rd;
+        std::mt19937       gen(rd());
 
-			std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kFrameAllocationRange);
+        std::uniform_int_distribution<size_t> RollDice = CreateIntDistribution({0, 100});
 
-			std::chrono::high_resolution_clock hrc;
-			std::shuffle(m_AllocationData->m_LastFrameAllocations.begin(), m_AllocationData->m_LastFrameAllocations.end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
+        const bool CanDeallocate = frame > 0;
 
-			std::random_device rd;
-			std::mt19937 gen(rd());
+        int RemainingDeallocations = CanDeallocate ? static_cast<int>(m_AllocationData->m_LastFrameAllocations.size()) : 0;
 
-			std::uniform_int_distribution<size_t> RollDice = CreateIntDistribution({ 0, 100 });
+        for (int i = 0; i < max_frames; ++i)
+        {
+            if (auto Roll = RollDice(gen); CanDeallocate && Roll >= 60)
+            {
+                m_AllocationData->m_Allocator->Free(m_AllocationData->m_LastFrameAllocations[RemainingDeallocations - 1].m_Address);
+                --RemainingDeallocations;
+            }
 
-			const bool CanDeallocate = frame > 0;
+            auto AllocationSize = Memory::Align(dis(gen), sizeof(uintptr_t));
 
-			int RemainingDeallocations = CanDeallocate ? static_cast<int>(m_AllocationData->m_LastFrameAllocations.size()) : 0;
+            Allocate(AllocationSize, i, *CurrentFrameAllocations);
+        }
 
-			for (int i = 0; i < max_frames; ++i)
-			{
-				if (auto Roll = RollDice(gen); CanDeallocate && Roll >= 60)
-				{
-					m_AllocationData->m_Allocator->Free(m_AllocationData->m_LastFrameAllocations[RemainingDeallocations - 1].m_Address);
-					--RemainingDeallocations;
-				}
+        while (CanDeallocate && RemainingDeallocations > 0)
+        {
+            m_AllocationData->m_Allocator->Free(m_AllocationData->m_LastFrameAllocations[--RemainingDeallocations].m_Address);
+        }
 
-				auto AllocationSize = Memory::Align(dis(gen), sizeof(uintptr_t));
+        m_AllocationData->m_LastFrameAllocations = std::move(*CurrentFrameAllocations);
+    }
 
-				Allocate(AllocationSize, i, *CurrentFrameAllocations);
-			}
+    virtual void Execute() override
+    {
+        AllocateLargeMemory();
 
-			while (CanDeallocate && RemainingDeallocations > 0)
-			{
-				m_AllocationData->m_Allocator->Free(m_AllocationData->m_LastFrameAllocations[--RemainingDeallocations].m_Address);
-			}
+        std::array<long long, Data::kNumberOfFrames> FrameDurations;
 
-			m_AllocationData->m_LastFrameAllocations = std::move(*CurrentFrameAllocations);
-		}
+        auto SavedTime = SystemClock::now();
 
-		virtual void Execute() override
-		{
-			AllocateLargeMemory();
+        for (int i = 0; i < Data::kNumberOfFrames; ++i)
+        {
+            AllocateFrameMemory(i, Data::kFrameMemoryAllocations);
 
-			std::array<long long, Data::kNumberOfFrames> FrameDurations;
+            auto PreviousTime = SavedTime;
+            SavedTime         = SystemClock::now();
 
-			auto SavedTime = SystemClock::now();
+            FrameDurations[i] = std::chrono::duration_cast<std::chrono::milliseconds>(SavedTime - PreviousTime).count();
+        }
 
-			for (int i = 0; i < Data::kNumberOfFrames; ++i)
-			{
-				AllocateFrameMemory(i, Data::kFrameMemoryAllocations);
+        for (int i = 0; i < Data::kNumberOfFrames; ++i)
+        {
+            std::cout << "Frame [" << i << "] duration:\t" << FrameDurations[i] << "ms" << std::endl;
+        }
+        m_Result = Result::kOk;
+    }
 
-				auto PreviousTime = SavedTime;
-				SavedTime = SystemClock::now();
+    virtual void Cleanup() override
+    {
+        AutomationTest::Cleanup();
 
-				FrameDurations[i] = std::chrono::duration_cast<std::chrono::milliseconds>(SavedTime - PreviousTime).count();
-			}
+        m_AllocationData = nullptr;
 
-			for (int i = 0; i < Data::kNumberOfFrames; ++i)
-			{
-				std::cout << "Frame [" << i << "] duration:\t" << FrameDurations[i] << "ms" << std::endl;
-			}
-			m_Result = Result::kOk;
-		}
+        m_MemorySpikeFramesIndices = {-1};
 
-		virtual void Cleanup() override
-		{
-			AutomationTest::Cleanup();
+        m_CurrentFrameSpikeIndex = -1;
 
-			m_AllocationData = nullptr;
-
-			m_MemorySpikeFramesIndices = { -1 };
-
-			m_CurrentFrameSpikeIndex = -1;
-
-			m_NextSpikeIndex = -1;
-		}
-	};
-}
+        m_NextSpikeIndex = -1;
+    }
+};
+} // namespace Zn::Automation
 
 DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000, Zn::Automation::TLSFAutomationTest, 1000);
 DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest2, Zn::Automation::TLSFAutomationTest2);
-//DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000, 4096, Zn::TLSFAllocator::kMaxAllocationSize);
+// DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000, 4096, Zn::TLSFAllocator::kMaxAllocationSize);

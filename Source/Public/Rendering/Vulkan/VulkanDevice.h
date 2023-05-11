@@ -1,211 +1,205 @@
 #pragma once
 
-#include <optional>
-#include <deque>
-#include <functional>
 #include <Core/Containers/Map.h>
+#include <Rendering/RHI/RHITypes.h>
 #include <Rendering/RHI/Vulkan/Vulkan.h>
 #include <Rendering/Vulkan/VulkanTypes.h>
-#include <Rendering/RHI/RHITypes.h>
+#include <deque>
+#include <functional>
+#include <optional>
 
 struct SDL_Window;
 
 namespace Zn
 {
-	struct RHITexture;
-	struct RHIMesh;
-	class Texture;
-	struct ResourceHandle;
+struct RHITexture;
+struct RHIMesh;
+class Texture;
+struct ResourceHandle;
 
-	class VulkanDevice
-	{
+class VulkanDevice
+{
+  public:
+    VulkanDevice();
 
-	public:
+    ~VulkanDevice();
 
-		VulkanDevice();
+    void Initialize(SDL_Window* InWindowHandle, vk::Instance inInstance, vk::SurfaceKHR inSurface);
 
-		~VulkanDevice();
+    void Cleanup();
 
-		void Initialize(SDL_Window* InWindowHandle, vk::Instance inInstance, vk::SurfaceKHR inSurface);
+    void BeginFrame();
 
-		void Cleanup();
+    void Draw();
 
-		void BeginFrame();
+    void EndFrame();
 
-		void Draw();
+    void ResizeWindow();
 
-		void EndFrame();
+    void OnWindowMinimized();
 
-		void ResizeWindow();
+    void OnWindowRestored();
 
-		void OnWindowMinimized();
+  private:
+    friend class VulkanRenderer;
 
-		void OnWindowRestored();
+    static constexpr u64 kWaitTimeOneSecond = 1000000000;
 
-	private:
+    static constexpr size_t kMaxFramesInFlight = 2;
 
-		friend class VulkanRenderer;
-		
-		static constexpr u64 kWaitTimeOneSecond = 1000000000;
+    bool HasRequiredDeviceExtensions(vk::PhysicalDevice inDevice) const;
 
-		static constexpr size_t kMaxFramesInFlight = 2;
+    vk::PhysicalDevice SelectPhysicalDevice(const Vector<vk::PhysicalDevice>& inDevices) const;
 
-		bool HasRequiredDeviceExtensions(vk::PhysicalDevice inDevice) const;
+    QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const;
 
-		vk::PhysicalDevice SelectPhysicalDevice(const Vector<vk::PhysicalDevice>& inDevices) const;
+    SwapChainDetails GetSwapChainDetails(vk::PhysicalDevice inGPU) const;
 
-		QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice inDevice) const;
+    Vector<vk::DeviceQueueCreateInfo> BuildQueueCreateInfo(const QueueFamilyIndices& InIndices) const;
 
-		SwapChainDetails GetSwapChainDetails(vk::PhysicalDevice inGPU) const;
+    vk::ShaderModule CreateShaderModule(const Vector<uint8>& bytes);
 
-		Vector<vk::DeviceQueueCreateInfo> BuildQueueCreateInfo(const QueueFamilyIndices& InIndices) const;
+    void CreateDescriptors();
+    void CreateSwapChain();
+    void CreateImageViews();
+    void CreateFramebuffers();
 
-		vk::ShaderModule CreateShaderModule(const Vector<uint8>& bytes);
+    void CleanupSwapChain();
 
-		void CreateDescriptors();
-		void CreateSwapChain();
-		void CreateImageViews();
-		void CreateFramebuffers();
+    void RecreateSwapChain();
 
-		void CleanupSwapChain();
+    void SetViewport(vk::CommandBuffer cmd);
 
-		void RecreateSwapChain();
+    bool isInitialized {false};
 
-		void SetViewport(vk::CommandBuffer cmd);
+    bool isMinimized {false};
 
-		bool isInitialized{ false };
+    uint32 windowID = 0;
 
-		bool isMinimized{ false };
+    size_t currentFrame = 0;
 
-		uint32 windowID = 0;
+    size_t frameNumber = 0;
 
-		size_t currentFrame = 0;
+    u32 swapChainImageIndex = 0;
 
-		size_t frameNumber = 0;
+    vk::Instance   instance;
+    vk::SurfaceKHR surface;
 
-		u32 swapChainImageIndex = 0;
+    vk::Device         device;
+    vk::PhysicalDevice gpu;
 
-		vk::Instance instance;
-		vk::SurfaceKHR surface;
+    vk::Queue        graphicsQueue;
+    vk::Queue        presentQueue;
+    vk::SwapchainKHR swapChain;
 
-		vk::Device device;
-		vk::PhysicalDevice gpu;
+    vk::SurfaceFormatKHR swapChainFormat {};
+    vk::Extent2D         swapChainExtent {};
 
-		vk::Queue graphicsQueue;
-		vk::Queue presentQueue;
-		vk::SwapchainKHR swapChain;
+    Vector<vk::Image>     swapChainImages;
+    Vector<vk::ImageView> swapChainImageViews;
 
-		vk::SurfaceFormatKHR swapChainFormat{};
-		vk::Extent2D swapChainExtent{};
+    vk::CommandPool           commandPool;
+    Vector<vk::CommandBuffer> commandBuffers;
 
-		Vector<vk::Image> swapChainImages;
-		Vector<vk::ImageView> swapChainImageViews;
+    vk::RenderPass          renderPass;
+    Vector<vk::Framebuffer> frameBuffers {};
 
-		vk::CommandPool commandPool;
-		Vector<vk::CommandBuffer> commandBuffers;
+    vk::Semaphore presentSemaphores[kMaxFramesInFlight], renderSemaphores[kMaxFramesInFlight];
+    vk::Fence     renderFences[kMaxFramesInFlight];
 
-		vk::RenderPass renderPass;
-		Vector<vk::Framebuffer> frameBuffers{};
-		
-		vk::Semaphore presentSemaphores[kMaxFramesInFlight], renderSemaphores[kMaxFramesInFlight];
-		vk::Fence renderFences[kMaxFramesInFlight];
+    vk::DescriptorPool        descriptorPool {};
+    vk::DescriptorSetLayout   globalDescriptorSetLayout {};
+    Vector<vk::DescriptorSet> globalDescriptorSets;
 
-		vk::DescriptorPool descriptorPool{};
-		vk::DescriptorSetLayout globalDescriptorSetLayout{};
-		Vector<vk::DescriptorSet> globalDescriptorSets;
+    RHIBuffer meshDataUBO[kMaxFramesInFlight];
 
-		RHIBuffer meshDataUBO[kMaxFramesInFlight];
+    vk::DescriptorPool imguiDescriptorPool;
 
-		vk::DescriptorPool imguiDescriptorPool;
+    static const Vector<const char*> kDeviceExtensions;
 
-		static const Vector<const char*> kDeviceExtensions;
+    class DestroyQueue
+    {
+      public:
+        ~DestroyQueue();
 
-		class DestroyQueue
-		{
-		public:
+        void Enqueue(std::function<void()>&& InDestructor);
 
-			~DestroyQueue();
+        void Flush();
 
-			void Enqueue(std::function<void()>&& InDestructor);
+      private:
+        std::deque<std::function<void()>> queue {};
+    };
 
-			void Flush();
+    DestroyQueue destroyQueue {};
 
-		private:
+    vma::Allocator allocator;
 
-			std::deque<std::function<void()>> queue{};
-		};
+    RHIBuffer CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage) const;
+    void      DestroyBuffer(RHIBuffer buffer) const;
 
-		DestroyQueue destroyQueue{};
+    // TODO: Naming might be incorrect
+    void CopyToGPU(vma::Allocation allocation, void* src, size_t size) const;
 
-		vma::Allocator allocator;
+    // == Scene Management ==
 
-		RHIBuffer CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage) const;
-		void DestroyBuffer(RHIBuffer buffer) const;
+    Vector<RenderObject>                   renderables;
+    UnorderedMap<ResourceHandle, RHIMesh*> meshes;
 
-		// TODO: Naming might be incorrect
-		void CopyToGPU(vma::Allocation allocation, void* src, size_t size) const;
+    RHIMesh* GetMesh(const String& InName);
 
-		// == Scene Management ==
+    void DrawObjects(vk::CommandBuffer commandBuffer, RenderObject* first, u64 count);
 
-		Vector<RenderObject> renderables;		
-		UnorderedMap<ResourceHandle, RHIMesh*> meshes;
-		
-		RHIMesh* GetMesh(const String& InName);
+    void CreateScene();
 
-		void DrawObjects(vk::CommandBuffer commandBuffer, RenderObject* first, u64 count);
+    // ==================
 
-		void CreateScene();
+    // == Camera ==
+    glm::vec3 cameraPosition {0.f, 0.f, 0.f};
+    glm::vec3 cameraDirection {0.0f, 0.0f, 1.f};
+    glm::vec3 upVector {0.0f, 1.f, 0.f};
 
-		// ==================
+    RHIBuffer cameraBuffer[kMaxFramesInFlight];
+    RHIBuffer lightingBuffer[kMaxFramesInFlight];
 
-		// == Camera ==
-		glm::vec3 cameraPosition{ 0.f, 0.f, 0.f };
-		glm::vec3 cameraDirection { 0.0f, 0.0f, 1.f };
-		glm::vec3 upVector{ 0.0f, 1.f, 0.f };
+    // ==================
 
-		RHIBuffer cameraBuffer[kMaxFramesInFlight];
-		RHIBuffer lightingBuffer[kMaxFramesInFlight];
+    void LoadMeshes();
 
-		// ==================
+    RHIBuffer CreateRHIBuffer(void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const;
 
-		void LoadMeshes();
+    void CreateMeshPipeline();
 
-		RHIBuffer CreateRHIBuffer(void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const;
+    // ===================
 
-		
-		void CreateMeshPipeline();
+    // == Texture ==
 
-		// ===================
+    RHITexture* CreateTexture(const String& texture);
+    RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
+    void        TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
 
-		// == Texture ==
+    // UnorderedMap<String, AllocatedImage> textures;
+    UnorderedMap<ResourceHandle, RHITexture*> textures;
 
-		RHITexture* CreateTexture(const String& texture);
-		RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
-		void TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
+    vk::DescriptorSetLayout singleTextureSetLayout;
 
-		// UnorderedMap<String, AllocatedImage> textures;
-		UnorderedMap<ResourceHandle, RHITexture*> textures;
+    // ===================
 
-		vk::DescriptorSetLayout singleTextureSetLayout;
+    // == Command Buffer ==
 
-		// ===================
+    struct UploadContext
+    {
+        vk::CommandPool   commandPool {VK_NULL_HANDLE};
+        vk::CommandBuffer cmdBuffer {VK_NULL_HANDLE};
+        vk::Fence         fence {VK_NULL_HANDLE};
+    };
 
-		// == Command Buffer ==
+    UploadContext uploadContext {};
 
-		struct UploadContext
-		{
-			vk::CommandPool commandPool{ VK_NULL_HANDLE };
-			vk::CommandBuffer cmdBuffer{ VK_NULL_HANDLE };
-			vk::Fence fence{ VK_NULL_HANDLE };
-		};
-		
-		UploadContext uploadContext{};
-				
-		void ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function) const;
+    void ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& function) const;
 
-		void CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height) const;
+    void CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height) const;
 
-		vk::ImageCreateInfo MakeImageCreateInfo(vk::Format format, vk::ImageUsageFlags usageFlags, vk::Extent3D extent) const;
-		vk::ImageViewCreateInfo MakeImageViewCreateInfo(vk::Format format, vk::Image image, vk::ImageAspectFlagBits aspectFlags) const;
-	};	
-}
+    vk::ImageCreateInfo     MakeImageCreateInfo(vk::Format format, vk::ImageUsageFlags usageFlags, vk::Extent3D extent) const;
+    vk::ImageViewCreateInfo MakeImageViewCreateInfo(vk::Format format, vk::Image image, vk::ImageAspectFlagBits aspectFlags) const;
+};
+} // namespace Zn

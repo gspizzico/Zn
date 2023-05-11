@@ -8,26 +8,24 @@
 
 namespace Zn
 {
-	class ThreeWaysAllocator : public BaseAllocator
-	{
-	public:
+class ThreeWaysAllocator : public BaseAllocator
+{
+  public:
+    ThreeWaysAllocator();
 
-		ThreeWaysAllocator();
+    virtual ~ThreeWaysAllocator() = default;
 
-		virtual ~ThreeWaysAllocator() = default;
+    virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) override;
 
-		virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) override;
+    virtual bool Free(void* ptr) override;
 
-		virtual bool Free(void* ptr) override;
+    // virtual void* Realloc(void* ptr, size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
 
-		//virtual void* Realloc(void* ptr, size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
+  private:
+    VirtualMemoryRegion region;
 
-	private:
-
-		VirtualMemoryRegion region;
-
-		TinyAllocatorStrategy m_Small;
-		TLSFAllocator m_Medium;
-		DirectAllocationStrategy m_Large;
-	};
-}
+    TinyAllocatorStrategy    m_Small;
+    TLSFAllocator            m_Medium;
+    DirectAllocationStrategy m_Large;
+};
+} // namespace Zn

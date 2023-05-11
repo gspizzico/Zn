@@ -5,10 +5,10 @@
 
 namespace Zn
 {
-	struct RHIInputLayout
-	{
-		Vector<vk::VertexInputBindingDescription> bindings;
-		Vector<vk::VertexInputAttributeDescription> attributes;
-		vk::PipelineVertexInputStateCreateFlags flags{ 0 };
-	};
-}
+struct RHIInputLayout
+{
+    Vector<vk::VertexInputBindingDescription>   bindings;
+    Vector<vk::VertexInputAttributeDescription> attributes;
+    vk::PipelineVertexInputStateCreateFlags     flags {0};
+};
+} // namespace Zn

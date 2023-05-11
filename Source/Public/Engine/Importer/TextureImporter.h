@@ -4,33 +4,32 @@
 
 namespace Zn
 {
-	enum class TextureImporterType
-	{
-		None,
-		STB
-	};
+enum class TextureImporterType
+{
+    None,
+    STB
+};
 
-	struct TextureSource
-	{
-		~TextureSource();
+struct TextureSource
+{
+    ~TextureSource();
 
-		const i32 width;
-		const i32 height;
-		const i32 channels;
-		const i32 size;
-		u8* const data;
-		const TextureImporterType importerType;
-	};
+    const i32                 width;
+    const i32                 height;
+    const i32                 channels;
+    const i32                 size;
+    u8* const                 data;
+    const TextureImporterType importerType;
+};
 
-	class TextureImporter
-	{
-	public:
+class TextureImporter
+{
+  public:
+    static SharedPtr<TextureSource> Import(const String& path);
 
-		static SharedPtr<TextureSource> Import(const String& path);
-	private:
+  private:
+    friend TextureSource;
 
-		friend TextureSource;
-
-		static void Release(const TextureSource& texture);
-	};
-}
+    static void Release(const TextureSource& texture);
+};
+} // namespace Zn

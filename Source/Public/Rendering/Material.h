@@ -5,21 +5,21 @@
 
 namespace Zn
 {
-	struct Material
-	{
-		vk::Pipeline pipeline;
-		vk::PipelineLayout layout;
+struct Material
+{
+    vk::Pipeline       pipeline;
+    vk::PipelineLayout layout;
 
-		vk::ShaderModule vertexShader;
-		vk::ShaderModule fragmentShader;
+    vk::ShaderModule vertexShader;
+    vk::ShaderModule fragmentShader;
 
-		// Textures
-		UnorderedMap<String, vk::ImageView> textureImageViews;
-		UnorderedMap<String, vk::Sampler> textureSamplers;
+    // Textures
+    UnorderedMap<String, vk::ImageView> textureImageViews;
+    UnorderedMap<String, vk::Sampler>   textureSamplers;
 
-		// Material parameters
-		UnorderedMap<String, f32> parameters;
+    // Material parameters
+    UnorderedMap<String, f32> parameters;
 
-		vk::DescriptorSet textureSet;
-	};
-}
+    vk::DescriptorSet textureSet;
+};
+} // namespace Zn

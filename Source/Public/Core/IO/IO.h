@@ -2,22 +2,20 @@
 
 namespace Zn
 {
-	class IO
-	{
-	public:
+class IO
+{
+  public:
+    static void Initialize();
 
-		static void Initialize();
+    static bool ReadBinaryFile(const String& InFilename, Vector<uint8>& OutData);
 
-		static bool ReadBinaryFile(const String& InFilename, Vector<uint8>& OutData);
+    static bool ReadTextFile(const String& InFilename, Vector<const char*>& OutData);
 
-		static bool ReadTextFile(const String& InFilename, Vector<const char*>& OutData);
+    static String GetAbsolutePath(const String& InFilename);
 
-		static String GetAbsolutePath(const String& InFilename);
+  private:
+    static String kExecutablePath;
 
-	private:
-
-		static String kExecutablePath;
-
-		static String kRootPath;
-	};
-}
+    static String kRootPath;
+};
+} // namespace Zn

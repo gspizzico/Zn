@@ -5,20 +5,18 @@
 
 namespace Zn
 {
-	class DirectAllocationStrategy
-	{
-	public:
+class DirectAllocationStrategy
+{
+  public:
+    DirectAllocationStrategy(size_t min_allocation_size);
 
-		DirectAllocationStrategy(size_t min_allocation_size);
+    void* Allocate(size_t size, size_t alignment = sizeof(uintptr_t));
 
-		void* Allocate(size_t size, size_t alignment = sizeof(uintptr_t));
+    bool Free(void* address);
 
-		bool Free(void* address);
+  private:
+    size_t m_MinAllocationSize;
 
-	private:
-
-		size_t m_MinAllocationSize;
-
-		UnorderedSet<void*> m_Allocations;
-	};
-}
+    UnorderedSet<void*> m_Allocations;
+};
+} // namespace Zn

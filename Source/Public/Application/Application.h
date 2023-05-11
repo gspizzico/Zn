@@ -4,40 +4,38 @@
 
 namespace Zn
 {
-	class Window;
-	class Engine;
-	struct InputState;
+class Window;
+class Engine;
+struct InputState;
 
-	class Application
-	{
-	public:		
+class Application
+{
+  public:
+    static Application& Get();
 
-		static Application& Get();
+    void Initialize();
 
-		void Initialize();
+    void Shutdown();
 
-		void Shutdown();
+    bool ProcessOSEvents(float deltaTime);
 
-		bool ProcessOSEvents(float deltaTime);
+    SharedPtr<Window> GetWindow() const;
 
-		SharedPtr<Window> GetWindow() const;
+    SharedPtr<InputState> GetInputState() const;
 
-		SharedPtr<InputState> GetInputState() const;
+    void RequestExit(String exitReason);
 
-		void RequestExit(String exitReason);
+    bool WantsToExit() const;
 
-		bool WantsToExit() const;
+  private:
+    Application() = default;
 
-	private:
+    SharedPtr<Window> window;
 
-		Application() = default;
+    SharedPtr<InputState> input;
 
-		SharedPtr<Window> window;
+    bool is_initialized = false;
 
-		SharedPtr<InputState> input;
-
-		bool is_initialized = false;
-
-		bool is_exit_requested = false;
-	};
-}
+    bool is_exit_requested = false;
+};
+} // namespace Zn

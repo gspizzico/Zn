@@ -6,110 +6,109 @@
 
 namespace Zn
 {
-	class PageAllocator
-	{
-	public:
+class PageAllocator
+{
+  public:
+    static constexpr uint64_t kFreePagePattern = 0xfb;
 
-		static constexpr uint64_t kFreePagePattern = 0xfb;
+    PageAllocator(MemoryRange inMemoryRange, u32 pageSize);
 
-		PageAllocator(MemoryRange inMemoryRange, u32 pageSize);
+    size_t GetUsedMemory() const
+    {
+        return m_AllocatedPages * PageSize();
+    }
 
-		size_t GetUsedMemory() const
-		{
-			return m_AllocatedPages * PageSize();
-		}
+    float GetMemoryUtilization() const
+    {
+        return (float) GetUsedMemory() / (float) m_Tracker.GetCommittedMemory();
+    }
 
-		float GetMemoryUtilization() const
-		{
-			return (float) GetUsedMemory() / (float) m_Tracker.GetCommittedMemory();
-		}
+    void* Allocate();
 
-		void* Allocate();
+    bool Free(void* address);
 
-		bool Free(void* address);
+    size_t PageSize() const
+    {
+        return m_Tracker.m_PageSize;
+    }
 
-		size_t PageSize() const
-		{
-			return m_Tracker.m_PageSize;
-		}
+    bool IsAllocated(void* address) const;
 
-		bool IsAllocated(void* address) const;
+    void* GetPageAddress(void* address) const;
 
-		void* GetPageAddress(void* address) const;
+    const MemoryRange& Range() const
+    {
+        return m_Memory;
+    }
 
-		const MemoryRange& Range() const
-		{
-			return m_Memory;
-		}
+  private:
+    bool CommitMemory();
 
-	private:
+    static constexpr float kStartDecommitThreshold = .4f;
 
-		bool CommitMemory();
+    static constexpr float kEndDecommitThreshold = .8f;
 
-		static constexpr float kStartDecommitThreshold = .4f;
+    struct CommittedMemoryTracker : public SystemAllocator
+    {
+        CommittedMemoryTracker() = default;
 
-		static constexpr float kEndDecommitThreshold = .8f;
+        CommittedMemoryTracker(MemoryRange range, size_t block_size);
 
-		struct CommittedMemoryTracker : public SystemAllocator
-		{
-			CommittedMemoryTracker() = default;
+        void OnCommit(void* address);
 
-			CommittedMemoryTracker(MemoryRange range, size_t block_size);
+        void OnFree(void* address);
 
-			void OnCommit(void* address);
+        bool IsCommitted(void* address) const;
 
-			void OnFree(void* address);
+        void* GetNextPageToCommit() const;
 
-			bool IsCommitted(void* address) const;
+        size_t GetCommittedMemory() const
+        {
+            return m_CommittedPages * m_PageSize;
+        }
 
-			void* GetNextPageToCommit() const;
+        size_t PageNumber(void* address) const;
 
-			size_t GetCommittedMemory() const
-			{
-				return m_CommittedPages * m_PageSize;
-			}
+        MemoryRange m_AddressRange;
 
-			size_t PageNumber(void* address) const;
+        size_t m_PageSize = 0;
 
-			MemoryRange m_AddressRange;
+        size_t m_PageSizeMSB = 0;
 
-			size_t m_PageSize = 0;
+        size_t m_CommittedPages = 0;
 
-			size_t m_PageSizeMSB = 0;
+        Vector<uint64_t> m_CommittedPagesMasks; // Each value is a mask that tells for each bit, if that block is committed. (bit == block)
 
-			size_t m_CommittedPages = 0;
+        Vector<uint64_t> m_CommittedIndexMasks; // Each value is a mask that tells for each bit, if that mask if committed. (bit == mask)
 
-			Vector<uint64_t> m_CommittedPagesMasks;	// Each value is a mask that tells for each bit, if that block is committed. (bit == block)
+        static constexpr size_t kMaskSize = sizeof(uint64_t) * 8;
 
-			Vector<uint64_t> m_CommittedIndexMasks; // Each value is a mask that tells for each bit, if that mask if committed. (bit == mask)
+        static constexpr uint64_t kFullCommittedMask = 0xFFFFFFFFFFFFFFFF;
+    };
 
-			static constexpr size_t kMaskSize = sizeof(uint64_t) * 8;
+    MemoryRange m_Memory;
 
-			static constexpr uint64_t kFullCommittedMask = 0xFFFFFFFFFFFFFFFF;
-		};
+    CommittedMemoryTracker m_Tracker;
 
-		MemoryRange m_Memory;
+    size_t m_AllocatedPages = 0;
 
-		CommittedMemoryTracker m_Tracker;
+    void* m_NextFreePage = nullptr;
 
-		size_t m_AllocatedPages = 0;
+    struct FreePage
+    {
+        FreePage(void* nextPage)
+            : m_Pattern(kFreePagePattern)
+            , m_Next(nextPage)
+        {
+        }
 
-		void* m_NextFreePage = nullptr;
+        uint64_t m_Pattern;
+        void*    m_Next;
 
-		struct FreePage
-		{
-			FreePage(void* nextPage)
-				: m_Pattern(kFreePagePattern)
-				, m_Next(nextPage)
-			{}
-
-			uint64_t m_Pattern;
-			void* m_Next;
-
-			bool IsValid() const
-			{
-				return m_Pattern == kFreePagePattern;
-			}
-		};
-	};
-}
+        bool IsValid() const
+        {
+            return m_Pattern == kFreePagePattern;
+        }
+    };
+};
+} // namespace Zn

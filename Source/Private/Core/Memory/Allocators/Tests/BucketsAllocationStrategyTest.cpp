@@ -13,95 +13,99 @@ DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_BucketsAllocationStrategy, ELogVerb
 
 namespace Zn::Automation
 {
-	class BucketsAllocationStrategyAutomationTest : public AutomationTest
-	{
-	private:
+class BucketsAllocationStrategyAutomationTest : public AutomationTest
+{
+  private:
+    std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
+    {
+        return std::uniform_int_distribution<size_t>(range.first, range.second);
+    }
 
-		std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
-		{
-			return std::uniform_int_distribution<size_t>(range.first, range.second);
-		}
+    size_t m_Allocations;
 
-		size_t m_Allocations;
+    size_t m_Frames;
 
-		size_t m_Frames;
+  public:
+    BucketsAllocationStrategyAutomationTest(size_t allocations, size_t frames)
+        : m_Allocations(allocations)
+        , m_Frames(frames)
+    {
+    }
 
-	public:
+    virtual void Execute()
+    {
+        VirtualMemoryRegion memory(1ull << 29ull);
 
-		BucketsAllocationStrategyAutomationTest(size_t allocations, size_t frames)
-			: m_Allocations(allocations)
-			, m_Frames(frames)
-		{}
+        Zn::BucketsAllocationStrategy Strategy =
+            BucketsAllocationStrategy(std::make_shared<PageAllocator>(memory.Range(), VirtualMemory::GetPageSize()), 1ull << 8ull);
 
-		virtual void Execute()
-		{
-			VirtualMemoryRegion memory(1ull << 29ull);
+        std::chrono::high_resolution_clock hrc;
 
-			Zn::BucketsAllocationStrategy Strategy = BucketsAllocationStrategy(std::make_shared<PageAllocator>(memory.Range(), VirtualMemory::GetPageSize()), 1ull << 8ull);
+        std::vector<void*> PreviousAllocations;
 
-			std::chrono::high_resolution_clock hrc;
+        for (int frame = 0; frame < m_Frames; frame++)
+        {
+            size_t ToDeallocate = 0;
 
-			std::vector<void*> PreviousAllocations;
+            if (frame > 0)
+            {
+                std::random_device rd;
+                std::mt19937       gen(rd());
 
-			for (int frame = 0; frame < m_Frames; frame++)
-			{
-				size_t ToDeallocate = 0;
+                auto RollDice = CreateIntDistribution({m_Allocations / 2, PreviousAllocations.size()});
 
-				if (frame > 0)
-				{
-					std::random_device rd;
-					std::mt19937 gen(rd());
+                ToDeallocate += RollDice(gen);
 
-					auto RollDice = CreateIntDistribution({ m_Allocations / 2,  PreviousAllocations.size() });
+                std::shuffle(
+                    PreviousAllocations.begin(), PreviousAllocations.end(),
+                    std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
+            }
 
-					ToDeallocate += RollDice(gen);
+            std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);
 
-					std::shuffle(PreviousAllocations.begin(), PreviousAllocations.end(), std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
-				}
+            int allocation   = 0;
+            int deallocation = 0;
 
-				std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);
+            std::random_device rd;
+            std::mt19937       gen(rd());
 
-				int allocation = 0;
-				int deallocation = 0;
+            auto FrameAllocationDistribution = CreateIntDistribution({sizeof(uintptr_t), 8 /*Strategy.GetMaxAllocationSize()*/});
 
-				std::random_device rd;
-				std::mt19937 gen(rd());
+            for (;;)
+            {
+                if (deallocation == ToDeallocate && allocation == m_Allocations)
+                    break;
 
-				auto FrameAllocationDistribution = CreateIntDistribution({ sizeof(uintptr_t), 8/*Strategy.GetMaxAllocationSize()*/ });
+                if (deallocation < ToDeallocate)
+                {
+                    Strategy.Free(PreviousAllocations[deallocation]);
+                    deallocation++;
+                }
+                if (allocation < m_Allocations)
+                {
+                    auto AllocationSize                 = FrameAllocationDistribution(gen);
+                    CurrentFrameAllocations[allocation] = Strategy.Allocate(AllocationSize);
+                    allocation++;
+                }
+            }
 
-				for (;;)
-				{
-					if (deallocation == ToDeallocate && allocation == m_Allocations)
-						break;
+            PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
 
-					if (deallocation < ToDeallocate)
-					{
-						Strategy.Free(PreviousAllocations[deallocation]);
-						deallocation++;
-					}
-					if (allocation < m_Allocations)
-					{
-						auto AllocationSize = FrameAllocationDistribution(gen);
-						CurrentFrameAllocations[allocation] = Strategy.Allocate(AllocationSize);
-						allocation++;
-					}
-				}
+            PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
 
-				PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
+            ZN_LOG(
+                LogAutomationTest_BucketsAllocationStrategy, ELogVerbosity::Log, "Wasted Memory kB: %.f",
+                float(Strategy.GetWastedMemory()) / float(StorageUnit::KiloByte));
+        }
 
-				PreviousAllocations.erase(PreviousAllocations.begin(), PreviousAllocations.begin() + ToDeallocate);
+        for (auto& address : PreviousAllocations)
+        {
+            Strategy.Free(address);
+        }
 
-				ZN_LOG(LogAutomationTest_BucketsAllocationStrategy, ELogVerbosity::Log, "Wasted Memory kB: %.f", float(Strategy.GetWastedMemory()) / float(StorageUnit::KiloByte));
-			}
-
-			for (auto& address : PreviousAllocations)
-			{
-				Strategy.Free(address);
-			}
-
-			m_Result = Result::kOk;
-		}
-	};
-}
+        m_Result = Result::kOk;
+    }
+};
+} // namespace Zn::Automation
 
 DEFINE_AUTOMATION_STARTUP_TEST(BucketsAllocationStrategy, Zn::Automation::BucketsAllocationStrategyAutomationTest, 5000, 1);

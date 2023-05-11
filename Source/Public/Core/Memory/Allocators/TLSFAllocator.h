@@ -7,146 +7,140 @@
 namespace Zn
 {
 
-	class TLSFAllocator
-	{
-	public:
+class TLSFAllocator
+{
+  public:
+    static constexpr size_t kJ = 3;
 
-		static constexpr size_t				kJ = 3;
+    static constexpr size_t kNumberOfPools = 10;
 
-		static constexpr size_t				kNumberOfPools = 10;
+    static constexpr size_t kNumberOfLists = 1 << kJ; // pow(2, kJ)
 
-		static constexpr size_t				kNumberOfLists = 1 << kJ;		// pow(2, kJ)
+    static constexpr size_t kStartFl = 8; // log2(kMinBlockSize)
 
-		static constexpr size_t				kStartFl = 8;			// log2(kMinBlockSize)
+    static constexpr size_t kMaxAllocationSize = (1 << (kStartFl + kNumberOfPools - 2)); // 128k is block size, 64k is max allocation size.
 
-		static constexpr size_t				kMaxAllocationSize = (1 << (kStartFl + kNumberOfPools - 2));  // 128k is block size, 64k is max allocation size.
+    static constexpr size_t kBlockSize = kMaxAllocationSize * 2;
 
-		static constexpr size_t				kBlockSize = kMaxAllocationSize * 2;
+    struct FreeBlock
+    {
+      public:
+        // The footer contains the size of the block and a pointer to the previous and the next physical block.
+        struct Footer
+        {
+          private:
+            static constexpr int64_t kValidationPattern = (int64_t) 0xff5aff5a << 32ull;
 
-		struct FreeBlock
-		{
-		public:
+            static constexpr int64_t kValidationMask = 0xffffffff;
 
-			// The footer contains the size of the block and a pointer to the previous and the next physical block.
-			struct Footer
-			{
-			private:
+            int64_t m_Pattern;
 
-				static constexpr int64_t	kValidationPattern = (int64_t) 0xff5aff5a << 32ull;
+          public:
+            Footer(size_t size, FreeBlock* const previous, FreeBlock* const next);
 
-				static constexpr int64_t	kValidationMask = 0xffffffff;
+            FreeBlock* GetBlock() const;
 
-				int64_t						m_Pattern;
+            size_t BlockSize() const;
 
-			public:
+            bool IsValid() const;
 
-				Footer(size_t size, FreeBlock* const previous, FreeBlock* const next);
+            FreeBlock* m_Previous;
 
-				FreeBlock* GetBlock() const;
+            FreeBlock* m_Next;
+        };
 
-				size_t		BlockSize() const;
+        static constexpr size_t kFooterSize = sizeof(Footer);
 
-				bool		IsValid() const;
+        static constexpr size_t kMinBlockSize = 256; // std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
 
-				FreeBlock* m_Previous;
+        static FreeBlock* New(const MemoryRange& block_range);
 
-				FreeBlock* m_Next;
-			};
+        FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next);
 
-			static constexpr size_t			kFooterSize = sizeof(Footer);
+        ~FreeBlock();
 
-			static constexpr size_t			kMinBlockSize = 256;// std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
+        Footer* GetFooter();
 
-			static FreeBlock* New(const MemoryRange& block_range);
+        FreeBlock* Previous();
 
-			FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next);
+        FreeBlock* Next();
 
-			~FreeBlock();
+        size_t Size() const
+        {
+            return m_BlockSize;
+        }
 
-			Footer* GetFooter();
-
-			FreeBlock* Previous();
-
-			FreeBlock* Next();
-
-			size_t			Size() const
-			{
-				return m_BlockSize;
-			}
-
-			static Footer* GetPreviousPhysicalFooter(void* block);
+        static Footer* GetPreviousPhysicalFooter(void* block);
 
 #if ZN_DEBUG
-			void			LogDebugInfo(bool recursive) const;
+        void LogDebugInfo(bool recursive) const;
 
-			void			Verify(size_t max_block_size) const;
+        void Verify(size_t max_block_size) const;
 
-			void			VerifyWrite(MemoryRange range) const;
+        void VerifyWrite(MemoryRange range) const;
 #endif
-		private:
+      private:
+        static constexpr bool kMarkFreeOnDelete = false;
 
-			static constexpr bool			kMarkFreeOnDelete = false;
+        size_t m_BlockSize;
+    };
 
-			size_t							m_BlockSize;
-		};
+    TLSFAllocator(MemoryRange inMemoryRange);
 
-		TLSFAllocator(MemoryRange inMemoryRange);
+    __declspec(allocator) void* Allocate(size_t size, size_t alignment = 1);
 
-		__declspec(allocator)void* Allocate(size_t size, size_t alignment = 1);
+    bool Free(void* address);
 
-		bool				Free(void* address);
+    size_t GetAllocatedMemory() const
+    {
+        return m_Memory.GetUsedMemory();
+    }
 
-		size_t				GetAllocatedMemory() const
-		{
-			return m_Memory.GetUsedMemory();
-		}
+    static constexpr size_t MinAllocationSize()
+    {
+        return FreeBlock::kMinBlockSize;
+    }
 
-		static constexpr size_t	MinAllocationSize()
-		{
-			return FreeBlock::kMinBlockSize;
-		}
-
-		static constexpr size_t MaxAllocationSize()
-		{
-			return kMaxAllocationSize;
-		}
+    static constexpr size_t MaxAllocationSize()
+    {
+        return kMaxAllocationSize;
+    }
 
 #if ZN_DEBUG
-		void				LogDebugInfo() const;
+    void LogDebugInfo() const;
 
-		void				Verify() const;
+    void Verify() const;
 
-		void				VerifyWrite(MemoryRange range) const;
+    void VerifyWrite(MemoryRange range) const;
 #endif
 
-	private:
+  private:
+    using index_type = unsigned long;
 
-		using index_type = unsigned long;
+    using FreeListMatrix = std::array<std::array<FreeBlock*, kNumberOfLists>, kNumberOfPools>;
 
-		using FreeListMatrix = std::array<std::array<FreeBlock*, kNumberOfLists>, kNumberOfPools>;
+    bool MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
 
-		bool				MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
+    bool MappingSearch(size_t size, index_type& o_fl, index_type& o_sl);
 
-		bool				MappingSearch(size_t size, index_type& o_fl, index_type& o_sl);
+    bool FindSuitableBlock(index_type& o_fl, index_type& o_sl);
 
-		bool				FindSuitableBlock(index_type& o_fl, index_type& o_sl);
+    FreeBlock* MergePrevious(FreeBlock* block);
 
-		FreeBlock* MergePrevious(FreeBlock* block);
+    FreeBlock* MergeNext(FreeBlock* block);
 
-		FreeBlock* MergeNext(FreeBlock* block);
+    void RemoveBlock(FreeBlock* block);
 
-		void				RemoveBlock(FreeBlock* block);
+    void AddBlock(FreeBlock* block);
 
-		void				AddBlock(FreeBlock* block);
+    bool Decommit(FreeBlock* block);
 
-		bool				Decommit(FreeBlock* block);
+    PageAllocator m_Memory;
 
-		PageAllocator							m_Memory;
+    FreeListMatrix m_FreeLists;
 
-		FreeListMatrix							m_FreeLists;
+    uint16_t m_FL;
 
-		uint16_t								m_FL;
-
-		std::array<uint16_t, kNumberOfPools>	m_SL;
-	};
-}
+    std::array<uint16_t, kNumberOfPools> m_SL;
+};
+} // namespace Zn

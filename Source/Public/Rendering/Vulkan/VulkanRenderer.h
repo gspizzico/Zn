@@ -7,25 +7,23 @@
 
 namespace Zn
 {
-	class VulkanRenderer : public Renderer
-	{
-	public:
+class VulkanRenderer : public Renderer
+{
+  public:
+    virtual bool initialize(RendererInitParams params) override;
+    virtual void shutdown() override;
+    virtual bool begin_frame() override;
+    virtual bool render_frame(float deltaTime, std::function<void(float)> render) override;
+    virtual bool end_frame() override;
+    virtual void on_window_resized() override;
+    virtual void on_window_minimized() override;
+    virtual void on_window_restored() override;
+    virtual void set_camera(glm::vec3 position, glm::vec3 direction) override;
 
-		virtual bool initialize(RendererInitParams params) override;
-		virtual void shutdown() override;
-		virtual bool begin_frame() override;
-		virtual bool render_frame(float deltaTime, std::function<void(float)> render) override;
-		virtual bool end_frame() override;
-		virtual void on_window_resized() override;
-		virtual void on_window_minimized() override;
-		virtual void on_window_restored() override;
-		virtual void set_camera(glm::vec3 position, glm::vec3 direction) override;
+  private:
+    vk::Instance   instance;
+    vk::SurfaceKHR surface;
 
-	private:
-
-		vk::Instance instance;
-		vk::SurfaceKHR surface;
-
-		UniquePtr<VulkanDevice> device;
-	};
-}
+    UniquePtr<VulkanDevice> device;
+};
+} // namespace Zn

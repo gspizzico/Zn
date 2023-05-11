@@ -5,8 +5,8 @@
 
 namespace Zn
 {
-	struct InputState
-	{
-		Vector<SDL_Event> events;
-	};
-}
+struct InputState
+{
+    Vector<SDL_Event> events;
+};
+} // namespace Zn

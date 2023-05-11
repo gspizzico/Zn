@@ -4,52 +4,48 @@
 
 namespace Zn
 {
-	enum
-	{
-		DEFAULT_ALIGNMENT = 0,
-		MIN_ALIGNMENT = 8
-	};
+enum
+{
+    DEFAULT_ALIGNMENT = 0,
+    MIN_ALIGNMENT     = 8
+};
 
-	class SystemAllocator
-	{
-	public:
+class SystemAllocator
+{
+  public:
+    virtual ~SystemAllocator() = default;
 
-		virtual ~SystemAllocator() = default;
+    void* operator new(size_t size);
 
-		void* operator new(size_t size);
+    void operator delete(void* ptr);
 
-		void operator delete(void* ptr);
+    void* operator new[](size_t size);
 
-		void* operator new[](size_t size);
+    void operator delete[](void* ptr);
+};
 
-		void operator delete[](void* ptr);
-	};
+class BaseAllocator : public SystemAllocator
+{
+  public:
+    virtual ~BaseAllocator() = default;
 
-	class BaseAllocator : public SystemAllocator
-	{
-	public:
+    virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
 
-		virtual ~BaseAllocator() = default;
+    virtual bool Free(void* ptr) = 0;
 
-		virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
+    // virtual void* Realloc(void* ptr, size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
+};
 
-		virtual bool Free(void* ptr) = 0;
+class TrackedMalloc : public BaseAllocator
+{
+  public:
+    virtual ~TrackedMalloc();
 
-		//virtual void* Realloc(void* ptr, size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
-	};
+    virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) override;
 
-	class TrackedMalloc : public BaseAllocator
-	{
-	public:
+    virtual bool Free(void* ptr) override;
 
-		virtual ~TrackedMalloc();
-
-		virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) override;
-
-		virtual bool Free(void* ptr) override;
-
-	private:
-
-		UnorderedSet<void*> allocations;
-	};
-}
+  private:
+    UnorderedSet<void*> allocations;
+};
+} // namespace Zn

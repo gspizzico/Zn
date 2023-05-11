@@ -5,106 +5,106 @@
 
 void Zn::EngineFrontend::DrawMainMenu()
 {
-	ImGui::BeginMainMenuBar();
+    ImGui::BeginMainMenuBar();
 
-	bool openExitPopup = false;
-	bool openAutomationWindow = false;
+    bool openExitPopup        = false;
+    bool openAutomationWindow = false;
 
-	if (ImGui::BeginMenu("Zn"))
-	{
-		if (ImGui::MenuItem("Exit", NULL))
-		{
-			openExitPopup = true;
-		}
+    if (ImGui::BeginMenu("Zn"))
+    {
+        if (ImGui::MenuItem("Exit", NULL))
+        {
+            openExitPopup = true;
+        }
 
-		ImGui::EndMenu();
-	}
+        ImGui::EndMenu();
+    }
 
-	if (ImGui::BeginMenu("Tools"))
-	{
-		if (ImGui::MenuItem("Automation", NULL))
-		{
-			bAutomationWindow = true;
-		}
+    if (ImGui::BeginMenu("Tools"))
+    {
+        if (ImGui::MenuItem("Automation", NULL))
+        {
+            bAutomationWindow = true;
+        }
 
-		ImGui::EndMenu();
-	}
+        ImGui::EndMenu();
+    }
 
-	ImGui::EndMainMenuBar();
+    ImGui::EndMainMenuBar();
 
-	if (openExitPopup)
-	{
-		ImGui::OpenPopup("editor-exit");
-	}
+    if (openExitPopup)
+    {
+        ImGui::OpenPopup("editor-exit");
+    }
 
-	if (ImGui::BeginPopup("editor-exit"))
-	{
-		ImGui::Text("Are you sure you want to exit?");
+    if (ImGui::BeginPopup("editor-exit"))
+    {
+        ImGui::Text("Are you sure you want to exit?");
 
-		if (ImGui::Button("Yes"))
-		{
-			bIsRequestingExit = true;
-		}
+        if (ImGui::Button("Yes"))
+        {
+            bIsRequestingExit = true;
+        }
 
-		if (ImGui::Button("No"))
-		{
-			ImGui::CloseCurrentPopup();
-		}
+        if (ImGui::Button("No"))
+        {
+            ImGui::CloseCurrentPopup();
+        }
 
-		ImGui::EndPopup();
-	}
+        ImGui::EndPopup();
+    }
 }
 
 void Zn::EngineFrontend::DrawAutomationWindow()
 {
-	if (bAutomationWindow)
-	{
-		ImGui::Begin("Automation", &bAutomationWindow);
+    if (bAutomationWindow)
+    {
+        ImGui::Begin("Automation", &bAutomationWindow);
 
-		bool showButton = false;
+        bool showButton = false;
 
-		auto& automationTestManager = Automation::AutomationTestManager::Get();
+        auto& automationTestManager = Automation::AutomationTestManager::Get();
 
-		if (ImGui::TreeNode("Startup Tests"))
-		{
-			Vector<Name> testNames = automationTestManager.GetStartupTestsNames();
+        if (ImGui::TreeNode("Startup Tests"))
+        {
+            Vector<Name> testNames = automationTestManager.GetStartupTestsNames();
 
-			for (const Name& name : testNames)
-			{
-				auto emplaceResult = SelectedTests.try_emplace(name, false);
+            for (const Name& name : testNames)
+            {
+                auto emplaceResult = SelectedTests.try_emplace(name, false);
 
-				auto& kvpReference = *emplaceResult.first;
+                auto& kvpReference = *emplaceResult.first;
 
-				ImGui::Selectable(name.CString(), &kvpReference.second);
+                ImGui::Selectable(name.CString(), &kvpReference.second);
 
-				showButton |= kvpReference.second;
-			}
+                showButton |= kvpReference.second;
+            }
 
-			ImGui::TreePop();
-		}
+            ImGui::TreePop();
+        }
 
-		if (showButton && ImGui::Button("Clear Selection"))
-		{
-			for (auto& kvp : SelectedTests)
-			{
-				kvp.second = false;
-			}
-		}
+        if (showButton && ImGui::Button("Clear Selection"))
+        {
+            for (auto& kvp : SelectedTests)
+            {
+                kvp.second = false;
+            }
+        }
 
-		if (showButton && !automationTestManager.IsRunningTests() && ImGui::Button("Start Tests"))
-		{
-			Vector<Name> testsToRun;
-			for (const auto& kvp : SelectedTests)
-			{
-				if (kvp.second)
-				{
-					testsToRun.emplace_back(kvp.first);
-				}
-			}
+        if (showButton && !automationTestManager.IsRunningTests() && ImGui::Button("Start Tests"))
+        {
+            Vector<Name> testsToRun;
+            for (const auto& kvp : SelectedTests)
+            {
+                if (kvp.second)
+                {
+                    testsToRun.emplace_back(kvp.first);
+                }
+            }
 
-			automationTestManager.EnqueueTests(testsToRun);
-		}
+            automationTestManager.EnqueueTests(testsToRun);
+        }
 
-		ImGui::End();
-	}
+        ImGui::End();
+    }
 }

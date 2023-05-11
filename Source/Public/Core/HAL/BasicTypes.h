@@ -19,29 +19,29 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-//#define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
+// #define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
 #include <delegate.hpp>
 // #undef DELEGATE_NAMESPACE
 
-using int8 = char;
-using int16 = short;
-using int32 = int32_t;
-using int64 = int64_t;
-using uint8 = unsigned char;
+using int8   = char;
+using int16  = short;
+using int32  = int32_t;
+using int64  = int64_t;
+using uint8  = unsigned char;
 using uint16 = uint16_t;
 using uint32 = uint32_t;
 using uint64 = uint64_t;
 
 using cstring = const char*;
-using sizet = size_t;
+using sizet   = size_t;
 
 // Testing alternative format
 
-using i8 = char;
+using i8  = char;
 using i16 = short;
 using i32 = int32_t;
 using i64 = int64_t;
-using u8 = unsigned char;
+using u8  = unsigned char;
 using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
@@ -55,51 +55,44 @@ static constexpr u32 u32_max = std::numeric_limits<u32>::max();
 static constexpr i32 i32_max = std::numeric_limits<i32>::max();
 static constexpr u16 u16_max = std::numeric_limits<u16>::max();
 static constexpr i16 i16_max = std::numeric_limits<i16>::max();
-static constexpr u8 u8_max = std::numeric_limits<u8>::max();
-static constexpr i8 i8_max = std::numeric_limits<i8>::max();
+static constexpr u8  u8_max  = std::numeric_limits<u8>::max();
+static constexpr i8  i8_max  = std::numeric_limits<i8>::max();
 
 namespace Zn
 {
-	using String = std::string;
+using String = std::string;
 
-	template<typename T>
-	using SharedPtr = std::shared_ptr<T>;
+template<typename T> using SharedPtr = std::shared_ptr<T>;
 
-	template<typename T>
-	using UniquePtr = std::unique_ptr<T>;
+template<typename T> using UniquePtr = std::unique_ptr<T>;
 
-	template<typename T>
-	using SharedFromThis = std::enable_shared_from_this<T>;
+template<typename T> using SharedFromThis = std::enable_shared_from_this<T>;
 
-	template<typename Signature>
-	using TDelegate = DELEGATE_NAMESPACE_INTERNAL::delegate<Signature>;
+template<typename Signature> using TDelegate = DELEGATE_NAMESPACE_INTERNAL::delegate<Signature>;
 
-	enum class ThreadPriority //#TODO move to approriate header
-	{
-		Idle,
-		Lowest,
-		Low,
-		Normal,
-		High,
-		Highest,
-		TimeCritical
-	};
+enum class ThreadPriority // #TODO move to approriate header
+{
+    Idle,
+    Lowest,
+    Low,
+    Normal,
+    High,
+    Highest,
+    TimeCritical
+};
 
-	template<typename T, u32 N>
-	constexpr u32 ArrayLength(const T(&)[N]) noexcept
-	{
-		return N;
-	}
-
-	template<typename T, u32 N>
-	constexpr u32 ArrayElementSize(const T(&)[N]) noexcept
-	{
-		return sizeof(T);
-	}
-
-	template<typename T, u32 N>
-	constexpr const T* ArrayData(const T(&arr)[N]) noexcept
-	{
-		return &arr[0];
-	}
+template<typename T, u32 N> constexpr u32 ArrayLength(const T (&)[N]) noexcept
+{
+    return N;
 }
+
+template<typename T, u32 N> constexpr u32 ArrayElementSize(const T (&)[N]) noexcept
+{
+    return sizeof(T);
+}
+
+template<typename T, u32 N> constexpr const T* ArrayData(const T (&arr)[N]) noexcept
+{
+    return &arr[0];
+}
+} // namespace Zn

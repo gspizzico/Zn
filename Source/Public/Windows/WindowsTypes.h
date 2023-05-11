@@ -7,10 +7,10 @@
 
 namespace Zn
 {
-	typedef WindowsMemory PlatformMemory;
-	typedef WindowsVirtualMemory PlatformVirtualMemory;
-	typedef WindowsMisc PlatformMisc;
-	typedef WindowsThreads PlatformThreads;
+typedef WindowsMemory        PlatformMemory;
+typedef WindowsVirtualMemory PlatformVirtualMemory;
+typedef WindowsMisc          PlatformMisc;
+typedef WindowsThreads       PlatformThreads;
 
-	typedef WindowsCriticalSection CriticalSection;
-}
+typedef WindowsCriticalSection CriticalSection;
+} // namespace Zn

@@ -24,41 +24,41 @@ using namespace Zn;
 
 int main(int argc, char* args[])
 {
-	// Initialize command line arguments
-	CommandLine::Get().Initialize(args, argc);
+    // Initialize command line arguments
+    CommandLine::Get().Initialize(args, argc);
 
-	// Initialize Application layer.
-	Application& app = Application::Get();
-	app.Initialize();
+    // Initialize Application layer.
+    Application& app = Application::Get();
+    app.Initialize();
 
-	// Initialize Engine layer.
-	Engine* engine = new Engine();
-	engine->Initialize();
+    // Initialize Engine layer.
+    Engine* engine = new Engine();
+    engine->Initialize();
 
-	f64 lastFrameTime = Time::Seconds();
-	f64 currentFrameTime = lastFrameTime;
-	
-	while (!app.WantsToExit())
-	{
-		currentFrameTime = Time::Seconds();
-		
-		f32 deltaTime = static_cast<f32>(currentFrameTime - lastFrameTime);
-		
-		lastFrameTime = currentFrameTime;
+    f64 lastFrameTime    = Time::Seconds();
+    f64 currentFrameTime = lastFrameTime;
 
-		if (!app.ProcessOSEvents(deltaTime))
-		{
-			break;
-		}
+    while (!app.WantsToExit())
+    {
+        currentFrameTime = Time::Seconds();
 
-		engine->Update(deltaTime);
-	}
+        f32 deltaTime = static_cast<f32>(currentFrameTime - lastFrameTime);
 
-	engine->Shutdown();
+        lastFrameTime = currentFrameTime;
 
-	delete engine;
+        if (!app.ProcessOSEvents(deltaTime))
+        {
+            break;
+        }
 
-	Application::Get().Shutdown();
+        engine->Update(deltaTime);
+    }
 
-	return 0;
+    engine->Shutdown();
+
+    delete engine;
+
+    Application::Get().Shutdown();
+
+    return 0;
 }

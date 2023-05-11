@@ -7,76 +7,76 @@
 
 namespace Zn
 {
-	struct RHIMesh;
-	struct Material;
+struct RHIMesh;
+struct Material;
 
-	struct QueueFamilyIndices
-	{
-		std::optional<uint32> Graphics;
-		std::optional<uint32> Present;
-	};
+struct QueueFamilyIndices
+{
+    std::optional<uint32> Graphics;
+    std::optional<uint32> Present;
+};
 
-	struct SwapChainDetails
-	{
-		vk::SurfaceCapabilitiesKHR Capabilities;
-		Vector<vk::SurfaceFormatKHR> Formats;
-		Vector<vk::PresentModeKHR> PresentModes;
-	};
+struct SwapChainDetails
+{
+    vk::SurfaceCapabilitiesKHR   Capabilities;
+    Vector<vk::SurfaceFormatKHR> Formats;
+    Vector<vk::PresentModeKHR>   PresentModes;
+};
 
-	struct MeshPushConstants
-	{
-		glm::vec4 Data;
-		glm::mat4 RenderMatrix;
-	};
+struct MeshPushConstants
+{
+    glm::vec4 Data;
+    glm::mat4 RenderMatrix;
+};
 
-	struct RenderObject
-	{
-		RHIMesh* mesh;
-		Material* material;
-		glm::vec3 location;
-		glm::quat rotation;
-		glm::vec3 scale;
-	};
+struct RenderObject
+{
+    RHIMesh*  mesh;
+    Material* material;
+    glm::vec3 location;
+    glm::quat rotation;
+    glm::vec3 scale;
+};
 
-	struct GPUCameraData
-	{
-		glm::mat4 view;
-		glm::mat4 projection;
-		glm::mat4 view_projection;
-	};
+struct GPUCameraData
+{
+    glm::mat4 view;
+    glm::mat4 projection;
+    glm::mat4 view_projection;
+};
 
-	struct alignas(16) DirectionalLight
-	{
-		glm::vec4 direction;
-		glm::vec4 color;
-		f32 intensity;
-	};
+struct alignas(16) DirectionalLight
+{
+    glm::vec4 direction;
+    glm::vec4 color;
+    f32       intensity;
+};
 
-	struct alignas(16) PointLight
-	{
-		glm::vec4 position;
-		glm::vec4 color;
-		f32 intensity;
-		f32 constant_attenuation;
-		f32 linear_attenuation;
-		f32 quadratic_attenuation;
-	};
+struct alignas(16) PointLight
+{
+    glm::vec4 position;
+    glm::vec4 color;
+    f32       intensity;
+    f32       constant_attenuation;
+    f32       linear_attenuation;
+    f32       quadratic_attenuation;
+};
 
-	struct alignas(16) AmbientLight
-	{
-		glm::vec4 color;
-		f32 intensity;
-	};
+struct alignas(16) AmbientLight
+{
+    glm::vec4 color;
+    f32       intensity;
+};
 
-	static constexpr u32 MAX_POINT_LIGHTS = 16;
-	static constexpr u32 MAX_DIRECTIONAL_LIGHTS = 1;
+static constexpr u32 MAX_POINT_LIGHTS       = 16;
+static constexpr u32 MAX_DIRECTIONAL_LIGHTS = 1;
 
-	struct LightingUniforms
-	{
-		PointLight point_lights[MAX_POINT_LIGHTS];
-		DirectionalLight directional_lights[MAX_DIRECTIONAL_LIGHTS];
-		AmbientLight ambient_light;
-		u32 num_point_lights;
-		u32 num_directional_lights;
-	};
-}
+struct LightingUniforms
+{
+    PointLight       point_lights[MAX_POINT_LIGHTS];
+    DirectionalLight directional_lights[MAX_DIRECTIONAL_LIGHTS];
+    AmbientLight     ambient_light;
+    u32              num_point_lights;
+    u32              num_directional_lights;
+};
+} // namespace Zn
