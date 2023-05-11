@@ -48,6 +48,8 @@
 # ZN Libs
 /Libs
 
+# SPV Shaders
+/shaders/*.spv
 
 Tracy.lnk
 development_snippets/
