@@ -41,6 +41,102 @@ struct alignas(16) MeshData
 };
 } // namespace
 
+static const Zn::Vector<const char*> kRequiredExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
+static const Zn::Vector<const char*> kValidationLayers   = {"VK_LAYER_KHRONOS_validation"};
+// static const Zn::Vector<const char*> kDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+#if ZN_VK_VALIDATION_LAYERS
+namespace VulkanValidation
+{
+bool SupportsValidationLayers()
+{
+    Zn::Vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
+
+    return std::any_of(
+        availableLayers.begin(), availableLayers.end(),
+        [](const vk::LayerProperties& it)
+        {
+            for (const auto& layerName : kValidationLayers)
+            {
+                if (strcmp(it.layerName, layerName) == 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+}
+
+ELogVerbosity VkMessageSeverityToZnVerbosity(vk::DebugUtilsMessageSeverityFlagBitsEXT severity)
+{
+    switch (severity)
+    {
+    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
+        return ELogVerbosity::Verbose;
+    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
+        return ELogVerbosity::Log;
+    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
+        return ELogVerbosity::Warning;
+    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
+    default:
+        return ELogVerbosity::Error;
+    }
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL OnDebugMessage(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* data, void* userData)
+{
+    ELogVerbosity verbosity = VkMessageSeverityToZnVerbosity(vk::DebugUtilsMessageSeverityFlagBitsEXT(severity));
+
+    const String& messageType = vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(type));
+
+    ZN_LOG(LogVulkanValidation, verbosity, "[%s] %s", messageType.c_str(), data->pMessage);
+
+    if (verbosity >= ELogVerbosity::Error)
+    {
+        __debugbreak();
+    }
+
+    return VK_FALSE;
+}
+
+vk::DebugUtilsMessengerCreateInfoEXT GetDebugMessengerCreateInfo()
+{
+    vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo
+    {
+    #if ZN_VK_VALIDATION_VERBOSE
+        .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+                           vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+    #else
+        .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+                           vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
+    #endif
+        .messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                       vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
+        .pfnUserCallback = VulkanValidation::OnDebugMessage
+    };
+
+    return debugCreateInfo;
+}
+
+vk::DebugUtilsMessengerEXT GDebugMessenger {};
+
+void InitializeDebugMessenger(vk::Instance instance)
+{
+    GDebugMessenger = instance.createDebugUtilsMessengerEXT(GetDebugMessengerCreateInfo());
+}
+
+void DeinitializeDebugMessenger(vk::Instance instance)
+{
+    if (GDebugMessenger)
+    {
+        instance.destroyDebugUtilsMessengerEXT(GDebugMessenger);
+    }
+}
+} // namespace VulkanValidation
+#endif
+
 const Vector<const char*> VulkanDevice::kDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 VulkanDevice::VulkanDevice()
@@ -52,10 +148,63 @@ VulkanDevice::~VulkanDevice()
     Cleanup();
 }
 
-void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstance, vk::SurfaceKHR inSurface)
+void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 {
-    instance = inInstance;
-    surface  = inSurface;
+    // Initialize vk::DynamicLoader - It's needed to call .dll functions.
+    vk::DynamicLoader dynamicLoader;
+    auto              pGetInstance = dynamicLoader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(pGetInstance);
+
+    vk::ApplicationInfo appInfo {
+        .pApplicationName = "Zn",
+        .pEngineName      = "Zn",
+        .apiVersion       = VK_API_VERSION_1_3,
+    };
+
+    SDL_Window* window = InWindowHandle;
+
+    u32 numExtensions = 0;
+    SDL_Vulkan_GetInstanceExtensions(window, &numExtensions, nullptr);
+    Vector<const char*> requiredExtensions(numExtensions);
+    SDL_Vulkan_GetInstanceExtensions(window, &numExtensions, requiredExtensions.data());
+
+    vk::InstanceCreateInfo instanceCreateInfo {.pApplicationInfo = &appInfo};
+
+    Vector<const char*> enabledLayers;
+
+#if ZN_VK_VALIDATION_LAYERS
+    // Request debug utils extension if validation layers are enabled.
+    numExtensions += static_cast<u32>(kRequiredExtensions.size());
+    requiredExtensions.insert(requiredExtensions.end(), kRequiredExtensions.begin(), kRequiredExtensions.end());
+
+    if (VulkanValidation::SupportsValidationLayers())
+    {
+        enabledLayers.insert(enabledLayers.begin(), kValidationLayers.begin(), kValidationLayers.end());
+
+        VkDebugUtilsMessengerCreateInfoEXT debugMessagesInfo = VulkanValidation::GetDebugMessengerCreateInfo();
+        instanceCreateInfo.pNext                             = &debugMessagesInfo;
+    }
+#endif
+
+    instanceCreateInfo.enabledExtensionCount   = numExtensions;
+    instanceCreateInfo.ppEnabledExtensionNames = requiredExtensions.data();
+    instanceCreateInfo.enabledLayerCount       = (u32) enabledLayers.size();
+    instanceCreateInfo.ppEnabledLayerNames     = enabledLayers.data();
+
+    instance = vk::createInstance(instanceCreateInfo);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(instance);
+
+#if ZN_VK_VALIDATION_LAYERS
+    VulkanValidation::InitializeDebugMessenger(instance);
+#endif
+
+    VkSurfaceKHR sdlSurface;
+    if (SDL_Vulkan_CreateSurface(window, instance, &sdlSurface) != SDL_TRUE)
+    {
+        _ASSERT(false);
+    }
+
+    surface = sdlSurface;
 
     windowID = SDL_GetWindowID(InWindowHandle);
 
@@ -366,13 +515,11 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle, vk::Instance inInstanc
     CreateMeshPipeline();
 
     CreateScene();
-
-    isInitialized = true;
 }
 
 void VulkanDevice::Cleanup()
 {
-    if (isInitialized == false)
+    if (!instance)
     {
         return;
     }
@@ -418,24 +565,21 @@ void VulkanDevice::Cleanup()
 
     allocator.destroy();
 
-    // if (surface != VK_NULL_HANDLE)
-    //{
-    //	vkDestroySurfaceKHR(instance, surface, nullptr/*allocator*/);
-    //	surface = VK_NULL_HANDLE;
-    // }
+    if (surface)
+    {
+        instance.destroySurfaceKHR(surface);
+    }
+
+#if ZN_VK_VALIDATION_LAYERS
+    VulkanValidation::DeinitializeDebugMessenger(instance);
+#endif
 
     if (device)
     {
         device.destroy();
     }
 
-    // if (instance != VK_NULL_HANDLE)
-    //{
-    //	vkDestroyInstance(instance, nullptr/*allocator*/);
-    //	instance = VK_NULL_HANDLE;
-    // }
-
-    isInitialized = false;
+    instance.destroy();
 }
 
 void Zn::VulkanDevice::BeginFrame()

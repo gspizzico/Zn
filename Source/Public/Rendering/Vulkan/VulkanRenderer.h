@@ -21,9 +21,6 @@ class VulkanRenderer : public Renderer
     virtual void set_camera(glm::vec3 position, glm::vec3 direction) override;
 
   private:
-    vk::Instance   instance;
-    vk::SurfaceKHR surface;
-
     UniquePtr<VulkanDevice> device;
 };
 } // namespace Zn

@@ -24,7 +24,7 @@ class VulkanDevice
 
     ~VulkanDevice();
 
-    void Initialize(SDL_Window* InWindowHandle, vk::Instance inInstance, vk::SurfaceKHR inSurface);
+    void Initialize(SDL_Window* InWindowHandle);
 
     void Cleanup();
 
@@ -69,8 +69,6 @@ class VulkanDevice
     void RecreateSwapChain();
 
     void SetViewport(vk::CommandBuffer cmd);
-
-    bool isInitialized {false};
 
     bool isMinimized {false};
 
