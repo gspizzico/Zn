@@ -8,7 +8,7 @@ from pathlib import Path
 
 SHADERS_RELATIVE_PATH = 'shaders'
 
-VULKAN_GLSLC = "Bin\glslc.exe"
+VULKAN_GLSLC = "Bin\glslangValidator.exe"
 
 # Main Function
 try:
@@ -20,7 +20,7 @@ try:
     compiler = os.path.join(vulkan, VULKAN_GLSLC)
 
     if(not os.path.exists(compiler)):
-        raise Exception("Unable to find glslc compiler")
+        raise Exception("Unable to find glslangValidator")
 
     print("Using Vulkan GLSL compiler at: " + compiler)
 
@@ -34,8 +34,7 @@ try:
     for filename in os.scandir(shaders_dir):
         if(filename.is_file() and not filename.name.endswith(".spv")):
             name = filename.path
-            name_no_ext = Path(name).stem;
-            cmd = [compiler, name, "-o", os.path.join(shaders_dir, name_no_ext + ".spv")]
+            cmd = [compiler, "-V", name, "-o", os.path.join(shaders_dir, name + ".spv")]
             subprocess.run(cmd, shell=True)
 
 

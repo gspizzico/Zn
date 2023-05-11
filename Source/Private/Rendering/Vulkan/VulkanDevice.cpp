@@ -1462,8 +1462,8 @@ void Zn::VulkanDevice::CreateMeshPipeline()
     Vector<uint8> vertex_shader_data;
     Vector<uint8> fragment_shader_data;
 
-    const bool vertex_success   = IO::ReadBinaryFile("shaders/tri_mesh_vertex.spv", vertex_shader_data);
-    const bool fragment_success = IO::ReadBinaryFile("shaders/fragment.spv", fragment_shader_data);
+    const bool vertex_success   = IO::ReadBinaryFile("shaders/vertex.vert.spv", vertex_shader_data);
+    const bool fragment_success = IO::ReadBinaryFile("shaders/fragment.frag.spv", fragment_shader_data);
 
     if (vertex_success && fragment_success)
     {
