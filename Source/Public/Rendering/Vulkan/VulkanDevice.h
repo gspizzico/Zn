@@ -83,8 +83,9 @@ class VulkanDevice
     vk::Instance   instance;
     vk::SurfaceKHR surface;
 
-    vk::Device         device;
-    vk::PhysicalDevice gpu;
+    vk::Device                 device;
+    vk::PhysicalDevice         gpu;
+    vk::PhysicalDeviceFeatures gpuFeatures;
 
     vk::Queue        graphicsQueue;
     vk::Queue        presentQueue;
@@ -109,7 +110,8 @@ class VulkanDevice
     vk::DescriptorSetLayout   globalDescriptorSetLayout {};
     Vector<vk::DescriptorSet> globalDescriptorSets;
 
-    RHIBuffer meshDataUBO[kMaxFramesInFlight];
+    RHIBuffer instanceData[kMaxFramesInFlight];
+    RHIBuffer drawCommands[kMaxFramesInFlight];
 
     vk::DescriptorPool imguiDescriptorPool;
 
@@ -132,8 +134,11 @@ class VulkanDevice
 
     vma::Allocator allocator;
 
-    RHIBuffer CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage) const;
-    void      DestroyBuffer(RHIBuffer buffer) const;
+    RHIBuffer CreateBuffer(
+        size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage,
+        vma::AllocationCreateFlags allocationFlags = vma::AllocationCreateFlags(0)) const;
+
+    void DestroyBuffer(RHIBuffer buffer) const;
 
     // TODO: Naming might be incorrect
     void CopyToGPU(vma::Allocation allocation, void* src, size_t size) const;

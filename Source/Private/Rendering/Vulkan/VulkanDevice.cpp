@@ -7,6 +7,8 @@
 #include <Engine/Importer/TextureImporter.h>
 #include <Rendering/Material.h>
 #include <Rendering/RHI/RHI.h>
+#include <Rendering/RHI/RHIInputLayout.h>
+#include <Rendering/RHI/RHIInstanceData.h>
 #include <Rendering/RHI/RHIMesh.h>
 #include <Rendering/RHI/RHITexture.h>
 #include <Rendering/RHI/RHITypes.h>
@@ -33,11 +35,22 @@ static const String         monkeyMeshPath        = "assets/VulkanGuide/monkey_s
 static const ResourceHandle depthTextureHandle    = ResourceHandle(HashCalculate("__RHIDepthTexture"));
 static const String         triangleMeshName      = "__Triangle";
 
-static const u32 minMeshDataBufferSize = 65535;
+static const u32 minInstanceDataBufferSize = 65535;
 
-struct alignas(16) MeshData
+struct IndirectDrawBatch
 {
-    glm::mat4 m;
+    Material* material;
+    RHIMesh*  mesh;
+    u32       index;
+    u32       count;
+};
+
+struct alignas(16) RHI_DrawData
+{
+    u32 materialIndex   = 0;
+    u32 transformOffset = 0;
+    u32 vertexOffset    = 0;
+    u32 unused0         = 0; // Padding
 };
 } // namespace
 
@@ -216,6 +229,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
     _ASSERT(gpu);
 
+    gpuFeatures = gpu.getFeatures();
+
     /////// Initialize Logical Device
 
     QueueFamilyIndices Indices = GetQueueFamilyIndices(gpu);
@@ -232,13 +247,12 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
     Vector<vk::DeviceQueueCreateInfo> queueFamilies = BuildQueueCreateInfo(Indices);
 
-    vk::PhysicalDeviceFeatures deviceFeatures {};
-
     vk::DeviceCreateInfo deviceCreateInfo {
         .queueCreateInfoCount    = static_cast<u32>(queueFamilies.size()),
         .pQueueCreateInfos       = queueFamilies.data(),
         .enabledExtensionCount   = static_cast<u32>(kDeviceExtensions.size()),
         .ppEnabledExtensionNames = kDeviceExtensions.data(),
+        .pEnabledFeatures        = &gpuFeatures,
     };
 
     device = gpu.createDevice(deviceCreateInfo, nullptr);
@@ -514,6 +528,22 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
     CreateMeshPipeline();
 
+    if (gpuFeatures.multiDrawIndirect)
+    {
+        for (i32 index = 0; index < kMaxFramesInFlight; ++index)
+        {
+            drawCommands[index] = CreateBuffer(
+                sizeof(vk::DrawIndexedIndirectCommand) * 4096, vk::BufferUsageFlagBits::eIndirectBuffer, vma::MemoryUsage::eAutoPreferHost,
+                vma::AllocationCreateFlagBits::eHostAccessSequentialWrite | vma::AllocationCreateFlagBits::eMapped);
+
+            destroyQueue.Enqueue(
+                [=]()
+                {
+                    DestroyBuffer(drawCommands[index]);
+                });
+        }
+    }
+
     CreateScene();
 }
 
@@ -687,7 +717,7 @@ void VulkanDevice::Draw()
 
         CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(LightingUniforms));
 
-        Vector<MeshData> meshData;
+        Vector<RHIInstanceData> meshData;
         meshData.reserve(renderables.size());
 
         for (const RenderObject& object : renderables)
@@ -700,10 +730,10 @@ void VulkanDevice::Draw()
 
             glm::mat4 transform = translation * rotation * scale;
 
-            meshData.push_back(MeshData {.m = transform});
+            meshData.push_back(RHIInstanceData {.m = transform});
         }
 
-        CopyToGPU(meshDataUBO[currentFrame].allocation, meshData.data(), meshData.size() * sizeof(MeshData));
+        CopyToGPU(instanceData[currentFrame].allocation, meshData.data(), meshData.size() * sizeof(RHIInstanceData));
 
         DrawObjects(commandBuffer, renderables.data(), renderables.size());
 
@@ -843,6 +873,12 @@ vk::PhysicalDevice VulkanDevice::SelectPhysicalDevice(const Vector<vk::PhysicalD
 
             // Texture size influences quality
             deviceScore += deviceProperties.limits.maxImageDimension2D;
+
+            // vkCmdDrawIndirect support
+            if (deviceFeatures.multiDrawIndirect)
+            {
+                deviceScore += 500;
+            }
 
             // TODO: Add more criteria to choose GPU.
         }
@@ -1026,12 +1062,21 @@ void Zn::VulkanDevice::CreateDescriptors()
 
         // Matrices
 
-        meshDataUBO[Index] = CreateBuffer(sizeof(MeshData) * minMeshDataBufferSize, vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+        if (gpuFeatures.multiDrawIndirect)
+        {
+            instanceData[Index] =
+                CreateBuffer(sizeof(RHIInstanceData) * minInstanceDataBufferSize, vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eCpuToGpu);
+        }
+        else
+        {
+            instanceData[Index] =
+                CreateBuffer(sizeof(RHIInstanceData) * minInstanceDataBufferSize, vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+        }
 
         destroyQueue.Enqueue(
             [=]()
             {
-                DestroyBuffer(meshDataUBO[Index]);
+                DestroyBuffer(instanceData[Index]);
             });
 
         vk::DescriptorSetAllocateInfo descriptorSetAllocInfo {};
@@ -1044,7 +1089,7 @@ void Zn::VulkanDevice::CreateDescriptors()
         vk::DescriptorBufferInfo bufferInfo[] = {
             vk::DescriptorBufferInfo {cameraBuffer[Index].data, 0, sizeof(GPUCameraData)},
             vk::DescriptorBufferInfo {lightingBuffer[Index].data, 0, sizeof(LightingUniforms)},
-            vk::DescriptorBufferInfo {meshDataUBO[Index].data, 0, sizeof(MeshData)}};
+            /*            vk::DescriptorBufferInfo {instanceData[Index].data, 0, sizeof(MeshData)}*/};
 
         Vector<vk::WriteDescriptorSet> descriptorSetWrites = {
             vk::WriteDescriptorSet {
@@ -1063,14 +1108,14 @@ void Zn::VulkanDevice::CreateDescriptors()
                 .descriptorType  = vk::DescriptorType::eUniformBuffer,
                 .pBufferInfo     = &bufferInfo[1],
             },
-            vk::WriteDescriptorSet {
+/*            vk::WriteDescriptorSet {
                 .dstSet          = globalDescriptorSets[Index],
                 .dstBinding      = 2,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
                 .descriptorType  = vk::DescriptorType::eUniformBufferDynamic,
                 .pBufferInfo     = &bufferInfo[2],
-            }};
+            }*/};
 
         device.updateDescriptorSets(descriptorSetWrites, {});
     }
@@ -1321,11 +1366,13 @@ void Zn::VulkanDevice::SetViewport(vk::CommandBuffer cmd)
     cmd.setScissor(0, {scissors});
 }
 
-RHIBuffer Zn::VulkanDevice::CreateBuffer(size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage) const
+RHIBuffer Zn::VulkanDevice::CreateBuffer(
+    size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage, vma::AllocationCreateFlags allocationFlags) const
 {
     vk::BufferCreateInfo createInfo {.size = size, .usage = usage};
 
     vma::AllocationCreateInfo allocationInfo {
+        .flags         = allocationFlags,
         .usage         = memoryUsage,
         .requiredFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
     };
@@ -1359,70 +1406,90 @@ RHIMesh* Zn::VulkanDevice::GetMesh(const String& InName)
 
 void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject* first, u64 count)
 {
-    RHIMesh*  lastMesh     = nullptr;
-    Material* lastMaterial = nullptr;
-
-    for (u32 index = 0; index < count; ++index)
+    if (gpuFeatures.multiDrawIndirect)
     {
-        RenderObject& object = first[index];
+        IndirectDrawBatch drawBatches[64] = {0};
 
-        static const auto identity = glm::mat4 {1.f};
+        i32 batchCount = -1;
 
-        glm::mat4 translation = glm::translate(identity, object.location);
-        glm::mat4 rotation    = glm::mat4_cast(object.rotation);
-        glm::mat4 scale       = glm::scale(identity, object.scale);
-
-        glm::mat4 transform = translation * rotation * scale;
-
-        // only bind the pipeline if it doesn't match what's already bound
-        if (object.material != lastMaterial)
         {
-            commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, object.material->pipeline);
+            RHIMesh*  lastMesh     = nullptr;
+            Material* lastMaterial = nullptr;
 
-            SetViewport(commandBuffer);
-
-            lastMaterial = object.material;
-
-            if (object.material->textureSet)
+            for (u32 index = 0; index < count; ++index)
             {
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 1, object.material->textureSet, {});
+                RenderObject& object = first[index];
+
+                if (object.material != lastMaterial || lastMesh != object.mesh)
+                {
+                    ++batchCount;
+
+                    IndirectDrawBatch& batch = drawBatches[batchCount];
+
+                    batch = IndirectDrawBatch {
+                        .material = object.material,
+                        .mesh     = object.mesh,
+                        .index    = index,
+                        .count    = 1,
+                    };
+
+                    lastMesh     = object.mesh;
+                    lastMaterial = object.material;
+                }
+                else
+                {
+                    ++drawBatches[batchCount].count;
+                }
             }
         }
 
-        // TODO: Rebinding global for every mesh.
-        // I think we can make a different set that is refreshed at this rate rather than rebinding 3 sets all the time.
-        u32 offset = sizeof(MeshData) * index;
+        vk::DrawIndexedIndirectCommand* dst = reinterpret_cast<vk::DrawIndexedIndirectCommand*>(allocator.mapMemory(drawCommands[currentFrame].allocation));
 
-        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, object.material->layout, 0, globalDescriptorSets[currentFrame], {offset});
-
-        MeshPushConstants constants {.RenderMatrix = transform};
-
-        commandBuffer.pushConstants(object.material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MeshPushConstants), &constants);
-
-        // only bind the mesh if it's different from what's already bound
-
-        if (object.mesh != lastMesh)
+        for (u64 index = 0; index < count; ++index)
         {
-            // bind the mesh v-buffer with offset 0
+            RenderObject& object = first[index];
+
+            dst[index] = vk::DrawIndexedIndirectCommand {
+                .indexCount    = static_cast<u32>(object.mesh->indices.size()),
+                .instanceCount = 1,
+                .firstIndex    = 0,
+                .vertexOffset  = 0,
+                .firstInstance = static_cast<u32>(index),
+            };
+        }
+
+        allocator.unmapMemory(drawCommands[currentFrame].allocation);
+
+        SetViewport(commandBuffer);
+
+        for (i32 batchIndex = 0; batchIndex < batchCount + 1; ++batchIndex)
+        {
+            const IndirectDrawBatch& batch = drawBatches[batchIndex];
+
+            commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, batch.material->pipeline);
+
+            u32 globalOffset = sizeof(RHIInstanceData) * batch.count;
+            commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, batch.material->layout, 0, globalDescriptorSets[currentFrame], {globalOffset});
+
+            if (batch.material->textureSet)
+            {
+                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, batch.material->layout, 1, batch.material->textureSet, {});
+            }
+
             vk::DeviceSize offset = 0;
-            commandBuffer.bindVertexBuffers(0, 1, &object.mesh->vertexBuffer.data, &offset);
+            commandBuffer.bindVertexBuffers(0, 1, &batch.mesh->vertexBuffer.data, &offset);
 
-            if (object.mesh->indexBuffer.data)
+            commandBuffer.bindVertexBuffers(1, 1, &instanceData[currentFrame].data, &offset);
+
+            if (batch.mesh->indexBuffer.data)
             {
-                commandBuffer.bindIndexBuffer(object.mesh->indexBuffer.data, 0, vk::IndexType::eUint32);
+                commandBuffer.bindIndexBuffer(batch.mesh->indexBuffer.data, 0, vk::IndexType::eUint32);
             }
-            lastMesh = object.mesh;
-        }
 
-        // Draw
+            vk::DeviceSize indirectOffset = batch.index * sizeof(vk::DrawIndexedIndirectCommand);
+            u32            stride         = sizeof(vk::DrawIndexedIndirectCommand);
 
-        if (object.mesh->indexBuffer.data)
-        {
-            commandBuffer.drawIndexed(object.mesh->indices.size(), 1, 0, 0, 0);
-        }
-        else
-        {
-            commandBuffer.draw(object.mesh->vertices.size(), 1, 0, 0);
+            commandBuffer.drawIndexedIndirect(drawCommands[currentFrame].data, indirectOffset, batch.count, stride);
         }
     }
 }
@@ -1494,23 +1561,19 @@ void Zn::VulkanDevice::CreateScene()
 
     renderables.push_back(monkey);
 
-    RHIMesh*  triangleMesh    = GetMesh(triangleMeshName);
-    Material* defaultMaterial = VulkanMaterialManager::Get().GetMaterial("default");
+    // RHIMesh*  triangleMesh    = GetMesh(triangleMeshName);
+    // Material* defaultMaterial = VulkanMaterialManager::Get().GetMaterial("default");
 
-    for (int32 x = -20; x <= 20; ++x)
-    {
-        for (int32 y = -20; y <= 20; ++y)
-        {
-            RenderObject triangle {
-                .mesh     = triangleMesh,
-                .material = defaultMaterial,
-                .location = glm::vec3(x, 0, y),
-                .rotation = glm::quat(glm::vec3(glm::radians(25.f), 0.f, 0.f)),
-                .scale    = glm::vec3(0.2f)};
+    // for (int32 x = -50; x <= 50; ++x)
+    //{
+    //     for (int32 y = -50; y <= 50; ++y)
+    //     {
+    //         RenderObject vOffset = viking_room;
+    //         viking_room.location = glm::vec3(x + 20, 0, y + 20);
 
-            renderables.push_back(triangle);
-        }
-    }
+    //        renderables.push_back(vOffset);
+    //    }
+    //}
 }
 
 void Zn::VulkanDevice::LoadMeshes()
@@ -1649,8 +1712,9 @@ void Zn::VulkanDevice::CreateMeshPipeline()
                 device.destroyPipelineLayout(material->layout);
             });
 
-        material->pipeline =
-            VulkanPipeline::NewVkPipeline(device, renderPass, material->vertexShader, material->fragmentShader, swapChainExtent, material->layout);
+        material->pipeline = VulkanPipeline::NewVkPipeline(
+            device, renderPass, material->vertexShader, material->fragmentShader, swapChainExtent, material->layout,
+            VulkanPipeline::defaultIndirectInputLayout);
 
         destroyQueue.Enqueue(
             [=]()
@@ -1831,7 +1895,8 @@ vk::ImageCreateInfo Zn::VulkanDevice::MakeImageCreateInfo(vk::Format format, vk:
     //					You can create textures that are many - in - one, using layers.
     //					An example of layered textures is cubemaps, where you have 6 layers, one layer for each face of the cubemap.
     //					We default it to 1 layer because we aren’t doing cubemaps.
-    //	.samples = controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you are rendering to.
+    //	.samples = controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you are rendering
+    // to.
     //					TODO: We won’t be doing MSAA in this tutorial, so samples will be kept at 1 sample.
     //  .tiling = if you use VK_IMAGE_TILING_OPTIMAL, it won’t be possible to read the data from CPU or to write it without changing its tiling first
     //					(it’s possible to change the tiling of a texture at any point, but this can be a costly operation).

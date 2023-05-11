@@ -2,6 +2,7 @@
 #include <Rendering/Vulkan/VulkanPipeline.h>
 #include <Rendering/RHI/RHI.h>
 #include <Rendering/RHI/RHIVertex.h>
+#include <Rendering/RHI/RHIInstanceData.h>
 #include <Rendering/RHI/RHIInputLayout.h>
 
 using namespace Zn;
@@ -17,6 +18,31 @@ const RHIInputLayout VulkanPipeline::defaultInputLayout = {
         {.location = 1, .binding = 0, .format = vk::Format::eR32G32B32A32Sfloat, .offset = offsetof(RHIVertex, normal)},
         {.location = 2, .binding = 0, .format = vk::Format::eR32G32B32A32Sfloat, .offset = offsetof(RHIVertex, color)},
         {.location = 3, .binding = 0, .format = vk::Format::eR32G32Sfloat, .offset = offsetof(RHIVertex, uv)},
+    }};
+
+const RHIInputLayout VulkanPipeline::defaultIndirectInputLayout = {
+    .bindings =
+        {
+            vk::VertexInputBindingDescription {
+                .binding   = 0,
+                .stride    = sizeof(RHIVertex),
+                .inputRate = vk::VertexInputRate::eVertex,
+            },
+            vk::VertexInputBindingDescription {
+                .binding   = 1,
+                .stride    = sizeof(RHIInstanceData),
+                .inputRate = vk::VertexInputRate::eInstance,
+            },
+        },
+    .attributes = {
+        {.location = 0, .binding = 0, .format = vk::Format::eR32G32B32A32Sfloat, .offset = offsetof(RHIVertex, position)},
+        {.location = 1, .binding = 0, .format = vk::Format::eR32G32B32A32Sfloat, .offset = offsetof(RHIVertex, normal)},
+        {.location = 2, .binding = 0, .format = vk::Format::eR32G32B32A32Sfloat, .offset = offsetof(RHIVertex, color)},
+        {.location = 3, .binding = 0, .format = vk::Format::eR32G32Sfloat, .offset = offsetof(RHIVertex, uv)},
+        {.location = 4, .binding = 1, .format = vk::Format::eR32G32B32A32Sfloat, .offset = sizeof(glm::vec4) * 0},
+        {.location = 5, .binding = 1, .format = vk::Format::eR32G32B32A32Sfloat, .offset = sizeof(glm::vec4) * 1},
+        {.location = 6, .binding = 1, .format = vk::Format::eR32G32B32A32Sfloat, .offset = sizeof(glm::vec4) * 2},
+        {.location = 7, .binding = 1, .format = vk::Format::eR32G32B32A32Sfloat, .offset = sizeof(glm::vec4) * 3},
     }};
 
 vk::PipelineShaderStageCreateInfo VulkanPipeline::CreateShaderStage(vk::ShaderStageFlagBits stageFlags, vk::ShaderModule shaderModule)
@@ -118,7 +144,9 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(
     vk::PipelineLayout pipelineLayout, const RHIInputLayout& inputLayout)
 {
     vk::PipelineShaderStageCreateInfo shaderStages[] = {
-        CreateShaderStage(vk::ShaderStageFlagBits::eVertex, vertexShader), CreateShaderStage(vk::ShaderStageFlagBits::eFragment, fragmentShader)};
+        CreateShaderStage(vk::ShaderStageFlagBits::eVertex, vertexShader),
+        CreateShaderStage(vk::ShaderStageFlagBits::eFragment, fragmentShader),
+    };
 
     vk::PipelineVertexInputStateCreateInfo vertexInput {};
 

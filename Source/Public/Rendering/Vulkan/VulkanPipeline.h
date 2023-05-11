@@ -9,6 +9,7 @@ class VulkanPipeline
 {
   public:
     static const RHIInputLayout defaultInputLayout;
+    static const RHIInputLayout defaultIndirectInputLayout;
 
     static vk::PipelineShaderStageCreateInfo CreateShaderStage(vk::ShaderStageFlagBits stageFlags, vk::ShaderModule shaderModule);
 
