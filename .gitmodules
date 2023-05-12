@@ -22,3 +22,6 @@
 [submodule "Source/ThirdParty/wyhash"]
 	path = Source/ThirdParty/wyhash
 	url = https://github.com/wangyi-fudan/wyhash
+[submodule "Source/ThirdParty/tinygltf"]
+	path = Source/ThirdParty/tinygltf
+	url = https://github.com/syoyo/tinygltf

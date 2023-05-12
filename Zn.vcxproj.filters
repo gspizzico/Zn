@@ -318,6 +318,8 @@
     <ClCompile Include="Source\Private\Engine\Importer\TextureImporter.cpp" />
     <ClCompile Include="Source\Private\Rendering\RHI\Vulkan.cpp" />
     <ClCompile Include="Source\Private\Engine\Importer\MeshImporter.cpp" />
+    <ClCompile Include="Source\Private\Engine\Importer\MeshImporter_Obj.cpp" />
+    <ClCompile Include="Source\Private\Engine\Importer\MeshImporter_GLTF.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Log\Log.h">

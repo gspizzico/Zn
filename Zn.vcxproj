@@ -95,7 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ZN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinygltf;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
@@ -121,7 +121,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZN_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinygltf;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -148,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZN_RELEASE;TRACY_ENABLE;TRACY_ONLY_LOCALHOST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinygltf;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -166,6 +166,8 @@
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Private\Engine\Importer\MeshImporter_GLTF.cpp" />
+    <ClCompile Include="Source\Private\Engine\Importer\MeshImporter_Obj.cpp" />
     <ClCompile Include="Source\Private\Engine\Importer\TextureImporter.cpp" />
     <ClCompile Include="Source\Private\Rendering\RHI\Vulkan.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMaterialManager.cpp" />
