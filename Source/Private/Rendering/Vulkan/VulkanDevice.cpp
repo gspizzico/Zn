@@ -31,6 +31,7 @@ namespace
 static const String         defaultTexturePath    = "assets/texture.jpg";
 static const String         vikingRoomTexturePath = "assets/VulkanTutorial/viking_room.png";
 static const String         vikingRoomMeshPath    = "assets/VulkanTutorial/viking_room.obj";
+static const String         gltf_BoxMeshPath      = "assets/glTF-Sample-Models/2.0/Box/glTF/Box.gltf";
 static const String         monkeyMeshPath        = "assets/VulkanGuide/monkey_smooth.obj";
 static const ResourceHandle depthTextureHandle    = ResourceHandle(HashCalculate("__RHIDepthTexture"));
 static const String         triangleMeshName      = "__Triangle";
@@ -1561,19 +1562,18 @@ void Zn::VulkanDevice::CreateScene()
 
     renderables.push_back(monkey);
 
-    // RHIMesh*  triangleMesh    = GetMesh(triangleMeshName);
-    // Material* defaultMaterial = VulkanMaterialManager::Get().GetMaterial("default");
+    if (RHIMesh* gltfMesh = GetMesh(gltf_BoxMeshPath))
+    {
+        RenderObject box {
+            .mesh     = gltfMesh,
+            .material = VulkanMaterialManager::Get().GetMaterial("default"),
+            .location = glm::vec3(10.f, 0.f, 0.f),
+            .rotation = glm::quat(),
+            .scale    = glm::vec3(1.f),
+        };
 
-    // for (int32 x = -50; x <= 50; ++x)
-    //{
-    //     for (int32 y = -50; y <= 50; ++y)
-    //     {
-    //         RenderObject vOffset = viking_room;
-    //         viking_room.location = glm::vec3(x + 20, 0, y + 20);
-
-    //        renderables.push_back(vOffset);
-    //    }
-    //}
+        renderables.push_back(box);
+    }
 }
 
 void Zn::VulkanDevice::LoadMeshes()
@@ -1642,6 +1642,24 @@ void Zn::VulkanDevice::LoadMeshes()
             vikingRoom->indices.data(), vikingRoom->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer, vma::MemoryUsage::eGpuOnly);
 
         meshes.insert({ResourceHandle(HashCalculate(vikingRoomMeshPath)), vikingRoom});
+    }
+
+    RHIMesh* box = new RHIMesh();
+    if (!MeshImporter::Import(IO::GetAbsolutePath(gltf_BoxMeshPath), *box))
+    {
+        delete box;
+        box = nullptr;
+    }
+
+    if (box)
+    {
+        box->vertexBuffer =
+            CreateRHIBuffer(box->vertices.data(), box->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+
+        box->indexBuffer =
+            CreateRHIBuffer(box->indices.data(), box->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer, vma::MemoryUsage::eGpuOnly);
+
+        meshes.insert({ResourceHandle(HashCalculate(gltf_BoxMeshPath)), box});
     }
 }
 
