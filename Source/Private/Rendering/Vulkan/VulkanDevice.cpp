@@ -31,7 +31,7 @@ namespace
 static const String         defaultTexturePath    = "assets/texture.jpg";
 static const String         vikingRoomTexturePath = "assets/VulkanTutorial/viking_room.png";
 static const String         vikingRoomMeshPath    = "assets/VulkanTutorial/viking_room.obj";
-static const String         gltf_BoxMeshPath      = "assets/glTF-Sample-Models/2.0/Box/glTF/Box.gltf";
+static const String         gltf_BoxMeshPath      = "assets/glTF-Sample-Models/2.0/Cube/glTF/Cube.gltf";
 static const String         monkeyMeshPath        = "assets/VulkanGuide/monkey_smooth.obj";
 static const ResourceHandle depthTextureHandle    = ResourceHandle(HashCalculate("__RHIDepthTexture"));
 static const String         triangleMeshName      = "__Triangle";
@@ -99,7 +99,8 @@ ELogVerbosity VkMessageSeverityToZnVerbosity(vk::DebugUtilsMessageSeverityFlagBi
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL OnDebugMessage(
-    VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* data, void* userData)
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* data,
+    void* userData)
 {
     ELogVerbosity verbosity = VkMessageSeverityToZnVerbosity(vk::DebugUtilsMessageSeverityFlagBitsEXT(severity));
 
@@ -424,7 +425,8 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
     ////// Sync Structures
 
-    // we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first frame)
+    // we want to create the fence with the Create Signaled flag, so we can wait on it before using it on a GPU command (for the first
+    // frame)
     vk::FenceCreateInfo fenceCreateInfo {.flags = vk::FenceCreateFlagBits::eSignaled};
 
     for (size_t index = 0; index < kMaxFramesInFlight; ++index)
@@ -708,7 +710,8 @@ void VulkanDevice::Draw()
         CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(GPUCameraData));
 
         LightingUniforms lighting {};
-        lighting.directional_lights[0].direction = glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
+        lighting.directional_lights[0].direction =
+            glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
         lighting.directional_lights[0].color     = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
         lighting.directional_lights[0].intensity = 0.25f;
         lighting.ambient_light.color             = glm::vec4(0.f, 0.2f, 1.f, 0.f);
@@ -978,7 +981,10 @@ void Zn::VulkanDevice::CreateDescriptors()
         {vk::DescriptorType::eCombinedImageSampler, 10}};
 
     vk::DescriptorPoolCreateInfo poolCreateInfo {
-        .flags = (vk::DescriptorPoolCreateFlagBits) 0, .maxSets = 10, .poolSizeCount = ArrayLength(poolSizes), .pPoolSizes = ArrayData(poolSizes)};
+        .flags         = (vk::DescriptorPoolCreateFlagBits) 0,
+        .maxSets       = 10,
+        .poolSizeCount = ArrayLength(poolSizes),
+        .pPoolSizes    = ArrayData(poolSizes)};
 
     descriptorPool = device.createDescriptorPool(poolCreateInfo);
 
@@ -990,23 +996,25 @@ void Zn::VulkanDevice::CreateDescriptors()
 
     // Global Set
 
-    vk::DescriptorSetLayoutBinding bindings[] = {
-        // Camera
-        {
-            .binding         = 0,
-            .descriptorType  = vk::DescriptorType::eUniformBuffer,
-            .descriptorCount = 1,
-            .stageFlags      = vk::ShaderStageFlagBits::eVertex,
-        },
-        // Lighting
-        {
-            .binding         = 1,
-            .descriptorType  = vk::DescriptorType::eUniformBuffer,
-            .descriptorCount = 1,
-            .stageFlags      = vk::ShaderStageFlagBits::eFragment,
-        },
-        // Matrices
-        {.binding = 2, .descriptorType = vk::DescriptorType::eUniformBufferDynamic, .descriptorCount = 1, .stageFlags = vk::ShaderStageFlagBits::eVertex}};
+    vk::DescriptorSetLayoutBinding bindings[] = {// Camera
+                                                 {
+                                                     .binding         = 0,
+                                                     .descriptorType  = vk::DescriptorType::eUniformBuffer,
+                                                     .descriptorCount = 1,
+                                                     .stageFlags      = vk::ShaderStageFlagBits::eVertex,
+                                                 },
+                                                 // Lighting
+                                                 {
+                                                     .binding         = 1,
+                                                     .descriptorType  = vk::DescriptorType::eUniformBuffer,
+                                                     .descriptorCount = 1,
+                                                     .stageFlags      = vk::ShaderStageFlagBits::eFragment,
+                                                 },
+                                                 // Matrices
+                                                 {.binding         = 2,
+                                                  .descriptorType  = vk::DescriptorType::eUniformBufferDynamic,
+                                                  .descriptorCount = 1,
+                                                  .stageFlags      = vk::ShaderStageFlagBits::eVertex}};
 
     vk::DescriptorSetLayoutCreateInfo globalSetCreateInfo {.bindingCount = ArrayLength(bindings), .pBindings = ArrayData(bindings)};
 
@@ -1053,7 +1061,8 @@ void Zn::VulkanDevice::CreateDescriptors()
 
         // Lighting
 
-        lightingBuffer[Index] = CreateBuffer(sizeof(LightingUniforms), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+        lightingBuffer[Index] =
+            CreateBuffer(sizeof(LightingUniforms), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
         destroyQueue.Enqueue(
             [=]()
@@ -1065,13 +1074,13 @@ void Zn::VulkanDevice::CreateDescriptors()
 
         if (gpuFeatures.multiDrawIndirect)
         {
-            instanceData[Index] =
-                CreateBuffer(sizeof(RHIInstanceData) * minInstanceDataBufferSize, vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eCpuToGpu);
+            instanceData[Index] = CreateBuffer(
+                sizeof(RHIInstanceData) * minInstanceDataBufferSize, vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eCpuToGpu);
         }
         else
         {
-            instanceData[Index] =
-                CreateBuffer(sizeof(RHIInstanceData) * minInstanceDataBufferSize, vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+            instanceData[Index] = CreateBuffer(
+                sizeof(RHIInstanceData) * minInstanceDataBufferSize, vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
         }
 
         destroyQueue.Enqueue(
@@ -1165,7 +1174,8 @@ void Zn::VulkanDevice::CreateSwapChain()
     SDL_Vulkan_GetDrawableSize(WindowHandle, &Width, &Height);
 
     Width = std::clamp(
-        Width, static_cast<int32>(SwapChainDetails.Capabilities.minImageExtent.width), static_cast<int32>(SwapChainDetails.Capabilities.maxImageExtent.width));
+        Width, static_cast<int32>(SwapChainDetails.Capabilities.minImageExtent.width),
+        static_cast<int32>(SwapChainDetails.Capabilities.maxImageExtent.width));
     Height = std::clamp(
         Height, static_cast<int32>(SwapChainDetails.Capabilities.minImageExtent.height),
         static_cast<int32>(SwapChainDetails.Capabilities.maxImageExtent.height));
@@ -1221,7 +1231,9 @@ void Zn::VulkanDevice::CreateImageViews()
             .viewType = vk::ImageViewType::e2D,
             .format   = swapChainFormat.format,
             // RGBA
-            .components = {vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity},
+            .components =
+                {vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity,
+                 vk::ComponentSwizzle::eIdentity},
             .subresourceRange = {
                 .aspectMask     = vk::ImageAspectFlagBits::eColor,
                 .baseMipLevel   = 0,
@@ -1251,22 +1263,26 @@ void Zn::VulkanDevice::CreateImageViews()
         vk::Extent3D depthImageExtent {swapChainExtent.width, swapChainExtent.height, 1};
 
         //	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-        vk::ImageCreateInfo depthImageCreateInfo = MakeImageCreateInfo(depthTexture->format, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent);
+        vk::ImageCreateInfo depthImageCreateInfo =
+            MakeImageCreateInfo(depthTexture->format, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent);
 
         //	Allocate from GPU memory.
 
         vma::AllocationCreateInfo depthImageAllocInfo {
             //	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
             .usage = vma::MemoryUsage::eGpuOnly,
-            //	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags.
+            //	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on
+            // required flags.
             //	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
             .requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal),
         };
 
-        ZN_VK_CHECK(allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthTexture->image, &depthTexture->allocation, nullptr));
+        ZN_VK_CHECK(
+            allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthTexture->image, &depthTexture->allocation, nullptr));
 
         //	VK_IMAGE_ASPECT_DEPTH_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-        vk::ImageViewCreateInfo depthImageViewCreateInfo = MakeImageViewCreateInfo(depthTexture->format, depthTexture->image, vk::ImageAspectFlagBits::eDepth);
+        vk::ImageViewCreateInfo depthImageViewCreateInfo =
+            MakeImageViewCreateInfo(depthTexture->format, depthTexture->image, vk::ImageAspectFlagBits::eDepth);
 
         depthTexture->imageView = device.createImageView(depthImageViewCreateInfo);
     }
@@ -1444,7 +1460,8 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
             }
         }
 
-        vk::DrawIndexedIndirectCommand* dst = reinterpret_cast<vk::DrawIndexedIndirectCommand*>(allocator.mapMemory(drawCommands[currentFrame].allocation));
+        vk::DrawIndexedIndirectCommand* dst =
+            reinterpret_cast<vk::DrawIndexedIndirectCommand*>(allocator.mapMemory(drawCommands[currentFrame].allocation));
 
         for (u64 index = 0; index < count; ++index)
         {
@@ -1470,11 +1487,13 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
             commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, batch.material->pipeline);
 
             u32 globalOffset = sizeof(RHIInstanceData) * batch.count;
-            commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, batch.material->layout, 0, globalDescriptorSets[currentFrame], {globalOffset});
+            commandBuffer.bindDescriptorSets(
+                vk::PipelineBindPoint::eGraphics, batch.material->layout, 0, globalDescriptorSets[currentFrame], {globalOffset});
 
             if (batch.material->textureSet)
             {
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, batch.material->layout, 1, batch.material->textureSet, {});
+                commandBuffer.bindDescriptorSets(
+                    vk::PipelineBindPoint::eGraphics, batch.material->layout, 1, batch.material->textureSet, {});
             }
 
             vk::DeviceSize offset = 0;
@@ -1497,170 +1516,151 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
 
 void Zn::VulkanDevice::CreateScene()
 {
-    RenderObject viking_room {
-        .mesh     = GetMesh(vikingRoomMeshPath),
-        .material = VulkanMaterialManager::Get().GetMaterial("default"),
-        .location = glm::vec3(0.f),
-        .rotation = glm::quat(),
-        .scale    = glm::vec3(1.f),
-    };
+    // RenderObject viking_room {
+    //     .mesh     = GetMesh(vikingRoomMeshPath),
+    //     .material = VulkanMaterialManager::Get().GetMaterial("default"),
+    //     .location = glm::vec3(0.f),
+    //     .rotation = glm::quat(),
+    //     .scale    = glm::vec3(1.f),
+    // };
 
-    // Sampler
+    //// Sampler
 
-    vk::DescriptorSetAllocateInfo singleTextureAllocateInfo {
-        .descriptorPool     = descriptorPool,
-        .descriptorSetCount = 1,
-        .pSetLayouts        = &singleTextureSetLayout,
-    };
+    // vk::DescriptorSetAllocateInfo singleTextureAllocateInfo {
+    //     .descriptorPool     = descriptorPool,
+    //     .descriptorSetCount = 1,
+    //     .pSetLayouts        = &singleTextureSetLayout,
+    // };
 
-    viking_room.material->textureSet = device.allocateDescriptorSets(singleTextureAllocateInfo)[0];
+    // viking_room.material->textureSet = device.allocateDescriptorSets(singleTextureAllocateInfo)[0];
 
-    const vk::Filter             samplerFilters     = vk::Filter::eNearest;
-    const vk::SamplerAddressMode samplerAddressMode = vk::SamplerAddressMode::eRepeat;
+    // const vk::Filter             samplerFilters     = vk::Filter::eNearest;
+    // const vk::SamplerAddressMode samplerAddressMode = vk::SamplerAddressMode::eRepeat;
 
-    vk::SamplerCreateInfo samplerCreateInfo {
-        .magFilter    = samplerFilters,
-        .minFilter    = samplerFilters,
-        .addressModeU = samplerAddressMode,
-        .addressModeV = samplerAddressMode,
-        .addressModeW = samplerAddressMode,
-    };
+    // vk::SamplerCreateInfo samplerCreateInfo {
+    //     .magFilter    = samplerFilters,
+    //     .minFilter    = samplerFilters,
+    //     .addressModeU = samplerAddressMode,
+    //     .addressModeV = samplerAddressMode,
+    //     .addressModeW = samplerAddressMode,
+    // };
 
-    vk::Sampler sampler = device.createSampler(samplerCreateInfo);
-    destroyQueue.Enqueue(
-        [=]()
-        {
-            device.destroySampler(sampler);
-        });
+    // vk::Sampler sampler = device.createSampler(samplerCreateInfo);
+    // destroyQueue.Enqueue(
+    //     [=]()
+    //     {
+    //         device.destroySampler(sampler);
+    //     });
 
-    viking_room.material->textureSamplers["default"] = sampler;
+    // viking_room.material->textureSamplers["default"] = sampler;
 
-    // write to the descriptor set so that it points to our empire_diffuse texture
-    vk::DescriptorImageInfo imageBufferInfo;
-    imageBufferInfo.sampler     = sampler;
-    imageBufferInfo.imageView   = textures[HashCalculate(vikingRoomTexturePath)]->imageView;
-    imageBufferInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    //// write to the descriptor set so that it points to our empire_diffuse texture
+    // vk::DescriptorImageInfo imageBufferInfo;
+    // imageBufferInfo.sampler     = sampler;
+    // imageBufferInfo.imageView   = textures[HashCalculate(vikingRoomTexturePath)]->imageView;
+    // imageBufferInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
-    device.updateDescriptorSets(
-        {vk::WriteDescriptorSet {
-            .dstSet          = viking_room.material->textureSet,
-            .dstBinding      = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
-            .pImageInfo      = &imageBufferInfo}},
-        {});
+    // device.updateDescriptorSets(
+    //     {vk::WriteDescriptorSet {
+    //         .dstSet          = viking_room.material->textureSet,
+    //         .dstBinding      = 0,
+    //         .dstArrayElement = 0,
+    //         .descriptorCount = 1,
+    //         .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+    //         .pImageInfo      = &imageBufferInfo}},
+    //     {});
 
-    renderables.push_back(viking_room);
+    // renderables.push_back(viking_room);
 
-    RenderObject monkey {
-        .mesh     = GetMesh(monkeyMeshPath),
-        .material = VulkanMaterialManager::Get().GetMaterial("default"),
-        .location = glm::vec3(0.f, 0.f, 10.f),
-        .rotation = glm::quat(),
-        .scale    = glm::vec3(1.f)};
+    // RenderObject monkey {
+    //     .mesh     = GetMesh(monkeyMeshPath),
+    //     .material = VulkanMaterialManager::Get().GetMaterial("default"),
+    //     .location = glm::vec3(0.f, 0.f, 10.f),
+    //     .rotation = glm::quat(),
+    //     .scale    = glm::vec3(1.f)};
 
-    renderables.push_back(monkey);
+    // renderables.push_back(monkey);
 
-    if (RHIMesh* gltfMesh = GetMesh(gltf_BoxMeshPath))
-    {
-        RenderObject box {
-            .mesh     = gltfMesh,
-            .material = VulkanMaterialManager::Get().GetMaterial("default"),
-            .location = glm::vec3(10.f, 0.f, 0.f),
-            .rotation = glm::quat(),
-            .scale    = glm::vec3(1.f),
-        };
+    // if (RHIMesh* gltfMesh = GetMesh(gltf_BoxMeshPath))
+    //{
+    //     RenderObject box {
+    //         .mesh     = gltfMesh,
+    //         .material = VulkanMaterialManager::Get().GetMaterial("default"),
+    //         .location = glm::vec3(10.f, 0.f, 0.f),
+    //         .rotation = glm::quat(),
+    //         .scale    = glm::vec3(1.f),
+    //     };
 
-        renderables.push_back(box);
-    }
+    //    renderables.push_back(box);
+    //}
 }
 
 void Zn::VulkanDevice::LoadMeshes()
 {
-    RHIMesh* triangle = new RHIMesh();
-
-    triangle->vertices.resize(3);
-
-    // vertex positions
-    triangle->vertices[0].position = {1.f, 1.f, 0.f};
-    triangle->vertices[1].position = {-1.f, 1.f, 0.0f};
-    triangle->vertices[2].position = {0.f, -0.5f, 0.0f};
-
-    triangle->vertices[0].color = {1.0f, 0.f, 0.f};
-    triangle->vertices[1].color = {0.0f, 1.0f, 0.0f};
-    triangle->vertices[2].color = {0.0f, 0.0f, 1.0f};
-
-    triangle->vertices[0].normal = glm::vec3(1.0f);
-    triangle->vertices[1].normal = glm::vec3(1.0f);
-    triangle->vertices[2].normal = glm::vec3(1.0f);
-
-    triangle->vertices[0].uv = glm::vec2(1.0f);
-    triangle->vertices[1].uv = glm::vec2(0.0, 1.f);
-    triangle->vertices[2].uv = glm::vec2(0.0f);
-
-    // we don't care about the vertex normals
-
-    triangle->vertexBuffer = CreateRHIBuffer(
-        triangle->vertices.data(), triangle->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
-
-    meshes.insert({ResourceHandle(HashCalculate(triangleMeshName)), triangle});
-
-    RHIMesh* monkey = new RHIMesh();
-
-    if (!MeshImporter::Import(IO::GetAbsolutePath(monkeyMeshPath), *monkey))
+    MeshImporterOutput gltfOutput;
+    if (MeshImporter::ImportAll(IO::GetAbsolutePath(gltf_BoxMeshPath), gltfOutput))
     {
-        delete monkey;
-        monkey = nullptr;
+        // TODO: Create Buffers
+        // TODO: Create Materials
+        // TODO: Create Samplers
+        for (const auto& it : gltfOutput.textures)
+        {
+            CreateTexture(it.first, it.second);
+        }
     }
 
-    RHIMesh* vikingRoom = new RHIMesh();
+    // RHIMesh* vikingRoom = new RHIMesh();
 
-    if (!MeshImporter::Import(IO::GetAbsolutePath(vikingRoomMeshPath), *vikingRoom))
-    {
-        delete vikingRoom;
-        vikingRoom = nullptr;
-    }
+    // if (!MeshImporter::Import(IO::GetAbsolutePath(vikingRoomMeshPath), *vikingRoom))
+    //{
+    //     delete vikingRoom;
+    //     vikingRoom = nullptr;
+    // }
 
-    if (monkey)
-    {
-        monkey->vertexBuffer = CreateRHIBuffer(
-            monkey->vertices.data(), monkey->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+    // if (monkey)
+    //{
+    //     monkey->vertexBuffer = CreateRHIBuffer(
+    //         monkey->vertices.data(), monkey->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer,
+    //         vma::MemoryUsage::eGpuOnly);
 
-        monkey->indexBuffer =
-            CreateRHIBuffer(monkey->indices.data(), monkey->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer, vma::MemoryUsage::eGpuOnly);
+    //    monkey->indexBuffer = CreateRHIBuffer(
+    //        monkey->indices.data(), monkey->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer,
+    //        vma::MemoryUsage::eGpuOnly);
 
-        meshes.insert({ResourceHandle(HashCalculate(monkeyMeshPath)), monkey});
-    }
+    //    meshes.insert({ResourceHandle(HashCalculate(monkeyMeshPath)), monkey});
+    //}
 
-    if (vikingRoom)
-    {
-        vikingRoom->vertexBuffer = CreateRHIBuffer(
-            vikingRoom->vertices.data(), vikingRoom->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+    // if (vikingRoom)
+    //{
+    //     vikingRoom->vertexBuffer = CreateRHIBuffer(
+    //         vikingRoom->vertices.data(), vikingRoom->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer,
+    //         vma::MemoryUsage::eGpuOnly);
 
-        vikingRoom->indexBuffer = CreateRHIBuffer(
-            vikingRoom->indices.data(), vikingRoom->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer, vma::MemoryUsage::eGpuOnly);
+    //    vikingRoom->indexBuffer = CreateRHIBuffer(
+    //        vikingRoom->indices.data(), vikingRoom->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer,
+    //        vma::MemoryUsage::eGpuOnly);
 
-        meshes.insert({ResourceHandle(HashCalculate(vikingRoomMeshPath)), vikingRoom});
-    }
+    //    meshes.insert({ResourceHandle(HashCalculate(vikingRoomMeshPath)), vikingRoom});
+    //}
 
-    RHIMesh* box = new RHIMesh();
-    if (!MeshImporter::Import(IO::GetAbsolutePath(gltf_BoxMeshPath), *box))
-    {
-        delete box;
-        box = nullptr;
-    }
+    // RHIMesh* box = new RHIMesh();
+    // if (!MeshImporter::Import(IO::GetAbsolutePath(gltf_BoxMeshPath), *box))
+    //{
+    //     delete box;
+    //     box = nullptr;
+    // }
 
-    if (box)
-    {
-        box->vertexBuffer =
-            CreateRHIBuffer(box->vertices.data(), box->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+    // if (box)
+    //{
+    //     box->vertexBuffer = CreateRHIBuffer(
+    //         box->vertices.data(), box->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer,
+    //         vma::MemoryUsage::eGpuOnly);
 
-        box->indexBuffer =
-            CreateRHIBuffer(box->indices.data(), box->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer, vma::MemoryUsage::eGpuOnly);
+    //    box->indexBuffer = CreateRHIBuffer(
+    //        box->indices.data(), box->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer, vma::MemoryUsage::eGpuOnly);
 
-        meshes.insert({ResourceHandle(HashCalculate(gltf_BoxMeshPath)), box});
-    }
+    //    meshes.insert({ResourceHandle(HashCalculate(gltf_BoxMeshPath)), box});
+    //}
 }
 
 RHIBuffer Zn::VulkanDevice::CreateRHIBuffer(void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const
@@ -1763,8 +1763,8 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
         width  = sourceTexture->width;
         height = sourceTexture->height;
 
-        stagingBuffer = CreateBuffer(sourceTexture->size, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
-        CopyToGPU(stagingBuffer.allocation, sourceTexture->data, sourceTexture->size);
+        stagingBuffer = CreateBuffer(sourceTexture->data.size(), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+        CopyToGPU(stagingBuffer.allocation, sourceTexture->data.data(), sourceTexture->data.size());
     }
     else
     {
@@ -1782,10 +1782,12 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
     ImmediateSubmit(
         [=](vk::CommandBuffer cmd)
         {
-            TransitionImageLayout(cmd, texture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+            TransitionImageLayout(
+                cmd, texture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
             CopyBufferToImage(cmd, stagingBuffer.data, texture->image, width, height);
             TransitionImageLayout(
-                cmd, texture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+                cmd, texture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal,
+                vk::ImageLayout::eShaderReadOnlyOptimal);
         });
 
     DestroyBuffer(stagingBuffer);
@@ -1807,10 +1809,63 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
     return texture;
 }
 
+RHITexture* Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<TextureSource> texture)
+{
+    ResourceHandle textureHandle = HashCalculate(name);
+
+    if (auto it = textures.find(textureHandle); it != std::end(textures))
+    {
+        return it->second;
+    }
+
+    i32 width  = texture->width;
+    i32 height = texture->height;
+
+    RHIBuffer stagingBuffer = CreateBuffer(texture->data.size(), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+    CopyToGPU(stagingBuffer.allocation, texture->data.data(), texture->data.size());
+
+    RHITexture* rhiTexture = nullptr;
+
+    if (auto result = textures.insert({textureHandle, CreateRHITexture(width, height, vk::Format::eR8G8B8A8Srgb)}); result.second)
+    {
+        rhiTexture = result.first->second;
+    }
+
+    ImmediateSubmit(
+        [=](vk::CommandBuffer cmd)
+        {
+            TransitionImageLayout(
+                cmd, rhiTexture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+            CopyBufferToImage(cmd, stagingBuffer.data, rhiTexture->image, width, height);
+            TransitionImageLayout(
+                cmd, rhiTexture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal,
+                vk::ImageLayout::eShaderReadOnlyOptimal);
+        });
+
+    DestroyBuffer(stagingBuffer);
+
+    vk::ImageViewCreateInfo imageViewInfo {
+        .image            = rhiTexture->image,
+        .viewType         = vk::ImageViewType::e2D,
+        .format           = vk::Format::eR8G8B8A8Srgb,
+        .subresourceRange = {
+            .aspectMask     = vk::ImageAspectFlagBits::eColor,
+            .baseMipLevel   = 0,
+            .levelCount     = 1,
+            .baseArrayLayer = 0,
+            .layerCount     = 1,
+        }};
+
+    rhiTexture->imageView = device.createImageView(imageViewInfo);
+
+    return rhiTexture;
+}
+
 RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format format) const
 {
     vk::ImageCreateInfo createInfo = MakeImageCreateInfo(
-        format, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::Extent3D {static_cast<u32>(width), static_cast<u32>(height), 1});
+        format, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        vk::Extent3D {static_cast<u32>(width), static_cast<u32>(height), 1});
 
     createInfo.initialLayout = vk::ImageLayout::eUndefined;
     createInfo.sharingMode   = vk::SharingMode::eExclusive;
@@ -1820,7 +1875,8 @@ RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format
     vma::AllocationCreateInfo allocationInfo {
         //	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
         .usage = vma::MemoryUsage::eGpuOnly,
-        //	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on required flags.
+        //	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on
+        // required flags.
         //	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
         .requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal)};
 
@@ -1831,7 +1887,8 @@ RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format
     return texture;
 }
 
-void Zn::VulkanDevice::TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const
+void Zn::VulkanDevice::TransitionImageLayout(
+    vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const
 {
     vk::ImageMemoryBarrier barrier {
         .oldLayout = prevLayout,
@@ -1913,10 +1970,12 @@ vk::ImageCreateInfo Zn::VulkanDevice::MakeImageCreateInfo(vk::Format format, vk:
     //					You can create textures that are many - in - one, using layers.
     //					An example of layered textures is cubemaps, where you have 6 layers, one layer for each face of the cubemap.
     //					We default it to 1 layer because we aren’t doing cubemaps.
-    //	.samples = controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you are rendering
+    //	.samples = controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you
+    // are rendering
     // to.
     //					TODO: We won’t be doing MSAA in this tutorial, so samples will be kept at 1 sample.
-    //  .tiling = if you use VK_IMAGE_TILING_OPTIMAL, it won’t be possible to read the data from CPU or to write it without changing its tiling first
+    //  .tiling = if you use VK_IMAGE_TILING_OPTIMAL, it won’t be possible to read the data from CPU or to write it without changing its
+    //  tiling first
     //					(it’s possible to change the tiling of a texture at any point, but this can be a costly operation).
     //					The other tiling we can care about is VK_IMAGE_TILING_LINEAR, which will store the image as a 2d array of pixels.
     //	.usage = controls how the GPU handles the image memory.
@@ -1931,11 +1990,13 @@ vk::ImageCreateInfo Zn::VulkanDevice::MakeImageCreateInfo(vk::Format format, vk:
         .tiling      = vk::ImageTiling::eOptimal,
         .usage       = usageFlags};
 }
-vk::ImageViewCreateInfo Zn::VulkanDevice::MakeImageViewCreateInfo(vk::Format format, vk::Image image, vk::ImageAspectFlagBits aspectFlags) const
+vk::ImageViewCreateInfo Zn::VulkanDevice::MakeImageViewCreateInfo(
+    vk::Format format, vk::Image image, vk::ImageAspectFlagBits aspectFlags) const
 {
     return {
         .image = image,
-        //	While imageType held the dimensionality of the texture, viewType has a lot more options, like VK_IMAGE_VIEW_TYPE_CUBE for cubemaps.
+        //	While imageType held the dimensionality of the texture, viewType has a lot more options, like VK_IMAGE_VIEW_TYPE_CUBE for
+        // cubemaps.
         .viewType = vk::ImageViewType::e2D,
         //	TODO: In here, we will have it matched to GetImageCreateInfo, and hardcode it to 2D images as it’s the most common case.
         .format           = format,

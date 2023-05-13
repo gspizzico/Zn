@@ -3,6 +3,7 @@
 #include <string>
 #include <functional>
 #include "Core/Containers/Vector.h"
+#include "Core/Containers/Map.h"
 
 // glm
 // The following define will default align glm:: types.
@@ -62,13 +63,17 @@ namespace Zn
 {
 using String = std::string;
 
-template<typename T> using SharedPtr = std::shared_ptr<T>;
+template<typename T>
+using SharedPtr = std::shared_ptr<T>;
 
-template<typename T> using UniquePtr = std::unique_ptr<T>;
+template<typename T>
+using UniquePtr = std::unique_ptr<T>;
 
-template<typename T> using SharedFromThis = std::enable_shared_from_this<T>;
+template<typename T>
+using SharedFromThis = std::enable_shared_from_this<T>;
 
-template<typename Signature> using TDelegate = DELEGATE_NAMESPACE_INTERNAL::delegate<Signature>;
+template<typename Signature>
+using TDelegate = DELEGATE_NAMESPACE_INTERNAL::delegate<Signature>;
 
 enum class ThreadPriority // #TODO move to approriate header
 {
@@ -81,17 +86,78 @@ enum class ThreadPriority // #TODO move to approriate header
     TimeCritical
 };
 
-template<typename T, u32 N> constexpr u32 ArrayLength(const T (&)[N]) noexcept
+enum class DataType : u8
+{
+    UInt8,
+    UInt16,
+    UInt32,
+    Int8,
+    Int16,
+    Int32,
+    Float,
+    Float16,
+    Double,
+    Vec2,
+    Vec3,
+    Vec4,
+    Mat3,
+    Mat4,
+    COUNT,
+};
+
+constexpr sizet SizeOfDataType(DataType e)
+{
+    switch (e)
+    {
+    case DataType::UInt8:
+        return sizeof(u8);
+    case DataType::UInt16:
+        return sizeof(u16);
+    case DataType::UInt32:
+        return sizeof(u32);
+    case DataType::Int8:
+        return sizeof(i8);
+    case DataType::Int16:
+        return sizeof(i16);
+    case DataType::Int32:
+        return sizeof(i32);
+    case DataType::Float:
+        return sizeof(f32);
+    case DataType::Double:
+        return sizeof(f64);
+    case DataType::Vec2:
+        return sizeof(glm::vec2);
+    case DataType::Vec3:
+        return sizeof(glm::vec3);
+    case DataType::Vec4:
+        return sizeof(glm::vec4);
+    case DataType::Mat3:
+        return sizeof(glm::mat3);
+    case DataType::Mat4:
+        return sizeof(glm::mat4);
+    default:
+    case DataType::Float16: // Unsupported yet
+    case DataType::COUNT:
+        break;
+    }
+    _ASSERT(false && "Invalid enumerator");
+    return 0;
+}
+
+template<typename T, u32 N>
+constexpr u32 ArrayLength(const T (&)[N]) noexcept
 {
     return N;
 }
 
-template<typename T, u32 N> constexpr u32 ArrayElementSize(const T (&)[N]) noexcept
+template<typename T, u32 N>
+constexpr u32 ArrayElementSize(const T (&)[N]) noexcept
 {
     return sizeof(T);
 }
 
-template<typename T, u32 N> constexpr const T* ArrayData(const T (&arr)[N]) noexcept
+template<typename T, u32 N>
+constexpr const T* ArrayData(const T (&arr)[N]) noexcept
 {
     return &arr[0];
 }

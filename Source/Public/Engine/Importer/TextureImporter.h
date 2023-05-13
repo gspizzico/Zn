@@ -4,22 +4,12 @@
 
 namespace Zn
 {
-enum class TextureImporterType
-{
-    None,
-    STB
-};
-
 struct TextureSource
 {
-    ~TextureSource();
-
-    const i32                 width;
-    const i32                 height;
-    const i32                 channels;
-    const i32                 size;
-    u8* const                 data;
-    const TextureImporterType importerType;
+    const i32  width;
+    const i32  height;
+    const i32  channels;
+    Vector<u8> data;
 };
 
 class TextureImporter

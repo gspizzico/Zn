@@ -22,3 +22,15 @@ bool Zn::MeshImporter::Import(const String& fileName, RHIMesh& mesh)
 
     return false;
 }
+
+bool Zn::MeshImporter::ImportAll(const String& fileName, MeshImporterOutput& output)
+{
+    std::filesystem::path filePath = fileName;
+
+    if (filePath.extension() == ".gltf")
+    {
+        return ImportAll_GLTF(fileName, output);
+    }
+
+    return false;
+}

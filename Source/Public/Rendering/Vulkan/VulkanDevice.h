@@ -177,8 +177,11 @@ class VulkanDevice
     // == Texture ==
 
     RHITexture* CreateTexture(const String& texture);
+    RHITexture* CreateTexture(const String& name, SharedPtr<struct TextureSource> texture);
+
     RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
-    void        TransitionImageLayout(vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
+    void        TransitionImageLayout(
+               vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
 
     // UnorderedMap<String, AllocatedImage> textures;
     UnorderedMap<ResourceHandle, RHITexture*> textures;
