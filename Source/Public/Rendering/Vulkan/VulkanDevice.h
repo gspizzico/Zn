@@ -16,6 +16,8 @@ struct RHITexture;
 struct RHIMesh;
 class Texture;
 struct ResourceHandle;
+struct TextureSampler;
+struct RHIPrimitiveGPU;
 
 class VulkanDevice
 {
@@ -134,19 +136,24 @@ class VulkanDevice
 
     vma::Allocator allocator;
 
-    RHIBuffer CreateBuffer(
-        size_t size, vk::BufferUsageFlags usage, vma::MemoryUsage memoryUsage,
-        vma::AllocationCreateFlags allocationFlags = vma::AllocationCreateFlags(0)) const;
+    RHIBuffer CreateBuffer(size_t                     size,
+                           vk::BufferUsageFlags       usage,
+                           vma::MemoryUsage           memoryUsage,
+                           vma::AllocationCreateFlags allocationFlags = vma::AllocationCreateFlags(0)) const;
 
     void DestroyBuffer(RHIBuffer buffer) const;
 
     // TODO: Naming might be incorrect
-    void CopyToGPU(vma::Allocation allocation, void* src, size_t size) const;
+    void CopyToGPU(vma::Allocation allocation, const void* src, size_t size) const;
 
     // == Scene Management ==
 
     Vector<RenderObject>                   renderables;
     UnorderedMap<ResourceHandle, RHIMesh*> meshes;
+    Vector<RHIPrimitiveGPU*>               gpuPrimitives;
+
+    // TODO: JUST A TEST
+    UnorderedMap<RHIPrimitiveGPU*, vk::DescriptorSet> gpuPrimitivesDescriptorSets;
 
     RHIMesh* GetMesh(const String& InName);
 
@@ -168,7 +175,7 @@ class VulkanDevice
 
     void LoadMeshes();
 
-    RHIBuffer CreateRHIBuffer(void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const;
+    RHIBuffer CreateRHIBuffer(const void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const;
 
     void CreateMeshPipeline();
 
@@ -180,8 +187,10 @@ class VulkanDevice
     RHITexture* CreateTexture(const String& name, SharedPtr<struct TextureSource> texture);
 
     RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
-    void        TransitionImageLayout(
-               vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
+    vk::Sampler CreateSampler(const TextureSampler& sampler);
+
+    void TransitionImageLayout(
+        vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
 
     // UnorderedMap<String, AllocatedImage> textures;
     UnorderedMap<ResourceHandle, RHITexture*> textures;

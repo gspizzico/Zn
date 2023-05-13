@@ -8,6 +8,7 @@
 namespace Zn
 {
 struct RHIMesh;
+struct RHIPrimitiveGPU;
 struct Material;
 
 struct QueueFamilyIndices
@@ -25,17 +26,16 @@ struct SwapChainDetails
 
 struct MeshPushConstants
 {
-    glm::vec4 Data;
     glm::mat4 RenderMatrix;
 };
 
 struct RenderObject
 {
-    RHIMesh*  mesh;
-    Material* material;
-    glm::vec3 location;
-    glm::quat rotation;
-    glm::vec3 scale;
+    RHIPrimitiveGPU* primitive;
+    Material*        material;
+    glm::vec3        location;
+    glm::quat        rotation;
+    glm::vec3        scale;
 };
 
 struct GPUCameraData

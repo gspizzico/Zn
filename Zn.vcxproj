@@ -110,6 +110,9 @@
     <PreLinkEvent>
       <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
     </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>$(SolutionDir)scripts\PostBuild.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -137,6 +140,9 @@
     <PreLinkEvent>
       <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
     </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>$(SolutionDir)scripts\PostBuild.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">
     <ClCompile>
@@ -164,6 +170,9 @@
     <PreLinkEvent>
       <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
     </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>$(SolutionDir)scripts\PostBuild.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Engine\Importer\MeshImporter_GLTF.cpp" />
@@ -352,9 +361,8 @@
     <None Include="scripts\PreLinking.bat" />
     <None Include="scripts\sdl_build.py" />
     <None Include="scripts\vk_compile_shaders.py" />
-    <None Include="shaders\fragment.frag" />
-    <None Include="shaders\tri_mesh_vertex.vert" />
-    <None Include="shaders\vertex.vert" />
+    <UpToDateCheckInput Include="shaders\fragment.frag" />
+    <UpToDateCheckInput Include="shaders\vertex.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

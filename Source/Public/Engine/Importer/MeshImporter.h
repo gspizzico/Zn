@@ -9,11 +9,13 @@ namespace Zn
 struct RHIMesh;
 struct RHIPrimitive;
 struct TextureSource;
+struct TextureSampler;
 
 struct MeshImporterOutput
 {
     Vector<RHIPrimitive>                           primitives;
     UnorderedMap<String, SharedPtr<TextureSource>> textures;
+    UnorderedMap<String, TextureSampler>           samplers;
 };
 
 class MeshImporter
@@ -24,7 +26,6 @@ class MeshImporter
 
   private:
     static bool Import_Obj(const String& fileName, RHIMesh& mesh);
-    static bool Import_GLTF(const String& fileName, RHIMesh& mesh);
 
     static bool ImportAll_GLTF(const String& fileName, MeshImporterOutput& mesh);
 };

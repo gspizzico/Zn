@@ -20,6 +20,62 @@ const RHIInputLayout VulkanPipeline::defaultInputLayout = {
         {.location = 3, .binding = 0, .format = vk::Format::eR32G32Sfloat, .offset = offsetof(RHIVertex, uv)},
     }};
 
+const RHIInputLayout VulkanPipeline::gltfInputLayout = {.bindings   = {{
+                                                                           .binding   = 0,
+                                                                           .stride    = sizeof(glm::vec3),
+                                                                           .inputRate = vk::VertexInputRate::eVertex,
+                                                                     },
+                                                                       {
+                                                                           .binding   = 1,
+                                                                           .stride    = sizeof(glm::vec3),
+                                                                           .inputRate = vk::VertexInputRate::eVertex,
+                                                                     },
+                                                                       /* {
+                                                                            .binding   = 2,
+                                                                            .stride    = sizeof(glm::vec3),
+                                                                            .inputRate = vk::VertexInputRate::eVertex,
+                                                                      },*/
+                                                                       {
+                                                                           .binding   = 2,
+                                                                           .stride    = sizeof(glm::vec2),
+                                                                           .inputRate = vk::VertexInputRate::eVertex,
+                                                                     },
+                                                                      /* {
+                                                                           .binding   = 4,
+                                                                           .stride    = sizeof(glm::vec4),
+                                                                           .inputRate = vk::VertexInputRate::eVertex,
+                                                                     }*/},
+                                                        .attributes = {{
+                                                                           .location = 0,
+                                                                           .binding  = 0,
+                                                                           .format   = vk::Format::eR32G32B32Sfloat,
+                                                                           .offset   = 0,
+                                                                       },
+                                                                       {
+                                                                           .location = 1,
+                                                                           .binding  = 1,
+                                                                           .format   = vk::Format::eR32G32B32Sfloat,
+                                                                           .offset   = 0,
+                                                                       },
+                                                                       //{
+                                                                       //    .location = 2,
+                                                                       //    .binding  = 2,
+                                                                       //    .format   = vk::Format::eR32G32B32A32Sfloat,
+                                                                       //    .offset   = 0,
+                                                                       //},
+                                                                       {
+                                                                           .location = 2,
+                                                                           .binding  = 2,
+                                                                           .format   = vk::Format::eR32G32Sfloat,
+                                                                           .offset   = 0,
+                                                                       },
+/*                                                                       {
+                                                                           .location = 4,
+                                                                           .binding  = 4,
+                                                                           .format   = vk::Format::eR32G32B32A32Sfloat,
+                                                                           .offset   = 0,
+                                                                       }*/}};
+
 const RHIInputLayout VulkanPipeline::defaultIndirectInputLayout = {
     .bindings =
         {
@@ -50,11 +106,11 @@ vk::PipelineShaderStageCreateInfo VulkanPipeline::CreateShaderStage(vk::ShaderSt
     vk::PipelineShaderStageCreateInfo createInfo {};
 
     // shader stage
-    createInfo.stage = stageFlags;
+    createInfo.stage  = stageFlags;
     // module containing the code for this shader stage
     createInfo.module = shaderModule;
     // the entry point of the shader
-    createInfo.pName = "main";
+    createInfo.pName  = "main";
     return createInfo;
 }
 
@@ -62,7 +118,7 @@ vk::PipelineInputAssemblyStateCreateInfo VulkanPipeline::CreateInputAssembly(vk:
 {
     vk::PipelineInputAssemblyStateCreateInfo createInfo {};
 
-    createInfo.topology = topology;
+    createInfo.topology               = topology;
     // we are not going to use primitive restart on the entire tutorial so leave it on false
     createInfo.primitiveRestartEnable = false;
     return createInfo;
@@ -72,15 +128,15 @@ vk::PipelineRasterizationStateCreateInfo VulkanPipeline::CreateRasterization(vk:
 {
     vk::PipelineRasterizationStateCreateInfo createInfo {};
 
-    createInfo.depthClampEnable = false;
+    createInfo.depthClampEnable        = false;
     // discards all primitives before the rasterization stage if enabled which we don't want
     createInfo.rasterizerDiscardEnable = false;
 
-    createInfo.polygonMode = polygonMode;
-    createInfo.lineWidth   = 1.0f;
+    createInfo.polygonMode             = polygonMode;
+    createInfo.lineWidth               = 1.0f;
     // no backface cull
-    createInfo.cullMode  = vk::CullModeFlagBits::eNone; // VK_CULL_MODE_BACK_BIT
-    createInfo.frontFace = vk::FrontFace::eClockwise;
+    createInfo.cullMode                = vk::CullModeFlagBits::eNone; // VK_CULL_MODE_BACK_BIT
+    createInfo.frontFace               = vk::FrontFace::eClockwise;
     // no depth bias
     createInfo.depthBiasEnable         = false;
     createInfo.depthBiasConstantFactor = 0.0f;
@@ -94,7 +150,7 @@ vk::PipelineMultisampleStateCreateInfo VulkanPipeline::CreateMSAA()
 {
     vk::PipelineMultisampleStateCreateInfo createInfo {};
 
-    createInfo.sampleShadingEnable = false;
+    createInfo.sampleShadingEnable   = false;
     // multisampling defaulted to no multisampling (1 sample per pixel)
     createInfo.rasterizationSamples  = vk::SampleCountFlagBits::e1;
     createInfo.minSampleShading      = 1.0f;
@@ -119,19 +175,19 @@ vk::PipelineDepthStencilStateCreateInfo VulkanPipeline::CreateDepthStencil(bool 
     vk::PipelineDepthStencilStateCreateInfo createInfo {};
 
     //	Enable/Disable z-culling
-    createInfo.depthTestEnable = depthTest;
+    createInfo.depthTestEnable  = depthTest;
     //	Actually write to depth buffer. Usually == DepthTest, but sometimes you might want to not read from d-buffer for special effects.
     createInfo.depthWriteEnable = depthWrite;
     //	VK_COMPARE_OP_ALWAYS does not do any depth test at all.
     //	VK_COMPARE_OP_LESS = Draw if Z < whatever is on d-buffer
     //	VK_COMPARE_OP_EQUAL = Draw if depth matches what is on d-buffer.
-    createInfo.depthCompareOp = depthTest ? compareOp : vk::CompareOp::eAlways;
+    createInfo.depthCompareOp   = depthTest ? compareOp : vk::CompareOp::eAlways;
 
     createInfo.depthBoundsTestEnable = false;
     //	Min and Max depth bounds lets us cap the depth test.
     //	If the depth is outside of bounds, the pixel will be skipped.
-    createInfo.minDepthBounds = 0.f; // Optional
-    createInfo.maxDepthBounds = 1.f; // Optional
+    createInfo.minDepthBounds        = 0.f; // Optional
+    createInfo.maxDepthBounds        = 1.f; // Optional
 
     //	We won’t be using stencil test, so that’s set to VK_FALSE by default.
     createInfo.stencilTestEnable = false;
@@ -139,9 +195,13 @@ vk::PipelineDepthStencilStateCreateInfo VulkanPipeline::CreateDepthStencil(bool 
     return createInfo;
 }
 
-vk::Pipeline VulkanPipeline::NewVkPipeline(
-    vk::Device device, vk::RenderPass renderPass, vk::ShaderModule vertexShader, vk::ShaderModule fragmentShader, vk::Extent2D swapChainExtent,
-    vk::PipelineLayout pipelineLayout, const RHIInputLayout& inputLayout)
+vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device            device,
+                                           vk::RenderPass        renderPass,
+                                           vk::ShaderModule      vertexShader,
+                                           vk::ShaderModule      fragmentShader,
+                                           vk::Extent2D          swapChainExtent,
+                                           vk::PipelineLayout    pipelineLayout,
+                                           const RHIInputLayout& inputLayout)
 {
     vk::PipelineShaderStageCreateInfo shaderStages[] = {
         CreateShaderStage(vk::ShaderStageFlagBits::eVertex, vertexShader),
@@ -173,7 +233,8 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(
         .extent = swapChainExtent,
     };
 
-    vk::PipelineViewportStateCreateInfo viewportState {.viewportCount = 1, .pViewports = &viewport, .scissorCount = 1, .pScissors = &scissors};
+    vk::PipelineViewportStateCreateInfo viewportState {
+        .viewportCount = 1, .pViewports = &viewport, .scissorCount = 1, .pScissors = &scissors};
 
     vk::PipelineRasterizationStateCreateInfo rasterizer = CreateRasterization(vk::PolygonMode::eFill);
 

@@ -1,15 +1,18 @@
 # Format Style Options - Created with Clang Power Tools
 ---
-AlignAfterOpenBracket: AlwaysBreak
-AlignConsecutiveAssignments: Consecutive
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: AcrossComments
 AlignConsecutiveBitFields: Consecutive
 AlignConsecutiveDeclarations: AcrossComments
 AlignConsecutiveMacros: AcrossEmptyLinesAndComments
 AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortLambdasOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: Yes
 BasedOnStyle: Microsoft
 BitFieldColonSpacing: Both
+BinPackParameters: false
+BinPackArguments: false
 BraceWrapping: 
   AfterCaseLabel: true
   AfterClass: true

@@ -14,6 +14,8 @@ class CommandLine
 
     bool Param(const char* param) const;
 
+    bool Value(cstring param, String& value, String defaultValue = "") const;
+
     String GetExeArgument() const;
 
     // bool Value(const char* param, String& out_value) const;

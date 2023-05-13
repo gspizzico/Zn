@@ -41,12 +41,18 @@ struct RHIBuffer
         , allocation(kvp.second)
     {
     }
+
+    operator bool() const
+    {
+        return data && allocation;
+    }
 };
 } // namespace Zn
 
 namespace std
 {
-template<> struct hash<Zn::ResourceHandle>
+template<>
+struct hash<Zn::ResourceHandle>
 {
     std::size_t operator()(const Zn::ResourceHandle& h) const
     {

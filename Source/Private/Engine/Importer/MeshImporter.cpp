@@ -15,10 +15,6 @@ bool Zn::MeshImporter::Import(const String& fileName, RHIMesh& mesh)
     {
         return Import_Obj(fileName, mesh);
     }
-    else if (filePath.extension() == ".gltf")
-    {
-        return Import_GLTF(fileName, mesh);
-    }
 
     return false;
 }

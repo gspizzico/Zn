@@ -35,7 +35,15 @@ layout (std140, set = 0, binding = 1) uniform LightingUniforms
     uint num_directional_lights;
 } lighting;
 
-layout(set = 1, binding = 0) uniform sampler2D textureSampler;
+#define PBR_INDEX_BASECOLOR 0
+#define PBR_INDEX_METALNESS 1
+#define PBR_INDEX_NORMAL    2
+#define PBR_INDEX_OCCLUSION 3
+#define PBR_INDEX_EMISSIVE  4
+
+#define PBR_NUM_TEXTURES    2
+
+layout(set = 1, binding = 0) uniform sampler2D sampler_pbr_textures[PBR_NUM_TEXTURES];
 
 layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec3 inNormal;
@@ -73,21 +81,21 @@ void main()
     vec3 viewDir = normalize(-inPosition);
     vec3 normal = normalize(inNormal);
 
-    vec3 finalColor = texture(textureSampler, inUV).xyz;
+    vec3 finalColor =  texture(sampler_pbr_textures[PBR_INDEX_BASECOLOR], inUV).xyz;
 
-     for (uint i = 0; i < lighting.num_directional_lights; ++i) 
-     {
-         finalColor += applyDirectionalLight(lighting.directional_lights[i], normal, viewDir);
-     }
+    for (uint i = 0; i < lighting.num_directional_lights; ++i) 
+    {
+        finalColor += applyDirectionalLight(lighting.directional_lights[i], normal, viewDir);
+    }
+    
+    for (uint i = 0; i < lighting.num_point_lights; ++i) 
+    {
+        finalColor += applyPointLight(lighting.point_lights[i], normal, inPosition, viewDir);
+    }
      
-     for (uint i = 0; i < lighting.num_point_lights; ++i) 
-     {
-         finalColor += applyPointLight(lighting.point_lights[i], normal, inPosition, viewDir);
-     }
+    vec3 ambientComponent = lighting.ambient_light.color.xyz * lighting.ambient_light.intensity;
      
-     vec3 ambientComponent = lighting.ambient_light.color.xyz * lighting.ambient_light.intensity;
-     
-     finalColor += ambientComponent;
+    finalColor += ambientComponent;
 
     outColor = vec4(finalColor, 1.0);
 }

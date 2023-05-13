@@ -21,5 +21,8 @@ struct Material
     UnorderedMap<String, f32> parameters;
 
     vk::DescriptorSet textureSet;
+
+    // TODO: maybe this shouldn't be stored here
+    vk::DescriptorSetLayout materialSetLayout;
 };
 } // namespace Zn

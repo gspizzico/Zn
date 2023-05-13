@@ -17,6 +17,8 @@ struct RHITexture
 
     vk::ImageView imageView;
 
+    vk::Sampler sampler;
+
     vma::Allocation allocation;
 };
 } // namespace Zn
