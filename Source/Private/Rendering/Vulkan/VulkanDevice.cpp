@@ -1551,8 +1551,13 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
                                         },
                                         {offset, offset, offset, offset});
 
-        // TODO: Save index type into primitive?
-        commandBuffer.bindIndexBuffer(current->primitive->indices.data, offset, vk::IndexType::eUint32);
+        bool isIndexedDraw = current->primitive->numIndices > 0;
+
+        if (isIndexedDraw)
+        {
+            // TODO: Save index type into primitive?
+            commandBuffer.bindIndexBuffer(current->primitive->indices.data, offset, vk::IndexType::eUint32);
+        }
 
         static const auto identity = glm::mat4 {1.f};
 
@@ -1564,7 +1569,14 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
 
         commandBuffer.pushConstants(current->material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &transform);
 
-        commandBuffer.drawIndexed(current->primitive->numIndices, 1, 0, 0, 0);
+        if (isIndexedDraw)
+        {
+            commandBuffer.drawIndexed(current->primitive->numIndices, 1, 0, 0, 0);
+        }
+        else
+        {
+            commandBuffer.draw(current->primitive->numVertices, 1, 0, 0);
+        }
     }
     /*if (gpuFeatures.multiDrawIndirect)
     {
@@ -1882,6 +1894,17 @@ void Zn::VulkanDevice::LoadMeshes()
                                                        vk::BufferUsageFlagBits::eVertexBuffer,
                                                        vma::MemoryUsage::eGpuOnly);
             }
+            else
+            {
+                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Normal buffer for primitive. Creating default.");
+                Vector<glm::vec3> dummy;
+                dummy.resize(cpuPrimitive.position.size());
+
+                memset(dummy.data(), 0, dummy.size() * sizeof(glm::vec3));
+
+                gpuPrimitive->normal = CreateRHIBuffer(
+                    dummy.data(), dummy.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+            }
 
             if (cpuPrimitive.tangent.size() > 0)
             {
@@ -1892,7 +1915,7 @@ void Zn::VulkanDevice::LoadMeshes()
             }
             else
             {
-                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Tanget buffer for primitive. Creating default.");
+                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Tangent buffer for primitive. Creating default.");
                 Vector<glm::vec3> dummy;
                 dummy.resize(cpuPrimitive.position.size());
 
@@ -2140,6 +2163,8 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
 
     texture->imageView = device.createImageView(imageViewInfo);
 
+    VulkanValidation::SetObjectDebugName(device, path.c_str(), texture->image);
+
     return texture;
 }
 
@@ -2192,6 +2217,8 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<Textur
 
     rhiTexture->imageView = device.createImageView(imageViewInfo);
     rhiTexture->format    = textureFormat;
+
+    VulkanValidation::SetObjectDebugName(device, name.c_str(), rhiTexture->image);
 
     return rhiTexture;
 }
