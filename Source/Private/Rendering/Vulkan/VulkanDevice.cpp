@@ -1671,61 +1671,76 @@ void Zn::VulkanDevice::CreateScene()
     {
         vk::DescriptorSet perPrimitiveSet = device.allocateDescriptorSets(materialSetAllocateInfo)[0];
 
-        Vector<std::pair<vk::DescriptorImageInfo, u32>> descriptorImages;
+        // Vector<std::pair<vk::DescriptorImageInfo, u32>> descriptorImages;
+        Vector<vk::DescriptorImageInfo> descriptorImages;
+        descriptorImages.resize(5);
 
-        auto InsertTexture = [&](ResourceHandle textureHandle, u32 index) -> bool
+        auto InsertTexture = [&](cstring textureTypeName, ResourceHandle& textureHandle, u32 index, const String& defaultTexture) -> bool
         {
-            if (auto it = textures.find(textureHandle); it != textures.end())
+            RHITexture* texture = nullptr;
+            if (auto it = textures.find(textureHandle); textureHandle && it != textures.end())
             {
-                RHITexture* texture = it->second;
+                texture = it->second;
+            }
+            else if (defaultTexture.length() > 0)
+            {
+                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Missing %s. Replacing with %s", textureTypeName, defaultTexture.c_str());
+                ResourceHandle defaultHandle = ResourceHandle(defaultTexture);
+                auto           it            = textures.find(defaultHandle);
+                if (it != textures.end())
+                {
+                    texture       = it->second;
+                    textureHandle = defaultHandle;
+                }
+            }
 
+            if (texture)
+            {
                 vk::DescriptorImageInfo textureInfo {
                     .sampler     = texture->sampler,
                     .imageView   = texture->imageView,
                     .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
                 };
 
-                descriptorImages.push_back({std::move(textureInfo), index});
-
+                // descriptorImages.push_back({std::move(textureInfo), index});
+                descriptorImages[index] = std::move(textureInfo);
                 return true;
             }
-
             return false;
         };
 
         // TODO: We need to create and assign default textures.
 
-        if (!InsertTexture(primitive->materialAttributes.baseColorTexture, 0))
-        {
-            ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Missing baseColorTexture. Replacing with %s", uvCheckerTexturePath.c_str());
-            const ResourceHandle uvCheckerHandle = ResourceHandle(uvCheckerTexturePath);
-            InsertTexture(uvCheckerHandle, 0);
-            primitive->materialAttributes.baseColorTexture = uvCheckerHandle;
-        }
-        if (!InsertTexture(primitive->materialAttributes.metalnessTexture, 1))
-        {
-            ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Missing metalnessTexture. Replacing with %s", blackTextureName.c_str());
-            const ResourceHandle blackTextureHandle = ResourceHandle(blackTextureName);
-            InsertTexture(blackTextureHandle, 1);
-            primitive->materialAttributes.metalnessTexture = blackTextureHandle;
-        }
-        // InsertTexture(primitive->materialAttributes.normalTexture, 2);
-        // InsertTexture(primitive->materialAttributes.occlusionTexture, 3);
-        // InsertTexture(primitive->materialAttributes.emissiveTexture, 4);
+        InsertTexture("baseColor", primitive->materialAttributes.baseColorTexture, 0, uvCheckerTexturePath);
+        InsertTexture("metalness", primitive->materialAttributes.metalnessTexture, 1, blackTextureName);
+        InsertTexture("normal", primitive->materialAttributes.normalTexture, 2, normalTextureName);
+        InsertTexture("occlusion", primitive->materialAttributes.occlusionTexture, 3, blackTextureName);
+        InsertTexture("emissive", primitive->materialAttributes.emissiveTexture, 4, blackTextureName);
 
-        Vector<vk::WriteDescriptorSet> writeOperations;
+        vk::WriteDescriptorSet writeOperations[2] = {{
+                                                         .dstSet          = perPrimitiveSet,
+                                                         .dstBinding      = 0,
+                                                         .dstArrayElement = 0,
+                                                         .descriptorCount = 5,
+                                                         .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+                                                         //.pImageInfo      = &imageInfo.first,
+                                                         .pImageInfo      = descriptorImages.data(),
+                                                     },
+                                                     {}};
 
-        for (const std::pair<vk::DescriptorImageInfo, u32>& imageInfo : descriptorImages)
-        {
-            writeOperations.push_back(vk::WriteDescriptorSet {
-                .dstSet          = perPrimitiveSet,
-                .dstBinding      = 0,
-                .dstArrayElement = imageInfo.second,
-                .descriptorCount = 1,
-                .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
-                .pImageInfo      = &imageInfo.first,
-            });
-        }
+        // Vector<vk::WriteDescriptorSet> writeOperations;
+
+        // for (const std::pair<vk::DescriptorImageInfo, u32>& imageInfo : descriptorImages)
+        //{
+        //     writeOperations.push_back(vk::WriteDescriptorSet {
+        //         .dstSet          = perPrimitiveSet,
+        //         .dstBinding      = 0,
+        //         .dstArrayElement = imageInfo.second,
+        //         .descriptorCount = 1,
+        //         .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+        //         .pImageInfo      = &imageInfo.first,
+        //     });
+        // }
 
         vk::DescriptorBufferInfo uboBufferInfo {
             .buffer = primitive->uboMaterialAttributes.data,
@@ -1741,7 +1756,8 @@ void Zn::VulkanDevice::CreateScene()
             .pBufferInfo     = &uboBufferInfo,
         };
 
-        writeOperations.push_back(uboWrite);
+        // writeOperations.push_back(uboWrite);
+        writeOperations[1] = uboWrite;
 
         device.updateDescriptorSets(writeOperations, {});
 
@@ -1984,7 +2000,7 @@ void Zn::VulkanDevice::CreateMeshPipeline()
         vk::DescriptorSetLayoutBinding pbrTextureSetBinding {
             .binding         = 0,
             .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
-            .descriptorCount = 2,
+            .descriptorCount = 5,
             .stageFlags      = vk::ShaderStageFlagBits::eFragment,
         };
 

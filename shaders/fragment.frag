@@ -41,7 +41,7 @@ layout (std140, set = 0, binding = 1) uniform LightingUniforms
 #define PBR_INDEX_OCCLUSION 3
 #define PBR_INDEX_EMISSIVE  4
 
-#define PBR_NUM_TEXTURES    2
+#define PBR_NUM_TEXTURES    5
 
 layout(set = 1, binding = 0) uniform sampler2D sampler_pbr_textures[PBR_NUM_TEXTURES];
 
