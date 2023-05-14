@@ -101,6 +101,7 @@ class VulkanDevice
 
     vk::CommandPool           commandPool;
     Vector<vk::CommandBuffer> commandBuffers;
+    GPUTraceContextPtr        gpuTraceContexts[kMaxFramesInFlight];
 
     vk::RenderPass          renderPass;
     Vector<vk::Framebuffer> frameBuffers {};
@@ -206,9 +207,10 @@ class VulkanDevice
 
     struct UploadContext
     {
-        vk::CommandPool   commandPool {VK_NULL_HANDLE};
-        vk::CommandBuffer cmdBuffer {VK_NULL_HANDLE};
-        vk::Fence         fence {VK_NULL_HANDLE};
+        vk::CommandPool    commandPool {VK_NULL_HANDLE};
+        vk::CommandBuffer  cmdBuffer {VK_NULL_HANDLE};
+        vk::Fence          fence {VK_NULL_HANDLE};
+        GPUTraceContextPtr traceContext {nullptr};
     };
 
     UploadContext uploadContext {};

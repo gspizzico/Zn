@@ -366,6 +366,12 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
     commandBuffers = device.allocateCommandBuffers(graphicsCmdCreateInfo);
 
+    for (i32 index = 0; index < commandBuffers.size(); ++index)
+    {
+        String contextName      = "commandBuffer" + std::to_string(index);
+        gpuTraceContexts[index] = ZN_TRACE_GPU_CONTEXT_CREATE(contextName.c_str(), gpu, device, graphicsQueue, commandBuffers[index]);
+    }
+
     // Upload Context
 
     vk::CommandPoolCreateInfo uploadCmdPoolCreateInfo {.flags            = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
@@ -391,6 +397,14 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
         [=]()
         {
             device.destroyFence(uploadContext.fence);
+        });
+
+    uploadContext.traceContext = ZN_TRACE_GPU_CONTEXT_CREATE("upload", gpu, device, graphicsQueue, uploadContext.cmdBuffer);
+
+    destroyQueue.Enqueue(
+        [=]()
+        {
+            ZN_TRACE_GPU_CONTEXT_DESTROY(uploadContext.traceContext);
         });
 
     ////// Render Pass
@@ -670,6 +684,11 @@ void VulkanDevice::Cleanup()
 
     meshes.clear();
 
+    for (i32 index = 0; index < kMaxFramesInFlight; ++index)
+    {
+        ZN_TRACE_GPU_CONTEXT_DESTROY(gpuTraceContexts[index]);
+    }
+
     destroyQueue.Flush();
 
     ImGui_ImplVulkan_Shutdown();
@@ -739,6 +758,8 @@ void Zn::VulkanDevice::BeginFrame()
 
 void VulkanDevice::Draw()
 {
+    ZN_TRACE_QUICKSCOPE();
+
     if (isMinimized)
     {
         return;
@@ -754,93 +775,99 @@ void VulkanDevice::Draw()
 
     commandBuffer.begin(vk::CommandBufferBeginInfo {.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
 
-    vk::ClearValue clearColor(vk::ClearColorValue(1.0f, 1.0f, 1.0f, 1.0f));
-
-    vk::ClearValue depthClear;
-
-    //	make a clear-color from frame number. This will flash with a 120 frame period.
-    depthClear.color              = vk::ClearColorValue {0.0f, 0.0f, abs(sin(frameNumber / 120.f)), 1.0f};
-    depthClear.depthStencil.depth = 1.f;
-
-    // start the main renderpass.
-    // We will use the clear color from above, and the framebuffer of the index the swapchain gave us
-    vk::RenderPassBeginInfo renderPassBeginInfo {};
-
-    renderPassBeginInfo.renderPass          = renderPass;
-    renderPassBeginInfo.renderArea.offset.x = 0;
-    renderPassBeginInfo.renderArea.offset.y = 0;
-    renderPassBeginInfo.renderArea.extent   = swapChainExtent;
-    renderPassBeginInfo.framebuffer         = frameBuffers[swapChainImageIndex];
-
-    //	Connect clear values
-
-    vk::ClearValue clearValues[2] = {clearColor, depthClear};
-    renderPassBeginInfo.setClearValues(clearValues);
-
-    commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
-
-    // *** Insert Commands here ***
     {
-        // Model View Matrix
+        ZN_TRACE_GPU_SCOPE("Draw", gpuTraceContexts[currentFrame], commandBuffer);
 
-        // Camera View
-        const glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, upVector);
+        vk::ClearValue clearColor(vk::ClearColorValue(1.0f, 1.0f, 1.0f, 1.0f));
 
-        // Camera Projection
-        glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 20000.f);
-        projection[1][1] *= -1;
+        vk::ClearValue depthClear;
 
-        GPUCameraData camera {};
-        camera.projection      = projection;
-        camera.view            = view;
-        camera.view_projection = projection * view;
+        //	make a clear-color from frame number. This will flash with a 120 frame period.
+        depthClear.color              = vk::ClearColorValue {0.0f, 0.0f, abs(sin(frameNumber / 120.f)), 1.0f};
+        depthClear.depthStencil.depth = 1.f;
 
-        CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(GPUCameraData));
+        // start the main renderpass.
+        // We will use the clear color from above, and the framebuffer of the index the swapchain gave us
+        vk::RenderPassBeginInfo renderPassBeginInfo {};
 
-        LightingUniforms lighting {};
-        lighting.directional_lights[0].direction =
-            glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
-        lighting.directional_lights[0].color     = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
-        lighting.directional_lights[0].intensity = 0.25f;
-        lighting.ambient_light.color             = glm::vec4(0.f, 0.2f, 1.f, 0.f);
-        lighting.ambient_light.intensity         = 0.15f;
-        lighting.num_directional_lights          = 1;
-        lighting.num_point_lights                = 0;
+        renderPassBeginInfo.renderPass          = renderPass;
+        renderPassBeginInfo.renderArea.offset.x = 0;
+        renderPassBeginInfo.renderArea.offset.y = 0;
+        renderPassBeginInfo.renderArea.extent   = swapChainExtent;
+        renderPassBeginInfo.framebuffer         = frameBuffers[swapChainImageIndex];
 
-        CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(LightingUniforms));
+        //	Connect clear values
 
-        // Vector<RHIInstanceData> meshData;
-        // meshData.reserve(renderables.size());
+        vk::ClearValue clearValues[2] = {clearColor, depthClear};
+        renderPassBeginInfo.setClearValues(clearValues);
 
-        // for (const RenderObject& object : renderables)
-        //{
-        //     static const auto identity = glm::mat4 {1.f};
+        commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
-        //    glm::mat4 translation = glm::translate(identity, object.location);
-        //    glm::mat4 rotation    = glm::mat4_cast(object.rotation);
-        //    glm::mat4 scale       = glm::scale(identity, object.scale);
+        // *** Insert Commands here ***
+        {
+            // Model View Matrix
 
-        //    glm::mat4 transform = translation * rotation * scale;
+            // Camera View
+            const glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, upVector);
 
-        //    meshData.push_back(RHIInstanceData {.m = transform});
-        //}
+            // Camera Projection
+            glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 20000.f);
+            projection[1][1] *= -1;
 
-        // CopyToGPU(instanceData[currentFrame].allocation, meshData.data(), meshData.size() * sizeof(RHIInstanceData));
+            GPUCameraData camera {};
+            camera.projection      = projection;
+            camera.view            = view;
+            camera.view_projection = projection * view;
 
-        DrawObjects(commandBuffer, renderables.data(), renderables.size());
+            CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(GPUCameraData));
 
-        // Enqueue ImGui commands to CmdBuffer
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+            LightingUniforms lighting {};
+            lighting.directional_lights[0].direction =
+                glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
+            lighting.directional_lights[0].color     = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
+            lighting.directional_lights[0].intensity = 0.25f;
+            lighting.ambient_light.color             = glm::vec4(0.f, 0.2f, 1.f, 0.f);
+            lighting.ambient_light.intensity         = 0.15f;
+            lighting.num_directional_lights          = 1;
+            lighting.num_point_lights                = 0;
+
+            CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(LightingUniforms));
+
+            // Vector<RHIInstanceData> meshData;
+            // meshData.reserve(renderables.size());
+
+            // for (const RenderObject& object : renderables)
+            //{
+            //     static const auto identity = glm::mat4 {1.f};
+
+            //    glm::mat4 translation = glm::translate(identity, object.location);
+            //    glm::mat4 rotation    = glm::mat4_cast(object.rotation);
+            //    glm::mat4 scale       = glm::scale(identity, object.scale);
+
+            //    glm::mat4 transform = translation * rotation * scale;
+
+            //    meshData.push_back(RHIInstanceData {.m = transform});
+            //}
+
+            // CopyToGPU(instanceData[currentFrame].allocation, meshData.data(), meshData.size() * sizeof(RHIInstanceData));
+
+            DrawObjects(commandBuffer, renderables.data(), renderables.size());
+
+            // Enqueue ImGui commands to CmdBuffer
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+        }
+
+        // finalize the render pass
+        commandBuffer.endRenderPass();
+        // finalize the command buffer (we can no longer add commands, but it can now be executed)
     }
-
-    // finalize the render pass
-    commandBuffer.endRenderPass();
-    // finalize the command buffer (we can no longer add commands, but it can now be executed)
     commandBuffer.end();
 }
 
 void Zn::VulkanDevice::EndFrame()
 {
+    ZN_TRACE_QUICKSCOPE();
+
     if (isMinimized)
     {
         return;
@@ -900,6 +927,8 @@ void Zn::VulkanDevice::EndFrame()
     {
         _ASSERT(presentResult == vk::Result::eSuccess);
     }
+
+    ZN_TRACE_GPU_COLLECT(gpuTraceContexts[currentFrame], commandBuffers[currentFrame]);
 
     currentFrame = (currentFrame + 1) % kMaxFramesInFlight;
     frameNumber++;
@@ -1492,6 +1521,8 @@ RHIMesh* Zn::VulkanDevice::GetMesh(const String& InName)
 
 void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject* first, u64 count)
 {
+    ZN_TRACE_QUICKSCOPE();
+
     SetViewport(commandBuffer);
 
     for (u64 index = 0; index < count; ++index)
@@ -1798,6 +1829,8 @@ void Zn::VulkanDevice::LoadMeshes()
     MeshImporterOutput gltfOutput;
     if (MeshImporter::ImportAll(IO::GetAbsolutePath(gltfModelPath), gltfOutput))
     {
+        ZN_TRACE_QUICKSCOPE();
+
         // TODO: Create Buffers
         // TODO: Create Materials
         for (const auto& it : gltfOutput.textures)
@@ -1814,6 +1847,7 @@ void Zn::VulkanDevice::LoadMeshes()
 
         for (const RHIPrimitive& cpuPrimitive : gltfOutput.primitives)
         {
+            ZN_TRACE_QUICKSCOPE();
             RHIPrimitiveGPU* gpuPrimitive = new RHIPrimitiveGPU();
 
             // TODO: Very inefficient to create and submit buffers one by one.
@@ -2232,7 +2266,10 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& 
 
     cmd.begin({.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
 
-    function(cmd);
+    {
+        ZN_TRACE_GPU_SCOPE("Submit", uploadContext.traceContext, cmd);
+        function(cmd);
+    }
 
     cmd.end();
 
@@ -2243,6 +2280,8 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& 
 
     ZN_VK_CHECK(device.waitForFences({uploadContext.fence}, true, kWaitTimeOneSecond));
     device.resetFences({uploadContext.fence});
+
+    ZN_TRACE_GPU_COLLECT(uploadContext.traceContext, uploadContext.cmdBuffer);
 
     // reset the command buffers inside the command pool
     device.resetCommandPool(uploadContext.commandPool, vk::CommandPoolResetFlags(0));
