@@ -815,6 +815,7 @@ void VulkanDevice::Draw()
             projection[1][1] *= -1;
 
             GPUCameraData camera {};
+            camera.position        = glm::vec4(cameraPosition, 1.0f);
             camera.projection      = projection;
             camera.view            = view;
             camera.view_projection = projection * view;
@@ -822,9 +823,8 @@ void VulkanDevice::Draw()
             CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(GPUCameraData));
 
             LightingUniforms lighting {};
-            lighting.directional_lights[0].direction =
-                glm::vec4(glm::normalize(glm::mat3(camera.view_projection) * glm::vec3(0.f, -1.f, 0.0f)), 0.0f);
-            lighting.directional_lights[0].color     = glm::vec4(1.0f, 0.8f, 0.8f, 0.f);
+            lighting.directional_lights[0].direction = glm::vec4(2.0f, 2.0f, 0.0f, 1.0f);
+            lighting.directional_lights[0].color     = glm::vec4(1.0f, 1.f, 1.f, 0.f);
             lighting.directional_lights[0].intensity = 0.25f;
             lighting.ambient_light.color             = glm::vec4(0.f, 0.2f, 1.f, 0.f);
             lighting.ambient_light.intensity         = 0.15f;
@@ -1116,7 +1116,7 @@ void Zn::VulkanDevice::CreateDescriptors()
             .binding         = 0,
             .descriptorType  = vk::DescriptorType::eUniformBuffer,
             .descriptorCount = 1,
-            .stageFlags      = vk::ShaderStageFlagBits::eVertex,
+            .stageFlags      = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
         },
         // Lighting
         {
@@ -1545,11 +1545,11 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
                                         {
                                             current->primitive->position.data,
                                             current->primitive->normal.data,
-                                            // current->primitive->tangent.data,
+                                            current->primitive->tangent.data,
                                             current->primitive->uv.data,
                                             // current->primitive->color.data,
                                         },
-                                        {offset, offset, offset});
+                                        {offset, offset, offset, offset});
 
         // TODO: Save index type into primitive?
         commandBuffer.bindIndexBuffer(current->primitive->indices.data, offset, vk::IndexType::eUint32);
@@ -1883,13 +1883,24 @@ void Zn::VulkanDevice::LoadMeshes()
                                                        vma::MemoryUsage::eGpuOnly);
             }
 
-            // if (cpuPrimitive.tangent.size() > 0)
-            //{
-            //     gpuPrimitive->tangent = CreateRHIBuffer(cpuPrimitive.tangent.data(),
-            //                                             cpuPrimitive.tangent.size() * sizeof(glm::vec3),
-            //                                             vk::BufferUsageFlagBits::eVertexBuffer,
-            //                                             vma::MemoryUsage::eGpuOnly);
-            // }
+            if (cpuPrimitive.tangent.size() > 0)
+            {
+                gpuPrimitive->tangent = CreateRHIBuffer(cpuPrimitive.tangent.data(),
+                                                        cpuPrimitive.tangent.size() * sizeof(glm::vec3),
+                                                        vk::BufferUsageFlagBits::eVertexBuffer,
+                                                        vma::MemoryUsage::eGpuOnly);
+            }
+            else
+            {
+                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Tanget buffer for primitive. Creating default.");
+                Vector<glm::vec3> dummy;
+                dummy.resize(cpuPrimitive.position.size());
+
+                memset(dummy.data(), 0, dummy.size() * sizeof(glm::vec3));
+
+                gpuPrimitive->tangent = CreateRHIBuffer(
+                    dummy.data(), dummy.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+            }
 
             if (cpuPrimitive.uv.size() > 0)
             {

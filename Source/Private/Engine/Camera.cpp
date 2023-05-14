@@ -61,7 +61,7 @@ void Zn::camera_process_input(const SDL_Event& event, f32 deltaTime, Camera& cam
 
 void Zn::camera_process_key_input(const i32& key, float deltaTime, Camera& camera)
 {
-    static const f32 kSpeed = 10.f;
+    static const f32 kSpeed = 100.f;
 
     const f32 velocity = kSpeed * deltaTime;
 

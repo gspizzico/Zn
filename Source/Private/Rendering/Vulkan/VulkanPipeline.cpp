@@ -30,13 +30,13 @@ const RHIInputLayout VulkanPipeline::gltfInputLayout = {.bindings   = {{
                                                                            .stride    = sizeof(glm::vec3),
                                                                            .inputRate = vk::VertexInputRate::eVertex,
                                                                      },
-                                                                       /* {
+                                                                      {
                                                                             .binding   = 2,
                                                                             .stride    = sizeof(glm::vec3),
                                                                             .inputRate = vk::VertexInputRate::eVertex,
-                                                                      },*/
+                                                                      },
                                                                        {
-                                                                           .binding   = 2,
+                                                                           .binding   = 3,
                                                                            .stride    = sizeof(glm::vec2),
                                                                            .inputRate = vk::VertexInputRate::eVertex,
                                                                      },
@@ -57,15 +57,15 @@ const RHIInputLayout VulkanPipeline::gltfInputLayout = {.bindings   = {{
                                                                            .format   = vk::Format::eR32G32B32Sfloat,
                                                                            .offset   = 0,
                                                                        },
-                                                                       //{
-                                                                       //    .location = 2,
-                                                                       //    .binding  = 2,
-                                                                       //    .format   = vk::Format::eR32G32B32A32Sfloat,
-                                                                       //    .offset   = 0,
-                                                                       //},
                                                                        {
                                                                            .location = 2,
                                                                            .binding  = 2,
+                                                                           .format   = vk::Format::eR32G32B32Sfloat,
+                                                                           .offset   = 0,
+                                                                       },
+                                                                       {
+                                                                           .location = 3,
+                                                                           .binding  = 3,
                                                                            .format   = vk::Format::eR32G32Sfloat,
                                                                            .offset   = 0,
                                                                        },
