@@ -14,6 +14,12 @@ struct ResourceHandle
     {
     }
 
+    template<typename T>
+    ResourceHandle(const T& h)
+        : handle(HashCalculate(h))
+    {
+    }
+
     operator bool() const
     {
         return handle != u64_max;

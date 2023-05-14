@@ -33,12 +33,23 @@ static const String         defaultTexturePath    = "assets/texture.jpg";
 static const String         vikingRoomTexturePath = "assets/VulkanTutorial/viking_room.png";
 static const String         vikingRoomMeshPath    = "assets/VulkanTutorial/viking_room.obj";
 static const String         gltfSampleModels      = "assets/glTF-Sample-Models/2.0/";
-static const String         gltf_BoxMeshPath      = "assets/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+static const String         gltfDefaultModel      = "assets/glTF-Sample-Models/2.0/Cube/glTF/Cube.gltf";
 static const String         monkeyMeshPath        = "assets/VulkanGuide/monkey_smooth.obj";
 static const ResourceHandle depthTextureHandle    = ResourceHandle(HashCalculate("__RHIDepthTexture"));
 static const String         triangleMeshName      = "__Triangle";
+static const String         whiteTextureName      = "__WhiteTexture";
+static const String         blackTextureName      = "__BlackTexture";
+static const String         uvCheckerTexturePath  = "assets/uv_checker.png";
+static const String         uvCheckerName         = "__UvChecker";
 
 static const u32 minInstanceDataBufferSize = 65535;
+
+const TextureSampler defaultTextureSampler {
+    .minification  = SamplerFilter::Linear,
+    .magnification = SamplerFilter::Linear,
+    .mipMap        = SamplerFilter::None,
+    .wrapUV        = {SamplerWrap::Repeat, SamplerWrap::Repeat, SamplerWrap::Repeat},
+};
 
 struct IndirectDrawBatch
 {
@@ -99,9 +110,9 @@ static const Zn::Vector<const char*> kRequiredExtensions = {VK_EXT_DEBUG_UTILS_E
 static const Zn::Vector<const char*> kValidationLayers   = {"VK_LAYER_KHRONOS_validation"};
 // static const Zn::Vector<const char*> kDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-#if ZN_VK_VALIDATION_LAYERS
 namespace VulkanValidation
 {
+#if ZN_VK_VALIDATION_LAYERS
 bool SupportsValidationLayers()
 {
     Zn::Vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
@@ -190,8 +201,22 @@ void DeinitializeDebugMessenger(vk::Instance instance)
         instance.destroyDebugUtilsMessengerEXT(GDebugMessenger);
     }
 }
-} // namespace VulkanValidation
 #endif
+
+template<typename VkHPPType>
+void SetObjectDebugName(vk::Device device, cstring name, VkHPPType object)
+{
+#if ZN_VK_VALIDATION_LAYERS
+    vk::DebugUtilsObjectNameInfoEXT nameInfo {
+        .objectType   = VkHPPType::objectType,
+        .objectHandle = (u64) static_cast<VkHPPType::CType>(object),
+        .pObjectName  = name,
+    };
+
+    device.setDebugUtilsObjectNameEXT(nameInfo);
+#endif
+}
+} // namespace VulkanValidation
 
 const Vector<const char*> VulkanDevice::kDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
@@ -560,6 +585,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
+    CreateDefaultResources();
     LoadMeshes();
 
     {
@@ -1614,7 +1640,7 @@ void Zn::VulkanDevice::CreateScene()
 
         Vector<std::pair<vk::DescriptorImageInfo, u32>> descriptorImages;
 
-        auto InsertTexture = [&](ResourceHandle textureHandle, u32 index)
+        auto InsertTexture = [&](ResourceHandle textureHandle, u32 index) -> bool
         {
             if (auto it = textures.find(textureHandle); it != textures.end())
             {
@@ -1627,13 +1653,29 @@ void Zn::VulkanDevice::CreateScene()
                 };
 
                 descriptorImages.push_back({std::move(textureInfo), index});
+
+                return true;
             }
+
+            return false;
         };
 
         // TODO: We need to create and assign default textures.
 
-        InsertTexture(primitive->materialAttributes.baseColorTexture, 0);
-        InsertTexture(primitive->materialAttributes.metalnessTexture, 1);
+        if (!InsertTexture(primitive->materialAttributes.baseColorTexture, 0))
+        {
+            ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Missing baseColorTexture. Replacing with %s", uvCheckerTexturePath.c_str());
+            const ResourceHandle uvCheckerHandle = ResourceHandle(uvCheckerTexturePath);
+            InsertTexture(uvCheckerHandle, 0);
+            primitive->materialAttributes.baseColorTexture = uvCheckerHandle;
+        }
+        if (!InsertTexture(primitive->materialAttributes.metalnessTexture, 1))
+        {
+            ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Missing metalnessTexture. Replacing with %s", blackTextureName.c_str());
+            const ResourceHandle blackTextureHandle = ResourceHandle(blackTextureName);
+            InsertTexture(blackTextureHandle, 1);
+            primitive->materialAttributes.metalnessTexture = blackTextureHandle;
+        }
         // InsertTexture(primitive->materialAttributes.normalTexture, 2);
         // InsertTexture(primitive->materialAttributes.occlusionTexture, 3);
         // InsertTexture(primitive->materialAttributes.emissiveTexture, 4);
@@ -1668,9 +1710,65 @@ void Zn::VulkanDevice::CreateScene()
     }
 }
 
+void Zn::VulkanDevice::CreateDefaultTexture(const String& name, const u8 (&color)[4])
+{
+    RHITexture* defaultTexture = CreateRHITexture(1, 1, vk::Format::eR8G8B8A8Unorm);
+
+    RHIBuffer stagingBuffer = CreateBuffer(1 * sizeof(u8) * 4, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+
+    CopyToGPU(stagingBuffer.allocation, ArrayData(color), ArrayLength(color));
+
+    ImmediateSubmit(
+        [=](vk::CommandBuffer cmd)
+        {
+            TransitionImageLayout(
+                cmd, defaultTexture->image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+            CopyBufferToImage(cmd, stagingBuffer.data, defaultTexture->image, 1, 1);
+            TransitionImageLayout(cmd,
+                                  defaultTexture->image,
+                                  vk::Format::eR8G8B8A8Unorm,
+                                  vk::ImageLayout::eTransferDstOptimal,
+                                  vk::ImageLayout::eShaderReadOnlyOptimal);
+        });
+
+    DestroyBuffer(stagingBuffer);
+
+    vk::ImageViewCreateInfo imageViewInfo {.image            = defaultTexture->image,
+                                           .viewType         = vk::ImageViewType::e2D,
+                                           .format           = vk::Format::eR8G8B8A8Unorm,
+                                           .subresourceRange = {
+                                               .aspectMask     = vk::ImageAspectFlagBits::eColor,
+                                               .baseMipLevel   = 0,
+                                               .levelCount     = 1,
+                                               .baseArrayLayer = 0,
+                                               .layerCount     = 1,
+                                           }};
+
+    defaultTexture->imageView = device.createImageView(imageViewInfo);
+
+    defaultTexture->sampler = CreateSampler(defaultTextureSampler);
+
+    VulkanValidation::SetObjectDebugName(device, name.c_str(), defaultTexture->image);
+
+    textures.insert({ResourceHandle(name), defaultTexture});
+}
+
+void Zn::VulkanDevice::CreateDefaultResources()
+{
+    u8 white[4] = {255, 255, 255, 255};
+    CreateDefaultTexture(whiteTextureName, white);
+    u8 black[4] = {0, 0, 0, 255};
+    CreateDefaultTexture(blackTextureName, black);
+
+    RHITexture* uvChecker = CreateTexture(uvCheckerTexturePath);
+    uvChecker->sampler    = CreateSampler(defaultTextureSampler);
+
+    VulkanValidation::SetObjectDebugName(device, uvCheckerName.c_str(), uvChecker->image);
+}
+
 void Zn::VulkanDevice::LoadMeshes()
 {
-    String gltfModelPath = gltf_BoxMeshPath;
+    String gltfModelPath = gltfDefaultModel;
 
     if (String gltfSampleModelName = GetGLTFSampleModel(); !gltfSampleModelName.empty())
     {
@@ -1752,59 +1850,6 @@ void Zn::VulkanDevice::LoadMeshes()
             gpuPrimitives.emplace_back(gpuPrimitive);
         }
     }
-
-    // RHIMesh* vikingRoom = new RHIMesh();
-
-    // if (!MeshImporter::Import(IO::GetAbsolutePath(vikingRoomMeshPath), *vikingRoom))
-    //{
-    //     delete vikingRoom;
-    //     vikingRoom = nullptr;
-    // }
-
-    // if (monkey)
-    //{
-    //     monkey->vertexBuffer = CreateRHIBuffer(
-    //         monkey->vertices.data(), monkey->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer,
-    //         vma::MemoryUsage::eGpuOnly);
-
-    //    monkey->indexBuffer = CreateRHIBuffer(
-    //        monkey->indices.data(), monkey->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer,
-    //        vma::MemoryUsage::eGpuOnly);
-
-    //    meshes.insert({ResourceHandle(HashCalculate(monkeyMeshPath)), monkey});
-    //}
-
-    // if (vikingRoom)
-    //{
-    //     vikingRoom->vertexBuffer = CreateRHIBuffer(
-    //         vikingRoom->vertices.data(), vikingRoom->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer,
-    //         vma::MemoryUsage::eGpuOnly);
-
-    //    vikingRoom->indexBuffer = CreateRHIBuffer(
-    //        vikingRoom->indices.data(), vikingRoom->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer,
-    //        vma::MemoryUsage::eGpuOnly);
-
-    //    meshes.insert({ResourceHandle(HashCalculate(vikingRoomMeshPath)), vikingRoom});
-    //}
-
-    // RHIMesh* box = new RHIMesh();
-    // if (!MeshImporter::Import(IO::GetAbsolutePath(gltf_BoxMeshPath), *box))
-    //{
-    //     delete box;
-    //     box = nullptr;
-    // }
-
-    // if (box)
-    //{
-    //     box->vertexBuffer = CreateRHIBuffer(
-    //         box->vertices.data(), box->vertices.size() * sizeof(RHIVertex), vk::BufferUsageFlagBits::eVertexBuffer,
-    //         vma::MemoryUsage::eGpuOnly);
-
-    //    box->indexBuffer = CreateRHIBuffer(
-    //        box->indices.data(), box->indices.size() * sizeof(i32), vk::BufferUsageFlagBits::eIndexBuffer, vma::MemoryUsage::eGpuOnly);
-
-    //    meshes.insert({ResourceHandle(HashCalculate(gltf_BoxMeshPath)), box});
-    //}
 }
 
 RHIBuffer Zn::VulkanDevice::CreateRHIBuffer(const void*          data,
@@ -2066,7 +2111,7 @@ vk::Sampler Zn::VulkanDevice::CreateSampler(const TextureSampler& sampler)
         .minFilter    = TranslateSamplerFilter(sampler.minification),
         .addressModeU = TranslateSamplerWrap(sampler.wrapUV[0]),
         .addressModeV = TranslateSamplerWrap(sampler.wrapUV[1]),
-        .addressModeW = TranslateSamplerWrap(sampler.wrapUV[3]),
+        .addressModeW = TranslateSamplerWrap(sampler.wrapUV[2]),
     };
 
     return device.createSampler(samplerCreateInfo);

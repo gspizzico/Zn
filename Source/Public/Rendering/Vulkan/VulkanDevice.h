@@ -173,6 +173,9 @@ class VulkanDevice
 
     // ==================
 
+    void CreateDefaultTexture(const String& name, const u8 (&color)[4]);
+
+    void CreateDefaultResources();
     void LoadMeshes();
 
     RHIBuffer CreateRHIBuffer(const void* data, sizet size, vk::BufferUsageFlags bufferUsage, vma::MemoryUsage memoryUsage) const;
