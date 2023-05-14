@@ -39,6 +39,7 @@ static const ResourceHandle depthTextureHandle    = ResourceHandle(HashCalculate
 static const String         triangleMeshName      = "__Triangle";
 static const String         whiteTextureName      = "__WhiteTexture";
 static const String         blackTextureName      = "__BlackTexture";
+static const String         normalTextureName     = "__Normal";
 static const String         uvCheckerTexturePath  = "assets/uv_checker.png";
 static const String         uvCheckerName         = "__UvChecker";
 
@@ -648,6 +649,7 @@ void VulkanDevice::Cleanup()
         DestroyBuffer(gpuPrimitive->uv);
         DestroyBuffer(gpuPrimitive->color);
         DestroyBuffer(gpuPrimitive->indices);
+        DestroyBuffer(gpuPrimitive->uboMaterialAttributes);
 
         delete gpuPrimitive;
     }
@@ -1061,7 +1063,7 @@ void Zn::VulkanDevice::CreateDescriptors()
     // Create Descriptor Pool
     vk::DescriptorPoolSize poolSizes[] = {
         {vk::DescriptorType::eCombinedImageSampler, 1000},
-        {vk::DescriptorType::eUniformBuffer, 4},
+        {vk::DescriptorType::eUniformBuffer, 1000},
     };
 
     vk::DescriptorPoolCreateInfo poolCreateInfo {.flags         = (vk::DescriptorPoolCreateFlagBits) 0,
@@ -1694,6 +1696,22 @@ void Zn::VulkanDevice::CreateScene()
             });
         }
 
+        vk::DescriptorBufferInfo uboBufferInfo {
+            .buffer = primitive->uboMaterialAttributes.data,
+            .offset = 0,
+            .range  = VK_WHOLE_SIZE,
+        };
+        vk::WriteDescriptorSet uboWrite {
+            .dstSet          = perPrimitiveSet,
+            .dstBinding      = 1,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType  = vk::DescriptorType::eUniformBuffer,
+            .pBufferInfo     = &uboBufferInfo,
+        };
+
+        writeOperations.push_back(uboWrite);
+
         device.updateDescriptorSets(writeOperations, {});
 
         gpuPrimitivesDescriptorSets.insert({primitive, perPrimitiveSet});
@@ -1759,6 +1777,8 @@ void Zn::VulkanDevice::CreateDefaultResources()
     CreateDefaultTexture(whiteTextureName, white);
     u8 black[4] = {0, 0, 0, 255};
     CreateDefaultTexture(blackTextureName, black);
+    u8 normal[4] = {128, 128, 255, 255};
+    CreateDefaultTexture(normalTextureName, normal);
 
     RHITexture* uvChecker = CreateTexture(uvCheckerTexturePath);
     uvChecker->sampler    = CreateSampler(defaultTextureSampler);
@@ -1847,6 +1867,34 @@ void Zn::VulkanDevice::LoadMeshes()
 
             gpuPrimitive->materialAttributes = cpuPrimitive.materialAttributes;
 
+            gpuPrimitive->uboMaterialAttributes =
+                CreateBuffer(sizeof(UBOMaterialAttributes),
+                             vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                             vma::MemoryUsage::eGpuOnly);
+
+            RHIBuffer stagingBuffer =
+                CreateBuffer(sizeof(UBOMaterialAttributes), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+
+            UBOMaterialAttributes uboMaterialAttributes {
+                .baseColor   = gpuPrimitive->materialAttributes.baseColor,
+                .metalness   = gpuPrimitive->materialAttributes.metalness,
+                .roughness   = gpuPrimitive->materialAttributes.roughness,
+                .alphaCutoff = gpuPrimitive->materialAttributes.alphaCutoff,
+                .emissive    = gpuPrimitive->materialAttributes.emissive,
+            };
+
+            CopyToGPU(stagingBuffer.allocation, &uboMaterialAttributes, sizeof(UBOMaterialAttributes));
+
+            ImmediateSubmit(
+                [=](vk::CommandBuffer cmd)
+                {
+                    cmd.copyBuffer(stagingBuffer.data,
+                                   gpuPrimitive->uboMaterialAttributes.data,
+                                   {vk::BufferCopy(0, 0, sizeof(UBOMaterialAttributes))});
+                });
+
+            DestroyBuffer(stagingBuffer);
+
             gpuPrimitives.emplace_back(gpuPrimitive);
         }
     }
@@ -1906,9 +1954,18 @@ void Zn::VulkanDevice::CreateMeshPipeline()
             .stageFlags      = vk::ShaderStageFlagBits::eFragment,
         };
 
+        vk::DescriptorSetLayoutBinding pbrMaterialAttributesSetBinding {
+            .binding         = 1,
+            .descriptorType  = vk::DescriptorType::eUniformBuffer,
+            .descriptorCount = 1,
+            .stageFlags      = vk::ShaderStageFlagBits::eFragment,
+        };
+
+        vk::DescriptorSetLayoutBinding pbrBindings[2] = {pbrTextureSetBinding, pbrMaterialAttributesSetBinding};
+
         vk::DescriptorSetLayoutCreateInfo pbrTexturesSetCreateInfo {
-            .bindingCount = 1,
-            .pBindings    = &pbrTextureSetBinding,
+            .bindingCount = ArrayLength(pbrBindings),
+            .pBindings    = ArrayData(pbrBindings),
         };
 
         material->materialSetLayout = device.createDescriptorSetLayout(pbrTexturesSetCreateInfo);

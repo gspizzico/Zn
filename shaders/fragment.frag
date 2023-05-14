@@ -45,6 +45,15 @@ layout (std140, set = 0, binding = 1) uniform LightingUniforms
 
 layout(set = 1, binding = 0) uniform sampler2D sampler_pbr_textures[PBR_NUM_TEXTURES];
 
+layout(set = 1, binding = 1) uniform UBOMaterialAttributes
+{
+    vec4    baseColor;
+    float   metalness;
+    float   roughness;
+    float   alphaCutoff;
+    vec3    emissive;   
+} materialAttributes;
+
 layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec2 inUV;
@@ -81,7 +90,7 @@ void main()
     vec3 viewDir = normalize(-inPosition);
     vec3 normal = normalize(inNormal);
 
-    vec3 finalColor =  texture(sampler_pbr_textures[PBR_INDEX_BASECOLOR], inUV).xyz;
+    vec3 finalColor =  texture(sampler_pbr_textures[PBR_INDEX_BASECOLOR], inUV).xyz * materialAttributes.baseColor.xyz;
 
     for (uint i = 0; i < lighting.num_directional_lights; ++i) 
     {

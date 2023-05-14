@@ -53,6 +53,17 @@ struct MaterialAttributes
     ResourceHandle emissiveTexture {};
 };
 
+struct alignas(16) UBOMaterialAttributes
+{
+    glm::vec4 baseColor   = glm::vec4(0.f);
+    f32       metalness   = 0.f;
+    f32       roughness   = 0.f;
+    f32       alphaCutoff = 0.5;
+    glm::vec3 emissive    = glm::vec3(0.f);
+    f32       padding0;
+    f32       padding1;
+};
+
 enum class SamplerFilter : u8
 {
     None,
@@ -102,5 +113,6 @@ struct RHIPrimitiveGPU
     u32                numVertices;
     u32                numIndices;
     MaterialAttributes materialAttributes;
+    RHIBuffer          uboMaterialAttributes;
 };
 } // namespace Zn
