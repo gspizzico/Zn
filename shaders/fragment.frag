@@ -62,6 +62,7 @@ layout(set = 1, binding = 1) uniform UBOMaterialAttributes
     float   roughness;
     float   alphaCutoff;
     vec3    emissive;   
+    float   occlusion;   
 } materialAttributes;
 
 layout (location = 0) in vec4 inPosition;
@@ -162,7 +163,7 @@ vec4 diffuse_brdf(vec4 color)
     return (1.0 / PI) * color;
 }
 
-vec3 PBR(vec3 lightDirection, vec3 normal, vec3 viewDirection)
+vec3 PBR(vec3 lightDirection, vec3 normal, vec3 viewDirection, float roughness, float metalness)
 {
     vec3 HalfWay = normalize(lightDirection + viewDirection);
 
@@ -172,13 +173,13 @@ vec3 PBR(vec3 lightDirection, vec3 normal, vec3 viewDirection)
     float HdotN = max(dot(HalfWay, normal), 0.0);
 
     vec3 Ks = conductor_frenel(materialAttributes.baseColor.xyz, 1.0, HdotV);
-    vec3 Kd = vec3(1.0) - Ks * (1.0 - materialAttributes.metalness + 0.04);
+    vec3 Kd = vec3(1.0) - Ks * (1.0 - metalness + 0.04);
 
     vec3 Lambert = materialAttributes.baseColor.xyz / PI;
 
     vec3 cookTorranceNumerator = 
-        D_GGX(HdotN, materialAttributes.roughness) *
-        G_Smith(NdotV, NdotL, materialAttributes.roughness) *
+        D_GGX(HdotN, roughness) *
+        G_Smith(NdotV, NdotL, roughness) *
         Ks;
 
     float cookTorranceDenominator = max(4.0 * NdotV * NdotL, 0.000001);
@@ -187,7 +188,6 @@ vec3 PBR(vec3 lightDirection, vec3 normal, vec3 viewDirection)
     vec3 BRDF = Kd * Lambert + cookTorrance;
 
     return BRDF * NdotL;
-
 }
 
 void main() 
@@ -211,16 +211,33 @@ void main()
 
     vec3 V = normalize( TBN * ( camera.position.xyz - inPosition.xyz ) );
 
-    vec3 baseColor = decode_srgb(texture(sampler_pbr_textures[PBR_INDEX_BASECOLOR], inUV).rgb);
+    float metalness = materialAttributes.metalness;
+    float roughness = materialAttributes.roughness;
+    float occlusion = materialAttributes.occlusion;
 
-    vec3 finalColor =  baseColor;
+    vec3 metalness_sample = texture(sampler_pbr_textures[PBR_INDEX_METALNESS], inUV).rgb;
+
+    // Green contains roughness
+    roughness *= metalness_sample.g;
+
+    // Blue contains metalness
+    metalness *= metalness_sample.b;
+
+    // Red channel contains occlusion
+    occlusion *= texture(sampler_pbr_textures[PBR_INDEX_OCCLUSION], inUV).r;
+
+    vec4 baseColor = texture(sampler_pbr_textures[PBR_INDEX_BASECOLOR], inUV) * materialAttributes.baseColor;
+
+    baseColor.rgb = decode_srgb(baseColor.rgb);
+
+    vec3 finalColor =  baseColor.rgb;
 
     for (uint i = 0; i < lighting.num_directional_lights; ++i) 
     {   
         const DirectionalLight light = lighting.directional_lights[i];
         vec3 direction = normalize(light.direction.xyz);
-        finalColor += PBR(direction, normal, V) * light.color.xyz * light.intensity;
+        finalColor += PBR(direction, normal, V, roughness, metalness) * light.color.xyz * light.intensity;
     }
 
-    outColor = vec4(encode_srgb(finalColor), 1.0);
+    outColor = vec4(encode_srgb(finalColor), baseColor.a);
 }

@@ -420,6 +420,7 @@ bool Zn::MeshImporter::ImportAll_GLTF(const String& fileName, MeshImporterOutput
                 materialAttributes.metalness   = material.pbrMetallicRoughness.metallicFactor;
                 materialAttributes.roughness   = material.pbrMetallicRoughness.roughnessFactor;
                 materialAttributes.emissive    = *reinterpret_cast<const glm::dvec3*>(material.emissiveFactor.data());
+                materialAttributes.occlusion   = material.occlusionTexture.strength;
                 materialAttributes.alphaCutoff = material.alphaCutoff;
                 materialAttributes.doubleSided = material.doubleSided;
                 materialAttributes.alphaMode   = TranslateAlphaMode(material.alphaMode);

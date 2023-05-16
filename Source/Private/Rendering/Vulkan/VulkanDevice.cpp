@@ -1968,6 +1968,7 @@ void Zn::VulkanDevice::LoadMeshes()
                 .roughness   = gpuPrimitive->materialAttributes.roughness,
                 .alphaCutoff = gpuPrimitive->materialAttributes.alphaCutoff,
                 .emissive    = gpuPrimitive->materialAttributes.emissive,
+                .occlusion   = gpuPrimitive->materialAttributes.occlusion,
             };
 
             CopyToGPU(stagingBuffer.allocation, &uboMaterialAttributes, sizeof(UBOMaterialAttributes));

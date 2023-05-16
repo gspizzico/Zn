@@ -43,6 +43,7 @@ struct MaterialAttributes
     f32            metalness   = 0.f;
     f32            roughness   = 0.f;
     glm::vec3      emissive    = glm::vec3(0.f);
+    f32            occlusion   = 1.f;
     f32            alphaCutoff = 0.5f;
     AlphaMode      alphaMode   = AlphaMode::Opaque;
     bool           doubleSided = false;
@@ -60,8 +61,8 @@ struct alignas(16) UBOMaterialAttributes
     f32       roughness   = 0.f;
     f32       alphaCutoff = 0.5;
     glm::vec3 emissive    = glm::vec3(0.f);
+    f32       occlusion   = 1.f;
     f32       padding0;
-    f32       padding1;
 };
 
 enum class SamplerFilter : u8
