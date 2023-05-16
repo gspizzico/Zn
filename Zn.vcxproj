@@ -361,6 +361,7 @@
     <None Include="scripts\PreLinking.bat" />
     <None Include="scripts\sdl_build.py" />
     <None Include="scripts\vk_compile_shaders.py" />
+    <None Include="shaders\blinn-phong.frag" />
     <UpToDateCheckInput Include="shaders\fragment.frag" />
     <UpToDateCheckInput Include="shaders\vertex.vert" />
   </ItemGroup>

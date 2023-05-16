@@ -537,5 +537,8 @@
     <None Include="scripts\vk_compile_shaders.py">
       <Filter>scripts</Filter>
     </None>
+    <None Include="shaders\blinn-phong.frag">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

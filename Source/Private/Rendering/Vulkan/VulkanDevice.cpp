@@ -826,8 +826,8 @@ void VulkanDevice::Draw()
             lighting.directional_lights[0].direction = glm::normalize(glm::vec4(-1.0f, -3.0f, 0.0f, 1.0f));
             lighting.directional_lights[0].color     = glm::vec4(1.0f, 1.f, 1.f, 0.f);
             lighting.directional_lights[0].intensity = 0.25f;
-            lighting.ambient_light.color             = glm::vec4(0.f, 0.2f, 1.f, 0.f);
-            lighting.ambient_light.intensity         = 0.15f;
+            lighting.ambient_light.color             = glm::vec4(1.f, 1.f, 1.f, 0.f);
+            lighting.ambient_light.intensity         = 0.0f;
             lighting.num_directional_lights          = 1;
             lighting.num_point_lights                = 0;
 
@@ -2014,8 +2014,17 @@ void Zn::VulkanDevice::CreateMeshPipeline()
     Vector<uint8> vertex_shader_data;
     Vector<uint8> fragment_shader_data;
 
-    const bool vertex_success   = IO::ReadBinaryFile("shaders/vertex.vert.spv", vertex_shader_data);
-    const bool fragment_success = IO::ReadBinaryFile("shaders/fragment.frag.spv", fragment_shader_data);
+    String vertexShaderName;
+    String fragmentShaderName;
+
+    CommandLine::Get().Value("-vertex", vertexShaderName, "vertex");
+    CommandLine::Get().Value("-fragment", fragmentShaderName, "fragment");
+
+    vertexShaderName   = "shaders/" + vertexShaderName + ".vert.spv";
+    fragmentShaderName = "shaders/" + fragmentShaderName + ".frag.spv";
+
+    const bool vertex_success   = IO::ReadBinaryFile(vertexShaderName, vertex_shader_data);
+    const bool fragment_success = IO::ReadBinaryFile(fragmentShaderName, fragment_shader_data);
 
     if (vertex_success && fragment_success)
     {
