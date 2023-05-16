@@ -32,7 +32,7 @@ const RHIInputLayout VulkanPipeline::gltfInputLayout = {.bindings   = {{
                                                                      },
                                                                       {
                                                                             .binding   = 2,
-                                                                            .stride    = sizeof(glm::vec3),
+                                                                            .stride    = sizeof(glm::vec4),
                                                                             .inputRate = vk::VertexInputRate::eVertex,
                                                                       },
                                                                        {
@@ -60,7 +60,7 @@ const RHIInputLayout VulkanPipeline::gltfInputLayout = {.bindings   = {{
                                                                        {
                                                                            .location = 2,
                                                                            .binding  = 2,
-                                                                           .format   = vk::Format::eR32G32B32Sfloat,
+                                                                           .format   = vk::Format::eR32G32B32A32Sfloat,
                                                                            .offset   = 0,
                                                                        },
                                                                        {

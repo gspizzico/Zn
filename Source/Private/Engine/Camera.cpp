@@ -6,6 +6,8 @@
 
 using namespace Zn;
 
+float camera_speed = 10.f;
+
 void Zn::camera_rotate(glm::vec2 rotation, Camera& camera)
 {
     camera.yaw += rotation.x;
@@ -53,6 +55,10 @@ void Zn::camera_process_input(const SDL_Event& event, f32 deltaTime, Camera& cam
             SDL_SetRelativeMouseMode(SDL_FALSE);
         }
         break;
+    case SDL_MOUSEWHEEL:
+    {
+        camera_speed = std::max(camera_speed + event.wheel.y, 0.0f);
+    }
     default:
         break;
     }
@@ -63,7 +69,7 @@ void Zn::camera_process_key_input(const i32& key, float deltaTime, Camera& camer
 {
     static const f32 kSpeed = 100.f;
 
-    const f32 velocity = kSpeed * deltaTime;
+    const f32 velocity = camera_speed * deltaTime;
 
     glm::vec3 delta_movement {0.f};
 

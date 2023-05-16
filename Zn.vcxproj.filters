@@ -537,14 +537,5 @@
     <None Include="scripts\vk_compile_shaders.py">
       <Filter>scripts</Filter>
     </None>
-    <None Include="shaders\fragment.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\vertex.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\tri_mesh_vertex.vert">
-      <Filter>shaders</Filter>
-    </None>
   </ItemGroup>
 </Project>

@@ -811,7 +811,7 @@ void VulkanDevice::Draw()
             const glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, upVector);
 
             // Camera Projection
-            glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 20000.f);
+            glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.05f, 20000.f);
             projection[1][1] *= -1;
 
             GPUCameraData camera {};
@@ -823,7 +823,7 @@ void VulkanDevice::Draw()
             CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(GPUCameraData));
 
             LightingUniforms lighting {};
-            lighting.directional_lights[0].direction = glm::vec4(2.0f, 2.0f, 0.0f, 1.0f);
+            lighting.directional_lights[0].direction = glm::normalize(glm::vec4(-1.0f, -3.0f, 0.0f, 1.0f));
             lighting.directional_lights[0].color     = glm::vec4(1.0f, 1.f, 1.f, 0.f);
             lighting.directional_lights[0].intensity = 0.25f;
             lighting.ambient_light.color             = glm::vec4(0.f, 0.2f, 1.f, 0.f);
@@ -1565,9 +1565,12 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
         glm::mat4 rotation    = glm::mat4_cast(current->rotation);
         glm::mat4 scale       = glm::scale(identity, current->scale);
 
-        glm::mat4 transform = translation * rotation * scale;
+        MeshPushConstants constants {
+            .model         = translation * rotation * scale,
+            .model_inverse = glm::inverse(translation * rotation * scale),
+        };
 
-        commandBuffer.pushConstants(current->material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &transform);
+        commandBuffer.pushConstants(current->material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MeshPushConstants), &constants);
 
         if (isIndexedDraw)
         {

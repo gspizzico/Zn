@@ -67,7 +67,8 @@ layout(set = 1, binding = 1) uniform UBOMaterialAttributes
 layout (location = 0) in vec4 inPosition;
 layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec3 inTangent;
-layout (location = 3) in vec2 inUV;
+layout (location = 3) in vec3 inBiTangent;
+layout (location = 4) in vec2 inUV;
 
 layout(location = 0) out vec4 outColor;
 
@@ -117,23 +118,26 @@ vec3 encode_srgb( vec3 c ) {
     return clamp( result, 0.0, 1.0 );
 }
 
+// GGX/Trowbridge-Reitz Normal Distribution
 float D_GGX(float NdotH, float roughness)
 {
-    float alpha = roughness * roughness;
-    float alpha2 = alpha * alpha;
-    float NdotH2 = NdotH * NdotH;
-    float denom = NdotH2 * (alpha2 - 1.0) + 1.0;
-    return alpha2 / (PI * denom * denom);
+    float alphaSquared = pow(roughness * roughness, 2);
+    float NdotHSquared = NdotH * NdotH;
+    float denominator = max(PI * pow(NdotHSquared * (alphaSquared - 1.0) + 1.0, 2.0), 0.000001);
+    return alphaSquared / denominator;
 }
 
+// Smith Model
 float G_Smith(float NdotV, float NdotL, float roughness) {
-    float alpha = roughness*roughness;
-    float G_V = NdotV / (NdotV * (1.0 - alpha) + alpha);
-    float G_L = NdotL / (NdotL * (1.0 - alpha) + alpha);
+
+    float alpha = roughness * roughness;
+    float G_V = NdotV / max((NdotV * (1.0 - alpha) + alpha), 0.000001);
+    float G_L = NdotL / max((NdotL * (1.0 - alpha) + alpha), 0.000001);
     return G_V * G_L;
 }
 
 vec3 conductor_frenel(vec3 F0, float specular, float HdotV) {
+// ABS OR MAX?
     return specular * (F0 + (1.0 - F0) * (1 - pow(abs(HdotV), 5.0)));
 }
 
@@ -148,9 +152,9 @@ vec3 fresnel_mix(vec3 baseColor, float specular, float HdotV)
 float specular_brdf(float NdotV, float NdotH, float NdotL, float roughness)
 {
     float G = G_Smith(NdotV, NdotL, roughness);
-    float D = D_GGX(NdotH, roughness);
+    float Distribution = D_GGX(NdotH, roughness);
     float V = G / (4 * NdotL * NdotH);
-    return V * D;
+    return V * Distribution;
 }
 
 vec4 diffuse_brdf(vec4 color)
@@ -158,23 +162,32 @@ vec4 diffuse_brdf(vec4 color)
     return (1.0 / PI) * color;
 }
 
-vec3 ComputeBRDF(vec3 lightDirection, vec3 normal, vec3 viewDirection)
+vec3 PBR(vec3 lightDirection, vec3 normal, vec3 viewDirection)
 {
-    vec3 halfWay = normalize(lightDirection + viewDirection);
+    vec3 HalfWay = normalize(lightDirection + viewDirection);
 
-    float NdotL = dot(normal, lightDirection);
-    float NdotV = dot(normal, viewDirection);
-    float HdotN = dot(halfWay, normal);
-    float HdotV = dot(halfWay, viewDirection);
+    float NdotL = max(dot(normal, lightDirection), 0.0);
+    float NdotV = max(dot(normal, viewDirection), 0.0);
+    float HdotV = max(dot(HalfWay, viewDirection), 0.0);
+    float HdotN = max(dot(HalfWay, normal), 0.0);
 
-    float specular = specular_brdf(NdotV, HdotN, NdotL, materialAttributes.roughness);
-    vec4 diffuse = diffuse_brdf(materialAttributes.baseColor);
+    vec3 Ks = conductor_frenel(materialAttributes.baseColor.xyz, 1.0, HdotV);
+    vec3 Kd = vec3(1.0) - Ks * (1.0 - materialAttributes.metalness + 0.04);
 
-    vec3 dielectric_brdf = fresnel_mix(materialAttributes.baseColor.xyz, specular, HdotV);
-    vec3 metal_brdf = specular * conductor_frenel(materialAttributes.baseColor.xyz, specular, HdotV);    
+    vec3 Lambert = materialAttributes.baseColor.xyz / PI;
 
-    // return mix(dielectric_brdf, metal_brdf, materialAttributes.metalness);
-    return dielectric_brdf;
+    vec3 cookTorranceNumerator = 
+        D_GGX(HdotN, materialAttributes.roughness) *
+        G_Smith(NdotV, NdotL, materialAttributes.roughness) *
+        Ks;
+
+    float cookTorranceDenominator = max(4.0 * NdotV * NdotL, 0.000001);
+    vec3 cookTorrance = cookTorranceNumerator / cookTorranceDenominator;
+
+    vec3 BRDF = Kd * Lambert + cookTorrance;
+
+    return BRDF * NdotL;
+
 }
 
 void main() 
@@ -182,6 +195,13 @@ void main()
     vec3 normal = normalize(texture(sampler_pbr_textures[PBR_INDEX_NORMAL], inUV).rgb * 2.0 - 1.0);
     vec3 tangent = normalize(inTangent.xyz);
     vec3 bitangent = cross(normalize(inNormal), tangent) * 1;
+
+    if (gl_FrontFacing == false)
+    {
+        normal *= -1.0;
+        tangent *= -1.0;
+        bitangent *= -1.0;
+    }
 
     mat3 TBN = transpose(mat3(
         tangent,
@@ -198,19 +218,9 @@ void main()
     for (uint i = 0; i < lighting.num_directional_lights; ++i) 
     {   
         const DirectionalLight light = lighting.directional_lights[i];
-        // vec3 direction = normalize(-lighting.directional_lights[i].direction.xyz);
-        vec3 direction = normalize(TBN * light.direction.xyz - inPosition.xyz);
-        finalColor += (ComputeBRDF(direction, normal, V) * light.color.xyz * light.intensity);
+        vec3 direction = normalize(light.direction.xyz);
+        finalColor += PBR(direction, normal, V) * light.color.xyz * light.intensity;
     }
-    
-//    for (uint i = 0; i < lighting.num_point_lights; ++i) 
-//    {
-//        finalColor += applyPointLight(lighting.point_lights[i], normal, inPosition, viewDir);
-//    }
-     
-    // vec3 ambientComponent = lighting.ambient_light.color.xyz * lighting.ambient_light.intensity;
-    //  
-    // finalColor += ambientComponent;
 
     outColor = vec4(encode_srgb(finalColor), 1.0);
 }

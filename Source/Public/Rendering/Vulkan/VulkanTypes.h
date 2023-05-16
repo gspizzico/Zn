@@ -26,7 +26,8 @@ struct SwapChainDetails
 
 struct MeshPushConstants
 {
-    glm::mat4 RenderMatrix;
+    glm::mat4 model;
+    glm::mat4 model_inverse;
 };
 
 struct RenderObject
