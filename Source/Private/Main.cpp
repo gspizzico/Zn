@@ -17,6 +17,7 @@
 #include <numeric>
 #include <SDL.h>
 #include <Core/Time/Time.h>
+#include <Core/IO/IO.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogMainCpp, ELogVerbosity::Verbose);
 
@@ -30,6 +31,21 @@ int main(int argc, char* args[])
     // Initialize Application layer.
     Application& app = Application::Get();
     app.Initialize();
+
+#if ZN_DEBUG
+    if (CommandLine::Get().Param("-CompileShaders"))
+    {
+        ZN_LOG(LogMainCpp, ELogVerbosity::Log, "Running compile shaders.");
+
+        String command = "py " + IO::GetAbsolutePath("scripts/vk_compile_shaders.py");
+
+        if (i32 result = std::system(command.c_str()); result != 0)
+        {
+            ZN_LOG(LogMainCpp, ELogVerbosity::Error, "Failed to compile shaders.");
+            return -1;
+        }
+    }
+#endif
 
     // Initialize Engine layer.
     Engine* engine = new Engine();

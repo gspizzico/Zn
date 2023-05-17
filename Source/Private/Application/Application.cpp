@@ -17,8 +17,8 @@ DEFINE_STATIC_LOG_CATEGORY(LogApplication, ELogVerbosity::Log);
 
 namespace
 {
-constexpr i32 SCREEN_WIDTH  = 640;
-constexpr i32 SCREEN_HEIGHT = 480;
+constexpr i32 SCREEN_WIDTH  = 1280;
+constexpr i32 SCREEN_HEIGHT = 720;
 } // namespace
 
 Application& Zn::Application::Get()
