@@ -41,9 +41,9 @@ void Engine::Initialize()
     // TEMP - Moving Camera
 
     m_Camera           = std::make_shared<Camera>();
-    m_Camera->position = glm::vec3(0.f, 0.f, -10.f);
+    m_Camera->position = glm::vec3(0.f, 0.f, 0.f);
     m_Camera->worldUp  = glm::vec3(0.0f, 1.f, 0.0f);
-    m_Camera->yaw      = 90.f;
+    m_Camera->yaw      = 0.f;
     m_Camera->pitch    = 0.f;
 
     camera_rotate(glm::vec2(0.f), *m_Camera.get());
@@ -62,7 +62,7 @@ void Engine::Update(float deltaTime)
     ProcessInput();
 
     // TEMP - Moving Camera
-    Renderer::Get().set_camera(m_Camera->position, m_Camera->front);
+    Renderer::Get().set_camera(m_Camera->position, m_Camera->front, glm::mat4(1));
 
     Automation::AutomationTestManager::Get().Tick(deltaTime);
 

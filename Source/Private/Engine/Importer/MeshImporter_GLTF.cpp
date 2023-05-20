@@ -99,42 +99,6 @@ SharedPtr<TextureSource> CreateTextureSource(const tinygltf::Image& gltfImage)
     });
 }
 
-SamplerFilter TranslateSamplerFilter(i32 filter)
-{
-    if (filter == -1)
-    {
-        return SamplerFilter::None;
-    }
-
-    if (filter == TINYGLTF_TEXTURE_FILTER_NEAREST || filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR ||
-        filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST)
-    {
-        return SamplerFilter::Nearest;
-    }
-
-    return SamplerFilter::Linear;
-}
-
-// TODO: May be incorrect
-SamplerFilter TranslateMipMapFilter(i32 filter)
-{
-    if (filter == -1)
-    {
-        return SamplerFilter::None;
-    }
-
-    if (filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR || filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST)
-    {
-        return SamplerFilter::Nearest;
-    }
-    else if (filter == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST || filter == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR)
-    {
-        return SamplerFilter::Linear;
-    }
-
-    return SamplerFilter::None;
-}
-
 SamplerWrap TranslateWrap(i32 wrap)
 {
     if (wrap == TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE)
@@ -151,14 +115,48 @@ SamplerWrap TranslateWrap(i32 wrap)
 
 TextureSampler CreateTextureSampler(const tinygltf::Sampler& gltfSampler)
 {
-    return TextureSampler {
-        .minification  = TranslateSamplerFilter(gltfSampler.minFilter),
-        .magnification = TranslateSamplerFilter(gltfSampler.magFilter),
-        // TODO:
-        .mipMap        = SamplerFilter::None,
-        // TODO: 3D Texture uses same as U
-        .wrapUV        = {TranslateWrap(gltfSampler.wrapS), TranslateWrap(gltfSampler.wrapT), TranslateWrap(gltfSampler.wrapS)},
-    };
+    TextureSampler sampler {};
+
+    switch (gltfSampler.minFilter)
+    {
+    case TINYGLTF_TEXTURE_FILTER_NEAREST:
+        sampler.minification = SamplerFilter::Nearest;
+        break;
+    case TINYGLTF_TEXTURE_FILTER_LINEAR:
+        sampler.minification = SamplerFilter::Linear;
+        break;
+    case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
+    {
+        sampler.minification = SamplerFilter::Linear;
+        sampler.mipMap       = SamplerFilter::Nearest;
+    }
+    break;
+    case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
+    {
+        sampler.minification = SamplerFilter::Linear;
+        sampler.mipMap       = SamplerFilter::Linear;
+    }
+    break;
+    case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+    {
+        sampler.minification = SamplerFilter::Nearest;
+        sampler.mipMap       = SamplerFilter::Linear;
+    }
+    break;
+    case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
+    {
+        sampler.minification = SamplerFilter::Nearest;
+        sampler.mipMap       = SamplerFilter::Nearest;
+    }
+    break;
+    }
+
+    sampler.magnification = gltfSampler.magFilter == TINYGLTF_TEXTURE_FILTER_NEAREST ? SamplerFilter::Nearest : SamplerFilter::Linear;
+    sampler.wrapUV[0]     = TranslateWrap(gltfSampler.wrapS);
+    sampler.wrapUV[1]     = TranslateWrap(gltfSampler.wrapT);
+    sampler.wrapUV[2]     = TranslateWrap(gltfSampler.wrapS);
+
+    return sampler;
 }
 bool AssignTexture(i32 textureIndex, const tinygltf::Model& model, MeshImporterOutput& output, ResourceHandle& outHandle)
 {
@@ -237,206 +235,238 @@ bool Zn::MeshImporter::ImportAll_GLTF(const String& fileName, MeshImporterOutput
         return false;
     }
 
-    // TODO: Handling single mesh
-    if (model.meshes.size() == 1)
+    for (const Node& node : model.nodes)
     {
-        const Mesh& mesh = model.meshes[0];
-
-        for (const Primitive& primitive : mesh.primitives)
+        if (node.mesh >= 0)
         {
-            RHIPrimitive& newPrimitive = output.primitives.emplace_back(RHIPrimitive {});
-            newPrimitive.topology      = CastTopology(primitive.mode);
+            const Mesh& mesh = model.meshes[node.mesh];
 
-            if (auto positionAttribute = primitive.attributes.find("POSITION"); positionAttribute != primitive.attributes.end())
+            for (const Primitive& primitive : mesh.primitives)
             {
-                const Accessor& accessor = model.accessors[positionAttribute->second];
+                RHIPrimitive& newPrimitive = output.primitives.emplace_back(RHIPrimitive {});
 
-                const glm::vec3* src = AccessBuffer<glm::vec3>(model, accessor);
+                newPrimitive.matrix = glm::mat4 {1.f};
 
-                newPrimitive.position.assign(src, src + accessor.count);
-            }
-            else
-            {
-                ZN_LOG(LogMeshImporter, ELogVerbosity::Error, "Unable to find POSITION attribute for mesh in file %s", fileName.c_str());
-                return false;
-            }
-
-            if (auto normalAttribute = primitive.attributes.find("NORMAL"); normalAttribute != primitive.attributes.end())
-            {
-                const Accessor& accessor = model.accessors[normalAttribute->second];
-
-                const glm::vec3* src = AccessBuffer<glm::vec3>(model, accessor);
-
-                newPrimitive.normal.assign(src, src + accessor.count);
-            }
-
-            if (auto tangentAttribute = primitive.attributes.find("TANGENT"); tangentAttribute != primitive.attributes.end())
-            {
-                const Accessor& accessor = model.accessors[tangentAttribute->second];
-
-                const glm::vec3* src = AccessBuffer<glm::vec3>(model, accessor);
-
-                newPrimitive.tangent.assign(src, src + accessor.count);
-            }
-
-            if (auto texCoordAttribute = primitive.attributes.find("TEXCOORD_0"); texCoordAttribute != primitive.attributes.end())
-            {
-                const Accessor& accessor = model.accessors[texCoordAttribute->second];
-
-                if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
+                if (node.translation.size() == 3)
                 {
-                    const glm::vec2* src = AccessBuffer<glm::vec2>(model, accessor);
+                    newPrimitive.matrix = glm::translate(newPrimitive.matrix, glm::vec3(glm::make_vec3(node.translation.data())));
+                }
+                if (node.rotation.size() == 4)
+                {
+                    glm::quat q = glm::make_quat(node.rotation.data());
+                    newPrimitive.matrix *= glm::mat4(q);
+                }
+                if (node.scale.size() == 3)
+                {
+                    newPrimitive.matrix = glm::scale(newPrimitive.matrix, glm::vec3(glm::make_vec3(node.scale.data())));
+                }
+                if (node.matrix.size() == 16)
+                {
+                    newPrimitive.matrix = glm::make_mat4x4(node.matrix.data());
+                }
 
-                    newPrimitive.uv.assign(src, src + accessor.count);
+                newPrimitive.topology = CastTopology(primitive.mode);
+
+                if (auto positionAttribute = primitive.attributes.find("POSITION"); positionAttribute != primitive.attributes.end())
+                {
+                    const Accessor& accessor = model.accessors[positionAttribute->second];
+
+                    const glm::vec3* src = AccessBuffer<glm::vec3>(model, accessor);
+
+                    newPrimitive.position.assign(src, src + accessor.count);
                 }
                 else
                 {
-                    newPrimitive.uv.resize(accessor.count);
-
-                    const u8* src = AccessBuffer<u8>(model, accessor);
-
-                    const f32 minX = static_cast<f32>(accessor.minValues[0]);
-                    const f32 minY = static_cast<f32>(accessor.minValues[1]);
-
-                    const f32 maxX = static_cast<f32>(accessor.maxValues[0]);
-                    const f32 maxY = static_cast<f32>(accessor.maxValues[1]);
-
-                    const i32 componentSize = GetComponentSizeInBytes(accessor.componentType);
-                    const i32 stride        = componentSize * 2;
-
-                    const f32 upper =
-                        static_cast<f32>(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? std::numeric_limits<u16>::max()
-                                                                                                          : std::numeric_limits<u8>::max());
-
-                    const f32 lower = 0.f;
-
-                    for (i32 index = 0; index < accessor.count; ++index)
-                    {
-                        f32 x = static_cast<float>(*src);
-                        f32 y = static_cast<float>(*(src + componentSize));
-
-                        newPrimitive.uv[index] =
-                            glm::vec2 {Math::MapRange(x, lower, upper, minX, maxX), Math::MapRange(y, lower, upper, minY, maxY)};
-
-                        src += stride;
-                    }
+                    ZN_LOG(
+                        LogMeshImporter, ELogVerbosity::Error, "Unable to find POSITION attribute for mesh in file %s", fileName.c_str());
+                    return false;
                 }
-            }
 
-            if (auto colorAttribute = primitive.attributes.find("COLOR_0"); colorAttribute != primitive.attributes.end())
-            {
-                const Accessor& accessor = model.accessors[colorAttribute->second];
-
-                if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
+                if (auto normalAttribute = primitive.attributes.find("NORMAL"); normalAttribute != primitive.attributes.end())
                 {
-                    if (accessor.type == TINYGLTF_TYPE_VEC3)
+                    const Accessor& accessor = model.accessors[normalAttribute->second];
+
+                    const glm::vec3* src = AccessBuffer<glm::vec3>(model, accessor);
+
+                    newPrimitive.normal.assign(src, src + accessor.count);
+                }
+
+                if (auto tangentAttribute = primitive.attributes.find("TANGENT"); tangentAttribute != primitive.attributes.end())
+                {
+                    const Accessor& accessor = model.accessors[tangentAttribute->second];
+
+                    const glm::vec4* src = AccessBuffer<glm::vec4>(model, accessor);
+
+                    newPrimitive.tangent.assign(src, src + accessor.count);
+                }
+
+                if (auto texCoordAttribute = primitive.attributes.find("TEXCOORD_0"); texCoordAttribute != primitive.attributes.end())
+                {
+                    const Accessor& accessor = model.accessors[texCoordAttribute->second];
+
+                    if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
                     {
-                        const glm::vec3* src = AccessBuffer<glm::vec3>(model, accessor);
+                        const glm::vec2* src = AccessBuffer<glm::vec2>(model, accessor);
 
-                        newPrimitive.color.resize(accessor.count);
+                        newPrimitive.uv.assign(src, src + accessor.count);
+                    }
+                    else
+                    {
+                        newPrimitive.uv.resize(accessor.count);
 
-                        for (i32 index = 0; index < accessor.count; ++index, ++src)
+                        const u8* src = AccessBuffer<u8>(model, accessor);
+
+                        const f32 minX = static_cast<f32>(accessor.minValues[0]);
+                        const f32 minY = static_cast<f32>(accessor.minValues[1]);
+
+                        const f32 maxX = static_cast<f32>(accessor.maxValues[0]);
+                        const f32 maxY = static_cast<f32>(accessor.maxValues[1]);
+
+                        const i32 componentSize = GetComponentSizeInBytes(accessor.componentType);
+                        const i32 stride        = componentSize * 2;
+
+                        const f32 upper = static_cast<f32>(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
+                                                               ? std::numeric_limits<u16>::max()
+                                                               : std::numeric_limits<u8>::max());
+
+                        const f32 lower = 0.f;
+
+                        for (i32 index = 0; index < accessor.count; ++index)
                         {
-                            newPrimitive.color[index] = glm::vec4(*src, 1.f);
+                            f32 x = static_cast<float>(*src);
+                            f32 y = static_cast<float>(*(src + componentSize));
+
+                            newPrimitive.uv[index] =
+                                glm::vec2 {Math::MapRange(x, lower, upper, minX, maxX), Math::MapRange(y, lower, upper, minY, maxY)};
+
+                            src += stride;
                         }
                     }
-                    else if (accessor.type == TINYGLTF_TYPE_VEC4)
-                    {
-                        const glm::vec4* src = AccessBuffer<glm::vec4>(model, accessor);
-
-                        newPrimitive.color.assign(src, src + accessor.count);
-                    }
                 }
-                else
+
+                if (auto colorAttribute = primitive.attributes.find("COLOR_0"); colorAttribute != primitive.attributes.end())
                 {
-                    const bool isVec4 = accessor.type == TINYGLTF_TYPE_VEC4;
+                    const Accessor& accessor = model.accessors[colorAttribute->second];
 
-                    const u8* src = AccessBuffer<u8>(model, accessor);
-
-                    const f32 minR = static_cast<f32>(accessor.minValues[0]);
-                    const f32 minG = static_cast<f32>(accessor.minValues[1]);
-                    const f32 minB = static_cast<f32>(accessor.minValues[2]);
-                    const f32 minA = isVec4 ? static_cast<f32>(accessor.minValues[3]) : 0.f;
-
-                    const f32 maxR = static_cast<f32>(accessor.maxValues[0]);
-                    const f32 maxG = static_cast<f32>(accessor.maxValues[1]);
-                    const f32 maxB = static_cast<f32>(accessor.maxValues[2]);
-                    const f32 maxA = isVec4 ? static_cast<f32>(accessor.maxValues[3]) : 1.f;
-
-                    const i32 componentSize = GetComponentSizeInBytes(accessor.componentType);
-                    const i32 stride        = componentSize * (isVec4 ? 4 : 3);
-
-                    const f32 upper =
-                        static_cast<f32>(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? std::numeric_limits<u16>::max()
-                                                                                                          : std::numeric_limits<u8>::max());
-
-                    const f32 lower = 0.f;
-
-                    for (i32 index = 0; index < accessor.count; ++index)
+                    if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
                     {
-                        f32 r = static_cast<float>(*src);
-                        f32 g = static_cast<float>(*(src + componentSize));
-                        f32 b = static_cast<float>(*(src + componentSize * 2));
-                        f32 a = isVec4 ? static_cast<float>(*(src + componentSize * 3)) : upper;
+                        if (accessor.type == TINYGLTF_TYPE_VEC3)
+                        {
+                            const glm::vec3* src = AccessBuffer<glm::vec3>(model, accessor);
 
-                        newPrimitive.color[index] = glm::vec4 {Math::MapRange(r, lower, upper, minR, maxR),
-                                                               Math::MapRange(g, lower, upper, minG, maxG),
-                                                               Math::MapRange(b, lower, upper, minB, maxB),
-                                                               Math::MapRange(a, lower, upper, minA, maxA)};
+                            newPrimitive.color.resize(accessor.count);
 
-                        src += stride;
+                            for (i32 index = 0; index < accessor.count; ++index, ++src)
+                            {
+                                newPrimitive.color[index] = glm::vec4(*src, 1.f);
+                            }
+                        }
+                        else if (accessor.type == TINYGLTF_TYPE_VEC4)
+                        {
+                            const glm::vec4* src = AccessBuffer<glm::vec4>(model, accessor);
+
+                            newPrimitive.color.assign(src, src + accessor.count);
+                        }
+                    }
+                    else
+                    {
+                        const bool isVec4 = accessor.type == TINYGLTF_TYPE_VEC4;
+
+                        const u8* src = AccessBuffer<u8>(model, accessor);
+
+                        const f32 minR = static_cast<f32>(accessor.minValues[0]);
+                        const f32 minG = static_cast<f32>(accessor.minValues[1]);
+                        const f32 minB = static_cast<f32>(accessor.minValues[2]);
+                        const f32 minA = isVec4 ? static_cast<f32>(accessor.minValues[3]) : 0.f;
+
+                        const f32 maxR = static_cast<f32>(accessor.maxValues[0]);
+                        const f32 maxG = static_cast<f32>(accessor.maxValues[1]);
+                        const f32 maxB = static_cast<f32>(accessor.maxValues[2]);
+                        const f32 maxA = isVec4 ? static_cast<f32>(accessor.maxValues[3]) : 1.f;
+
+                        const i32 componentSize = GetComponentSizeInBytes(accessor.componentType);
+                        const i32 stride        = componentSize * (isVec4 ? 4 : 3);
+
+                        const f32 upper = static_cast<f32>(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
+                                                               ? std::numeric_limits<u16>::max()
+                                                               : std::numeric_limits<u8>::max());
+
+                        const f32 lower = 0.f;
+
+                        for (i32 index = 0; index < accessor.count; ++index)
+                        {
+                            f32 r = static_cast<float>(*src);
+                            f32 g = static_cast<float>(*(src + componentSize));
+                            f32 b = static_cast<float>(*(src + componentSize * 2));
+                            f32 a = isVec4 ? static_cast<float>(*(src + componentSize * 3)) : upper;
+
+                            newPrimitive.color[index] = glm::vec4 {Math::MapRange(r, lower, upper, minR, maxR),
+                                                                   Math::MapRange(g, lower, upper, minG, maxG),
+                                                                   Math::MapRange(b, lower, upper, minB, maxB),
+                                                                   Math::MapRange(a, lower, upper, minA, maxA)};
+
+                            src += stride;
+                        }
                     }
                 }
-            }
 
-            if (primitive.indices >= 0)
-            {
-                const Accessor& indicesAccessor = model.accessors[primitive.indices];
-
-                if (indicesAccessor.type == TINYGLTF_TYPE_SCALAR)
+                if (primitive.indices >= 0)
                 {
-                    newPrimitive.indices.resize(indicesAccessor.count);
+                    const Accessor& indicesAccessor = model.accessors[primitive.indices];
 
-                    u32 componentSize = GetComponentSizeInBytes(indicesAccessor.componentType);
-
-                    const u8* src = AccessBuffer<u8>(model, indicesAccessor);
-
-                    for (i32 index = 0; index < indicesAccessor.count; ++index)
+                    if (indicesAccessor.type == TINYGLTF_TYPE_SCALAR)
                     {
-                        newPrimitive.indices[index] = FetchIndex(src, indicesAccessor.componentType);
+                        newPrimitive.indices.resize(indicesAccessor.count);
 
-                        src += componentSize;
+                        u32 componentSize = GetComponentSizeInBytes(indicesAccessor.componentType);
+
+                        const u8* src = AccessBuffer<u8>(model, indicesAccessor);
+
+                        for (i32 index = 0; index < indicesAccessor.count; ++index)
+                        {
+                            newPrimitive.indices[index] = FetchIndex(src, indicesAccessor.componentType);
+
+                            src += componentSize;
+                        }
                     }
                 }
-            }
 
-            if (primitive.material >= 0 && primitive.material < model.materials.size())
-            {
-                const tinygltf::Material& material = model.materials[primitive.material];
+                if (primitive.material >= 0 && primitive.material < model.materials.size())
+                {
+                    const tinygltf::Material& material = model.materials[primitive.material];
 
-                MaterialAttributes& materialAttributes = newPrimitive.materialAttributes;
+                    MaterialAttributes& materialAttributes = newPrimitive.materialAttributes;
 
-                materialAttributes.baseColor   = *reinterpret_cast<const glm::dvec4*>(material.pbrMetallicRoughness.baseColorFactor.data());
-                materialAttributes.metalness   = material.pbrMetallicRoughness.metallicFactor;
-                materialAttributes.roughness   = material.pbrMetallicRoughness.roughnessFactor;
-                materialAttributes.emissive    = *reinterpret_cast<const glm::dvec3*>(material.emissiveFactor.data());
-                materialAttributes.occlusion   = material.occlusionTexture.strength;
-                materialAttributes.alphaCutoff = material.alphaCutoff;
-                materialAttributes.doubleSided = material.doubleSided;
-                materialAttributes.alphaMode   = TranslateAlphaMode(material.alphaMode);
+                    materialAttributes.baseColor =
+                        *reinterpret_cast<const glm::dvec4*>(material.pbrMetallicRoughness.baseColorFactor.data());
+                    materialAttributes.metalness   = material.pbrMetallicRoughness.metallicFactor;
+                    materialAttributes.roughness   = material.pbrMetallicRoughness.roughnessFactor;
+                    materialAttributes.emissive    = *reinterpret_cast<const glm::dvec3*>(material.emissiveFactor.data());
+                    materialAttributes.occlusion   = material.occlusionTexture.strength;
+                    materialAttributes.alphaCutoff = material.alphaCutoff;
+                    materialAttributes.doubleSided = material.doubleSided;
+                    materialAttributes.alphaMode   = TranslateAlphaMode(material.alphaMode);
 
-                // TODO: ResourceHandle should only be the pointer to the GPU resource. Using it here so that we know what to
-                // associate.
-                AssignTexture(material.pbrMetallicRoughness.baseColorTexture.index, model, output, materialAttributes.baseColorTexture);
-                AssignTexture(
-                    material.pbrMetallicRoughness.metallicRoughnessTexture.index, model, output, materialAttributes.metalnessTexture);
-                AssignTexture(material.normalTexture.index, model, output, materialAttributes.normalTexture);
-                AssignTexture(material.occlusionTexture.index, model, output, materialAttributes.occlusionTexture);
-                AssignTexture(material.emissiveTexture.index, model, output, materialAttributes.emissiveTexture);
+                    // TODO: ResourceHandle should only be the pointer to the GPU resource. Using it here so that we know what to
+                    // associate.
+                    AssignTexture(material.pbrMetallicRoughness.baseColorTexture.index, model, output, materialAttributes.baseColorTexture);
+                    AssignTexture(
+                        material.pbrMetallicRoughness.metallicRoughnessTexture.index, model, output, materialAttributes.metalnessTexture);
+                    AssignTexture(material.normalTexture.index, model, output, materialAttributes.normalTexture);
+                    AssignTexture(material.occlusionTexture.index, model, output, materialAttributes.occlusionTexture);
+                    AssignTexture(material.emissiveTexture.index, model, output, materialAttributes.emissiveTexture);
+                }
             }
         }
+    }
+
+    if (output.primitives.size() == 0)
+    {
+        ZN_LOG(LogMeshImporter, ELogVerbosity::Error, "Failed to initialize RHI Mesh from file: %s", fileName.c_str());
+        return false;
+    }
+    else
+    {
         return true;
     }
-    ZN_LOG(LogMeshImporter, ELogVerbosity::Error, "Failed to initialize RHI Mesh from file: %s", fileName.c_str());
-    return false;
 }

@@ -30,6 +30,10 @@ try:
 
     if(not os.path.exists(shaders_dir)):
         raise Exception("Unable to find shaders directory " + shaders_dir)
+
+    for filename in os.scandir(shaders_dir):
+        if(filename.is_file() and filename.name.endswith(".spv")):
+            os.remove(filename)
     
     for filename in os.scandir(shaders_dir):
         if(filename.is_file() and not filename.name.endswith(".spv")):

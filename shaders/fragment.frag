@@ -1,28 +1,5 @@
 #version 450
 
-struct PointLight
-{
-    vec4 position;
-    vec4 color;
-    float intensity;
-    float constant_attenuation;
-    float linear_attenuation;
-    float quadratic_attenuation;
-};
-
-struct DirectionalLight
-{
-    vec4 direction;
-    vec4 color;
-    float intensity;
-};
-
-struct AmbientLight
-{
-    vec4 color;
-    float intensity;
-};
-
 layout(set = 0, binding = 0) uniform CameraBuffer
 {
     vec4 position;
@@ -34,14 +11,12 @@ layout(set = 0, binding = 0) uniform CameraBuffer
 #define MAX_POINT_LIGHTS 16
 #define MAX_DIRECTIONAL_LIGHTS 1
 
-layout (std140, set = 0, binding = 1) uniform LightingUniforms
+layout(std140, set = 0, binding = 1) uniform Light
 {
-    PointLight point_lights[MAX_POINT_LIGHTS];
-	DirectionalLight directional_lights[MAX_DIRECTIONAL_LIGHTS];
-    AmbientLight ambient_light;
-    uint num_point_lights;
-    uint num_directional_lights;
-} lighting;
+	vec4 position;
+    float intensity;
+    float range;
+} uLight;
 
 #define PBR_INDEX_BASECOLOR 0
 #define PBR_INDEX_METALNESS 1
@@ -53,7 +28,7 @@ layout (std140, set = 0, binding = 1) uniform LightingUniforms
 
 #define PI 3.1415926538
 
-layout(set = 1, binding = 0) uniform sampler2D sampler_pbr_textures[PBR_NUM_TEXTURES];
+layout(set = 1, binding = 0) uniform sampler2D uTexture[PBR_NUM_TEXTURES];
 
 layout(set = 1, binding = 1) uniform UBOMaterialAttributes
 {
@@ -65,11 +40,11 @@ layout(set = 1, binding = 1) uniform UBOMaterialAttributes
     float   occlusion;   
 } materialAttributes;
 
-layout (location = 0) in vec4 inPosition;
-layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec3 inTangent;
-layout (location = 3) in vec3 inBiTangent;
-layout (location = 4) in vec2 inUV;
+layout (location = 0) in vec3 vPosition;
+layout (location = 1) in vec3 vNormal;
+layout (location = 2) in vec3 vTangent;
+layout (location = 3) in vec3 vBiTangent;
+layout (location = 4) in vec2 vTexCoord;
 
 layout(location = 0) out vec4 outColor;
 
@@ -119,125 +94,118 @@ vec3 encode_srgb( vec3 c ) {
     return clamp( result, 0.0, 1.0 );
 }
 
-// GGX/Trowbridge-Reitz Normal Distribution
-float D_GGX(float NdotH, float roughness)
+float heaviside( float v ) {
+    if ( v > 0.0 ) return 1.0;
+    else return 0.0;
+}
+
+vec3 calculateNormal()
 {
-    float alphaSquared = pow(roughness * roughness, 2);
-    float NdotHSquared = NdotH * NdotH;
-    float denominator = max(PI * pow(NdotHSquared * (alphaSquared - 1.0) + 1.0, 2.0), 0.000001);
-    return alphaSquared / denominator;
-}
-
-// Smith Model
-float G_Smith(float NdotV, float NdotL, float roughness) {
-
-    float alpha = roughness * roughness;
-    float G_V = NdotV / max((NdotV * (1.0 - alpha) + alpha), 0.000001);
-    float G_L = NdotL / max((NdotL * (1.0 - alpha) + alpha), 0.000001);
-    return G_V * G_L;
-}
-
-vec3 conductor_frenel(vec3 F0, float specular, float HdotV) {
-// ABS OR MAX?
-    return specular * (F0 + (1.0 - F0) * (1 - pow(abs(HdotV), 5.0)));
-}
-
-vec3 fresnel_mix(vec3 baseColor, float specular, float HdotV)
-{
-    //f0 in the formula notation refers to the value derived from ior = 1.5
-    float f0 = 0.04; //pow((1.0f - ior) / (1.0 + ior), 2);
-    float fr = f0 + (1.0 - f0) * (1 - pow(abs(HdotV), 5.0));
-    return mix(baseColor, vec3(specular), fr);
-}
-
-float specular_brdf(float NdotV, float NdotH, float NdotL, float roughness)
-{
-    float G = G_Smith(NdotV, NdotL, roughness);
-    float Distribution = D_GGX(NdotH, roughness);
-    float V = G / (4 * NdotL * NdotH);
-    return V * Distribution;
-}
-
-vec4 diffuse_brdf(vec4 color)
-{
-    return (1.0 / PI) * color;
-}
-
-vec3 PBR(vec3 lightDirection, vec3 normal, vec3 viewDirection, float roughness, float metalness)
-{
-    vec3 HalfWay = normalize(lightDirection + viewDirection);
-
-    float NdotL = max(dot(normal, lightDirection), 0.0);
-    float NdotV = max(dot(normal, viewDirection), 0.0);
-    float HdotV = max(dot(HalfWay, viewDirection), 0.0);
-    float HdotN = max(dot(HalfWay, normal), 0.0);
-
-    vec3 Ks = conductor_frenel(materialAttributes.baseColor.xyz, 1.0, HdotV);
-    vec3 Kd = vec3(1.0) - Ks * (1.0 - metalness + 0.04);
-
-    vec3 Lambert = materialAttributes.baseColor.xyz / PI;
-
-    vec3 cookTorranceNumerator = 
-        D_GGX(HdotN, roughness) *
-        G_Smith(NdotV, NdotL, roughness) *
-        Ks;
-
-    float cookTorranceDenominator = max(4.0 * NdotV * NdotL, 0.000001);
-    vec3 cookTorrance = cookTorranceNumerator / cookTorranceDenominator;
-
-    vec3 BRDF = Kd * Lambert + cookTorrance;
-
-    return BRDF * NdotL;
-}
-
-void main() 
-{
-    vec3 normal = normalize(texture(sampler_pbr_textures[PBR_INDEX_NORMAL], inUV).rgb * 2.0 - 1.0);
-    vec3 tangent = normalize(inTangent.xyz);
-    vec3 bitangent = cross(normalize(inNormal), tangent) * 1;
+    vec3 normal = normalize( vNormal );
+    vec3 tangent = normalize( vTangent );
+    vec3 bitangent = normalize( vBiTangent );
 
     if (gl_FrontFacing == false)
     {
-        normal *= -1.0;
         tangent *= -1.0;
         bitangent *= -1.0;
+        normal *= -1.0;
     }
-
-    mat3 TBN = transpose(mat3(
+    
+    vec3 bump_normal = normalize( texture(uTexture[PBR_INDEX_NORMAL], vTexCoord).rgb * 2.0 - vec3(1.0));
+    mat3 TBN = mat3(
         tangent,
         bitangent,
-        normalize(inNormal)
-    ));
+        normal
+    );
 
-    vec3 V = normalize( TBN * ( camera.position.xyz - inPosition.xyz ) );
+    normal = normalize(TBN * normalize(bump_normal));
+    return normal;
+}
 
-    float metalness = materialAttributes.metalness;
-    float roughness = materialAttributes.roughness;
-    float occlusion = materialAttributes.occlusion;
+struct PBRParams
+{
+    vec3 V;
+    vec3 L;
+    vec3 H;
+    vec3 N;
 
-    vec3 metalness_sample = texture(sampler_pbr_textures[PBR_INDEX_METALNESS], inUV).rgb;
+    float NdotL;
+    float NdotV;
+    float NdotH;
+    float HdotL;
+    float HdotV;
 
-    // Green contains roughness
-    roughness *= metalness_sample.g;
+    float roughness;
+    float metallic;
 
-    // Blue contains metalness
-    metalness *= metalness_sample.b;
+    vec4 srgbColor;
+    vec3 baseColor;
 
-    // Red channel contains occlusion
-    occlusion *= texture(sampler_pbr_textures[PBR_INDEX_OCCLUSION], inUV).r;
+    float lightDistance;
+    float lightIntensity;
+};
 
-    vec4 baseColor = texture(sampler_pbr_textures[PBR_INDEX_BASECOLOR], inUV) * materialAttributes.baseColor;
+PBRParams InitializePBR()
+{
+    PBRParams params;
 
-    baseColor.rgb = decode_srgb(baseColor.rgb);
+    params.V = normalize(camera.position.xyz - vPosition);
+    params.L = normalize(uLight.position.xyz - vPosition);
+    params.H = normalize(params.L + params.V);
+    params.N = calculateNormal();
 
-    vec3 finalColor =  baseColor.rgb;
+    params.NdotL = clamp(dot(params.N, params.L), 0.0, 1.0);
+    params.NdotV = clamp(abs(dot(params.N, params.V)), 0.0, 1.0);
+    params.NdotH = clamp(dot(params.N, params.H), 0.0, 1.0);
+    params.HdotL = clamp(dot(params.H, params.L), 0.0, 1.0);
+    params.HdotV = clamp(dot(params.H, params.V), 0.0, 1.0);
 
-    for (uint i = 0; i < lighting.num_directional_lights; ++i) 
-    {   
-        const DirectionalLight light = lighting.directional_lights[i];
-        vec3 direction = normalize(light.direction.xyz);
-        finalColor += PBR(direction, normal, V, roughness, metalness) * light.color.xyz * light.intensity;
+    params.roughness = materialAttributes.roughness;
+    params.metallic = materialAttributes.metalness;
+    
+    vec3  rm = texture(uTexture[PBR_INDEX_METALNESS], vTexCoord).rgb;
+    
+    params.roughness *= rm.g;
+    params.metallic *= rm.b;
+
+    params.srgbColor = texture(uTexture[PBR_INDEX_BASECOLOR], vTexCoord) * materialAttributes.baseColor;
+    params.baseColor = decode_srgb(params.srgbColor.rgb);
+
+    params.lightDistance = length(uLight.position.xyz - vPosition);
+    params.lightIntensity = uLight.intensity * max(min(1.0 - pow(params.lightDistance / uLight.range, 4.0), 1.0), 0.0) / pow(params.lightDistance, 2.0);
+
+    return params;
+}
+
+// https://github.com/PacktPublishing/Mastering-Graphics-Programming-with-Vulkan/
+void main()
+{
+    PBRParams params = InitializePBR();
+
+    float alpha = pow(params.roughness, 2);
+
+    float alpha_squared = alpha * alpha;
+    float d_denom = (params.NdotH * params.NdotH) * ( alpha_squared - 1.0 ) + 1.0;
+    float distribution = (alpha_squared * heaviside(params.NdotH) ) / (PI * d_denom * d_denom);
+
+    vec3 material_colour = vec3(0.0);
+    if(params.NdotL > 0.0 || params.NdotV > 0.0)
+    {
+        float visibility = (heaviside(params.HdotL) / (abs(params.NdotL) + sqrt(alpha_squared + (1.0 - alpha_squared) * (params.NdotL * params.NdotL)))) * (heaviside(params.HdotV) / (abs(params.NdotV) + sqrt(alpha_squared + ( .0 - alpha_squared) * (params.NdotV * params.NdotV))));
+
+        float specular_brdf = params.lightIntensity * params.NdotL * visibility * distribution;
+
+        vec3 diffuse_brdf = params.lightIntensity * params.NdotL * (1 / PI) * params.baseColor;
+
+        vec3 conductor_fresnel = specular_brdf * ( params.baseColor + ( 1.0 - params.baseColor) * pow( 1.0 - abs( params.HdotV ), 5 ) );
+
+        float f0 = 0.04; // pow( ( 1 - ior ) / ( 1 + ior ), 2 )
+        float fr = f0 + ( 1 - f0 ) * pow(1 - abs( params.HdotV ), 5 );
+        vec3 fresnel_mix = mix( diffuse_brdf, vec3( specular_brdf ), fr );
+
+        material_colour = mix( fresnel_mix, conductor_fresnel, params.metallic );        
     }
 
-    outColor = vec4(encode_srgb(finalColor), baseColor.a);
+    outColor = vec4(material_colour, 1.0);
 }

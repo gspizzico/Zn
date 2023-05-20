@@ -1,6 +1,7 @@
 #include <Znpch.h>
 #include <Rendering/RHI/Vulkan/Vulkan.h>
 #define VMA_IMPLEMENTATION
+// #define VMA_DEBUG_INITIALIZE_ALLOCATIONS 1
 #include <vk_mem_alloc.h>
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE

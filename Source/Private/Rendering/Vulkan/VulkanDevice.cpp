@@ -3,7 +3,6 @@
 #include <Core/IO/IO.h>
 #include <Core/Memory/Memory.h>
 #include <Core/CommandLine.h>
-#include <vk_mem_alloc.h>
 #include <Engine/Importer/MeshImporter.h>
 #include <Engine/Importer/TextureImporter.h>
 #include <Rendering/Material.h>
@@ -90,6 +89,18 @@ vk::Filter TranslateSamplerFilter(SamplerFilter filter)
     }
 }
 
+vk::SamplerMipmapMode TranslateMipMapMode(SamplerFilter filter)
+{
+    if (filter == SamplerFilter::Linear)
+    {
+        return vk::SamplerMipmapMode::eLinear;
+    }
+    else
+    {
+        return vk::SamplerMipmapMode::eNearest;
+    }
+}
+
 vk::SamplerAddressMode TranslateSamplerWrap(SamplerWrap wrap)
 {
     switch (wrap)
@@ -104,6 +115,25 @@ vk::SamplerAddressMode TranslateSamplerWrap(SamplerWrap wrap)
     default:
         return vk::SamplerAddressMode::eRepeat;
     }
+}
+
+// TODO: Replace
+u32 CalculateNumMips(i32 width, i32 height)
+{
+    u32 numMips = 1;
+
+    u32 w = width;
+    u32 h = height;
+
+    while (w > 1 && h > 1)
+    {
+        w /= 2;
+        h /= 2;
+
+        ++numMips;
+    }
+
+    return numMips;
 }
 } // namespace
 
@@ -811,7 +841,7 @@ void VulkanDevice::Draw()
             const glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, upVector);
 
             // Camera Projection
-            glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.05f, 20000.f);
+            glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 4000.f);
             projection[1][1] *= -1;
 
             GPUCameraData camera {};
@@ -822,34 +852,12 @@ void VulkanDevice::Draw()
 
             CopyToGPU(cameraBuffer[currentFrame].allocation, &camera, sizeof(GPUCameraData));
 
-            LightingUniforms lighting {};
-            lighting.directional_lights[0].direction = glm::normalize(glm::vec4(-1.0f, -3.0f, 0.0f, 1.0f));
-            lighting.directional_lights[0].color     = glm::vec4(1.0f, 1.f, 1.f, 0.f);
-            lighting.directional_lights[0].intensity = 0.25f;
-            lighting.ambient_light.color             = glm::vec4(1.f, 1.f, 1.f, 0.f);
-            lighting.ambient_light.intensity         = 0.0f;
-            lighting.num_directional_lights          = 1;
-            lighting.num_point_lights                = 0;
+            UBOLights lighting {};
+            lighting.position  = glm::vec4(light, 1.0);
+            lighting.intensity = lightIntensity;
+            lighting.range     = lightDistance;
 
-            CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(LightingUniforms));
-
-            // Vector<RHIInstanceData> meshData;
-            // meshData.reserve(renderables.size());
-
-            // for (const RenderObject& object : renderables)
-            //{
-            //     static const auto identity = glm::mat4 {1.f};
-
-            //    glm::mat4 translation = glm::translate(identity, object.location);
-            //    glm::mat4 rotation    = glm::mat4_cast(object.rotation);
-            //    glm::mat4 scale       = glm::scale(identity, object.scale);
-
-            //    glm::mat4 transform = translation * rotation * scale;
-
-            //    meshData.push_back(RHIInstanceData {.m = transform});
-            //}
-
-            // CopyToGPU(instanceData[currentFrame].allocation, meshData.data(), meshData.size() * sizeof(RHIInstanceData));
+            CopyToGPU(lightingBuffer[currentFrame].allocation, &lighting, sizeof(UBOLights));
 
             DrawObjects(commandBuffer, renderables.data(), renderables.size());
 
@@ -1158,8 +1166,7 @@ void Zn::VulkanDevice::CreateDescriptors()
 
         // Lighting
 
-        lightingBuffer[Index] =
-            CreateBuffer(sizeof(LightingUniforms), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
+        lightingBuffer[Index] = CreateBuffer(sizeof(UBOLights), vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu);
 
         destroyQueue.Enqueue(
             [=]()
@@ -1194,7 +1201,7 @@ void Zn::VulkanDevice::CreateDescriptors()
         globalDescriptorSets[Index] = device.allocateDescriptorSets(descriptorSetAllocInfo)[0];
 
         vk::DescriptorBufferInfo bufferInfo[] = {vk::DescriptorBufferInfo {cameraBuffer[Index].data, 0, sizeof(GPUCameraData)},
-                                                 vk::DescriptorBufferInfo {lightingBuffer[Index].data, 0, sizeof(LightingUniforms)},
+                                                 vk::DescriptorBufferInfo {lightingBuffer[Index].data, 0, sizeof(UBOLights)},
                                                  /*            vk::DescriptorBufferInfo {instanceData[Index].data, 0, sizeof(MeshData)}*/};
 
         Vector<vk::WriteDescriptorSet> descriptorSetWrites = {
@@ -1357,7 +1364,7 @@ void Zn::VulkanDevice::CreateImageViews()
 
         //	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
         vk::ImageCreateInfo depthImageCreateInfo =
-            MakeImageCreateInfo(depthTexture->format, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent);
+            MakeImageCreateInfo(depthTexture->format, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent, 1);
 
         //	Allocate from GPU memory.
 
@@ -1561,13 +1568,18 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
 
         static const auto identity = glm::mat4 {1.f};
 
-        glm::mat4 translation = glm::translate(identity, current->location);
-        glm::mat4 rotation    = glm::mat4_cast(current->rotation);
-        glm::mat4 scale       = glm::scale(identity, current->scale);
+        // glm::mat4 matrix = identity;
+        // matrix           = glm::translate(matrix, current->location);
+        // matrix *= glm::mat4(current->rotation);
+        // matrix = glm::scale(matrix, current->scale);
+
+        // glm::mat4 translation = glm::translate(identity, current->location);
+        // glm::mat4 rotation    = glm::mat4_cast(current->rotation);
+        // glm::mat4 scale       = glm::scale_slow(identity, glm::vec3(current->scale.x, current->scale.y, current->scale.z));
 
         MeshPushConstants constants {
-            .model         = translation * rotation * scale,
-            .model_inverse = glm::inverse(translation * rotation * scale),
+            .model         = current->primitive->matrix,
+            .model_inverse = glm::inverseTranspose(current->primitive->matrix),
         };
 
         commandBuffer.pushConstants(current->material->layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(MeshPushConstants), &constants);
@@ -1674,16 +1686,19 @@ void Zn::VulkanDevice::DrawObjects(vk::CommandBuffer commandBuffer, RenderObject
 
 void Zn::VulkanDevice::CreateScene()
 {
-    Material* basePbr = VulkanMaterialManager::Get().GetMaterial("base_pbr");
-
-    vk::DescriptorSetAllocateInfo materialSetAllocateInfo {
-        .descriptorPool     = descriptorPool,
-        .descriptorSetCount = 1,
-        .pSetLayouts        = &basePbr->materialSetLayout,
-    };
+    Material* basePbrNoCull = VulkanMaterialManager::Get().GetMaterial("base_pbr_no_cull");
+    Material* basePbrCull   = VulkanMaterialManager::Get().GetMaterial("base_pbr_cull");
 
     for (RHIPrimitiveGPU* primitive : gpuPrimitives)
     {
+        Material* primitiveMaterial = primitive->materialAttributes.doubleSided ? basePbrCull : basePbrNoCull;
+
+        vk::DescriptorSetAllocateInfo materialSetAllocateInfo {
+            .descriptorPool     = descriptorPool,
+            .descriptorSetCount = 1,
+            .pSetLayouts        = &primitiveMaterial->materialSetLayout,
+        };
+
         vk::DescriptorSet perPrimitiveSet = device.allocateDescriptorSets(materialSetAllocateInfo)[0];
 
         // Vector<std::pair<vk::DescriptorImageInfo, u32>> descriptorImages;
@@ -1780,10 +1795,7 @@ void Zn::VulkanDevice::CreateScene()
 
         RenderObject entity {
             .primitive = primitive,
-            .material  = basePbr,
-            .location  = glm::vec3(0.f),
-            .rotation  = glm::quat(),
-            .scale     = glm::vec3(1.f),
+            .material  = primitiveMaterial,
         };
 
         renderables.push_back(std::move(entity));
@@ -1826,7 +1838,7 @@ void Zn::VulkanDevice::CreateDefaultTexture(const String& name, const u8 (&color
 
     defaultTexture->imageView = device.createImageView(imageViewInfo);
 
-    defaultTexture->sampler = CreateSampler(defaultTextureSampler);
+    defaultTexture->sampler = CreateSampler(defaultTextureSampler, 1);
 
     VulkanValidation::SetObjectDebugName(device, name.c_str(), defaultTexture->image);
 
@@ -1843,7 +1855,7 @@ void Zn::VulkanDevice::CreateDefaultResources()
     CreateDefaultTexture(normalTextureName, normal);
 
     RHITexture* uvChecker = CreateTexture(uvCheckerTexturePath);
-    uvChecker->sampler    = CreateSampler(defaultTextureSampler);
+    uvChecker->sampler    = CreateSampler(defaultTextureSampler, 1);
 
     VulkanValidation::SetObjectDebugName(device, uvCheckerName.c_str(), uvChecker->image);
 }
@@ -1870,7 +1882,7 @@ void Zn::VulkanDevice::LoadMeshes()
 
             if (auto samplerIt = gltfOutput.samplers.find(it.first); samplerIt != gltfOutput.samplers.end())
             {
-                texture->sampler = CreateSampler(samplerIt->second);
+                texture->sampler = CreateSampler(samplerIt->second, CalculateNumMips(texture->width, texture->height));
             }
         }
 
@@ -1883,6 +1895,7 @@ void Zn::VulkanDevice::LoadMeshes()
 
             // TODO: Very inefficient to create and submit buffers one by one.
 
+            gpuPrimitive->matrix      = cpuPrimitive.matrix;
             gpuPrimitive->numVertices = cpuPrimitive.position.size();
             gpuPrimitive->numIndices  = cpuPrimitive.indices.size();
 
@@ -1912,20 +1925,20 @@ void Zn::VulkanDevice::LoadMeshes()
             if (cpuPrimitive.tangent.size() > 0)
             {
                 gpuPrimitive->tangent = CreateRHIBuffer(cpuPrimitive.tangent.data(),
-                                                        cpuPrimitive.tangent.size() * sizeof(glm::vec3),
+                                                        cpuPrimitive.tangent.size() * sizeof(glm::vec4),
                                                         vk::BufferUsageFlagBits::eVertexBuffer,
                                                         vma::MemoryUsage::eGpuOnly);
             }
             else
             {
                 ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Tangent buffer for primitive. Creating default.");
-                Vector<glm::vec3> dummy;
+                Vector<glm::vec4> dummy;
                 dummy.resize(cpuPrimitive.position.size());
 
-                memset(dummy.data(), 0, dummy.size() * sizeof(glm::vec3));
+                memset(dummy.data(), 0, dummy.size() * sizeof(glm::vec4));
 
                 gpuPrimitive->tangent = CreateRHIBuffer(
-                    dummy.data(), dummy.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+                    dummy.data(), dummy.size() * sizeof(glm::vec4), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
             }
 
             if (cpuPrimitive.uv.size() > 0)
@@ -2029,17 +2042,17 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
     if (vertex_success && fragment_success)
     {
-        Material* material = VulkanMaterialManager::Get().CreateMaterial("base_pbr");
+        Material* materialNoCull = VulkanMaterialManager::Get().CreateMaterial("base_pbr_no_cull");
 
-        material->vertexShader   = CreateShaderModule(vertex_shader_data);
-        material->fragmentShader = CreateShaderModule(fragment_shader_data);
+        materialNoCull->vertexShader   = CreateShaderModule(vertex_shader_data);
+        materialNoCull->fragmentShader = CreateShaderModule(fragment_shader_data);
 
-        if (!material->vertexShader)
+        if (!materialNoCull->vertexShader)
         {
             ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create vertex shader.");
         }
 
-        if (!material->fragmentShader)
+        if (!materialNoCull->fragmentShader)
         {
             ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create fragment shader.");
         }
@@ -2065,16 +2078,16 @@ void Zn::VulkanDevice::CreateMeshPipeline()
             .pBindings    = ArrayData(pbrBindings),
         };
 
-        material->materialSetLayout = device.createDescriptorSetLayout(pbrTexturesSetCreateInfo);
+        materialNoCull->materialSetLayout = device.createDescriptorSetLayout(pbrTexturesSetCreateInfo);
 
         // TODO: each material should destroy its own when dealocated?
         destroyQueue.Enqueue(
             [=]()
             {
-                device.destroyDescriptorSetLayout(material->materialSetLayout);
+                device.destroyDescriptorSetLayout(materialNoCull->materialSetLayout);
             });
 
-        vk::DescriptorSetLayout layouts[2] = {globalDescriptorSetLayout, material->materialSetLayout};
+        vk::DescriptorSetLayout layouts[2] = {globalDescriptorSetLayout, materialNoCull->materialSetLayout};
 
         vk::PipelineLayoutCreateInfo layoutCreateInfo {.setLayoutCount = ArrayLength(layouts), .pSetLayouts = ArrayData(layouts)};
 
@@ -2087,28 +2100,50 @@ void Zn::VulkanDevice::CreateMeshPipeline()
 
         layoutCreateInfo.setPushConstantRanges(pushConstants);
 
-        material->layout = device.createPipelineLayout(layoutCreateInfo);
+        materialNoCull->layout = device.createPipelineLayout(layoutCreateInfo);
 
         destroyQueue.Enqueue(
             [=]()
             {
-                device.destroyPipelineLayout(material->layout);
+                device.destroyPipelineLayout(materialNoCull->layout);
             });
 
-        material->pipeline = VulkanPipeline::NewVkPipeline(device,
-                                                           renderPass,
-                                                           material->vertexShader,
-                                                           material->fragmentShader,
-                                                           swapChainExtent,
-                                                           material->layout,
-                                                           VulkanPipeline::gltfInputLayout);
+        materialNoCull->pipeline = VulkanPipeline::NewVkPipeline(device,
+                                                                 renderPass,
+                                                                 materialNoCull->vertexShader,
+                                                                 materialNoCull->fragmentShader,
+                                                                 swapChainExtent,
+                                                                 materialNoCull->layout,
+                                                                 vk::CullModeFlagBits::eNone,
+                                                                 VulkanPipeline::gltfInputLayout);
 
         destroyQueue.Enqueue(
             [=]()
             {
-                device.destroyShaderModule(material->vertexShader);
-                device.destroyShaderModule(material->fragmentShader);
-                device.destroyPipeline(material->pipeline);
+                device.destroyShaderModule(materialNoCull->vertexShader);
+                device.destroyShaderModule(materialNoCull->fragmentShader);
+                device.destroyPipeline(materialNoCull->pipeline);
+            });
+
+        Material* materialCull = VulkanMaterialManager::Get().CreateMaterial("base_pbr_cull");
+
+        materialCull->vertexShader      = materialNoCull->vertexShader;
+        materialCull->fragmentShader    = materialNoCull->fragmentShader;
+        materialCull->materialSetLayout = materialNoCull->materialSetLayout;
+        materialCull->layout            = materialNoCull->layout;
+        materialCull->pipeline          = VulkanPipeline::NewVkPipeline(device,
+                                                               renderPass,
+                                                               materialCull->vertexShader,
+                                                               materialCull->fragmentShader,
+                                                               swapChainExtent,
+                                                               materialCull->layout,
+                                                               vk::CullModeFlagBits::eBack,
+                                                               VulkanPipeline::gltfInputLayout);
+
+        destroyQueue.Enqueue(
+            [=]()
+            {
+                device.destroyPipeline(materialCull->pipeline);
             });
     }
 }
@@ -2143,7 +2178,7 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
 
     RHITexture* texture = nullptr;
 
-    if (auto result = textures.insert({textureHandle, CreateRHITexture(width, height, vk::Format::eR8G8B8A8Srgb)}); result.second)
+    if (auto result = textures.insert({textureHandle, CreateRHITexture(width, height, vk::Format::eR8G8B8A8Unorm)}); result.second)
     {
         texture = result.first->second;
     }
@@ -2152,11 +2187,11 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
         [=](vk::CommandBuffer cmd)
         {
             TransitionImageLayout(
-                cmd, texture->image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+                cmd, texture->image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
             CopyBufferToImage(cmd, stagingBuffer.data, texture->image, width, height);
             TransitionImageLayout(cmd,
                                   texture->image,
-                                  vk::Format::eR8G8B8A8Srgb,
+                                  vk::Format::eR8G8B8A8Unorm,
                                   vk::ImageLayout::eTransferDstOptimal,
                                   vk::ImageLayout::eShaderReadOnlyOptimal);
         });
@@ -2165,7 +2200,7 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
 
     vk::ImageViewCreateInfo imageViewInfo {.image            = texture->image,
                                            .viewType         = vk::ImageViewType::e2D,
-                                           .format           = vk::Format::eR8G8B8A8Srgb,
+                                           .format           = vk::Format::eR8G8B8A8Unorm,
                                            .subresourceRange = {
                                                .aspectMask     = vk::ImageAspectFlagBits::eColor,
                                                .baseMipLevel   = 0,
@@ -2199,7 +2234,7 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<Textur
     RHITexture* rhiTexture = nullptr;
 
     // TODO: This should be derived from the source maybe?
-    const vk::Format textureFormat = vk::Format::eR8G8B8A8Srgb;
+    const vk::Format textureFormat = vk::Format::eR8G8B8A8Unorm;
 
     if (auto result = textures.insert({textureHandle, CreateRHITexture(width, height, textureFormat)}); result.second)
     {
@@ -2240,7 +2275,8 @@ RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format
 {
     vk::ImageCreateInfo createInfo = MakeImageCreateInfo(format,
                                                          vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-                                                         vk::Extent3D {static_cast<u32>(width), static_cast<u32>(height), 1});
+                                                         vk::Extent3D {static_cast<u32>(width), static_cast<u32>(height), 1},
+                                                         CalculateNumMips(width, height));
 
     createInfo.initialLayout = vk::ImageLayout::eUndefined;
     createInfo.sharingMode   = vk::SharingMode::eExclusive;
@@ -2262,14 +2298,21 @@ RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format
     return texture;
 }
 
-vk::Sampler Zn::VulkanDevice::CreateSampler(const TextureSampler& sampler)
+vk::Sampler Zn::VulkanDevice::CreateSampler(const TextureSampler& sampler, u32 numMips)
 {
     vk::SamplerCreateInfo samplerCreateInfo {
-        .magFilter    = TranslateSamplerFilter(sampler.magnification),
-        .minFilter    = TranslateSamplerFilter(sampler.minification),
-        .addressModeU = TranslateSamplerWrap(sampler.wrapUV[0]),
-        .addressModeV = TranslateSamplerWrap(sampler.wrapUV[1]),
-        .addressModeW = TranslateSamplerWrap(sampler.wrapUV[2]),
+        .magFilter               = TranslateSamplerFilter(sampler.magnification),
+        .minFilter               = TranslateSamplerFilter(sampler.minification),
+        .mipmapMode              = TranslateMipMapMode(sampler.mipMap),
+        .addressModeU            = TranslateSamplerWrap(sampler.wrapUV[0]),
+        .addressModeV            = TranslateSamplerWrap(sampler.wrapUV[1]),
+        .addressModeW            = TranslateSamplerWrap(sampler.wrapUV[2]),
+        .anisotropyEnable        = VK_TRUE,
+        .maxAnisotropy           = 16,
+        .minLod                  = 0,
+        .maxLod                  = (float) numMips,
+        .borderColor             = vk::BorderColor::eFloatOpaqueWhite,
+        .unnormalizedCoordinates = VK_FALSE,
     };
 
     return device.createSampler(samplerCreateInfo);
@@ -2354,7 +2397,10 @@ void Zn::VulkanDevice::ImmediateSubmit(std::function<void(vk::CommandBuffer)>&& 
     device.resetCommandPool(uploadContext.commandPool, vk::CommandPoolResetFlags(0));
 }
 
-vk::ImageCreateInfo Zn::VulkanDevice::MakeImageCreateInfo(vk::Format format, vk::ImageUsageFlags usageFlags, vk::Extent3D extent) const
+vk::ImageCreateInfo Zn::VulkanDevice::MakeImageCreateInfo(vk::Format          format,
+                                                          vk::ImageUsageFlags usageFlags,
+                                                          vk::Extent3D        extent,
+                                                          u32                 numMips) const
 {
     //	.format = texture data type, like holding a single float(for depth), or holding color.
     //	.extent = size of the image, in pixels.
@@ -2363,20 +2409,21 @@ vk::ImageCreateInfo Zn::VulkanDevice::MakeImageCreateInfo(vk::Format format, vk:
     //					You can create textures that are many - in - one, using layers.
     //					An example of layered textures is cubemaps, where you have 6 layers, one layer for each face of the cubemap.
     //					We default it to 1 layer because we aren’t doing cubemaps.
-    //	.samples = controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images you
+    //	.samples = controls the MSAA behavior of the texture. This only makes sense for render targets, such as depth images and images
+    // you
     // are rendering
     // to.
     //					TODO: We won’t be doing MSAA in this tutorial, so samples will be kept at 1 sample.
     //  .tiling = if you use VK_IMAGE_TILING_OPTIMAL, it won’t be possible to read the data from CPU or to write it without changing its
     //  tiling first
     //					(it’s possible to change the tiling of a texture at any point, but this can be a costly operation).
-    //					The other tiling we can care about is VK_IMAGE_TILING_LINEAR, which will store the image as a 2d array of pixels.
-    //	.usage = controls how the GPU handles the image memory.
+    //					The other tiling we can care about is VK_IMAGE_TILING_LINEAR, which will store the image as a 2d array of
+    // pixels. 	.usage = controls how the GPU handles the image memory.
 
     return {.imageType   = vk::ImageType::e2D,
             .format      = format,
             .extent      = extent,
-            .mipLevels   = 1,
+            .mipLevels   = numMips,
             .arrayLayers = 1,
             .samples     = vk::SampleCountFlagBits::e1,
             .tiling      = vk::ImageTiling::eOptimal,

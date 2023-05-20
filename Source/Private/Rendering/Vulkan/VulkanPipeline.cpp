@@ -136,7 +136,7 @@ vk::PipelineRasterizationStateCreateInfo VulkanPipeline::CreateRasterization(vk:
     createInfo.lineWidth               = 1.0f;
     // no backface cull
     createInfo.cullMode                = vk::CullModeFlagBits::eNone; // VK_CULL_MODE_BACK_BIT
-    createInfo.frontFace               = vk::FrontFace::eClockwise;
+    createInfo.frontFace               = vk::FrontFace::eCounterClockwise;
     // no depth bias
     createInfo.depthBiasEnable         = false;
     createInfo.depthBiasConstantFactor = 0.0f;
@@ -166,7 +166,10 @@ vk::PipelineColorBlendAttachmentState VulkanPipeline::CreateColorBlendAttachment
     blendAttachment.colorWriteMask =
         (vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
-    blendAttachment.blendEnable = false;
+    blendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+    blendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+    blendAttachment.colorBlendOp        = vk::BlendOp::eAdd;
+    blendAttachment.blendEnable         = true;
     return blendAttachment;
 }
 
@@ -201,6 +204,7 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device            device,
                                            vk::ShaderModule      fragmentShader,
                                            vk::Extent2D          swapChainExtent,
                                            vk::PipelineLayout    pipelineLayout,
+                                           vk::CullModeFlags     cullMode,
                                            const RHIInputLayout& inputLayout)
 {
     vk::PipelineShaderStageCreateInfo shaderStages[] = {
@@ -237,6 +241,7 @@ vk::Pipeline VulkanPipeline::NewVkPipeline(vk::Device            device,
         .viewportCount = 1, .pViewports = &viewport, .scissorCount = 1, .pScissors = &scissors};
 
     vk::PipelineRasterizationStateCreateInfo rasterizer = CreateRasterization(vk::PolygonMode::eFill);
+    rasterizer.cullMode                                 = cullMode;
 
     vk::PipelineMultisampleStateCreateInfo msaa = CreateMSAA();
 

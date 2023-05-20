@@ -165,9 +165,13 @@ class VulkanDevice
     // ==================
 
     // == Camera ==
+    glm::mat4 camera_view;
     glm::vec3 cameraPosition {0.f, 0.f, 0.f};
     glm::vec3 cameraDirection {0.0f, 0.0f, 1.f};
     glm::vec3 upVector {0.0f, 1.f, 0.f};
+    glm::vec3 light {0, 100, 0};
+    f32       lightDistance  = 100;
+    f32       lightIntensity = 100;
 
     RHIBuffer cameraBuffer[kMaxFramesInFlight];
     RHIBuffer lightingBuffer[kMaxFramesInFlight];
@@ -191,7 +195,7 @@ class VulkanDevice
     RHITexture* CreateTexture(const String& name, SharedPtr<struct TextureSource> texture);
 
     RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
-    vk::Sampler CreateSampler(const TextureSampler& sampler);
+    vk::Sampler CreateSampler(const TextureSampler& sampler, u32 numMips);
 
     void TransitionImageLayout(
         vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
@@ -219,7 +223,7 @@ class VulkanDevice
 
     void CopyBufferToImage(vk::CommandBuffer cmd, vk::Buffer buffer, vk::Image img, u32 width, u32 height) const;
 
-    vk::ImageCreateInfo     MakeImageCreateInfo(vk::Format format, vk::ImageUsageFlags usageFlags, vk::Extent3D extent) const;
+    vk::ImageCreateInfo     MakeImageCreateInfo(vk::Format format, vk::ImageUsageFlags usageFlags, vk::Extent3D extent, u32 numMips) const;
     vk::ImageViewCreateInfo MakeImageViewCreateInfo(vk::Format format, vk::Image image, vk::ImageAspectFlagBits aspectFlags) const;
 };
 } // namespace Zn

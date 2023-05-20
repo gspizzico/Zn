@@ -18,6 +18,10 @@ class EngineFrontend
     bool bIsRequestingExit = false;
 
     Map<Name, bool> SelectedTests;
+
+    glm::vec3 light     = glm::vec3(0, 4, 0);
+    float     intensity = 80;
+    float     distance  = 20;
 };
 
 } // namespace Zn

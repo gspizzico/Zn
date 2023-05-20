@@ -94,11 +94,22 @@ void Zn::VulkanRenderer::on_window_restored()
     }
 }
 
-void Zn::VulkanRenderer::set_camera(glm::vec3 position, glm::vec3 direction)
+void Zn::VulkanRenderer::set_camera(glm::vec3 position, glm::vec3 direction, glm::mat4 view)
 {
     if (device != VK_NULL_HANDLE)
     {
         device->cameraPosition  = position;
         device->cameraDirection = direction;
+        device->camera_view     = view;
+    }
+}
+
+void Zn::VulkanRenderer::set_light(glm::vec3 light, float distance, float intensity)
+{
+    if (device)
+    {
+        device->light          = light;
+        device->lightDistance  = distance;
+        device->lightIntensity = intensity;
     }
 }

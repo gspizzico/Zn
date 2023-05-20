@@ -2,6 +2,7 @@
 #include <Engine/EngineFrontend.h>
 #include <Automation/AutomationTestManager.h>
 #include <imgui.h> //#todo handle editor UI separately
+#include <Rendering/Renderer.h>
 
 void Zn::EngineFrontend::DrawMainMenu()
 {
@@ -53,6 +54,24 @@ void Zn::EngineFrontend::DrawMainMenu()
 
         ImGui::EndPopup();
     }
+
+    bool out;
+    ImGui::Begin("Input", &out);
+
+    float l[3] {light.x, light.y, light.z};
+
+    ImGui::InputFloat3("Light Position", l);
+
+    light.x = l[0];
+    light.y = l[1];
+    light.z = l[2];
+
+    ImGui::InputFloat("Light Intensity", &intensity);
+    ImGui::InputFloat("Light Distance", &distance);
+
+    Renderer::Get().set_light(light, distance, intensity);
+
+    ImGui::End();
 }
 
 void Zn::EngineFrontend::DrawAutomationWindow()

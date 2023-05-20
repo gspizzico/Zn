@@ -24,14 +24,22 @@ void Zn::camera_rotate(glm::vec2 rotation, Camera& camera)
     }
 
     glm::vec3 front;
-    front.x = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
-    front.y = sin(glm::radians(camera.pitch));
-    front.z = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
-
+    front.x      = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
+    front.y      = sin(glm::radians(camera.pitch));
+    front.z      = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
     camera.front = glm::normalize(front);
-
     camera.right = glm::normalize(glm::cross(camera.front, camera.worldUp));
     camera.up    = glm::normalize(glm::cross(camera.right, camera.front));
+
+    // const glm::quat pitch_rotation = glm::angleAxis(camera.pitch, glm::vec3(1, 0, 0));
+    // const glm::quat yaw_rotation   = glm::angleAxis(camera.yaw, glm::vec3(0, 1, 0));
+
+    // const glm::quat orientation = glm::normalize(pitch_rotation * yaw_rotation);
+
+    // const glm::mat4 rotate    = glm::mat4_cast(orientation);
+    // const glm::mat4 translate = glm::translate(glm::mat4 {1.f}, -camera.position);
+
+    // camera.view = rotate * translate;
 }
 
 void Zn::camera_process_input(const SDL_Event& event, f32 deltaTime, Camera& camera)

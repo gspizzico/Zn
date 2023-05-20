@@ -18,6 +18,8 @@ struct Camera
 
     f32 yaw;
     f32 pitch;
+
+    // glm::mat4 view;
 };
 
 void camera_rotate(glm::vec2 rotation, Camera& camera);

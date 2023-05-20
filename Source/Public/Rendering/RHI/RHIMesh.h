@@ -93,9 +93,10 @@ struct TextureSampler
 
 struct RHIPrimitive
 {
+    glm::mat4          matrix;
     Vector<glm::vec3>  position;
     Vector<glm::vec3>  normal;
-    Vector<glm::vec3>  tangent;
+    Vector<glm::vec4>  tangent;
     Vector<glm::vec2>  uv;
     Vector<glm::vec4>  color;
     Vector<u32>        indices;
@@ -105,6 +106,7 @@ struct RHIPrimitive
 
 struct RHIPrimitiveGPU
 {
+    glm::mat4          matrix;
     RHIBuffer          position;
     RHIBuffer          normal;
     RHIBuffer          tangent;

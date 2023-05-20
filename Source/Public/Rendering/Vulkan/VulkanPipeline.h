@@ -30,6 +30,7 @@ class VulkanPipeline
                                       vk::ShaderModule      fragmentShader,
                                       vk::Extent2D          swapChainExtent,
                                       vk::PipelineLayout    pipelineLayout,
+                                      vk::CullModeFlags     cullMode,
                                       const RHIInputLayout& inputLayout = defaultInputLayout);
 };
 } // namespace Zn
