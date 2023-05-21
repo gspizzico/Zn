@@ -18,7 +18,7 @@ class VulkanRenderer : public Renderer
     virtual void on_window_resized() override;
     virtual void on_window_minimized() override;
     virtual void on_window_restored() override;
-    virtual void set_camera(glm::vec3 position, glm::vec3 direction, glm::mat4 view) override;
+    virtual void set_camera(const ViewInfo& viewInfo) override;
     virtual void set_light(glm::vec3 light, float distance, float intensity) override;
 
   private:

@@ -94,13 +94,11 @@ void Zn::VulkanRenderer::on_window_restored()
     }
 }
 
-void Zn::VulkanRenderer::set_camera(glm::vec3 position, glm::vec3 direction, glm::mat4 view)
+void Zn::VulkanRenderer::set_camera(const ViewInfo& viewInfo)
 {
-    if (device != VK_NULL_HANDLE)
+    if (device)
     {
-        device->cameraPosition  = position;
-        device->cameraDirection = direction;
-        device->camera_view     = view;
+        device->cameraView = viewInfo;
     }
 }
 

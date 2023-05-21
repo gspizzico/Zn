@@ -3,7 +3,7 @@
 
 namespace Zn
 {
-struct Camera;
+class Camera;
 
 class EngineFrontend;
 class Window;
@@ -15,7 +15,6 @@ class Engine
 
     void Update(float deltaTime);
 
-    void Start();
     void Shutdown();
 
   private:
@@ -30,7 +29,7 @@ class Engine
 
     SharedPtr<Window> m_Window;
 
-    SharedPtr<Camera> m_Camera;
+    SharedPtr<Camera> activeCamera;
 
     SharedPtr<EngineFrontend> m_FrontEnd;
 };

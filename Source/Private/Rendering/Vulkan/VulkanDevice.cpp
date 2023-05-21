@@ -838,14 +838,16 @@ void VulkanDevice::Draw()
             // Model View Matrix
 
             // Camera View
-            const glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, upVector);
+
+            const glm::mat4 view = glm::lookAt(cameraView.position, cameraView.position + cameraView.forward, cameraView.up);
 
             // Camera Projection
-            glm::mat4 projection = glm::perspective(glm::radians(60.f), 16.f / 9.f, 0.1f, 4000.f);
+            glm::mat4 projection =
+                glm::perspective(glm::radians(cameraView.fov), cameraView.aspectRatio, cameraView.nearClip, cameraView.farClip);
             projection[1][1] *= -1;
 
             GPUCameraData camera {};
-            camera.position        = glm::vec4(cameraPosition, 1.0f);
+            camera.position        = glm::vec4(cameraView.position, 1.0f);
             camera.projection      = projection;
             camera.view            = view;
             camera.view_projection = projection * view;

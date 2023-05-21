@@ -4,6 +4,7 @@
 #include <Rendering/RHI/RHITypes.h>
 #include <Rendering/RHI/Vulkan/Vulkan.h>
 #include <Rendering/Vulkan/VulkanTypes.h>
+#include <Rendering/RendererTypes.h>
 #include <deque>
 #include <functional>
 #include <optional>
@@ -165,10 +166,7 @@ class VulkanDevice
     // ==================
 
     // == Camera ==
-    glm::mat4 camera_view;
-    glm::vec3 cameraPosition {0.f, 0.f, 0.f};
-    glm::vec3 cameraDirection {0.0f, 0.0f, 1.f};
-    glm::vec3 upVector {0.0f, 1.f, 0.f};
+    ViewInfo  cameraView;
     glm::vec3 light {0, 100, 0};
     f32       lightDistance  = 100;
     f32       lightIntensity = 100;
