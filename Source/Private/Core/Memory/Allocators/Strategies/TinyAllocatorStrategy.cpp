@@ -30,6 +30,8 @@ void* TinyAllocatorStrategy::Allocate(size_t size, size_t alignment)
 
     const size_t SlotSize = 16 * (FreeListIndex + 1);
 
+    criticalSection.Lock();
+
     auto& CurrentFreeList = m_FreeLists[FreeListIndex];
 
     // If we don't have any page in the free list, request a new one.
@@ -81,6 +83,8 @@ void* TinyAllocatorStrategy::Allocate(size_t size, size_t alignment)
 
     _ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
 
+    criticalSection.Unlock();
+
     return Allocation;
 }
 
@@ -94,6 +98,8 @@ bool TinyAllocatorStrategy::Free(void* address)
     size_t FreeListIndex = GetFreeListIndex(address);
 
     const size_t SlotSize = GetSlotSize(FreeListIndex);
+
+    criticalSection.Lock();
 
     auto& CurrentFreeList = m_FreeLists[FreeListIndex];
 
@@ -120,6 +126,8 @@ bool TinyAllocatorStrategy::Free(void* address)
     }
 
     _ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
+
+    criticalSection.Unlock();
 
     return true;
 }

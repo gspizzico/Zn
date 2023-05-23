@@ -2,6 +2,7 @@
 
 #include <Core/Memory/Allocators/PageAllocator.h>
 #include <Core/Containers/Vector.h>
+#include <Core/HAL/PlatformTypes.h>
 
 #include <array>
 
@@ -39,6 +40,8 @@ class TinyAllocatorStrategy
     std::array<size_t, 16>     m_NumAllocations;
 
     size_t m_NumFreePages;
+
+    CriticalSection criticalSection;
 
     static constexpr size_t kMaxAllocationSize = 16 * 16;
 };
