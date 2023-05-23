@@ -46,7 +46,7 @@
 .vscode
 
 # ZN Libs
-/Libs
+# /Libs
 
 # SPV Shaders
 /shaders/*.spv
