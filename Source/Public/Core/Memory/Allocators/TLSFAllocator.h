@@ -41,10 +41,6 @@ class TLSFAllocator
 
 #if ZN_DEBUG
         void LogDebugInfo(bool recursive) const;
-
-        void Verify(size_t max_block_size) const;
-
-        void VerifyWrite(MemoryRange range) const;
 #endif
 
         FreeBlock* m_Previous = nullptr;
