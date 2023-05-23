@@ -9,6 +9,9 @@
 #include <chrono>
 #include <iostream>
 #include "Core/Time/Time.h"
+#include <Core/Async/ThreadedJob.h>
+#include <Core/Async/Thread.h>
+#include <mimalloc.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_TLSFAllocator, ELogVerbosity::Log)
 DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_TLSFAllocator2, ELogVerbosity::Log)
@@ -72,9 +75,9 @@ class TLSFAutomationTest : public AutomationTest
 
             if (PreviousIterationAllocations)
             {
-                std::shuffle(
-                    PreviousIterationAllocations->begin(), PreviousIterationAllocations->end(),
-                    std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
+                std::shuffle(PreviousIterationAllocations->begin(),
+                             PreviousIterationAllocations->end(),
+                             std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
             }
 
             for (size_t i = 0; i < m_Iterations; ++i)
@@ -119,62 +122,108 @@ class TLSFAutomationTest : public AutomationTest
     size_t m_MaxAllocationSize;
 };
 
-class TLSFAutomationTest2 : public AutomationTest
+struct TLSFTestAllocation
+{
+    void*  m_Address;
+    size_t m_Size;
+};
+
+struct TLSFTestData
+{
+    // Large Memory
+    static constexpr size_t kLargeMemoryAllocations = 15000;
+
+    static constexpr std::pair<size_t, size_t> kLargeMemoryAllocationRange = {16384, TLSFAllocator::kMaxAllocationSize};
+
+    // Frame Memory
+    static constexpr size_t kFrameMemoryAllocations = 18000;
+
+    static constexpr std::pair<size_t, size_t> kFrameAllocationRange = {256, 2048};
+
+    static constexpr size_t kNumberOfFrames = 20 * 10;
+
+    // Memory Spikes
+    static constexpr size_t kMemorySpikesNum = kNumberOfFrames / 4;
+
+    static constexpr std::pair<size_t, size_t> kMemorySpikeAllocationRange = {16384, 16384 * 2};
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+    VirtualMemoryRegion m_Region = VirtualMemoryRegion(Memory::GetMemoryStatus().m_TotalPhys);
+};
+
+class IndirectTestAllocator
+{
+  public:
+    virtual ~IndirectTestAllocator()
+    {
+    }
+    virtual void* Allocate(sizet size) = 0;
+    virtual void  Free(void* ptr)      = 0;
+};
+
+class IndirectTLSFAllocator : public IndirectTestAllocator
+{
+  public:
+    IndirectTLSFAllocator(Zn::MemoryRange range)
+        : allocator(new Zn::TLSFAllocator(range))
+    {
+    }
+
+    ~IndirectTLSFAllocator()
+    {
+        delete allocator;
+    }
+    virtual void* Allocate(sizet size) override
+    {
+        return allocator->Allocate(size);
+    }
+    virtual void Free(void* ptr) override
+    {
+        allocator->Free(ptr);
+    }
+
+    Zn::TLSFAllocator* allocator = nullptr;
+};
+
+class IndirectMiMalloc : public IndirectTestAllocator
+{
+    virtual void* Allocate(sizet size) override
+    {
+        return mi_new(size);
+    }
+    virtual void Free(void* ptr) override
+    {
+        return mi_free(ptr);
+    }
+};
+
+class TLSFAutomationThreadedJob : public ThreadedJob
 {
   private:
-    struct Allocation
-    {
-        void*  m_Address;
-        size_t m_Size;
-    };
+    std::array<int, TLSFTestData::kMemorySpikesNum> m_MemorySpikeFramesIndices;
 
-    struct Data
-    {
-        // Large Memory
-        static constexpr size_t kLargeMemoryAllocations = 15000;
+    size_t m_CurrentFrameSpikeIndex = 0;
 
-        static constexpr std::pair<size_t, size_t> kLargeMemoryAllocationRange = {8192, TLSFAllocator::kMaxAllocationSize};
+    size_t m_NextSpikeIndex = 0;
 
-        // Frame Memory
-        static constexpr size_t kFrameMemoryAllocations = 18000;
+    std::array<TLSFTestAllocation, TLSFTestData::kLargeMemoryAllocations> m_LargeMemoryAllocations {};
 
-        static constexpr std::pair<size_t, size_t> kFrameAllocationRange = {8, 512};
+    std::array<TLSFTestAllocation, TLSFTestData::kFrameMemoryAllocations> m_LastFrameAllocations {};
 
-        static constexpr size_t kNumberOfFrames = 60 * 10;
+    std::array<TLSFTestAllocation, TLSFTestData::kMemorySpikesNum> m_SpikesAllocations {};
 
-        // Memory Spikes
-        static constexpr size_t kMemorySpikesNum = kNumberOfFrames / 4;
-
-        static constexpr std::pair<size_t, size_t> kMemorySpikeAllocationRange = {2048, 16384};
-
-        //////////////////////////////////////////////////////////////////////////////////////////////////
-
-        UniquePtr<TLSFAllocator> m_Allocator;
-
-        VirtualMemoryRegion m_Region = VirtualMemoryRegion(Memory::GetMemoryStatus().m_TotalPhys);
-
-        std::array<Allocation, kLargeMemoryAllocations> m_LargeMemoryAllocations;
-
-        std::array<Allocation, kFrameMemoryAllocations> m_LastFrameAllocations;
-
-        std::array<Allocation, kMemorySpikesNum> m_SpikesAllocations;
-    };
-
-    std::unique_ptr<Data> m_AllocationData;
-
-    std::array<int, Data::kMemorySpikesNum> m_MemorySpikeFramesIndices;
-
-    size_t m_CurrentFrameSpikeIndex;
-
-    size_t m_NextSpikeIndex;
+    IndirectTestAllocator* allocator = nullptr;
 
   public:
-    virtual void Prepare() override
+    TLSFAutomationThreadedJob(IndirectTestAllocator* allocator_)
+        : allocator(allocator_)
     {
-        m_AllocationData              = std::make_unique<Data>();
-        m_AllocationData->m_Allocator = std::make_unique<TLSFAllocator>(m_AllocationData->m_Region.Range());
+    }
 
-        auto SpikesDistribution = CreateIntDistribution({0, Data::kNumberOfFrames});
+    void Prepare() override
+    {
+        auto SpikesDistribution = CreateIntDistribution({0, TLSFTestData::kNumberOfFrames});
 
         std::random_device rd;
         std::mt19937       gen(rd());
@@ -192,7 +241,7 @@ class TLSFAutomationTest2 : public AutomationTest
 
         m_MemorySpikeFramesIndices.fill(-1);
 
-        while (ComputedFrames < Data::kMemorySpikesNum)
+        while (ComputedFrames < TLSFTestData::kMemorySpikesNum)
         {
             auto Index = SpikesDistribution(gen);
             if (!IsDuplicate(Index))
@@ -212,11 +261,12 @@ class TLSFAutomationTest2 : public AutomationTest
         return std::uniform_int_distribution<size_t>(range.first, range.second);
     }
 
-    template<typename Array> void Allocate(size_t allocation_size, size_t index, Array& storage)
+    template<typename Array>
+    void Allocate(size_t allocation_size, size_t index, Array& storage)
     {
-        auto AllocatedAddress = m_AllocationData->m_Allocator->Allocate(allocation_size);
+        auto AllocatedAddress = allocator->Allocate(allocation_size);
 
-        Allocation Block = {AllocatedAddress, allocation_size};
+        TLSFTestAllocation Block = {AllocatedAddress, allocation_size};
 
         storage[index] = std::move(Block);
     }
@@ -225,14 +275,14 @@ class TLSFAutomationTest2 : public AutomationTest
     {
         if (frame == m_NextSpikeIndex)
         {
-            auto SpikeDistribution = CreateIntDistribution({Data::kMemorySpikeAllocationRange});
+            auto SpikeDistribution = CreateIntDistribution({TLSFTestData::kMemorySpikeAllocationRange});
 
             std::random_device rd;
             std::mt19937       gen(rd());
 
             auto AllocationSize = Memory::Align(SpikeDistribution(gen), sizeof(uintptr_t));
 
-            Allocate(AllocationSize, m_CurrentFrameSpikeIndex, m_AllocationData->m_SpikesAllocations);
+            Allocate(AllocationSize, m_CurrentFrameSpikeIndex, m_SpikesAllocations);
 
             m_CurrentFrameSpikeIndex++;
             if (m_CurrentFrameSpikeIndex < m_MemorySpikeFramesIndices.size())
@@ -252,13 +302,13 @@ class TLSFAutomationTest2 : public AutomationTest
         std::random_device rd;
         std::mt19937       gen(rd());
 
-        std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kLargeMemoryAllocationRange);
+        std::uniform_int_distribution<size_t> dis = CreateIntDistribution(TLSFTestData::kLargeMemoryAllocationRange);
 
-        for (int i = 0; i < Data::kLargeMemoryAllocations; ++i)
+        for (int i = 0; i < TLSFTestData::kLargeMemoryAllocations; ++i)
         {
             auto AllocationSize = Memory::Align(dis(gen), sizeof(uintptr_t));
 
-            Allocate(AllocationSize, i, m_AllocationData->m_LargeMemoryAllocations);
+            Allocate(AllocationSize, i, m_LargeMemoryAllocations);
         }
     }
 
@@ -266,15 +316,15 @@ class TLSFAutomationTest2 : public AutomationTest
     {
         TryAllocateSpike(frame);
 
-        using TFrameAllocations                                    = decltype(Data::m_LastFrameAllocations);
+        using TFrameAllocations                                    = decltype(m_LastFrameAllocations);
         std::unique_ptr<TFrameAllocations> CurrentFrameAllocations = std::make_unique<TFrameAllocations>();
 
-        std::uniform_int_distribution<size_t> dis = CreateIntDistribution(Data::kFrameAllocationRange);
+        std::uniform_int_distribution<size_t> dis = CreateIntDistribution(TLSFTestData::kFrameAllocationRange);
 
         std::chrono::high_resolution_clock hrc;
-        std::shuffle(
-            m_AllocationData->m_LastFrameAllocations.begin(), m_AllocationData->m_LastFrameAllocations.end(),
-            std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
+        std::shuffle(m_LastFrameAllocations.begin(),
+                     m_LastFrameAllocations.end(),
+                     std::default_random_engine(static_cast<unsigned long>(hrc.now().time_since_epoch().count())));
 
         std::random_device rd;
         std::mt19937       gen(rd());
@@ -283,13 +333,13 @@ class TLSFAutomationTest2 : public AutomationTest
 
         const bool CanDeallocate = frame > 0;
 
-        int RemainingDeallocations = CanDeallocate ? static_cast<int>(m_AllocationData->m_LastFrameAllocations.size()) : 0;
+        int RemainingDeallocations = CanDeallocate ? static_cast<int>(m_LastFrameAllocations.size()) : 0;
 
         for (int i = 0; i < max_frames; ++i)
         {
             if (auto Roll = RollDice(gen); CanDeallocate && Roll >= 60)
             {
-                m_AllocationData->m_Allocator->Free(m_AllocationData->m_LastFrameAllocations[RemainingDeallocations - 1].m_Address);
+                allocator->Free(m_LastFrameAllocations[RemainingDeallocations - 1].m_Address);
                 --RemainingDeallocations;
             }
 
@@ -300,23 +350,24 @@ class TLSFAutomationTest2 : public AutomationTest
 
         while (CanDeallocate && RemainingDeallocations > 0)
         {
-            m_AllocationData->m_Allocator->Free(m_AllocationData->m_LastFrameAllocations[--RemainingDeallocations].m_Address);
+            allocator->Free(m_LastFrameAllocations[--RemainingDeallocations].m_Address);
         }
 
-        m_AllocationData->m_LastFrameAllocations = std::move(*CurrentFrameAllocations);
+        m_LastFrameAllocations = std::move(*CurrentFrameAllocations);
     }
 
-    virtual void Execute() override
+    virtual void DoWork() override
     {
+        ZN_TRACE_QUICKSCOPE();
         AllocateLargeMemory();
 
-        std::array<long long, Data::kNumberOfFrames> FrameDurations;
+        std::array<long long, TLSFTestData::kNumberOfFrames> FrameDurations;
 
         auto SavedTime = SystemClock::now();
 
-        for (int i = 0; i < Data::kNumberOfFrames; ++i)
+        for (int i = 0; i < TLSFTestData::kNumberOfFrames; ++i)
         {
-            AllocateFrameMemory(i, Data::kFrameMemoryAllocations);
+            AllocateFrameMemory(i, TLSFTestData::kFrameMemoryAllocations);
 
             auto PreviousTime = SavedTime;
             SavedTime         = SystemClock::now();
@@ -324,28 +375,80 @@ class TLSFAutomationTest2 : public AutomationTest
             FrameDurations[i] = std::chrono::duration_cast<std::chrono::milliseconds>(SavedTime - PreviousTime).count();
         }
 
-        for (int i = 0; i < Data::kNumberOfFrames; ++i)
-        {
-            std::cout << "Frame [" << i << "] duration:\t" << FrameDurations[i] << "ms" << std::endl;
-        }
-        m_Result = Result::kOk;
+        // for (int i = 0; i < TLSFTestData::kNumberOfFrames; ++i)
+        //{
+        //     std::cout << "Frame [" << i << "] duration:\t" << FrameDurations[i] << "ms" << std::endl;
+        // }
     }
+};
 
-    virtual void Cleanup() override
+class TLSFAutomationTestThreaded : public AutomationTest
+{
+  public:
+    TLSFAutomationTestThreaded(u32 numThreads_, bool useMimalloc_)
+        : numThreads(numThreads_)
+        , useMimalloc(useMimalloc_)
     {
-        AutomationTest::Cleanup();
-
-        m_AllocationData = nullptr;
-
-        m_MemorySpikeFramesIndices = {-1};
-
-        m_CurrentFrameSpikeIndex = -1;
-
-        m_NextSpikeIndex = -1;
     }
+
+    virtual void Prepare()
+    {
+        allocationData = new TLSFTestData();
+        if (!useMimalloc)
+        {
+            allocator = new IndirectTLSFAllocator(allocationData->m_Region.Range());
+        }
+        else
+        {
+            allocator = new IndirectMiMalloc();
+        }
+    }
+
+    virtual void Execute()
+    {
+        Vector<TLSFAutomationThreadedJob*> jobs;
+        Vector<Thread*>                    threads;
+
+        for (u32 index = 0; index < numThreads; ++index)
+        {
+            TLSFAutomationThreadedJob* job = new TLSFAutomationThreadedJob(allocator);
+            job->Prepare();
+            jobs.push_back(job);
+        }
+
+        for (u32 index = 0; index < numThreads; ++index)
+        {
+            Thread* thread = Thread::New(std::to_string(index), jobs[index]);
+            thread->Wait(50);
+            threads.push_back(thread);
+        }
+
+        for (u32 index = 0; index < numThreads; ++index)
+        {
+            threads[index]->WaitUntilCompletion();
+            delete threads[index];
+            delete jobs[index];
+        }
+    }
+
+    virtual void Cleanup()
+    {
+        delete allocator;
+        delete allocationData;
+    }
+
+    u32 numThreads = 1;
+
+    TLSFTestData*          allocationData = nullptr;
+    IndirectTestAllocator* allocator      = nullptr;
+    bool                   useMimalloc    = false;
 };
 } // namespace Zn::Automation
 
 DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_1000, Zn::Automation::TLSFAutomationTest, 1000);
-DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest2, Zn::Automation::TLSFAutomationTest2);
-// DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000, 4096, Zn::TLSFAllocator::kMaxAllocationSize);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTestThreaded_TLSF, Zn::Automation::TLSFAutomationTestThreaded, 1, false);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTestThreaded_TLSF_4, Zn::Automation::TLSFAutomationTestThreaded, 8, false);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTestThreaded_MiMalloc, Zn::Automation::TLSFAutomationTestThreaded, 1, true);
+DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTestThreaded_MiMalloc_4, Zn::Automation::TLSFAutomationTestThreaded, 8, true);
+// DEFINE_AUTOMATION_STARTUP_TEST(TLSFAutomationTest_10000, Zn::Automation::TLSFAutomationTest, 10000, 4096,
+// Zn::TLSFAllocator::kMaxAllocationSize);
