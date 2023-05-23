@@ -187,36 +187,6 @@ void TLSFAllocator::LogDebugInfo() const
     }
 }
 
-void TLSFAllocator::Verify() const
-{
-    for (int fl = 0; fl < kNumberOfPools; ++fl)
-    {
-        for (int sl = 0; sl < kNumberOfLists; ++sl)
-        {
-            if (auto FreeBlock = m_FreeLists[fl][sl])
-            {
-                const auto Size = static_cast<size_t>(pow(2, fl + kStartFl) + (pow(2, fl + kStartFl) / kNumberOfLists) * (sl + 1ull));
-
-                FreeBlock->Verify(Size);
-            }
-        }
-    }
-}
-
-void TLSFAllocator::VerifyWrite(MemoryRange range) const
-{
-    for (const auto& List : m_FreeLists)
-    {
-        for (const auto& Head : List)
-        {
-            if (Head)
-            {
-                Head->VerifyWrite(range);
-            }
-        }
-    }
-}
-
 #endif
 
 bool TLSFAllocator::MappingInsert(size_t size, index_type& o_fl, index_type& o_sl)

@@ -270,6 +270,7 @@
   <ItemGroup>
     <ClInclude Include="Source\Public\Core\Event.h" />
     <ClInclude Include="Source\Public\Core\Hash.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Mimalloc.hpp" />
     <ClInclude Include="Source\Public\Core\Random.h" />
     <ClInclude Include="Source\Public\Engine\Importer\MeshImporter.h" />
     <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />

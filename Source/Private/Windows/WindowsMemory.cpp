@@ -4,7 +4,7 @@
 #include "Windows/WindowsCommon.h"
 #include "Core/Build.h"
 
-#include <Core/Memory/Allocators/ThreeWaysAllocator.h>
+#include <Core/Memory/Allocators/Mimalloc.hpp>
 
 #define ZN_WINDOWS_TRACK_MEMORY (ZN_TRACK_MEMORY && !ZN_RELEASE) && 0
 
@@ -21,9 +21,14 @@ MemoryStatus WindowsMemory::GetMemoryStatus()
 
     GlobalMemoryStatusEx(&WinMemStatus);
 
-    return {(uint64) WinMemStatus.dwMemoryLoad,     (uint64) WinMemStatus.ullTotalPhys,           (uint64) WinMemStatus.ullAvailPhys,
-            (uint64) WinMemStatus.ullTotalPageFile, (uint64) WinMemStatus.ullAvailPageFile,       (uint64) WinMemStatus.ullTotalVirtual,
-            (uint64) WinMemStatus.ullAvailVirtual,  (uint64) WinMemStatus.ullAvailExtendedVirtual};
+    return {(uint64) WinMemStatus.dwMemoryLoad,
+            (uint64) WinMemStatus.ullTotalPhys,
+            (uint64) WinMemStatus.ullAvailPhys,
+            (uint64) WinMemStatus.ullTotalPageFile,
+            (uint64) WinMemStatus.ullAvailPageFile,
+            (uint64) WinMemStatus.ullTotalVirtual,
+            (uint64) WinMemStatus.ullAvailVirtual,
+            (uint64) WinMemStatus.ullAvailExtendedVirtual};
 }
 #if ZN_WINDOWS_TRACK_MEMORY
 auto HeapTracker = std::make_unique<VSHeapTracker::CHeapTracker>("Zn::WindowsMemory");
@@ -45,7 +50,7 @@ void WindowsMemory::TrackDeallocation(void* address)
 
 BaseAllocator* WindowsMemory::CreateAllocator()
 {
-    return new ThreeWaysAllocator();
+    return new Mimalloc();
 }
 
 void* WindowsVirtualMemory::Reserve(size_t size)
@@ -69,8 +74,8 @@ bool WindowsVirtualMemory::Commit(void* address, size_t size)
 }
 
 #pragma warning(push)
-#pragma warning(disable : 6250) // Warning C6250 Calling 'VirtualFree' without the MEM_RELEASE flag might free memory but not address descriptors(VADs).This
-                                // causes address space leaks.
+#pragma warning(disable : 6250) // Warning C6250 Calling 'VirtualFree' without the MEM_RELEASE flag might free memory but not address
+                                // descriptors(VADs).This causes address space leaks.
 
 bool WindowsVirtualMemory::Decommit(void* address, size_t size)
 {

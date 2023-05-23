@@ -182,38 +182,111 @@ using namespace Zn::Allocators;
 #pragma warning(push)
 #pragma warning(disable : 28251) // microsoft vs code analysis warning
 
-void* operator new(size_t size)
+void operator delete(void* p) noexcept
 {
-    void* Address = Zn::Allocators::New(size);
+    Zn::Allocators::Delete(p);
+};
+void operator delete[](void* p) noexcept
+{
+    Zn::Allocators::Delete(p);
+};
 
-    if (Address == nullptr)
-    {
-        throw std::bad_alloc();
-    }
-
-    return Address;
+void operator delete(void* p, const std::nothrow_t&) noexcept
+{
+    Zn::Allocators::Delete(p);
+}
+void operator delete[](void* p, const std::nothrow_t&) noexcept
+{
+    Zn::Allocators::Delete(p);
 }
 
-void* operator new[](size_t size)
+void* operator new(std::size_t n) noexcept(false)
 {
-    void* Address = Zn::Allocators::New(size);
-
-    if (Address == nullptr)
-    {
-        throw std::bad_alloc();
-    }
-
-    return Address;
+    return Zn::Allocators::New(n);
+}
+void* operator new[](std::size_t n) noexcept(false)
+{
+    return Zn::Allocators::New(n);
 }
 
-void operator delete(void* mem)
+void* operator new(std::size_t n, const std::nothrow_t& tag) noexcept
 {
-    Zn::Allocators::Delete(mem);
+    (void) (tag);
+    // TODO: mi_new_nothrow
+    return Zn::Allocators::New(n);
+}
+void* operator new[](std::size_t n, const std::nothrow_t& tag) noexcept
+{
+    (void) (tag);
+    // TODO: mi_new_nothrow
+    return Zn::Allocators::New(n);
 }
 
-void operator delete[](void* mem)
+#if (__cplusplus >= 201402L || _MSC_VER >= 1916)
+void operator delete(void* p, std::size_t n) noexcept
 {
-    Zn::Allocators::Delete(mem);
+    // TODO: mi_free_size(p, n);
+    Zn::Allocators::Delete(p);
+};
+void operator delete[](void* p, std::size_t n) noexcept
+{
+    // TODO: mi_free_size(p, n);
+    Zn::Allocators::Delete(p);
+};
+#endif
+
+#if (__cplusplus > 201402L || defined(__cpp_aligned_new))
+void operator delete(void* p, std::align_val_t al) noexcept
+{
+    // mi_free_aligned(p, static_cast<size_t>(al));
+    Zn::Allocators::Delete(p);
 }
+void operator delete[](void* p, std::align_val_t al) noexcept
+{
+    // mi_free_aligned(p, static_cast<size_t>(al));
+    Zn::Allocators::Delete(p);
+}
+void operator delete(void* p, std::size_t n, std::align_val_t al) noexcept
+{
+    // mi_free_size_aligned(p, n, static_cast<size_t>(al));
+    Zn::Allocators::Delete(p);
+};
+void operator delete[](void* p, std::size_t n, std::align_val_t al) noexcept
+{
+    // mi_free_size_aligned(p, n, static_cast<size_t>(al));
+    Zn::Allocators::Delete(p);
+};
+void operator delete(void* p, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+    // mi_free_aligned(p, static_cast<size_t>(al));
+    Zn::Allocators::Delete(p);
+}
+void operator delete[](void* p, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+    // mi_free_aligned(p, static_cast<size_t>(al));
+    Zn::Allocators::Delete(p);
+}
+
+void* operator new(std::size_t n, std::align_val_t al) noexcept(false)
+{
+    // return mi_new_aligned(n, static_cast<size_t>(al));
+    return Zn::Allocators::New(n);
+}
+void* operator new[](std::size_t n, std::align_val_t al) noexcept(false)
+{
+    // return mi_new_aligned(n, static_cast<size_t>(al));
+    return Zn::Allocators::New(n);
+}
+void* operator new(std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+    // return mi_new_aligned_nothrow(n, static_cast<size_t>(al));
+    return Zn::Allocators::New(n);
+}
+void* operator new[](std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+    // return mi_new_aligned_nothrow(n, static_cast<size_t>(al));
+    return Zn::Allocators::New(n);
+}
+#endif
 
 #pragma warning(pop)
