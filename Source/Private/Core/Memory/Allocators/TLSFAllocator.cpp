@@ -4,24 +4,7 @@
 
 DEFINE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
 
-#define ENABLE_MEM_VERIFY    0
-#define TLSF_ENABLE_DECOMMIT 0
-
-#if ENABLE_MEM_VERIFY
-    #define VERIFY() Verify();
-    #if ZN_DEBUG
-        #define VERIFY_WRITE_CALL(MemoryRange) VerifyWrite(MemoryRange);
-    #else
-        #define VERIFY_WRITE_CALL(...) ;
-    #endif
-    #define VERIFY_WRITE_PRIVATE(MemoryRange, WriteOperation)                                                                                                  \
-        VERIFY_WRITE_CALL(MemoryRange);                                                                                                                        \
-        WriteOperation;
-#else
-    #define VERIFY()                                          ;
-    #define VERIFY_WRITE_CALL(...)                            ;
-    #define VERIFY_WRITE_PRIVATE(MemoryRange, WriteOperation) WriteOperation;
-#endif
+#define TLSF_ENABLE_DECOMMIT 1
 
 #pragma push_macro("ZN_LOG")
 #undef ZN_LOG
@@ -30,40 +13,11 @@ DEFINE_STATIC_LOG_CATEGORY(LogTLSF_Allocator, ELogVerbosity::Log);
 
 namespace Zn
 {
-#define VERIFY_WRITE(Address, Size, WriteOperationFunction)                                                                                                    \
-    {                                                                                                                                                          \
-        MemoryRange Range = MemoryRange(Address, Size);                                                                                                        \
-        VERIFY_WRITE_PRIVATE(Range, WriteOperationFunction(Range.Begin(), Range.End()))                                                                        \
-    }
-
 using FreeBlock = TLSFAllocator::FreeBlock;
-using Footer    = FreeBlock::Footer;
 
-//	=== Footer ====
+static constexpr sizet kFreeBlockOverhead = offsetof(FreeBlock, m_Flags) + sizeof(FreeBlock::m_Flags);
 
-Footer::Footer(size_t size, FreeBlock* const previous, FreeBlock* const next)
-    : m_Pattern(Footer::kValidationPattern | size)
-    , m_Previous(previous)
-    , m_Next(next)
-{
-}
-
-FreeBlock* Footer::GetBlock() const
-{
-    return reinterpret_cast<TLSFAllocator::FreeBlock*>(Memory::SubOffset(const_cast<TLSFAllocator::FreeBlock::Footer*>(this), BlockSize() - sizeof(Footer)));
-}
-
-size_t Footer::BlockSize() const
-{
-    return m_Pattern & kValidationMask;
-}
-
-bool Footer::IsValid() const
-{
-    return (m_Pattern & ~kValidationMask) == kValidationPattern;
-}
-
-//	===	FreeBlock ===
+//	===	freeBlock ===
 
 FreeBlock* TLSFAllocator::FreeBlock::New(const MemoryRange& block_range)
 {
@@ -74,10 +28,13 @@ FreeBlock* TLSFAllocator::FreeBlock::New(const MemoryRange& block_range)
 
 FreeBlock::FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next)
     : m_BlockSize(blockSize)
+    , m_Flags(kFreeBit)
+    , m_PreviousFree(previous)
+    , m_NextFree(next)
 {
     _ASSERT(blockSize >= kMinBlockSize);
 
-    new (GetFooter()) FreeBlock::Footer {m_BlockSize, previous, next};
+    // new (GetFooter()) freeBlock::Footer {m_BlockSize, previous, next};
 }
 
 FreeBlock::~FreeBlock()
@@ -88,60 +45,14 @@ FreeBlock::~FreeBlock()
     }
 }
 
-Footer* FreeBlock::GetFooter()
-{
-    return reinterpret_cast<Footer*>(Memory::AddOffset(this, m_BlockSize - kFooterSize));
-}
-
-FreeBlock* FreeBlock::Previous()
-{
-    return GetFooter()->m_Previous;
-}
-
-FreeBlock* FreeBlock::Next()
-{
-    return GetFooter()->m_Next;
-}
-
-Footer* FreeBlock::GetPreviousPhysicalFooter(void* block)
-{
-    return reinterpret_cast<Footer*>(Memory::SubOffset(block, kFooterSize));
-}
-
 #if ZN_DEBUG
 void FreeBlock::LogDebugInfo(bool recursive) const
 {
     ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Log, "BlockSize %i \t Address %p", m_BlockSize, this);
 
-    if (const auto Next = recursive ? const_cast<FreeBlock*>(this)->GetFooter()->m_Next : nullptr)
+    if ((m_Flags & Flags::kFreeBit) > 0 && m_NextFree != nullptr)
     {
-        Next->LogDebugInfo(recursive);
-    }
-}
-
-void FreeBlock::Verify(size_t max_block_size) const
-{
-    const auto Footer = const_cast<FreeBlock*>(this)->GetFooter();
-
-    _ASSERT(Footer->IsValid());
-
-    if (Footer->m_Next)
-    {
-        Footer->m_Next->Verify(max_block_size);
-    }
-}
-
-void TLSFAllocator::FreeBlock::VerifyWrite(MemoryRange range) const
-{
-    _ASSERT(!range.Contains(this));
-
-    auto Footer = const_cast<FreeBlock*>(this)->GetFooter();
-    if (Footer)
-    {
-        if (auto Next = static_cast<FreeBlock*>(Footer->m_Next))
-        {
-            Next->VerifyWrite(range);
-        }
+        m_NextFree->LogDebugInfo(recursive);
     }
 }
 #endif
@@ -155,84 +66,94 @@ TLSFAllocator::TLSFAllocator(MemoryRange inMemoryRange)
     , m_SL()
 {
     _ASSERT(inMemoryRange.Size() > kMaxAllocationSize);
-    std::fill(m_SL.begin(), m_SL.end(), 0);
+    memset(const_cast<u16*>(ArrayData(m_SL)), 0, ArrayLength(m_SL));
 }
 
 void* TLSFAllocator::Allocate(size_t size, size_t alignment)
 {
-    size_t AllocationSize = Memory::Align(size + sizeof(uintptr_t), FreeBlock::kMinBlockSize); // FREEBLOCK -> {[BLOCK_SIZE][STORAGE|FOOTER]}
+    // criticalSection.Lock();
+
+    size_t AllocationSize =
+        Memory::Align(size + kFreeBlockOverhead, FreeBlock::kMinBlockSize); // FREEBLOCK -> {[BLOCK_SIZE][STORAGE|FOOTER]}
 
     index_type fl = 0, sl = 0;
     MappingSearch(AllocationSize, fl, sl);
 
-    FreeBlock* FreeBlock = nullptr;
+    FreeBlock* freeBlock = nullptr;
 
     size_t BlockSize = 0;
 
     if (!FindSuitableBlock(fl, sl))
     {
-        BlockSize             = m_Memory.PageSize();
+        BlockSize = m_Memory.PageSize();
+
         void* AllocatedMemory = m_Memory.Allocate(); // Allocate a new page if there is no available block for the requested size.
-        FreeBlock             = FreeBlock::New({AllocatedMemory, BlockSize});
+
+        freeBlock = FreeBlock::New({AllocatedMemory, BlockSize});
     }
     else
     {
-        FreeBlock = m_FreeLists[fl][sl]; // Pop the block from the list.
+        freeBlock = m_FreeLists[fl][sl]; // Pop the block from the list.
 
-        RemoveBlock(FreeBlock);
+        RemoveBlock(freeBlock);
 
-        BlockSize = FreeBlock->Size();
+        BlockSize = freeBlock->Size();
     }
 
     _ASSERT(BlockSize >= AllocationSize);
 
-    if (auto NewBlockSize = BlockSize - AllocationSize;
-        NewBlockSize >= (FreeBlock::kMinBlockSize)) // If the free block is bigger than the allocation size, try to create a new smaller block from it.
+    // If the free block is bigger than the allocation size, try to create a new smaller block from it.
+    // TODO: Consider header size
+    if (auto NewBlockSize = BlockSize - AllocationSize; NewBlockSize >= (FreeBlock::kMinBlockSize))
     {
         BlockSize = AllocationSize;
 
-        auto NewBlockAddress = Memory::AddOffset(FreeBlock, BlockSize); // BIG FREEBLOCK -> {[REQUESTED_BLOCK][NEW_BLOCK]}
-
-        VERIFY_WRITE(NewBlockAddress, NewBlockSize, MemoryDebug::MarkFree);
+        auto NewBlockAddress = Memory::AddOffset(freeBlock, BlockSize); // BIG FREEBLOCK -> {[REQUESTED_BLOCK][NEW_BLOCK]}
 
         TLSFAllocator::FreeBlock* NewBlock = FreeBlock::New({NewBlockAddress, NewBlockSize});
 
         AddBlock(NewBlock);
+
+        NewBlock->m_Previous = freeBlock;
     }
 
-    VERIFY_WRITE_CALL(MemoryRange(FreeBlock, BlockSize));
+    freeBlock->m_BlockSize = BlockSize; // Write at the beginning of the block its size in order to safely free the memory when requested.
 
-    new (FreeBlock) uintptr_t(BlockSize); // Write at the beginning of the block its size in order to safely free the memory when requested.
+    freeBlock->m_Flags = freeBlock->m_Flags & ~FreeBlock::kFreeBit;
 
-    MemoryDebug::TrackAllocation(FreeBlock, BlockSize);
+    MemoryDebug::TrackAllocation(freeBlock, BlockSize);
 
-    ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Allocate \t %p, Size: %i", FreeBlock, BlockSize);
+    ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Allocate \t %p, Size: %i", freeBlock, BlockSize);
 
-    auto AllocationRange = MemoryRange(Memory::AddOffset(FreeBlock, sizeof(uintptr_t)), BlockSize - sizeof(BlockSize));
+    auto AllocationRange = MemoryRange(Memory::AddOffset(freeBlock, kFreeBlockOverhead), BlockSize - kFreeBlockOverhead);
 
-    VERIFY_WRITE(AllocationRange.Begin(), AllocationRange.Size(), MemoryDebug::MarkUninitialized);
-
-    VERIFY_WRITE(FreeBlock->GetFooter(), FreeBlock::kFooterSize, Memory::Memzero); // It's not a free block anymore, footer is unnecessary.
+    _ASSERT(AllocationRange.Size() >= size);
 
     return AllocationRange.Begin();
 }
 
 bool TLSFAllocator::Free(void* address)
 {
+#if TLSF_ENABLE_DECOMMIT
     if (!m_Memory.IsAllocated(address))
+#else
+    if (!m_Memory.IsAllocatedFast(address))
+#endif
     {
         return false;
     }
 
-    void* BlockAddress = Memory::SubOffset(address, sizeof(uintptr_t)); // Recover this block size
+    FreeBlock* BlockAddress = reinterpret_cast<FreeBlock*>(Memory::SubOffset(address, kFreeBlockOverhead)); // Recover this block size
 
-    uintptr_t BlockSize = *reinterpret_cast<uintptr_t*>(BlockAddress);
+    _ASSERT((BlockAddress->m_Flags & FreeBlock::kFreeBit) != FreeBlock::kFreeBit);
+
+    uintptr_t BlockSize = BlockAddress->m_BlockSize;
 
     ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "Free\t %p, Size: %i", BlockAddress, BlockSize);
 
-    VERIFY_WRITE(BlockAddress, BlockSize, MemoryDebug::MarkFree);
+    BlockAddress->m_Flags |= FreeBlock::kFreeBit;
 
-    FreeBlock* NewBlock = FreeBlock::New({BlockAddress, BlockSize}); // Make a new block
+    FreeBlock* NewBlock = BlockAddress;
 
     MemoryDebug::TrackDeallocation(BlockAddress);
 
@@ -330,7 +251,8 @@ bool TLSFAllocator::MappingSearch(size_t size, index_type& o_fl, index_type& o_s
 
         _BitScanReverse64(&fl, size);
 
-        size += (1ull << (fl - kJ)) - 1; // Find a block bigger than the appropriate one, in order to correctly fit the obj to be allocated + its header.
+        size += (1ull << (fl - kJ)) -
+                1; // Find a block bigger than the appropriate one, in order to correctly fit the obj to be allocated + its header.
 
         return MappingInsert(size, o_fl, o_sl);
     }
@@ -344,7 +266,7 @@ bool TLSFAllocator::FindSuitableBlock(index_type& o_fl, index_type& o_sl)
 
     index_type fl = 0, sl = 0;
 
-    auto Bitmap = m_SL[o_fl] & (0xFFFFFFFFFFFFFFFF << o_sl);
+    u16 Bitmap = m_SL[o_fl] & (0xFFFFFFFFFFFFFFFF << o_sl);
 
     if (Bitmap != 0)
     {
@@ -357,7 +279,9 @@ bool TLSFAllocator::FindSuitableBlock(index_type& o_fl, index_type& o_sl)
         Bitmap = m_FL & (0xFFFFFFFFFFFFFFFF << (o_fl + 1));
 
         if (Bitmap == 0)
+        {
             return false; // No available blocks have been found. Commit new pages or OOM.
+        }
 
         _BitScanForward64(&fl, Bitmap);
 
@@ -373,64 +297,65 @@ bool TLSFAllocator::FindSuitableBlock(index_type& o_fl, index_type& o_sl)
 
 TLSFAllocator::FreeBlock* TLSFAllocator::MergePrevious(FreeBlock* block)
 {
-    auto PreviousPhysicalBlockFooter = TLSFAllocator::FreeBlock::GetPreviousPhysicalFooter(block);
-
-    if ((m_Memory.IsAllocated(PreviousPhysicalBlockFooter) && PreviousPhysicalBlockFooter->IsValid()))
+    if ((block->m_Flags & FreeBlock::kPrevFreeBit) > 0)
     {
-        const auto PreviousBlockSize = PreviousPhysicalBlockFooter->BlockSize();
+        FreeBlock* previous = block->m_Previous;
+        if ((previous->m_Flags & FreeBlock::kFreeBit) > 0)
+        {
+            RemoveBlock(previous);
 
-        FreeBlock* PreviousPhysicalBlock = static_cast<FreeBlock*>(Memory::SubOffset(block, PreviousBlockSize));
+            sizet newSize         = previous->m_BlockSize + block->m_BlockSize;
+            previous->m_BlockSize = newSize;
 
-        ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "MergePrevious \t Block: %p \t Previous: %p", block, PreviousPhysicalBlock);
+            _ASSERT(block->m_NextFree == nullptr);
 
-        RemoveBlock(PreviousPhysicalBlock);
-
-        const auto MergedBlockSize = PreviousBlockSize + block->Size();
-
-        return FreeBlock::New({PreviousPhysicalBlock, MergedBlockSize});
+            return previous;
+        }
     }
-    else
-    {
-        return block;
-    }
+
+    return block;
 }
 
 TLSFAllocator::FreeBlock* TLSFAllocator::MergeNext(FreeBlock* block)
 {
-    FreeBlock* NextPhysicalBlock = static_cast<FreeBlock*>(Memory::AddOffset(block, block->Size()));
+    FreeBlock* next = static_cast<FreeBlock*>(Memory::AddOffset(block, block->m_BlockSize));
 
-    if (m_Memory.IsAllocated(NextPhysicalBlock) && NextPhysicalBlock->GetFooter()->IsValid())
+#if TLSF_ENABLE_DECOMMIT
+    if (!m_Memory.IsAllocated(next))
+#else
+    if (!m_Memory.IsAllocatedFast(next))
+#endif
     {
-        auto NextBlockSize = NextPhysicalBlock->Size();
+        if ((next->m_Flags & FreeBlock::kFreeBit) > 0)
+        {
+            sizet size = next->m_BlockSize;
 
-        ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "MergeNext \t Block: %p \t Next: %p", block, NextPhysicalBlock);
+            ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "MergeNext \t Block: %p \t Next: %p", block, next);
 
-        RemoveBlock(NextPhysicalBlock);
+            RemoveBlock(next);
 
-        new (NextPhysicalBlock)(uintptr_t)(0);
-
-        auto MergedBlockSize = block->Size() + NextBlockSize;
-
-        return FreeBlock::New({block, MergedBlockSize});
+            block->m_BlockSize += next->m_BlockSize;
+        }
     }
     return block;
 }
 
 void TLSFAllocator::RemoveBlock(FreeBlock* block)
 {
+    _ASSERT((block->m_Flags & FreeBlock::kFreeBit) > 0);
+
     index_type fl = 0, sl = 0;
 
     MappingInsert(block->Size(), fl, sl);
 
     ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "RemoveBlock \t Block: %p\t  Size: %i, fl %i, sl %i", block, block->Size(), fl, sl);
 
-    auto BlockFooter = block->GetFooter();
-
     if (m_FreeLists[fl][sl] == block)
     {
-        m_FreeLists[fl][sl] = BlockFooter->m_Next;
+        FreeBlock* next     = block->m_NextFree;
+        m_FreeLists[fl][sl] = next;
 
-        if (m_FreeLists[fl][sl] == nullptr) // Since we are replacing the head, make sure that if it's null we remove this block from FL/SL.
+        if (next == nullptr) // Since we are replacing the head, make sure that if it's null we remove this block from FL/SL.
         {
             m_SL[fl] &= ~(1ull << sl);
             if (m_SL[fl] == 0)
@@ -440,30 +365,26 @@ void TLSFAllocator::RemoveBlock(FreeBlock* block)
         }
         else
         {
-            _ASSERT(block == m_FreeLists[fl][sl]->GetFooter()->m_Previous);
-
-            m_FreeLists[fl][sl]->GetFooter()->m_Previous = nullptr;
+            next->m_PreviousFree = nullptr;
+            next->m_Flags        = next->m_Flags & ~FreeBlock::kPrevFreeBit;
         }
     }
     else
     {
-        _ASSERT(BlockFooter->m_Previous);
+        ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Previous -> %p", block->m_PreviousFree);
+        ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t Previous.Next -> %p", block->m_PreviousFree->m_NextFree);
 
-        ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Previous -> %p", BlockFooter->m_Previous);
-        ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t Previous Footer -> %p", BlockFooter->m_Previous->GetFooter());
-        ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t (Previous Footer).Next -> %p", BlockFooter->m_Previous->GetFooter()->m_Next);
+        _ASSERT(block->m_PreviousFree != nullptr);
 
-        BlockFooter->m_Previous->GetFooter()->m_Next = BlockFooter->m_Next; // Remap previous block to next block
+        block->m_PreviousFree->m_NextFree = block->m_NextFree; // Remap previous block to next block
 
-        if (BlockFooter->m_Next)
+        if (block->m_NextFree)
         {
-            BlockFooter->m_Next->GetFooter()->m_Previous = BlockFooter->m_Previous;
+            _ASSERT(block->m_NextFree->m_PreviousFree != nullptr);
+
+            block->m_NextFree->m_PreviousFree = block->m_PreviousFree;
         }
-
-        ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t New (Previous Footer).Next -> %p", block->Previous()->GetFooter()->m_Next);
     }
-
-    VERIFY_WRITE(BlockFooter, FreeBlock::kFooterSize, Memory::Memzero); // Removing it from the map, footer is unnecessary.
 }
 
 void TLSFAllocator::AddBlock(FreeBlock* block)
@@ -477,13 +398,17 @@ void TLSFAllocator::AddBlock(FreeBlock* block)
     m_FL |= (1ull << fl);
     m_SL[fl] |= (1ull << sl);
 
+    block->m_NextFree     = nullptr;
+    block->m_PreviousFree = nullptr;
+
     if (auto Head = m_FreeLists[fl][sl]; Head != nullptr)
     {
         ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Previous Head -> %p", Head);
 
-        block->GetFooter()->m_Next = Head;
+        block->m_NextFree = Head;
 
-        Head->GetFooter()->m_Previous = block;
+        Head->m_PreviousFree = block;
+        Head->m_Flags |= FreeBlock::kPrevFreeBit;
 
         ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t (Previous Head).Previous -> %p", Head->Previous());
     }
@@ -492,6 +417,7 @@ void TLSFAllocator::AddBlock(FreeBlock* block)
     VERIFY_WRITE_CALL(MemoryRange(block, block->Size()));
 #endif
 
+    block->m_Flags |= FreeBlock::kFreeBit;
     m_FreeLists[fl][sl] = block;
 
     ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t Next -> %p", block->Next());
@@ -526,14 +452,6 @@ bool TLSFAllocator::Decommit(FreeBlock* block)
 
         auto DeallocationRange = MemoryRange {SPA, EPA};
 
-        VERIFY_WRITE_CALL(DeallocationRange);
-
-        { // dbg
-            auto pFooter = block->GetFooter();
-            _ASSERT(pFooter->m_Next == nullptr);
-            _ASSERT(pFooter->m_Previous == nullptr);
-        }
-
         if (m_Memory.Free(DeallocationRange.Begin()))
         {
             if (SPA_Alignment >= FreeBlock::kMinBlockSize)
@@ -553,8 +471,6 @@ bool TLSFAllocator::Decommit(FreeBlock* block)
 
                 ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t TLSFAllocator::AddSecondBlock: %p", EPA);
             }
-
-            VERIFY_WRITE_CALL(DeallocationRange);
 
             return true;
         }

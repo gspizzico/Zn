@@ -33,6 +33,7 @@ class PageAllocator
     }
 
     bool IsAllocated(void* address) const;
+    bool IsAllocatedFast(void* address) const;
 
     void* GetPageAddress(void* address) const;
 

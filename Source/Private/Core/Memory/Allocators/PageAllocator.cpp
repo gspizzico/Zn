@@ -48,8 +48,8 @@ bool PageAllocator::Free(void* address)
 
     MemoryDebug::MarkFree(address, Memory::AddOffset(address, PageSize()));
 
-    m_NextFreePage =
-        new (address) FreePage(m_NextFreePage); // Write at the freed page, the address of the current free page. The current free page it's the freed page
+    m_NextFreePage = new (address) FreePage(
+        m_NextFreePage); // Write at the freed page, the address of the current free page. The current free page it's the freed page
 
     m_AllocatedPages--;
 
@@ -66,7 +66,8 @@ bool PageAllocator::Free(void* address)
 
             _ASSERT(Range().Contains(m_NextFreePage));
 
-            ZN_LOG(LogPoolAllocator, ELogVerbosity::Verbose, "%p \t %x \t %p", ToFree, *reinterpret_cast<uint64_t*>(ToFree), m_NextFreePage);
+            ZN_LOG(
+                LogPoolAllocator, ELogVerbosity::Verbose, "%p \t %x \t %p", ToFree, *reinterpret_cast<uint64_t*>(ToFree), m_NextFreePage);
 
             ZN_VM_CHECK(VirtualMemory::Decommit(ToFree, PageSize()));
 
@@ -90,6 +91,11 @@ bool PageAllocator::IsAllocated(void* address) const
     }
 
     return false;
+}
+
+bool PageAllocator::IsAllocatedFast(void* address) const
+{
+    return m_Memory.Contains(address) && address < m_NextFreePage;
 }
 
 void* PageAllocator::GetPageAddress(void* address) const

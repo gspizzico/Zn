@@ -3,6 +3,7 @@
 #include "Core/Memory/Allocators/PageAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
 #include "Core/Math/Math.h"
+#include <Core/HAL/PlatformTypes.h>
 
 namespace Zn
 {
@@ -25,33 +26,7 @@ class TLSFAllocator
     struct FreeBlock
     {
       public:
-        // The footer contains the size of the block and a pointer to the previous and the next physical block.
-        struct Footer
-        {
-          private:
-            static constexpr int64_t kValidationPattern = (int64_t) 0xff5aff5a << 32ull;
-
-            static constexpr int64_t kValidationMask = 0xffffffff;
-
-            int64_t m_Pattern;
-
-          public:
-            Footer(size_t size, FreeBlock* const previous, FreeBlock* const next);
-
-            FreeBlock* GetBlock() const;
-
-            size_t BlockSize() const;
-
-            bool IsValid() const;
-
-            FreeBlock* m_Previous;
-
-            FreeBlock* m_Next;
-        };
-
-        static constexpr size_t kFooterSize = sizeof(Footer);
-
-        static constexpr size_t kMinBlockSize = 256; // std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
+        static constexpr size_t kMinBlockSize = 256;
 
         static FreeBlock* New(const MemoryRange& block_range);
 
@@ -59,18 +34,10 @@ class TLSFAllocator
 
         ~FreeBlock();
 
-        Footer* GetFooter();
-
-        FreeBlock* Previous();
-
-        FreeBlock* Next();
-
         size_t Size() const
         {
             return m_BlockSize;
         }
-
-        static Footer* GetPreviousPhysicalFooter(void* block);
 
 #if ZN_DEBUG
         void LogDebugInfo(bool recursive) const;
@@ -79,10 +46,21 @@ class TLSFAllocator
 
         void VerifyWrite(MemoryRange range) const;
 #endif
+
+        FreeBlock* m_Previous = nullptr;
+        size_t     m_BlockSize;
+        u8         m_Flags        = 0;
+        FreeBlock* m_PreviousFree = nullptr;
+        FreeBlock* m_NextFree     = nullptr;
+
+        enum Flags
+        {
+            kFreeBit     = 1,
+            kPrevFreeBit = 1 << 1
+        };
+
       private:
         static constexpr bool kMarkFreeOnDelete = false;
-
-        size_t m_BlockSize;
     };
 
     TLSFAllocator(MemoryRange inMemoryRange);
@@ -117,7 +95,7 @@ class TLSFAllocator
   private:
     using index_type = unsigned long;
 
-    using FreeListMatrix = std::array<std::array<FreeBlock*, kNumberOfLists>, kNumberOfPools>;
+    using FreeListMatrix = FreeBlock* [kNumberOfPools][kNumberOfLists];
 
     bool MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
 
@@ -141,6 +119,8 @@ class TLSFAllocator
 
     uint16_t m_FL;
 
-    std::array<uint16_t, kNumberOfPools> m_SL;
+    uint16_t m_SL[kNumberOfPools];
+
+    CriticalSection criticalSection;
 };
 } // namespace Zn
