@@ -13,7 +13,7 @@ AutomationTest::AutomationTest(const AutomationTest& other)
     : m_State(other.m_State)
     , m_Result(other.m_Result)
 {
-    _ASSERT(m_State == State::kUninitialized);
+    check(m_State == State::kUninitialized);
 }
 
 AutomationTest::State AutomationTest::Run()

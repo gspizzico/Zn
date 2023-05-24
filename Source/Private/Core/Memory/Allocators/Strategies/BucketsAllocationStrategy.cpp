@@ -9,8 +9,8 @@ BucketsAllocationStrategy::BucketsAllocationStrategy(SharedPtr<PageAllocator> me
     : m_Memory(memory)
     , m_Buckets()
 {
-    _ASSERT(allocation_step >= kMinAllocationSize);
-    _ASSERT(max_allocation_size >= kMinAllocationSize);
+    check(allocation_step >= kMinAllocationSize);
+    check(max_allocation_size >= kMinAllocationSize);
 
     m_AllocationStep         = Memory::Align(allocation_step, sizeof(uintptr_t));
     size_t MaxAllocationSize = Memory::Align(max_allocation_size, m_AllocationStep);
@@ -30,18 +30,18 @@ void* BucketsAllocationStrategy::Allocate(size_t size, size_t alignment)
 
     const size_t AllocationSize = Memory::Align(size, InternalAlignment);
 
-    _ASSERT(AllocationSize <= GetMaxAllocationSize()); // Ensure that we can allocate this size.
+    check(AllocationSize <= GetMaxAllocationSize()); // Ensure that we can allocate this size.
 
     size_t AllocatorIndex = (AllocationSize / m_AllocationStep) - 1;
 
-    _ASSERT(AllocatorIndex >= 0 && AllocatorIndex < m_Buckets.size());
+    check(AllocatorIndex >= 0 && AllocatorIndex < m_Buckets.size());
 
     return m_Buckets[AllocatorIndex].Allocate();
 }
 
 void BucketsAllocationStrategy::Free(void* address)
 {
-    _ASSERT(m_Memory->Range().Contains(address));
+    check(m_Memory->Range().Contains(address));
 
     auto PageAddress = FixedSizeAllocator::FSAPage::GetPageFromAnyAddress(address, m_Memory->Range().Begin(), m_Memory->PageSize());
 
@@ -49,7 +49,7 @@ void BucketsAllocationStrategy::Free(void* address)
 
     size_t AllocatorIndex = (AllocationSize / m_AllocationStep) - 1;
 
-    _ASSERT(AllocatorIndex >= 0 && AllocatorIndex < m_Buckets.size());
+    check(AllocatorIndex >= 0 && AllocatorIndex < m_Buckets.size());
 
     m_Buckets[AllocatorIndex].Free(address);
 }

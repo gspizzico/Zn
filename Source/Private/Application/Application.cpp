@@ -70,7 +70,7 @@ void Application::Shutdown()
 
 bool Application::ProcessOSEvents(float deltaTime)
 {
-    _ASSERT(is_initialized);
+    check(is_initialized);
 
     SDL_Event event;
 

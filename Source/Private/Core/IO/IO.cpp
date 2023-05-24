@@ -47,7 +47,7 @@ bool IO::ReadBinaryFile(const String& InFilename, Vector<uint8>& OutData)
 
 bool IO::ReadTextFile(const String& InFilename, Vector<const char*>& OutData)
 {
-    _ASSERT(false); // Not Implemented
+    check(false); // Not Implemented
     return false;
 }
 

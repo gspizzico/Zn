@@ -313,7 +313,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
     VkSurfaceKHR sdlSurface;
     if (SDL_Vulkan_CreateSurface(window, instance, &sdlSurface) != SDL_TRUE)
     {
-        _ASSERT(false);
+        check(false);
     }
 
     surface = sdlSurface;
@@ -326,7 +326,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
     gpu = SelectPhysicalDevice(devices);
 
-    _ASSERT(gpu);
+    check(gpu);
 
     gpuFeatures = gpu.getFeatures();
 
@@ -340,7 +340,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
     if (!IsSupported)
     {
-        _ASSERT(false);
+        check(false);
         return;
     }
 
@@ -776,7 +776,7 @@ void Zn::VulkanDevice::BeginFrame()
     }
     else if (acquireImageResult != vk::Result::eSuccess && acquireImageResult != vk::Result::eSuboptimalKHR)
     {
-        _ASSERT(false);
+        check(false);
         return;
     }
 
@@ -935,7 +935,7 @@ void Zn::VulkanDevice::EndFrame()
     }
     else
     {
-        _ASSERT(presentResult == vk::Result::eSuccess);
+        check(presentResult == vk::Result::eSuccess);
     }
 
     ZN_TRACE_GPU_COLLECT(gpuTraceContexts[currentFrame], commandBuffers[currentFrame]);
@@ -2360,7 +2360,7 @@ void Zn::VulkanDevice::TransitionImageLayout(
     }
     else
     {
-        _ASSERT(false); // Unsupported Transition
+        check(false); // Unsupported Transition
     }
 
     cmd.pipelineBarrier(srcStage, dstStage, vk::DependencyFlags(0), {}, {}, {barrier});

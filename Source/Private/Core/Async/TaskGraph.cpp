@@ -119,7 +119,7 @@ void TaskGraph::Enqueue(SharedPtr<ITaskGraphNode> task, std::initializer_list<Sh
         for (const auto& Dependency : dependencies)
         {
             auto DependencyIndex = IndexOf(Dependency);
-            _ASSERT(DependencyIndex >= 0);
+            check(DependencyIndex >= 0);
 
             Index = std::max(DependencyIndex + 1, Index); // Index is always the greater DependencyIndex + 1.
         }
@@ -131,7 +131,7 @@ void TaskGraph::Enqueue(SharedPtr<ITaskGraphNode> task, std::initializer_list<Sh
         if (OriginalIndex != -1) // removed task from previous level.
         {
             auto It = At(OriginalIndex);
-            _ASSERT(It.has_value());
+            check(It.has_value());
 
             (*It)->erase(std::find((**It).begin(), (**It).end(), task));
         }
@@ -153,7 +153,7 @@ void TaskGraph::Enqueue(SharedPtr<ITaskGraphNode> task, std::initializer_list<Sh
 void TaskGraph::InsertAfter(SharedPtr<ITaskGraphNode> task, SharedPtr<ITaskGraphNode> insert_after_task)
 {
     auto It = At(insert_after_task);
-    _ASSERT(It != m_Graph.cend());
+    check(It != m_Graph.cend());
 
     ++It;
 

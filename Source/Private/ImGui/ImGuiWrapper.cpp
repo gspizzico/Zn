@@ -36,7 +36,7 @@ bool GImGuiInitialized = false;
 
 void Zn::imgui_initialize()
 {
-    _ASSERT(GImGuiInitialized == false);
+    check(GImGuiInitialized == false);
 
     IMGUI_CHECKVERSION();
 
@@ -79,7 +79,7 @@ void Zn::imgui_initialize()
 
 void Zn::imgui_shutdown()
 {
-    _ASSERT(GImGuiInitialized);
+    check(GImGuiInitialized);
 
     // TODO: why is this here?
     ImGui_ImplSDL2_Shutdown();

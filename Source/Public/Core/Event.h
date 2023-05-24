@@ -5,9 +5,11 @@
 
 namespace Zn
 {
-template<typename Signature> class TSingleEvent;
+template<typename Signature>
+class TSingleEvent;
 
-template<typename R, typename... Args> class TSingleEvent<R(Args...)>
+template<typename R, typename... Args>
+class TSingleEvent<R(Args...)>
 {
   public:
     TSingleEvent() = default;
@@ -41,7 +43,8 @@ template<typename R, typename... Args> class TSingleEvent<R(Args...)>
     TDelegate<R(Args...)> delegate;
 };
 
-template<typename... Args> class TMulticastEvent
+template<typename... Args>
+class TMulticastEvent
 {
   public:
     TMulticastEvent() = default;
@@ -58,7 +61,7 @@ template<typename... Args> class TMulticastEvent
     {
         for (const TDelegate<void(Args...)>& delegate : delegates)
         {
-            _ASSERT(delegate);
+            check(delegate);
 
             delegate(std::forward<Args>(arguments)...);
         }

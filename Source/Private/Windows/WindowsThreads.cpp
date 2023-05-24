@@ -67,13 +67,13 @@ bool WindowsThreads::IsThreadAlive(NativeThreadHandle handle)
 
 bool WindowsThreads::WaitThread(NativeThreadHandle handle, uint32 ms)
 {
-    _ASSERT(handle != nullptr);
+    check(handle != nullptr);
     return ::WaitForSingleObject(handle, ms) == WAIT_OBJECT_0;
 }
 
 void WindowsThreads::WaitThread(NativeThreadHandle handle)
 {
-    _ASSERT(handle != nullptr);
+    check(handle != nullptr);
     ::WaitForSingleObject(handle, INFINITE);
 }
 

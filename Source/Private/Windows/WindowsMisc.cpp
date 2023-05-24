@@ -45,7 +45,7 @@ Guid WindowsMisc::GenerateGuid()
     UUID WindowsGuid;
     auto Result = UuidCreateSequential(&WindowsGuid);
 
-    _ASSERT(Result != RPC_S_UUID_NO_ADDRESS);
+    check(Result != RPC_S_UUID_NO_ADDRESS);
 
     Guid ZnGuid;
     ZnGuid.A = WindowsGuid.Data1;

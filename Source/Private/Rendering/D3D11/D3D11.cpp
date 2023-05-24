@@ -1,7 +1,7 @@
 #include <Znpch.h>
 #include <Rendering/D3D11/D3D11.h>
 #include <Core/Memory/Memory.h>
-#include "crtdbg.h" //#todo needed for _ASSERT
+#include "crtdbg.h" //#todo needed for check
 
 using namespace Zn;
 
@@ -145,8 +145,8 @@ ID3D11DeviceContext* D3D11Device::GetDeviceContext() const
 
 D3D11Device::~D3D11Device()
 {
-    _ASSERT(m_D3DDevice == nullptr);
-    _ASSERT(m_D3DDeviceContext == nullptr);
-    _ASSERT(m_SwapChain == nullptr);
-    _ASSERT(m_RenderTargetView == nullptr);
+    check(m_D3DDevice == nullptr);
+    check(m_D3DDeviceContext == nullptr);
+    check(m_SwapChain == nullptr);
+    check(m_RenderTargetView == nullptr);
 }

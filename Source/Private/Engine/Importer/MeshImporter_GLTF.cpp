@@ -44,7 +44,7 @@ i32 FetchIndex(const u8* src, u32 componentType)
     }
     else
     {
-        _ASSERT(false && "Index type not supported.");
+        check(false && "Index type not supported.");
         return 0;
     }
 }
@@ -89,7 +89,7 @@ Zn::AlphaMode TranslateAlphaMode(const Zn::String& gltfAlphaMode)
 
 SharedPtr<TextureSource> CreateTextureSource(const tinygltf::Image& gltfImage)
 {
-    _ASSERT(gltfImage.pixel_type == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE && "Missing implementation for other texture component types.");
+    check(gltfImage.pixel_type == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE && "Missing implementation for other texture component types.");
 
     return SharedPtr<TextureSource>(new TextureSource {
         .width    = gltfImage.width,

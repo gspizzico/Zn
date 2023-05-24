@@ -81,7 +81,7 @@ const char* Log::ToCString(ELogVerbosity verbosity)
         return sError.CString();
         break;
     default:
-        _ASSERT(false);
+        check(false);
         return nullptr;
     }
 }

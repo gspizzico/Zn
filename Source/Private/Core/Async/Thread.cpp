@@ -19,7 +19,7 @@ Thread* Thread::New(String name, ThreadedJob* job)
 
     Thread* NewThread = PlatformThreads::CreateNewThread();
 
-    _ASSERT(NewThread != nullptr);
+    check(NewThread != nullptr);
 
     NewThread->m_Name = name.length() > 0 ? name : "Unnamed Thread";
 
@@ -41,7 +41,7 @@ inline bool Thread::IsCurrentThread() const
 
 uint32 Thread::Main()
 {
-    _ASSERT(m_Job != nullptr);
+    check(m_Job != nullptr);
 
     m_Job->Prepare();
     m_Job->DoWork();

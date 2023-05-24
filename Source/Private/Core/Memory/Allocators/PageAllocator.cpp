@@ -43,8 +43,8 @@ void* PageAllocator::Allocate()
 
 bool PageAllocator::Free(void* address)
 {
-    _ASSERT(Range().Contains(address));
-    _ASSERT(address == Memory::AlignToAddress(address, Range().Begin(), PageSize()));
+    check(Range().Contains(address));
+    check(address == Memory::AlignToAddress(address, Range().Begin(), PageSize()));
 
     MemoryDebug::MarkFree(address, Memory::AddOffset(address, PageSize()));
 
@@ -60,11 +60,11 @@ bool PageAllocator::Free(void* address)
         while (m_Tracker.IsCommitted(m_NextFreePage) && GetMemoryUtilization() < kEndDecommitThreshold)
         {
             FreePage* ToFree = reinterpret_cast<FreePage*>(m_NextFreePage);
-            _ASSERT(ToFree->IsValid());
+            check(ToFree->IsValid());
 
             m_NextFreePage = ToFree->m_Next;
 
-            _ASSERT(Range().Contains(m_NextFreePage));
+            check(Range().Contains(m_NextFreePage));
 
             ZN_LOG(
                 LogPoolAllocator, ELogVerbosity::Verbose, "%p \t %x \t %p", ToFree, *reinterpret_cast<uint64_t*>(ToFree), m_NextFreePage);
@@ -165,7 +165,7 @@ void PageAllocator::CommittedMemoryTracker::OnCommit(void* address)
 
 void PageAllocator::CommittedMemoryTracker::OnFree(void* address)
 {
-    _ASSERT(m_AddressRange.Contains(address));
+    check(m_AddressRange.Contains(address));
 
     size_t PageNum = PageNumber(address);
 
@@ -226,7 +226,7 @@ void* PageAllocator::CommittedMemoryTracker::GetNextPageToCommit() const
 
 size_t PageAllocator::CommittedMemoryTracker::PageNumber(void* address) const
 {
-    _ASSERT(m_AddressRange.Contains(address));
+    check(m_AddressRange.Contains(address));
 
     auto Distance = Memory::GetDistance(address, m_AddressRange.Begin()); // Distance from memory range begin
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Windows/WindowsCommon.h"
 #include "Windows/WindowsThreads.h"
 #include "Windows/WindowsCriticalSection.h"
 #include "Windows/WindowsMemory.h"

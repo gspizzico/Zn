@@ -173,7 +173,7 @@ void Delete(void* address)
         success = GDefaultAllocator->Free(address);
     }
 
-    _ASSERT(success || (address == nullptr));
+    check(success || (address == nullptr));
 }
 } // namespace Zn::Allocators
 

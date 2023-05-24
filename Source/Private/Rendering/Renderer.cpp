@@ -25,7 +25,7 @@ bool Zn::Renderer::initialize(RendererBackendType type, RendererInitParams data)
 {
     ZN_TRACE_QUICKSCOPE();
 
-    _ASSERT(!instance);
+    check(!instance);
 
     switch (type)
     {

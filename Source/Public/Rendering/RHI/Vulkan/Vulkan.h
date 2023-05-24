@@ -14,12 +14,12 @@
 
 #define ZN_VK_CHECK(expression)                                                                                                            \
     if (vk::Result result = expression; result != vk::Result::eSuccess)                                                                    \
-        _ASSERT(false);
+        check(false);
 
 #define ZN_VK_CHECK_RETURN(expression)                                                                                                     \
     if (vk::Result result = expression; result != vk::Result::eSuccess)                                                                    \
     {                                                                                                                                      \
-        _ASSERT(false);                                                                                                                    \
+        check(false);                                                                                                                      \
         return;                                                                                                                            \
     }
 

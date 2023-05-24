@@ -42,7 +42,7 @@ void FixedSizeAllocator::Free(void* address)
 {
     auto PageAddress = FSAPage::GetPageFromAnyAddress(address, m_MemoryPool->Range().Begin(), m_MemoryPool->PageSize());
 
-    _ASSERT(PageAddress != NULL && PageAddress->m_AllocationSize == m_AllocationSize);
+    check(PageAddress != NULL && PageAddress->m_AllocationSize == m_AllocationSize);
 
     PageAddress->Free(address);
 
@@ -50,7 +50,10 @@ void FixedSizeAllocator::Free(void* address)
 
     if (PageAddress->m_AllocatedBlocks == PageAddress->MaxAllocations() - 1)
     {
-        ZN_LOG(LogFixedSizeAllocator, ELogVerbosity::Verbose, "A slot on page %i has been freed. This page is added back to the FreePageList.", PageKey);
+        ZN_LOG(LogFixedSizeAllocator,
+               ELogVerbosity::Verbose,
+               "A slot on page %i has been freed. This page is added back to the FreePageList.",
+               PageKey);
 
         m_FreePageList.push_back(PageKey);
         m_FullPageList.erase(PageKey);
@@ -89,15 +92,17 @@ FixedSizeAllocator::FSAPage::FSAPage(size_t page_size, size_t allocation_size)
 
     const auto PageHeaderSize = Memory::GetDistance(StartAddress(), this);
 
-    _ASSERT(NumBlocks - 1 <= (size_t) std::numeric_limits<uint16_t>::max());
+    check(NumBlocks - 1 <= (size_t) std::numeric_limits<uint16_t>::max());
 
-    for (uint16_t BlockIndex = 0; BlockIndex < NumBlocks; BlockIndex++) // for every block, create a free block which points to the next one.
+    for (uint16_t BlockIndex = 0; BlockIndex < NumBlocks;
+         BlockIndex++) // for every block, create a free block which points to the next one.
     {
         const auto Offset = PageHeaderSize + (BlockIndex * m_AllocationSize);
 
         auto BlockAddress = Memory::AddOffset(this, Offset);
 
-        uint16_t NextBlockOffset = BlockIndex < NumBlocks - 1 ? (uint16_t) (Offset + m_AllocationSize) : std::numeric_limits<uint16_t>::max();
+        uint16_t NextBlockOffset =
+            BlockIndex < NumBlocks - 1 ? (uint16_t) (Offset + m_AllocationSize) : std::numeric_limits<uint16_t>::max();
 
         new (BlockAddress) FreeBlock {FreeBlock::kValidationToken, NextBlockOffset};
     }
@@ -119,12 +124,12 @@ void* FixedSizeAllocator::FSAPage::Allocate()
 
     if (m_NextFreeBlock != nullptr)
     {
-        _ASSERT(m_NextFreeBlock->m_AllocationToken == FreeBlock::kValidationToken);
+        check(m_NextFreeBlock->m_AllocationToken == FreeBlock::kValidationToken);
 
-        m_NextFreeBlock =
-            m_NextFreeBlock->m_NextBlockOffset != std::numeric_limits<uint16_t>::max() // If the next block offset is valid, the next block ptr is replaced.
-                ? (FixedSizeAllocator::FreeBlock*) (Memory::AddOffset(this, m_NextFreeBlock->m_NextBlockOffset))
-                : nullptr;
+        m_NextFreeBlock = m_NextFreeBlock->m_NextBlockOffset !=
+                                  std::numeric_limits<uint16_t>::max() // If the next block offset is valid, the next block ptr is replaced.
+                              ? (FixedSizeAllocator::FreeBlock*) (Memory::AddOffset(this, m_NextFreeBlock->m_NextBlockOffset))
+                              : nullptr;
 
         m_AllocatedBlocks++;
 
@@ -146,11 +151,11 @@ void FixedSizeAllocator::FSAPage::Free(void* address)
 
     if (m_NextFreeBlock != nullptr)
     {
-        _ASSERT(m_NextFreeBlock->m_AllocationToken == FreeBlock::kValidationToken);
+        check(m_NextFreeBlock->m_AllocationToken == FreeBlock::kValidationToken);
 
         auto Offset = Memory::GetDistance(m_NextFreeBlock, this);
 
-        _ASSERT(Offset >= 0);
+        check(Offset >= 0);
 
         NewBlock->m_NextBlockOffset = static_cast<uint32_t>(Offset);
     }
@@ -165,6 +170,7 @@ inline FixedSizeAllocator::FSAPage* FixedSizeAllocator::FSAPage::GetPageFromAnyA
 
 inline FixedSizeAllocator::FreeBlock* FixedSizeAllocator::FSAPage::StartAddress() const
 {
-    return reinterpret_cast<FixedSizeAllocator::FreeBlock*>(Memory::Align(Memory::AddOffset(const_cast<FSAPage*>(this), sizeof(FSAPage)), m_AllocationSize));
+    return reinterpret_cast<FixedSizeAllocator::FreeBlock*>(
+        Memory::Align(Memory::AddOffset(const_cast<FSAPage*>(this), sizeof(FSAPage)), m_AllocationSize));
 }
 } // namespace Zn

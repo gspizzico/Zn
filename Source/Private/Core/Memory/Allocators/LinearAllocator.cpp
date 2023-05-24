@@ -26,13 +26,13 @@ Zn::LinearAllocator::~LinearAllocator()
 
 void* Zn::LinearAllocator::Allocate(size_t size, size_t alignment)
 {
-    _ASSERT(size > 0);
+    check(size > 0);
 
     auto AlignedAddress = Memory::Align(m_Address, alignment);
 
     m_Address = Memory::AddOffset(AlignedAddress, size);
 
-    _ASSERT(m_Memory->Range().Contains(m_Address)); // OOM
+    check(m_Memory->Range().Contains(m_Address)); // OOM
 
     auto NextPage = Memory::Align(m_Address, VirtualMemory::GetPageSize());
 

@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <Core/AssertionMacros.h>
 #include "Core/Containers/Vector.h"
 #include "Core/Containers/Map.h"
 
@@ -140,7 +141,7 @@ constexpr sizet SizeOfDataType(DataType e)
     case DataType::COUNT:
         break;
     }
-    _ASSERT(false && "Invalid enumerator");
+
     return 0;
 }
 

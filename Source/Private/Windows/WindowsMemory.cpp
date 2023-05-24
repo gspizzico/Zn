@@ -94,7 +94,7 @@ VirtualMemoryInformation WindowsVirtualMemory::GetMemoryInformation(void* addres
     MEMORY_BASIC_INFORMATION WinMemoryInformation;
     auto                     Result = VirtualQuery(address, &WinMemoryInformation, sizeof(WinMemoryInformation));
 
-    _ASSERT(Result > 0 && Result == sizeof(WinMemoryInformation));
+    check(Result > 0 && Result == sizeof(WinMemoryInformation));
 
     VirtualMemoryInformation MemoryInformation;
 

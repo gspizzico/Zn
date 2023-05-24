@@ -12,7 +12,7 @@ using namespace Zn;
 
 Window::Window(const int width, const int height, const String& title)
 {
-    _ASSERT(SDLWrapper::IsInitialized());
+    check(SDLWrapper::IsInitialized());
 
     // Create window at default position
 

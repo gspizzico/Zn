@@ -24,7 +24,7 @@ void* TinyAllocatorStrategy::Allocate(size_t size, size_t alignment)
 {
     // #todo handle alignment
 
-    _ASSERT(size <= kMaxAllocationSize);
+    check(size <= kMaxAllocationSize);
 
     size_t FreeListIndex = GetFreeListIndex(size);
 
@@ -81,7 +81,7 @@ void* TinyAllocatorStrategy::Allocate(size_t size, size_t alignment)
 
     MemoryDebug::MarkUninitialized(Allocation, Memory::AddOffset(Allocation, SlotSize));
 
-    _ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
+    check(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
 
     criticalSection.Unlock();
 
@@ -125,7 +125,7 @@ bool TinyAllocatorStrategy::Free(void* address)
         }
     }
 
-    _ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
+    check(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
 
     criticalSection.Unlock();
 
@@ -148,7 +148,7 @@ size_t Zn::TinyAllocatorStrategy::GetFreeListIndex(void* address) const
 
     size_t FreeListIndex = *reinterpret_cast<size_t*>(PageAddress);
 
-    _ASSERT(FreeListIndex >= 0 && FreeListIndex < 16);
+    check(FreeListIndex >= 0 && FreeListIndex < 16);
 
     return FreeListIndex;
 }

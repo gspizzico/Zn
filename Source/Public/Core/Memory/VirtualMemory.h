@@ -8,11 +8,11 @@
 DECLARE_LOG_CATEGORY(LogMemory);
 
 #if ZN_DEBUG
-    #define ZN_VM_CHECK(FunctionCall)                                                                                                                          \
-        if (!FunctionCall)                                                                                                                                     \
-        {                                                                                                                                                      \
-            ZN_LOG(LogMemory, ELogVerbosity::Error, #FunctionCall);                                                                                            \
-            _ASSERT(false);                                                                                                                                    \
+    #define ZN_VM_CHECK(FunctionCall)                                                                                                      \
+        if (!FunctionCall)                                                                                                                 \
+        {                                                                                                                                  \
+            ZN_LOG(LogMemory, ELogVerbosity::Error, #FunctionCall);                                                                        \
+            check(false);                                                                                                                  \
         }
 #else
     #define ZN_VM_CHECK(FunctionCall) FunctionCall
@@ -27,10 +27,11 @@ class VirtualMemory
   public:
     enum class State
     {
-        kReserved =
-            0, // Indicates reserved pages where a range of the process's virtual address space is reserved without any physical storage being allocated.
-        kCommitted = 1, // Indicates committed pages for which physical storage has been allocated, either in memory or in the paging file on disk.
-        kFree      = 2  // Indicates free pages not accessible to the calling process and available to be allocated.
+        kReserved = 0, // Indicates reserved pages where a range of the process's virtual address space is reserved without any physical
+                       // storage being allocated.
+        kCommitted =
+            1, // Indicates committed pages for which physical storage has been allocated, either in memory or in the paging file on disk.
+        kFree = 2 // Indicates free pages not accessible to the calling process and available to be allocated.
     };
 
     static void* Reserve(size_t size);

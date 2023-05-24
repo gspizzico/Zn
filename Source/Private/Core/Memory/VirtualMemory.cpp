@@ -21,7 +21,7 @@ bool VirtualMemory::Release(void* address)
 }
 bool VirtualMemory::Commit(void* address, size_t size)
 {
-    _ASSERT(Memory::GetMemoryStatus().m_AvailPhys >= size);
+    check(Memory::GetMemoryStatus().m_AvailPhys >= size);
 
     if (Memory::GetMemoryStatus().m_AvailPhys < size)
     {
@@ -65,7 +65,7 @@ VirtualMemoryRegion::VirtualMemoryRegion(VirtualMemoryRegion&& other) noexcept
 VirtualMemoryRegion::VirtualMemoryRegion(MemoryRange range) noexcept
     : m_Range(range)
 {
-    _ASSERT(VirtualMemory::GetMemoryInformation(m_Range).m_State == VirtualMemory::State::kReserved);
+    check(VirtualMemory::GetMemoryInformation(m_Range).m_State == VirtualMemory::State::kReserved);
 }
 
 VirtualMemoryRegion::~VirtualMemoryRegion()

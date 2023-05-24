@@ -13,13 +13,13 @@ WindowsThread::WindowsThread()
 
 void WindowsThread::WaitUntilCompletion()
 {
-    _ASSERT(m_Handle);
+    check(m_Handle);
     ::WaitForSingleObject(m_Handle, INFINITE);
 }
 
 bool WindowsThread::Wait(uint32 ms)
 {
-    _ASSERT(m_Handle);
+    check(m_Handle);
     return ::WaitForSingleObject(m_Handle, ms) == WAIT_OBJECT_0;
 }
 
@@ -51,7 +51,7 @@ bool WindowsThread::Start(ThreadedJob* job)
 
 DWORD WINAPI WindowsThread::RunThread(LPVOID p_thread)
 {
-    _ASSERT(p_thread != nullptr);
+    check(p_thread != nullptr);
 
     WindowsThread* pThread = reinterpret_cast<WindowsThread*>(p_thread);
 

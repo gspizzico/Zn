@@ -32,7 +32,7 @@ FreeBlock::FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* con
     , m_PreviousFree(previous)
     , m_NextFree(next)
 {
-    _ASSERT(blockSize >= kMinBlockSize);
+    check(blockSize >= kMinBlockSize);
 
     // new (GetFooter()) freeBlock::Footer {m_BlockSize, previous, next};
 }
@@ -65,7 +65,7 @@ TLSFAllocator::TLSFAllocator(MemoryRange inMemoryRange)
     , m_FL(0)
     , m_SL()
 {
-    _ASSERT(inMemoryRange.Size() > kMaxAllocationSize);
+    check(inMemoryRange.Size() > kMaxAllocationSize);
     memset(const_cast<u16*>(ArrayData(m_SL)), 0, ArrayLength(m_SL));
 }
 
@@ -100,7 +100,7 @@ void* TLSFAllocator::Allocate(size_t size, size_t alignment)
         BlockSize = freeBlock->Size();
     }
 
-    _ASSERT(BlockSize >= AllocationSize);
+    check(BlockSize >= AllocationSize);
 
     // If the free block is bigger than the allocation size, try to create a new smaller block from it.
     // TODO: Consider header size
@@ -127,7 +127,7 @@ void* TLSFAllocator::Allocate(size_t size, size_t alignment)
 
     auto AllocationRange = MemoryRange(Memory::AddOffset(freeBlock, kFreeBlockOverhead), BlockSize - kFreeBlockOverhead);
 
-    _ASSERT(AllocationRange.Size() >= size);
+    check(AllocationRange.Size() >= size);
 
     return AllocationRange.Begin();
 }
@@ -145,7 +145,7 @@ bool TLSFAllocator::Free(void* address)
 
     FreeBlock* BlockAddress = reinterpret_cast<FreeBlock*>(Memory::SubOffset(address, kFreeBlockOverhead)); // Recover this block size
 
-    _ASSERT((BlockAddress->m_Flags & FreeBlock::kFreeBit) != FreeBlock::kFreeBit);
+    check((BlockAddress->m_Flags & FreeBlock::kFreeBit) != FreeBlock::kFreeBit);
 
     uintptr_t BlockSize = BlockAddress->m_BlockSize;
 
@@ -277,7 +277,7 @@ TLSFAllocator::FreeBlock* TLSFAllocator::MergePrevious(FreeBlock* block)
             sizet newSize         = previous->m_BlockSize + block->m_BlockSize;
             previous->m_BlockSize = newSize;
 
-            _ASSERT(block->m_NextFree == nullptr);
+            check(block->m_NextFree == nullptr);
 
             return previous;
         }
@@ -312,7 +312,7 @@ TLSFAllocator::FreeBlock* TLSFAllocator::MergeNext(FreeBlock* block)
 
 void TLSFAllocator::RemoveBlock(FreeBlock* block)
 {
-    _ASSERT((block->m_Flags & FreeBlock::kFreeBit) > 0);
+    check((block->m_Flags & FreeBlock::kFreeBit) > 0);
 
     index_type fl = 0, sl = 0;
 
@@ -344,13 +344,13 @@ void TLSFAllocator::RemoveBlock(FreeBlock* block)
         ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t Previous -> %p", block->m_PreviousFree);
         ZN_LOG(LogTLSF_Allocator, ELogVerbosity::Verbose, "\t\t\t Previous.Next -> %p", block->m_PreviousFree->m_NextFree);
 
-        _ASSERT(block->m_PreviousFree != nullptr);
+        check(block->m_PreviousFree != nullptr);
 
         block->m_PreviousFree->m_NextFree = block->m_NextFree; // Remap previous block to next block
 
         if (block->m_NextFree)
         {
-            _ASSERT(block->m_NextFree->m_PreviousFree != nullptr);
+            check(block->m_NextFree->m_PreviousFree != nullptr);
 
             block->m_NextFree->m_PreviousFree = block->m_PreviousFree;
         }

@@ -31,13 +31,13 @@ StackAllocator::~StackAllocator()
 
 void* StackAllocator::Allocate(size_t bytes, size_t alignment)
 {
-    _ASSERT(bytes > 0);
+    check(bytes > 0);
 
     auto CurrentAddress = Memory::Align(m_TopAddress, alignment); // Address to be returned.
 
     m_TopAddress = Memory::AddOffset(CurrentAddress, bytes); // Computes the new top stack address.
 
-    _ASSERT(m_Memory->Range().Contains(m_TopAddress)); // OOM guard.
+    check(m_Memory->Range().Contains(m_TopAddress)); // OOM guard.
 
     if (const auto UncommittedMemory = Memory::GetDistance(m_TopAddress, m_NextUncommitedAddress); UncommittedMemory > 0)
     {
@@ -55,7 +55,7 @@ void* StackAllocator::Allocate(size_t bytes, size_t alignment)
 
 bool StackAllocator::Free(void* address)
 {
-    _ASSERT(m_Memory->Range().Contains(address)); // Verify that is a valid address
+    check(m_Memory->Range().Contains(address)); // Verify that is a valid address
 
     if (Memory::GetDistance(m_TopAddress, address) > 0)
     {
@@ -109,7 +109,8 @@ void StackAllocator::RestoreStatus()
 
     m_TopAddress = m_LastSavedStatus;
 
-    m_LastSavedStatus = reinterpret_cast<void*>(*reinterpret_cast<uintptr_t*>(m_LastSavedStatus)); // Set the address of the previous restore point.
+    m_LastSavedStatus =
+        reinterpret_cast<void*>(*reinterpret_cast<uintptr_t*>(m_LastSavedStatus)); // Set the address of the previous restore point.
 
     MemoryDebug::MarkFree(m_TopAddress, PreviousHead);
 }

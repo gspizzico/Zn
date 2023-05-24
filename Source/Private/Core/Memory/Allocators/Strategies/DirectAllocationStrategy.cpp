@@ -18,7 +18,7 @@ void* DirectAllocationStrategy::Allocate(size_t size, size_t alignment)
 
     size_t AllocationSize = VirtualMemory::AlignToPageSize(size);
 
-    _ASSERT(AllocationSize < Memory::GetMemoryStatus().m_AvailPhys);
+    check(AllocationSize < Memory::GetMemoryStatus().m_AvailPhys);
 
     auto Address = VirtualMemory::Allocate(AllocationSize);
 
