@@ -1,14 +1,10 @@
 #pragma once
 
 #include <Core/Containers/Set.h>
+#include <Core/Memory/Memory.h>
 
 namespace Zn
 {
-enum
-{
-    DEFAULT_ALIGNMENT = 0,
-    MIN_ALIGNMENT     = 8
-};
 
 class SystemAllocator
 {
@@ -29,7 +25,7 @@ class BaseAllocator : public SystemAllocator
   public:
     virtual ~BaseAllocator() = default;
 
-    virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) = 0;
+    virtual void* Malloc(size_t size, size_t alignment = MemoryAlignment::kDefaultAlignment) = 0;
 
     virtual bool Free(void* ptr) = 0;
 
@@ -41,7 +37,7 @@ class TrackedMalloc : public BaseAllocator
   public:
     virtual ~TrackedMalloc();
 
-    virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) override;
+    virtual void* Malloc(size_t size, size_t alignment = MemoryAlignment::kDefaultAlignment) override;
 
     virtual bool Free(void* ptr) override;
 

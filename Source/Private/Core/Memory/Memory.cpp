@@ -141,7 +141,7 @@ void CreateGAllocator()
     static int StaticInstance = CreateGAllocatorSafe();
 }
 
-void* New(size_t size)
+void* New(size_t size, size_t alignment)
 {
     if (GAllocator == NULL)
     {
@@ -155,7 +155,7 @@ void* New(size_t size)
 
     auto allocator = GIsCreatingAllocator == false ? GAllocator : GDefaultAllocator;
 
-    auto Address = allocator->Malloc(size);
+    auto Address = allocator->Malloc(size, alignment);
 
     ZN_MEMTRACE_ALLOC(Address, size);
 
@@ -182,6 +182,8 @@ using namespace Zn::Allocators;
 #pragma warning(push)
 #pragma warning(disable : 28251) // microsoft vs code analysis warning
 
+static_assert(__STDCPP_DEFAULT_NEW_ALIGNMENT__ > 0);
+
 void operator delete(void* p) noexcept
 {
     Zn::Allocators::Delete(p);
@@ -202,35 +204,31 @@ void operator delete[](void* p, const std::nothrow_t&) noexcept
 
 void* operator new(std::size_t n) noexcept(false)
 {
-    return Zn::Allocators::New(n);
+    return Zn::Allocators::New(n, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
 }
 void* operator new[](std::size_t n) noexcept(false)
 {
-    return Zn::Allocators::New(n);
+    return Zn::Allocators::New(n, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
 }
 
 void* operator new(std::size_t n, const std::nothrow_t& tag) noexcept
 {
     (void) (tag);
-    // TODO: mi_new_nothrow
-    return Zn::Allocators::New(n);
+    return Zn::Allocators::New(n, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
 }
 void* operator new[](std::size_t n, const std::nothrow_t& tag) noexcept
 {
     (void) (tag);
-    // TODO: mi_new_nothrow
-    return Zn::Allocators::New(n);
+    return Zn::Allocators::New(n, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
 }
 
 #if (__cplusplus >= 201402L || _MSC_VER >= 1916)
 void operator delete(void* p, std::size_t n) noexcept
 {
-    // TODO: mi_free_size(p, n);
     Zn::Allocators::Delete(p);
 };
 void operator delete[](void* p, std::size_t n) noexcept
 {
-    // TODO: mi_free_size(p, n);
     Zn::Allocators::Delete(p);
 };
 #endif
@@ -238,54 +236,44 @@ void operator delete[](void* p, std::size_t n) noexcept
 #if (__cplusplus > 201402L || defined(__cpp_aligned_new))
 void operator delete(void* p, std::align_val_t al) noexcept
 {
-    // mi_free_aligned(p, static_cast<size_t>(al));
     Zn::Allocators::Delete(p);
 }
 void operator delete[](void* p, std::align_val_t al) noexcept
 {
-    // mi_free_aligned(p, static_cast<size_t>(al));
     Zn::Allocators::Delete(p);
 }
 void operator delete(void* p, std::size_t n, std::align_val_t al) noexcept
 {
-    // mi_free_size_aligned(p, n, static_cast<size_t>(al));
     Zn::Allocators::Delete(p);
 };
 void operator delete[](void* p, std::size_t n, std::align_val_t al) noexcept
 {
-    // mi_free_size_aligned(p, n, static_cast<size_t>(al));
     Zn::Allocators::Delete(p);
 };
 void operator delete(void* p, std::align_val_t al, const std::nothrow_t&) noexcept
 {
-    // mi_free_aligned(p, static_cast<size_t>(al));
     Zn::Allocators::Delete(p);
 }
 void operator delete[](void* p, std::align_val_t al, const std::nothrow_t&) noexcept
 {
-    // mi_free_aligned(p, static_cast<size_t>(al));
     Zn::Allocators::Delete(p);
 }
 
 void* operator new(std::size_t n, std::align_val_t al) noexcept(false)
 {
-    // return mi_new_aligned(n, static_cast<size_t>(al));
-    return Zn::Allocators::New(n);
+    return Zn::Allocators::New(n, static_cast<size_t>(al));
 }
 void* operator new[](std::size_t n, std::align_val_t al) noexcept(false)
 {
-    // return mi_new_aligned(n, static_cast<size_t>(al));
-    return Zn::Allocators::New(n);
+    return Zn::Allocators::New(n, static_cast<size_t>(al));
 }
 void* operator new(std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept
 {
-    // return mi_new_aligned_nothrow(n, static_cast<size_t>(al));
-    return Zn::Allocators::New(n);
+    return Zn::Allocators::New(n, static_cast<size_t>(al));
 }
 void* operator new[](std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept
 {
-    // return mi_new_aligned_nothrow(n, static_cast<size_t>(al));
-    return Zn::Allocators::New(n);
+    return Zn::Allocators::New(n, static_cast<size_t>(al));
 }
 #endif
 

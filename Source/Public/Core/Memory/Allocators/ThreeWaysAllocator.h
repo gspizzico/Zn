@@ -15,7 +15,7 @@ class ThreeWaysAllocator : public BaseAllocator
 
     virtual ~ThreeWaysAllocator() = default;
 
-    virtual void* Malloc(size_t size, size_t alignment = DEFAULT_ALIGNMENT) override;
+    virtual void* Malloc(size_t size, size_t alignment = MemoryAlignment::kDefaultAlignment) override;
 
     virtual bool Free(void* ptr) override;
 

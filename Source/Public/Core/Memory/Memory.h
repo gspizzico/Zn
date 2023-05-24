@@ -24,6 +24,12 @@ enum class StorageUnit : uint64_t
     GigaByte = Byte << 30
 };
 
+enum MemoryAlignment
+{
+    kMinAlignment     = sizeof(std::max_align_t),
+    kDefaultAlignment = __STDCPP_DEFAULT_NEW_ALIGNMENT__,
+};
+
 class Memory
 {
   public:
@@ -52,7 +58,8 @@ class Memory
 
     static void Memzero(void* begin, size_t size);
 
-    template<typename T> static void Memzero(T& data)
+    template<typename T>
+    static void Memzero(T& data)
     {
         Memzero(&data, sizeof(T));
     }
@@ -136,7 +143,7 @@ struct MemoryRange
 // Namespace used for new / delete overrides.
 namespace Allocators
 {
-void* New(size_t size);
+void* New(size_t size, size_t alignment);
 
 void Delete(void* address);
 } // namespace Allocators
