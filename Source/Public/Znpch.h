@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/Build.h>
+#include <Core/AssertionMacros.h>
 #include <Core/HAL/BasicTypes.h>
 #include <Core/Hash.h>
 #include <Core/Random.h>

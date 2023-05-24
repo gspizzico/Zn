@@ -68,4 +68,9 @@ uint32 WindowsMisc::GetLastError()
 {
     return ::GetLastError(); // #TODO Print last error message in a nice way.
 }
+
+void WindowsMisc::DebugMessage(cstring message)
+{
+    OutputDebugStringA(message);
+}
 } // namespace Zn

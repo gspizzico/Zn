@@ -529,6 +529,7 @@
     <ClInclude Include="Source\Public\Core\Memory\Allocators\Mimalloc.hpp">
       <Filter>Source\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Public\Core\AssertionMacros.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\PreLinking.bat">

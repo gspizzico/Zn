@@ -15,5 +15,7 @@ class WindowsMisc
     static Guid GenerateGuid();
 
     static uint32 GetLastError();
+
+    static void DebugMessage(cstring message);
 };
 } // namespace Zn
