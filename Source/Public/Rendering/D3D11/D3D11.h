@@ -3,30 +3,28 @@
 
 namespace Zn
 {
-	class D3D11Device
-	{
-	public:
+class D3D11Device
+{
+  public:
+    static D3D11Device* CreateDevice(HWND window_handle);
 
-		static D3D11Device* CreateDevice(HWND window_handle);
+    void ResizeWindow();
 
-		void ResizeWindow();
+    void Cleanup();
 
-		void Cleanup();
+    void ClearRenderTarget();
 
-		void ClearRenderTarget();
+    void Present(bool vSync);
 
-		void Present(bool vSync);
+    ID3D11Device*        GetDevice() const;
+    ID3D11DeviceContext* GetDeviceContext() const;
 
-		ID3D11Device* GetDevice() const;
-		ID3D11DeviceContext* GetDeviceContext() const;
+    ~D3D11Device();
 
-		~D3D11Device();
-
-	private:
-
-		ID3D11Device* m_D3DDevice{ nullptr };
-		ID3D11DeviceContext* m_D3DDeviceContext{ nullptr };
-		IDXGISwapChain* m_SwapChain{ nullptr };
-		ID3D11RenderTargetView* m_RenderTargetView{ nullptr };
-	};
-}
+  private:
+    ID3D11Device*           m_D3DDevice {nullptr};
+    ID3D11DeviceContext*    m_D3DDeviceContext {nullptr};
+    IDXGISwapChain*         m_SwapChain {nullptr};
+    ID3D11RenderTargetView* m_RenderTargetView {nullptr};
+};
+} // namespace Zn

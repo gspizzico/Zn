@@ -3,152 +3,120 @@
 #include "Core/Memory/Allocators/PageAllocator.h"
 #include "Core/Memory/VirtualMemory.h"
 #include "Core/Math/Math.h"
+#include <Core/HAL/PlatformTypes.h>
 
 namespace Zn
 {
 
-	class TLSFAllocator
-	{
-	public:
+class TLSFAllocator
+{
+  public:
+    static constexpr size_t kJ = 3;
 
-		static constexpr size_t				kJ = 3;
+    static constexpr size_t kNumberOfPools = 10;
 
-		static constexpr size_t				kNumberOfPools = 10;
+    static constexpr size_t kNumberOfLists = 1 << kJ; // pow(2, kJ)
 
-		static constexpr size_t				kNumberOfLists = 1 << kJ;		// pow(2, kJ)
+    static constexpr size_t kStartFl = 8; // log2(kMinBlockSize)
 
-		static constexpr size_t				kStartFl = 8;			// log2(kMinBlockSize)
+    static constexpr size_t kMaxAllocationSize = (1 << (kStartFl + kNumberOfPools - 2)); // 128k is block size, 64k is max allocation size.
 
-		static constexpr size_t				kMaxAllocationSize = (1 << (kStartFl + kNumberOfPools - 2));  // 128k is block size, 64k is max allocation size.
+    static constexpr size_t kBlockSize = kMaxAllocationSize * 2;
 
-		static constexpr size_t				kBlockSize = kMaxAllocationSize * 2;
+    struct FreeBlock
+    {
+      public:
+        static constexpr size_t kMinBlockSize = 256;
 
-		struct FreeBlock
-		{
-		public:
+        static FreeBlock* New(const MemoryRange& block_range);
 
-			// The footer contains the size of the block and a pointer to the previous and the next physical block.
-			struct Footer
-			{
-			private:
+        FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next);
 
-				static constexpr int64_t	kValidationPattern = (int64_t) 0xff5aff5a << 32ull;
+        ~FreeBlock();
 
-				static constexpr int64_t	kValidationMask = 0xffffffff;
-
-				int64_t						m_Pattern;
-
-			public:
-
-				Footer(size_t size, FreeBlock* const previous, FreeBlock* const next);
-
-				FreeBlock* GetBlock() const;
-
-				size_t		BlockSize() const;
-
-				bool		IsValid() const;
-
-				FreeBlock* m_Previous;
-
-				FreeBlock* m_Next;
-			};
-
-			static constexpr size_t			kFooterSize = sizeof(Footer);
-
-			static constexpr size_t			kMinBlockSize = 256;// std::max(kFooterSize + sizeof(size_t), 1ull << kStartFl);
-
-			static FreeBlock* New(const MemoryRange& block_range);
-
-			FreeBlock(size_t blockSize, FreeBlock* const previous, FreeBlock* const next);
-
-			~FreeBlock();
-
-			Footer* GetFooter();
-
-			FreeBlock* Previous();
-
-			FreeBlock* Next();
-
-			size_t			Size() const
-			{
-				return m_BlockSize;
-			}
-
-			static Footer* GetPreviousPhysicalFooter(void* block);
+        size_t Size() const
+        {
+            return m_BlockSize;
+        }
 
 #if ZN_DEBUG
-			void			LogDebugInfo(bool recursive) const;
-
-			void			Verify(size_t max_block_size) const;
-
-			void			VerifyWrite(MemoryRange range) const;
+        void LogDebugInfo(bool recursive) const;
 #endif
-		private:
 
-			static constexpr bool			kMarkFreeOnDelete = false;
+        FreeBlock* m_Previous = nullptr;
+        size_t     m_BlockSize;
+        u8         m_Flags        = 0;
+        FreeBlock* m_PreviousFree = nullptr;
+        FreeBlock* m_NextFree     = nullptr;
 
-			size_t							m_BlockSize;
-		};
+        enum Flags
+        {
+            kFreeBit     = 1,
+            kPrevFreeBit = 1 << 1
+        };
 
-		TLSFAllocator();
+      private:
+        static constexpr bool kMarkFreeOnDelete = false;
+    };
 
-		TLSFAllocator(size_t capacity);
+    TLSFAllocator(MemoryRange inMemoryRange);
 
-		__declspec(allocator)void* Allocate(size_t size, size_t alignment = 1);
+    __declspec(allocator) void* Allocate(size_t size, size_t alignment = 1);
 
-		bool				Free(void* address);
+    bool Free(void* address);
 
-		size_t				GetAllocatedMemory() const
-		{
-			return m_Memory.GetUsedMemory();
-		}
+    size_t GetAllocatedMemory() const
+    {
+        return m_Memory.GetUsedMemory();
+    }
 
-		static constexpr size_t	MinAllocationSize()
-		{
-			return FreeBlock::kMinBlockSize;
-		}
+    static constexpr size_t MinAllocationSize()
+    {
+        return FreeBlock::kMinBlockSize;
+    }
 
-		static constexpr size_t MaxAllocationSize()
-		{
-			return kMaxAllocationSize;
-		}
+    static constexpr size_t MaxAllocationSize()
+    {
+        return kMaxAllocationSize;
+    }
 
 #if ZN_DEBUG
-		void				LogDebugInfo() const;
+    void LogDebugInfo() const;
 
-		void				Verify() const;
+    void Verify() const;
 
-		void				VerifyWrite(MemoryRange range) const;
+    void VerifyWrite(MemoryRange range) const;
 #endif
 
-	private:
+  private:
+    using index_type = unsigned long;
 
-		using index_type = unsigned long;
+    using FreeListMatrix = FreeBlock* [kNumberOfPools][kNumberOfLists];
 
-		using FreeListMatrix = std::array<std::array<FreeBlock*, kNumberOfLists>, kNumberOfPools>;
+    bool MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
 
-		bool				MappingInsert(size_t size, index_type& o_fl, index_type& o_sl);
+    bool MappingSearch(size_t size, index_type& o_fl, index_type& o_sl);
 
-		bool				MappingSearch(size_t size, index_type& o_fl, index_type& o_sl);
+    bool FindSuitableBlock(index_type& o_fl, index_type& o_sl);
 
-		bool				FindSuitableBlock(index_type& o_fl, index_type& o_sl);
+    FreeBlock* MergePrevious(FreeBlock* block);
 
-		FreeBlock* MergePrevious(FreeBlock* block);
+    FreeBlock* MergeNext(FreeBlock* block);
 
-		FreeBlock* MergeNext(FreeBlock* block);
+    void RemoveBlock(FreeBlock* block);
 
-		void				RemoveBlock(FreeBlock* block);
+    void AddBlock(FreeBlock* block);
 
-		void				AddBlock(FreeBlock* block);
+    bool Decommit(FreeBlock* block);
 
-		bool				Decommit(FreeBlock* block);
+    PageAllocator m_Memory;
 
-		PageAllocator							m_Memory;
+    FreeListMatrix m_FreeLists;
 
-		FreeListMatrix							m_FreeLists;
+    uint16_t m_FL;
 
-		uint16_t								m_FL;
+    uint16_t m_SL[kNumberOfPools];
 
-		std::array<uint16_t, kNumberOfPools>	m_SL;
-	};
-}
+    CriticalSection criticalSection;
+};
+} // namespace Zn

@@ -5,22 +5,24 @@
 
 namespace Zn
 {
-	class CommandLine
-	{
-	public:
+class CommandLine
+{
+  public:
+    static CommandLine& Get();
 
-		static CommandLine& Get();
+    void Initialize(char* arguments[], size_t count);
 
-		void Initialize(char* arguments[], size_t count);
+    bool Param(const char* param) const;
 
-		bool Param(const char* param) const;
+    bool Value(cstring param, String& value, String defaultValue = "") const;
 
-		//bool Value(const char* param, String& out_value) const;
+    String GetExeArgument() const;
 
-	private:
+    // bool Value(const char* param, String& out_value) const;
 
-		String ToLower(const char* param) const; // #todo implement in common library
+  private:
+    String ToLower(const char* param) const; // #todo implement in common library
 
-		Vector<String> arguments_;
-	};
-}
+    Vector<String> arguments_;
+};
+} // namespace Zn

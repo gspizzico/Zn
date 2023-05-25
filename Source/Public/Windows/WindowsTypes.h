@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Windows/WindowsCommon.h"
 #include "Windows/WindowsThreads.h"
 #include "Windows/WindowsCriticalSection.h"
 #include "Windows/WindowsMemory.h"
@@ -7,10 +8,10 @@
 
 namespace Zn
 {
-	typedef WindowsMemory PlatformMemory;
-	typedef WindowsVirtualMemory PlatformVirtualMemory;
-	typedef WindowsMisc PlatformMisc;
-	typedef WindowsThreads PlatformThreads;
+typedef WindowsMemory        PlatformMemory;
+typedef WindowsVirtualMemory PlatformVirtualMemory;
+typedef WindowsMisc          PlatformMisc;
+typedef WindowsThreads       PlatformThreads;
 
-	typedef WindowsCriticalSection CriticalSection;
-}
+typedef WindowsCriticalSection CriticalSection;
+} // namespace Zn

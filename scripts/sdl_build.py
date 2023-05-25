@@ -6,7 +6,7 @@ import filecmp
 
 VS_WHERE = os.path.join(os.getenv("ProgramFiles(x86)"),r"Microsoft Visual Studio\Installer\vswhere.exe")
 
-SDL_RELATIVE_PATH = 'SDL\VisualC'
+SDL_RELATIVE_PATH = 'Source\ThirdParty\SDL\VisualC'
 
 def Execute(cmd):
     popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True, shell=True)
@@ -42,8 +42,11 @@ def CompareFiles(in_path, out_path):
         result = filecmp.dircmp(in_path, out_path)
 
         for filename in result.common_files:
+            print(filename)
             if(filename in result.diff_files):
                 return False
+    else:
+        return False
     return True            
             
 def MakeDir(path):
@@ -61,6 +64,8 @@ try:
     
     if(len(sys.argv) > 1):
         configuration = sys.argv[1]
+
+    execution_type = sys.argv[2]
         
     build_debug = configuration == "" or configuration == "Debug"
     build_release = configuration == "" or configuration == "Release" or configuration == "ReleaseWithTrace"
@@ -83,7 +88,7 @@ try:
         compare_exec = CompareFiles(source_debug_input, executable_debug_output)
         compare_lib = CompareFiles(source_debug_input, lib_debug_output)
 
-        if(compare_exec == False or compare_lib == False):
+        if(compare_exec == False or compare_lib == False or execution_type == "Clean"):
             BuildSDL(MSBuild, SDL_solution, "Debug")            
             
             MakeDir(executable_debug_output);
@@ -92,6 +97,7 @@ try:
             CopyWithExtension(source_debug_input, executable_debug_output, '.dll')
             CopyWithExtension(source_debug_input, executable_debug_output, '.pdb')
             CopyWithExtension(source_debug_input, lib_debug_output, '.lib')
+            CopyWithExtension(source_debug_input, lib_debug_output, '.pdb')
         else:
             print("Libraries are up to date.")
     
@@ -103,15 +109,16 @@ try:
         compare_exec = CompareFiles(source_release_input, executable_release_output)
         compare_lib = CompareFiles(source_release_input, lib_release_output)
 
-        if(compare_exec == False or compare_lib == False):
+        if(compare_exec == False or compare_lib == False) or execution_type == "Clean":
             BuildSDL(MSBuild, SDL_solution, "Release")
 
-            MakeDir(executable_release_output);
-            MakeDir(lib_release_output);
+            MakeDir(executable_release_output)
+            MakeDir(lib_release_output)
         
             CopyWithExtension(source_release_input, executable_release_output, '.dll')
             CopyWithExtension(source_release_input, executable_release_output, '.pdb')
             CopyWithExtension(source_release_input, lib_release_output, '.lib')
+            CopyWithExtension(source_release_input, lib_release_output, '.pdb')
         else:
             print("Libraries are up to date.")
         

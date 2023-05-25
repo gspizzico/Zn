@@ -43,9 +43,15 @@
 /Binaries
 /Debug
 .vs
+.vscode
 
 # ZN Libs
-/Libs
+# /Libs
 
+# SPV Shaders
+/shaders/*.spv
 
 Tracy.lnk
+development_snippets/
+Zn.args.json
+imgui.ini

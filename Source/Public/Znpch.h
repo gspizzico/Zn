@@ -1,7 +1,10 @@
 #pragma once
 
 #include <Core/Build.h>
+#include <Core/AssertionMacros.h>
 #include <Core/HAL/BasicTypes.h>
+#include <Core/Hash.h>
+#include <Core/Random.h>
 #include <Core/Containers/Vector.h>
 #include <Core/Log/Log.h>
 #include <Core/Log/LogMacros.h>
@@ -9,7 +12,7 @@
 
 // Windows - Avoid conflicts with numeric limit min/max
 #if defined(_MSC_VER)
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
 #endif

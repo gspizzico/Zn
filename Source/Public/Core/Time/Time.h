@@ -6,22 +6,21 @@
 
 namespace Zn
 {
-	using SteadyClock = std::chrono::steady_clock;
-	using SystemClock = std::chrono::system_clock;
+using SteadyClock = std::chrono::steady_clock;
+using SystemClock = std::chrono::system_clock;
 
-	class Time
-	{
-	public:
+class Time
+{
+  public:
+    static String Now()
+    {
+        return ToString(SystemClock::now());
+    }
 
-		static String Now()
-		{
-			return ToString(SystemClock::now());
-		}
+    static String ToString(std::chrono::time_point<SystemClock> time_point);
 
-		static String ToString(std::chrono::time_point<SystemClock> time_point);
+    static uint64 GetTickCount();
 
-		static uint64 GetTickCount();
-
-		static double Seconds();
-	};
-}
+    static double Seconds();
+};
+} // namespace Zn

@@ -6,67 +6,71 @@
 DEFINE_STATIC_LOG_CATEGORY(LogLinearAllocator, ELogVerbosity::Log);
 
 Zn::LinearAllocator::LinearAllocator(size_t capacity)
-	: m_Memory(std::make_shared<VirtualMemoryRegion>(VirtualMemory::AlignToPageSize(capacity)))
-	, m_NextPageAddress(m_Memory->Begin())
-	, m_Address(m_Memory->Begin())
-{}
+    : m_Memory(std::make_shared<VirtualMemoryRegion>(VirtualMemory::AlignToPageSize(capacity)))
+    , m_NextPageAddress(m_Memory->Begin())
+    , m_Address(m_Memory->Begin())
+{
+}
 
 Zn::LinearAllocator::LinearAllocator(SharedPtr<VirtualMemoryRegion> region)
-	: m_Memory(region)
-	, m_NextPageAddress(m_Memory->Begin())
-	, m_Address(m_Memory->Begin())
-{}
+    : m_Memory(region)
+    , m_NextPageAddress(m_Memory->Begin())
+    , m_Address(m_Memory->Begin())
+{
+}
 
 Zn::LinearAllocator::~LinearAllocator()
 {
-	Free();
+    Free();
 }
 
 void* Zn::LinearAllocator::Allocate(size_t size, size_t alignment)
 {
-	_ASSERT(size > 0);
+    check(size > 0);
 
-	auto AlignedAddress = Memory::Align(m_Address, alignment);
+    auto AlignedAddress = Memory::Align(m_Address, alignment);
 
-	m_Address = Memory::AddOffset(AlignedAddress, size);
+    m_Address = Memory::AddOffset(AlignedAddress, size);
 
-	_ASSERT(m_Memory->Range().Contains(m_Address));														// OOM
+    check(m_Memory->Range().Contains(m_Address)); // OOM
 
-	auto NextPage = Memory::Align(m_Address, VirtualMemory::GetPageSize());
+    auto NextPage = Memory::Align(m_Address, VirtualMemory::GetPageSize());
 
-	if (auto AllocationSize = Memory::GetDistance(NextPage, m_NextPageAddress); AllocationSize > 0)
-	{
-		ZN_LOG(LogLinearAllocator, ELogVerbosity::Log, "Committing %i bytes. %i bytes left. Usage %.4f", AllocationSize, Memory::GetDistance(m_Memory->End(), NextPage), (float) GetAllocatedMemory() / (float) m_Memory->Size());
-		VirtualMemory::Commit(m_NextPageAddress, static_cast<size_t>(AllocationSize));
+    if (auto AllocationSize = Memory::GetDistance(NextPage, m_NextPageAddress); AllocationSize > 0)
+    {
+        ZN_LOG(
+            LogLinearAllocator, ELogVerbosity::Log, "Committing %i bytes. %i bytes left. Usage %.4f", AllocationSize,
+            Memory::GetDistance(m_Memory->End(), NextPage), (float) GetAllocatedMemory() / (float) m_Memory->Size());
+        VirtualMemory::Commit(m_NextPageAddress, static_cast<size_t>(AllocationSize));
 
-		m_NextPageAddress = NextPage;
-	}
+        m_NextPageAddress = NextPage;
+    }
 
-	MemoryDebug::MarkUninitialized(AlignedAddress, m_Address);
+    MemoryDebug::MarkUninitialized(AlignedAddress, m_Address);
 
-	return AlignedAddress;
+    return AlignedAddress;
 }
 
 bool Zn::LinearAllocator::Free()
 {
-	VirtualMemory::Decommit(m_Memory->Begin(), static_cast<size_t>(Memory::GetDistance(m_NextPageAddress, m_Memory->Begin())));
-	m_Address = m_Memory->Begin();
-	m_NextPageAddress = m_Address;
+    VirtualMemory::Decommit(m_Memory->Begin(), static_cast<size_t>(Memory::GetDistance(m_NextPageAddress, m_Memory->Begin())));
+    m_Address         = m_Memory->Begin();
+    m_NextPageAddress = m_Address;
 
-	return true;
+    return true;
 }
 
 bool Zn::LinearAllocator::IsAllocated(void* address) const
 {
-	return m_Memory->Range().Contains(address) && Memory::GetDistance(m_NextPageAddress, address) > 0;
+    return m_Memory->Range().Contains(address) && Memory::GetDistance(m_NextPageAddress, address) > 0;
 }
 
 size_t Zn::LinearAllocator::GetAllocatedMemory() const
 {
-	return Memory::GetDistance(m_Address, m_Memory->Begin());
+    return Memory::GetDistance(m_Address, m_Memory->Begin());
 }
 
 size_t Zn::LinearAllocator::GetRemainingMemory() const
 {
-	return Memory::GetDistance(m_Memory->End(), m_Address);
+    return Memory::GetDistance(m_Memory->End(), m_Address);
 }

@@ -1,23 +1,36 @@
 #pragma once
 #include <Core/HAL/BasicTypes.h>
-#include <Engine/Window.h>
 
 namespace Zn
 {
-	class Engine
-	{
-	public:
+class Camera;
 
-		void Initialize();
-		void Start();
-		void Shutdown();
+class EngineFrontend;
+class Window;
 
-	private:
+class Engine
+{
+  public:
+    void Initialize();
 
-		bool m_IsRequestingExit{ false };
+    void Update(float deltaTime);
 
-		float m_DeltaTime{ 0.f };
+    void Shutdown();
 
-		UniquePtr<Window> m_Window;
-	};
-}
+  private:
+    // Render editor ImGui
+    void RenderUI(float deltaTime);
+
+    void ProcessInput();
+
+    bool PumpMessages();
+
+    float m_DeltaTime {0.f};
+
+    SharedPtr<Window> m_Window;
+
+    SharedPtr<Camera> activeCamera;
+
+    SharedPtr<EngineFrontend> m_FrontEnd;
+};
+} // namespace Zn

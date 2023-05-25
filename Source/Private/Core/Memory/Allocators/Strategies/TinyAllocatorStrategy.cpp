@@ -4,149 +4,156 @@
 
 using namespace Zn;
 
-TinyAllocatorStrategy::TinyAllocatorStrategy(size_t capacity)
-	: m_Memory(capacity, VirtualMemory::AlignToPageSize(16 * (size_t) StorageUnit::KiloByte))
-	, m_FreeLists()
-	, m_NumAllocations()
-	, m_NumFreePages(0)
+TinyAllocatorStrategy::TinyAllocatorStrategy(MemoryRange inMemoryRange)
+    : m_Memory(inMemoryRange, VirtualMemory::GetPageSize())
+    , m_FreeLists()
+    , m_NumAllocations()
+    , m_NumFreePages(0)
 {
-	std::fill(m_FreeLists.begin(), m_FreeLists.end(), nullptr);
+    std::fill(m_FreeLists.begin(), m_FreeLists.end(), nullptr);
 
-	double PageSize = static_cast<double>(m_Memory.PageSize());
+    double PageSize = static_cast<double>(m_Memory.PageSize());
 
-	for (auto index = 0; index < m_NumAllocations.size(); ++index)
-	{
-		m_NumAllocations[index] = static_cast<size_t>(std::floorl(PageSize / GetSlotSize(index))) - 1u;
-	}
+    for (auto index = 0; index < m_NumAllocations.size(); ++index)
+    {
+        m_NumAllocations[index] = static_cast<size_t>(std::floorl(PageSize / GetSlotSize(index))) - 1u;
+    }
 }
 
 void* TinyAllocatorStrategy::Allocate(size_t size, size_t alignment)
 {
-	//#todo handle alignment
+    // #todo handle alignment
 
-	_ASSERT(size <= kMaxAllocationSize);
+    check(size <= kMaxAllocationSize);
 
-	size_t FreeListIndex = GetFreeListIndex(size);
+    size_t FreeListIndex = GetFreeListIndex(size);
 
-	const size_t SlotSize = 16 * (FreeListIndex + 1);
+    const size_t SlotSize = 16 * (FreeListIndex + 1);
 
-	auto& CurrentFreeList = m_FreeLists[FreeListIndex];
+    criticalSection.Lock();
 
-	// If we don't have any page in the free list, request a new one.
-	if (CurrentFreeList == nullptr)
-	{
-		void* PageAddress = m_Memory.Allocate();
+    auto& CurrentFreeList = m_FreeLists[FreeListIndex];
 
-		size_t* PageHeader = reinterpret_cast<size_t*>(PageAddress);
+    // If we don't have any page in the free list, request a new one.
+    if (CurrentFreeList == nullptr)
+    {
+        void* PageAddress = m_Memory.Allocate();
 
-		*PageHeader = FreeListIndex;
+        size_t* PageHeader = reinterpret_cast<size_t*>(PageAddress);
 
-		FreeBlock* Slot = new (Memory::AddOffset(PageAddress, SlotSize)) FreeBlock();
+        *PageHeader = FreeListIndex;
 
-		Slot->m_Next = nullptr;
-		Slot->m_FreeSlots = m_NumAllocations[FreeListIndex];
+        FreeBlock* Slot = new (Memory::AddOffset(PageAddress, SlotSize)) FreeBlock();
 
-		CurrentFreeList = Slot;
-	}
+        Slot->m_Next      = nullptr;
+        Slot->m_FreeSlots = m_NumAllocations[FreeListIndex];
 
-	void* Allocation = static_cast<void*>(CurrentFreeList);
+        CurrentFreeList = Slot;
+    }
 
-	FreeBlock Slot = *CurrentFreeList;
+    void* Allocation = static_cast<void*>(CurrentFreeList);
 
-	if (Slot.m_Next != nullptr)
-	{
-		CurrentFreeList = Slot.m_Next;
+    FreeBlock Slot = *CurrentFreeList;
 
-		if (CurrentFreeList->m_Next == nullptr)
-		{
-			m_NumFreePages--;
-		}
-	}
-	else
-	{
-		if (Slot.m_FreeSlots == 1)
-		{
-			CurrentFreeList = nullptr;
-		}
-		else
-		{
-			CurrentFreeList = new(Memory::AddOffset(Allocation, SlotSize)) FreeBlock();
+    if (Slot.m_Next != nullptr)
+    {
+        CurrentFreeList = Slot.m_Next;
 
-			CurrentFreeList->m_Next = nullptr;
-			CurrentFreeList->m_FreeSlots = Slot.m_FreeSlots - 1;
-		}
-	}
+        if (CurrentFreeList->m_Next == nullptr)
+        {
+            m_NumFreePages--;
+        }
+    }
+    else
+    {
+        if (Slot.m_FreeSlots == 1)
+        {
+            CurrentFreeList = nullptr;
+        }
+        else
+        {
+            CurrentFreeList = new (Memory::AddOffset(Allocation, SlotSize)) FreeBlock();
 
-	MemoryDebug::MarkUninitialized(Allocation, Memory::AddOffset(Allocation, SlotSize));
+            CurrentFreeList->m_Next      = nullptr;
+            CurrentFreeList->m_FreeSlots = Slot.m_FreeSlots - 1;
+        }
+    }
 
-	_ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
+    MemoryDebug::MarkUninitialized(Allocation, Memory::AddOffset(Allocation, SlotSize));
 
-	return Allocation;
+    check(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
+
+    criticalSection.Unlock();
+
+    return Allocation;
 }
 
 bool TinyAllocatorStrategy::Free(void* address)
 {
-	if (!m_Memory.IsAllocated(address))
-	{
-		return false;
-	}
+    if (!m_Memory.IsAllocated(address))
+    {
+        return false;
+    }
 
-	size_t FreeListIndex = GetFreeListIndex(address);
+    size_t FreeListIndex = GetFreeListIndex(address);
 
-	const size_t SlotSize = GetSlotSize(FreeListIndex);
+    const size_t SlotSize = GetSlotSize(FreeListIndex);
 
-	auto& CurrentFreeList = m_FreeLists[FreeListIndex];
+    criticalSection.Lock();
 
-	MemoryDebug::MarkFree(address, Memory::AddOffset(address, SlotSize));
+    auto& CurrentFreeList = m_FreeLists[FreeListIndex];
 
-	if (CurrentFreeList == nullptr)
-	{
-		CurrentFreeList = new (address) FreeBlock();
+    MemoryDebug::MarkFree(address, Memory::AddOffset(address, SlotSize));
 
-		CurrentFreeList->m_Next = nullptr;
-		CurrentFreeList->m_FreeSlots = 1;
-	}
-	else
-	{
-		FreeBlock* Next = CurrentFreeList;
-		CurrentFreeList = new (address) FreeBlock();
-		CurrentFreeList->m_Next = Next;
-		CurrentFreeList->m_FreeSlots = 0;
+    if (CurrentFreeList == nullptr)
+    {
+        CurrentFreeList = new (address) FreeBlock();
 
-		if (Next->m_FreeSlots > 0)
-		{
-			m_NumFreePages++;
-		}
-	}
+        CurrentFreeList->m_Next      = nullptr;
+        CurrentFreeList->m_FreeSlots = 1;
+    }
+    else
+    {
+        FreeBlock* Next              = CurrentFreeList;
+        CurrentFreeList              = new (address) FreeBlock();
+        CurrentFreeList->m_Next      = Next;
+        CurrentFreeList->m_FreeSlots = 0;
 
-	_ASSERT(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
+        if (Next->m_FreeSlots > 0)
+        {
+            m_NumFreePages++;
+        }
+    }
 
-	return true;
+    check(CurrentFreeList == nullptr || reinterpret_cast<uintptr_t>(CurrentFreeList->m_Next) < (uintptr_t) 0x00007FF000000000);
+
+    criticalSection.Unlock();
+
+    return true;
 }
 
 size_t TinyAllocatorStrategy::GetMaxAllocationSize() const
 {
-	return 255;
+    return 255;
 }
-
 
 size_t TinyAllocatorStrategy::GetFreeListIndex(size_t size) const
 {
-	return std::max(int(size >> 4), 0);
+    return std::max(int(size >> 4), 0);
 }
 
 size_t Zn::TinyAllocatorStrategy::GetFreeListIndex(void* address) const
 {
-	void* PageAddress = m_Memory.GetPageAddress(address);
+    void* PageAddress = m_Memory.GetPageAddress(address);
 
-	size_t FreeListIndex = *reinterpret_cast<size_t*>(PageAddress);
+    size_t FreeListIndex = *reinterpret_cast<size_t*>(PageAddress);
 
-	_ASSERT(FreeListIndex >= 0 && FreeListIndex < 16);
+    check(FreeListIndex >= 0 && FreeListIndex < 16);
 
-	return FreeListIndex;
+    return FreeListIndex;
 }
 
 size_t TinyAllocatorStrategy::GetSlotSize(size_t freeListIndex) const
 {
-	return 16 * (freeListIndex + 1);
+    return 16 * (freeListIndex + 1);
 }

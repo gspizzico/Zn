@@ -4,12 +4,11 @@
 
 namespace Zn
 {
-	class StdOutputDevice : public IOutputDevice
-	{
-	public:
+class StdOutputDevice : public IOutputDevice
+{
+  public:
+    StdOutputDevice() = default;
 
-		StdOutputDevice() = default;
-
-		virtual void OutputMessage(const char* message) override;
-	};
-}
+    virtual void OutputMessage(const char* message) override;
+};
+} // namespace Zn

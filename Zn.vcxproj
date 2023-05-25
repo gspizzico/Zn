@@ -1,28 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseWithTrace|Win32">
-      <Configuration>ReleaseWithTrace</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseWithTrace|x64">
-      <Configuration>ReleaseWithTrace</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseWithTrace|x64">
+      <Configuration>ReleaseWithTrace</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -34,26 +22,6 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -79,15 +47,6 @@
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -98,66 +57,36 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(LibraryPath);E:\Zn\Libs</LibraryPath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;D:\gitroot\SDL\include\</IncludePath>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\Intermediate\$(Platform)\$(Configuration)\</IntDir>
-    <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)tracy\public;$(SolutionDir)Source;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);$(SolutionDir)imgui\backends\;$(SolutionDir)imgui\;$(SolutionDir)SDL\include\</IncludePath>
+    <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)Source\ThirdParty\tracy;$(SolutionDir)Source;$(SourcePath)</SourcePath>
+    <IncludePath>$(SolutionDir)Source\Public\;$(SolutionDir)Source\ThirdParty\tracy\public;$(VULKAN_SDK)\Include\;$(IncludePath);$(SolutionDir)Source\ThirdParty\imgui\backends\;$(SolutionDir)Source\ThirdParty\imgui\;$(SolutionDir)\Source\ThirdParty\SDL\include\</IncludePath>
     <LibraryPath>$(LibraryPath);</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(LibraryPath);E:\Zn\Libs</LibraryPath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;D:\gitroot\SDL\include\</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(LibraryPath);E:\Zn\Libs</LibraryPath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;D:\gitroot\SDL\include\</IncludePath>
+    <ExternalIncludePath>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\VulkanMemoryAllocator\include</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\Intermediate\$(Platform)\$(Configuration)\</IntDir>
-    <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)tracy\public;$(SolutionDir)Source;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);$(SolutionDir)SDL\include\</IncludePath>
+    <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)Source\ThirdParty\tracy\public;$(SolutionDir)Source;$(SourcePath)</SourcePath>
+    <IncludePath>$(SolutionDir)Source\Public\;$(SolutionDir)Source\ThirdParty\tracy\public;$(VULKAN_SDK)\Include\;$(IncludePath);$(SolutionDir)Source\ThirdParty\imgui\backends\;$(SolutionDir)Source\ThirdParty\imgui\;$(SolutionDir)\Source\ThirdParty\SDL\include\</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\VulkanMemoryAllocator\include</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\Intermediate\$(Platform)\$(Configuration)\</IntDir>
-    <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)tracy\public;$(SolutionDir)Source;$(SourcePath)</SourcePath>
-    <IncludePath>$(SolutionDir)Source\External\;$(SolutionDir)Source\Public\;$(SolutionDir)tracy\public;$(IncludePath);$(SolutionDir)SDL\include\</IncludePath>
+    <SourcePath>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;$(SolutionDir)Source\ThirdParty\tracy\public;$(SolutionDir)Source;$(SourcePath)</SourcePath>
+    <IncludePath>$(SolutionDir)Source\Public\;$(SolutionDir)Source\ThirdParty\tracy\public;$(VULKAN_SDK)\Include\;$(IncludePath);$(SolutionDir)Source\ThirdParty\imgui\backends\;$(SolutionDir)Source\ThirdParty\imgui\;$(SolutionDir)\Source\ThirdParty\SDL\include\</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\VulkanMemoryAllocator\include</ExternalIncludePath>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -166,58 +95,24 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ZN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinygltf;$(SolutionDir)Source\ThirdParty\mimalloc;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Rpcrt4.lib	;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Rpcrt4.lib	;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib;vulkan-1.lib;mimalloc-static.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreLinkEvent>
       <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
     </PreLinkEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glm;C:\Users\giuse\Documents\Visual Studio 2017\Libraries\glfw-3.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
+    <PostBuildEvent>
+      <Command>$(SolutionDir)scripts\PostBuild.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -229,21 +124,25 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZN_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinygltf;$(SolutionDir)Source\ThirdParty\mimalloc;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;rpcrt4.lib;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;rpcrt4.lib;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib;vulkan-1.lib;mimalloc-static.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)Libs\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreLinkEvent>
       <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
     </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>$(SolutionDir)scripts\PostBuild.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">
     <ClCompile>
@@ -255,44 +154,55 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ZN_RELEASE;TRACY_ENABLE;TRACY_ONLY_LOCALHOST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinygltf;$(SolutionDir)Source\ThirdParty\mimalloc;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;rpcrt4.lib;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;rpcrt4.lib;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib;vulkan-1.lib;mimalloc-static.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)Libs\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreLinkEvent>
       <Command>$(SolutionDir)scripts\PreLinking.bat Build $(Configuration)</Command>
     </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>$(SolutionDir)scripts\PostBuild.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="imgui\backends\imgui_impl_dx11.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="Source\Private\Engine\Importer\MeshImporter_GLTF.cpp" />
+    <ClCompile Include="Source\Private\Engine\Importer\MeshImporter_Obj.cpp" />
+    <ClCompile Include="Source\Private\Engine\Importer\TextureImporter.cpp" />
+    <ClCompile Include="Source\Private\Rendering\RHI\Vulkan.cpp" />
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanMaterialManager.cpp" />
+    <ClCompile Include="Source\Private\Engine\Importer\MeshImporter.cpp" />
+    <ClCompile Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="imgui\backends\imgui_impl_sdl.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="Source\ThirdParty\imgui\backends\imgui_impl_vulkan.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="imgui\imgui.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="Source\ThirdParty\imgui\imgui.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_demo.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_demo.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_draw.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_draw.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_tables.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_tables.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_widgets.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="Source\ThirdParty\imgui\imgui_widgets.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\Private\Application\Application.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTest.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestExample.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp" />
@@ -302,6 +212,7 @@
     <ClCompile Include="Source\Private\Core\CommandLine.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Guid.cpp" />
     <ClCompile Include="Source\Private\Core\HAL\Misc.cpp" />
+    <ClCompile Include="Source\Private\Core\IO\IO.cpp" />
     <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
     <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
     <ClCompile Include="Source\Private\Core\Log\StdOutputDevice.cpp" />
@@ -325,10 +236,15 @@
     <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp" />
     <ClCompile Include="Source\Private\Core\Name.cpp" />
     <ClCompile Include="Source\Private\Core\Time\Time.cpp" />
-    <ClCompile Include="Source\Private\Editor\Editor.cpp" />
-    <ClCompile Include="Source\Private\Engine\Window.cpp" />
+    <ClCompile Include="Source\Private\Engine\Camera.cpp" />
+    <ClCompile Include="Source\Private\Engine\EngineFrontend.cpp" />
+    <ClCompile Include="Source\Private\Application\Window.cpp" />
     <ClCompile Include="Source\Private\ImGui\ImGuiWrapper.cpp" />
     <ClCompile Include="Source\Private\Rendering\D3D11\D3D11.cpp" />
+    <ClCompile Include="Source\Private\Rendering\Renderer.cpp" />
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanDevice.cpp" />
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanPipeline.cpp" />
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanTypes.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsAPI.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsCriticalSection.cpp" />
     <ClCompile Include="Source\Private\Windows\WindowsDebugOutput.cpp" />
@@ -344,21 +260,43 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="tracy\public\TracyClient.cpp">
+    <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanRenderer.cpp" />
+    <ClCompile Include="Source\ThirdParty\tracy\public\TracyClient.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="imgui\backends\imgui_impl_dx11.h" />
-    <ClInclude Include="imgui\backends\imgui_impl_sdl.h" />
-    <ClInclude Include="imgui\imconfig.h" />
-    <ClInclude Include="imgui\imgui.h" />
-    <ClInclude Include="imgui\imgui_internal.h" />
-    <ClInclude Include="imgui\imstb_rectpack.h" />
-    <ClInclude Include="imgui\imstb_textedit.h" />
-    <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="Source\Public\Core\AssertionMacros.h" />
+    <ClInclude Include="Source\Public\Core\Event.h" />
+    <ClInclude Include="Source\Public\Core\Hash.h" />
+    <ClInclude Include="Source\Public\Core\Memory\Allocators\Mimalloc.hpp" />
+    <ClInclude Include="Source\Public\Core\Random.h" />
+    <ClInclude Include="Source\Public\Engine\Importer\MeshImporter.h" />
+    <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />
+    <ClInclude Include="Source\Public\Rendering\Material.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHI.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHIInputLayout.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHIInstanceData.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHIMesh.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHITexture.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHITypes.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\RHIVertex.h" />
+    <ClInclude Include="Source\Public\Rendering\RHI\Vulkan\Vulkan.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMaterialManager.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_vulkan.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imconfig.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imgui.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imgui_internal.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imstb_textedit.h" />
+    <ClInclude Include="Source\ThirdParty\imgui\imstb_truetype.h" />
+    <ClInclude Include="Source\Public\Application\Application.h" />
+    <ClInclude Include="Source\Public\Application\ApplicationInput.h" />
+    <ClInclude Include="Source\Public\Engine\Camera.h" />
+    <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTest.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTestManager.h" />
     <ClInclude Include="Source\Public\Core\Async\CallableJob.h" />
@@ -377,6 +315,7 @@
     <ClInclude Include="Source\Public\Core\HAL\Guid.h" />
     <ClInclude Include="Source\Public\Core\HAL\Misc.h" />
     <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h" />
+    <ClInclude Include="Source\Public\Core\IO\IO.h" />
     <ClInclude Include="Source\Public\Core\Log\Log.h" />
     <ClInclude Include="Source\Public\Core\Log\LogMacros.h" />
     <ClInclude Include="Source\Public\Core\Log\OutputDevice.h" />
@@ -398,9 +337,14 @@
     <ClInclude Include="Source\Public\Core\Name.h" />
     <ClInclude Include="Source\Public\Core\Time\Time.h" />
     <ClInclude Include="Source\Public\Core\Trace\Trace.h" />
-    <ClInclude Include="Source\Public\Editor\Editor.h" />
     <ClInclude Include="Source\Public\ImGui\ImGuiWrapper.h" />
     <ClInclude Include="Source\Public\Rendering\D3D11\D3D11.h" />
+    <ClInclude Include="Source\Public\Rendering\Renderer.h" />
+    <ClInclude Include="Source\Public\Rendering\RendererTypes.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanRenderer.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanDevice.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanPipeline.h" />
+    <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanTypes.h" />
     <ClInclude Include="Source\Public\Windows\WindowsAPI.h" />
     <ClInclude Include="Source\Public\Windows\WindowsCommon.h" />
     <ClInclude Include="Source\Public\Windows\WindowsCriticalSection.h" />
@@ -412,8 +356,16 @@
     <ClInclude Include="Source\Public\Windows\WindowsTypes.h" />
     <ClInclude Include="Source\Public\Engine\Engine.h" />
     <ClInclude Include="Source\Public\Core\HAL\SDL\SDLWrapper.h" />
-    <ClInclude Include="Source\Public\Engine\Window.h" />
+    <ClInclude Include="Source\Public\Application\Window.h" />
     <ClInclude Include="Source\Public\Znpch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="scripts\PreLinking.bat" />
+    <None Include="scripts\sdl_build.py" />
+    <None Include="scripts\vk_compile_shaders.py" />
+    <None Include="shaders\blinn-phong.frag" />
+    <UpToDateCheckInput Include="shaders\fragment.frag" />
+    <UpToDateCheckInput Include="shaders\vertex.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,18 +7,9 @@ struct ID3D11DeviceContext;
 
 namespace Zn
 {
-	class ImGuiWrapper
-	{
-	public:
-
-		void Initialize(SDL_Window* window, ID3D11Device* d3dDevice, ID3D11DeviceContext* d3dDeviceContext);
-
-		void ProcessEvent(SDL_Event& event);
-
-		void NewFrame();
-
-		void EndFrame();
-
-		void Shutdown();
-	};
-}
+void imgui_initialize();
+void imgui_shutdown();
+bool imgui_process_event(SDL_Event& event);
+bool imgui_begin_frame();
+bool imgui_end_frame();
+} // namespace Zn

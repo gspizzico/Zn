@@ -4,6 +4,5 @@
 
 namespace Zn
 {
-	template<typename T>
-	using Vector = std::pmr::vector<T>;
+template<typename T> using Vector = std::vector<T>;
 }

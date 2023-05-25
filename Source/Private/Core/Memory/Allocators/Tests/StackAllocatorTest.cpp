@@ -13,115 +13,113 @@ DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest_StackAllocatorAutomationTest, ELogV
 
 namespace Zn::Automation
 {
-	class StackAllocatorAutomationTest : public AutomationTest
-	{
-	private:
+class StackAllocatorAutomationTest : public AutomationTest
+{
+  private:
+    std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
+    {
+        return std::uniform_int_distribution<size_t>(range.first, range.second);
+    }
 
-		std::uniform_int_distribution<size_t> CreateIntDistribution(const std::pair<size_t, size_t>& range)
-		{
-			return std::uniform_int_distribution<size_t>(range.first, range.second);
-		}
+    size_t m_AllocationSize;
 
-		size_t m_AllocationSize;
+    size_t m_Allocations;
 
-		size_t m_Allocations;
+    size_t m_Frames;
 
-		size_t m_Frames;
+    UniquePtr<Zn::StackAllocator> m_Allocator;
 
-		UniquePtr<Zn::StackAllocator> m_Allocator;
+  public:
+    StackAllocatorAutomationTest(size_t allocationSize, size_t allocations, size_t frames)
+        : m_AllocationSize(allocationSize)
+        , m_Allocations(allocations)
+        , m_Frames(frames)
+        , m_Allocator(nullptr)
+    {
+    }
 
-	public:
+    virtual void Prepare()
+    {
+        m_Allocator = std::make_unique<Zn::StackAllocator>(m_AllocationSize);
+    }
 
-		StackAllocatorAutomationTest(size_t allocationSize, size_t allocations, size_t frames)
-			: m_AllocationSize(allocationSize)
-			, m_Allocations(allocations)
-			, m_Frames(frames)
-			, m_Allocator(nullptr)
-		{}
+    virtual void Execute()
+    {
+        std::vector<void*> PreviousAllocations;
 
-		virtual void Prepare()
-		{
-			m_Allocator = std::make_unique<Zn::StackAllocator>(m_AllocationSize);
-		}
+        for (int frame = 0; frame < m_Frames; frame++)
+        {
+            size_t ToDeallocate = 0;
 
-		virtual void Execute()
-		{
-			std::vector<void*> PreviousAllocations;
+            if (frame > 0)
+            {
+                std::random_device rd;
+                std::mt19937       gen(rd());
 
-			for (int frame = 0; frame < m_Frames; frame++)
-			{
-				size_t ToDeallocate = 0;
+                auto RollDice = CreateIntDistribution({m_Allocations / 2, PreviousAllocations.size()});
 
-				if (frame > 0)
-				{
-					std::random_device rd;
-					std::mt19937 gen(rd());
+                ToDeallocate += RollDice(gen);
+            }
 
-					auto RollDice = CreateIntDistribution({ m_Allocations / 2,  PreviousAllocations.size() });
+            std::random_device rd;
+            std::mt19937       gen(rd());
 
-					ToDeallocate += RollDice(gen);
-				}
+            auto FrameAllocationDistribution = CreateIntDistribution({size_t(StorageUnit::Byte) * 256, size_t(StorageUnit::KiloByte) * 16});
 
-				std::random_device rd;
-				std::mt19937 gen(rd());
+            std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);
 
-				auto FrameAllocationDistribution = CreateIntDistribution({ size_t(StorageUnit::Byte) * 256, size_t(StorageUnit::KiloByte) * 16 });
+            if (PreviousAllocations.size() > 0)
+            {
+                size_t deallocated = 0;
+                for (auto It = PreviousAllocations.rbegin(); It != PreviousAllocations.rend() && deallocated < ToDeallocate; ++It, deallocated++)
+                {
+                    m_Allocator->Free(*It);
+                    ++deallocated;
+                }
 
-				std::vector<void*> CurrentFrameAllocations(m_Allocations, 0);
+                PreviousAllocations.erase(PreviousAllocations.end() - deallocated, PreviousAllocations.end());
+            }
 
-				if (PreviousAllocations.size() > 0)
-				{
-					size_t deallocated = 0;
-					for (auto It = PreviousAllocations.rbegin(); It != PreviousAllocations.rend() && deallocated < ToDeallocate; ++It, deallocated++)
-					{
-						m_Allocator->Free(*It);
-						++deallocated;
-					}
+            int allocation = 0;
 
-					PreviousAllocations.erase(PreviousAllocations.end() - deallocated, PreviousAllocations.end());
-				}
+            size_t save_allocation = 0;
 
-				int allocation = 0;
+            if (frame == m_Frames - 1)
+            {
+                auto RollDice = CreateIntDistribution({1, m_Allocations - 1});
 
-				size_t save_allocation = 0;
+                save_allocation = RollDice(gen);
+            }
 
-				if (frame == m_Frames - 1)
-				{
-					auto RollDice = CreateIntDistribution({ 1, m_Allocations - 1 });
+            while (allocation < m_Allocations)
+            {
+                CurrentFrameAllocations[allocation] = m_Allocator->Allocate(FrameAllocationDistribution(gen));
 
-					save_allocation = RollDice(gen);
-				}
+                if (allocation == save_allocation)
+                {
+                    m_Allocator->SaveStatus();
+                }
+                allocation++;
+            }
 
-				while (allocation < m_Allocations)
-				{
-					CurrentFrameAllocations[allocation] = m_Allocator->Allocate(FrameAllocationDistribution(gen));
+            if (save_allocation != 0)
+            {
+                m_Allocator->RestoreStatus();
+            }
 
-					if (allocation == save_allocation)
-					{
-						m_Allocator->SaveStatus();
-					}
-					allocation++;
-				}
+            PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
+        }
 
-				if (save_allocation != 0)
-				{
-					m_Allocator->RestoreStatus();
-				}
+        m_Result = Result::kOk;
+    }
 
-				PreviousAllocations.insert(PreviousAllocations.end(), CurrentFrameAllocations.begin(), CurrentFrameAllocations.end());
+    virtual void Cleanup() override
+    {
+        AutomationTest::Cleanup();
 
-			}
-
-			m_Result = Result::kOk;
-		}
-
-		virtual void Cleanup() override
-		{
-			AutomationTest::Cleanup();
-
-			m_Allocator = nullptr;
-		}
-	};
-}
+        m_Allocator = nullptr;
+    }
+};
+} // namespace Zn::Automation
 
 DEFINE_AUTOMATION_STARTUP_TEST(StackAllocatorTest, Zn::Automation::StackAllocatorAutomationTest, size_t(Zn::StorageUnit::GigaByte) * 1, 200, 4);

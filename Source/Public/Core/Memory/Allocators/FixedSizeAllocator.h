@@ -7,78 +7,74 @@
 
 namespace Zn
 {
-	class FixedSizeAllocator
-	{
-	public:
-		struct alignas(8) FreeBlock
-		{
-			uint32_t m_AllocationToken;
-			uint32_t m_NextBlockOffset;
+class FixedSizeAllocator
+{
+  public:
+    struct alignas(8) FreeBlock
+    {
+        uint32_t m_AllocationToken;
+        uint32_t m_NextBlockOffset;
 
-			static constexpr uint32_t kValidationToken = 0xfbaf;		//FreeBlockAllocationFlag
-		};
+        static constexpr uint32_t kValidationToken = 0xfbaf; // FreeBlockAllocationFlag
+    };
 
-		struct FSAPage
-		{
-			FSAPage(size_t page_size, size_t allocation_size);
+    struct FSAPage
+    {
+        FSAPage(size_t page_size, size_t allocation_size);
 
-			size_t m_Size;
+        size_t m_Size;
 
-			size_t m_AllocationSize;
+        size_t m_AllocationSize;
 
-			size_t m_AllocatedBlocks;
+        size_t m_AllocatedBlocks;
 
-			FixedSizeAllocator::FreeBlock* m_NextFreeBlock;
+        FixedSizeAllocator::FreeBlock* m_NextFreeBlock;
 
-			bool IsFull() const;
+        bool IsFull() const;
 
-			size_t MaxAllocations() const;
+        size_t MaxAllocations() const;
 
-			void* Allocate();
+        void* Allocate();
 
-			void Free(void* address);
+        void Free(void* address);
 
-			size_t GetAllocatedMemory() const
-			{
-				return m_AllocatedBlocks * m_AllocationSize;
-			}
+        size_t GetAllocatedMemory() const
+        {
+            return m_AllocatedBlocks * m_AllocationSize;
+        }
 
-			static FSAPage* GetPageFromAnyAddress(void* address, void* start_address, size_t page_size);
+        static FSAPage* GetPageFromAnyAddress(void* address, void* start_address, size_t page_size);
 
-		private:
+      private:
+        FixedSizeAllocator::FreeBlock* StartAddress() const;
+    };
 
-			FixedSizeAllocator::FreeBlock* StartAddress() const;
-		};
+    static constexpr size_t kMinAllocationSize = sizeof(uintptr_t); // Each block stores the address to the next block.
 
-		static constexpr size_t	kMinAllocationSize = sizeof(uintptr_t);							// Each block stores the address to the next block.
+    FixedSizeAllocator(size_t allocationSize, SharedPtr<PageAllocator> memoryPool);
 
-		FixedSizeAllocator(size_t allocationSize, SharedPtr<PageAllocator> memoryPool);
+    void* Allocate();
 
-		FixedSizeAllocator(size_t allocationSize, size_t pageSize);
+    void Free(void* address);
 
-		void* Allocate();
+    const std::list<uintptr_t>& GetFreePageList() const
+    {
+        return m_FreePageList;
+    }
 
-		void Free(void* address);
+  private:
+    void AllocatePage();
 
-		const std::list<uintptr_t>& GetFreePageList() const
-		{
-			return m_FreePageList;
-		}
+    SharedPtr<PageAllocator> m_MemoryPool;
 
-	private:
+    size_t m_AllocationSize;
 
-		void AllocatePage();
+    FreeBlock* m_NextFreeBlock;
 
-		SharedPtr<PageAllocator>	m_MemoryPool;
+    // Book keeping data
 
-		size_t					m_AllocationSize;
+    std::list<uintptr_t> m_FreePageList;
 
-		FreeBlock* m_NextFreeBlock;
-
-		// Book keeping data
-
-		std::list<uintptr_t>		m_FreePageList;
-
-		std::set<uintptr_t>			m_FullPageList;
-	};
-}
+    std::set<uintptr_t> m_FullPageList;
+};
+} // namespace Zn

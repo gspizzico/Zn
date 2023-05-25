@@ -7,8 +7,16 @@
 #include <Core/CommandLine.h>
 #include <Core/HAL/SDL/SDLWrapper.h>
 #include <Core/Time/Time.h>
-#include <Engine/Window.h>
-#include <Editor/Editor.h>
+#include <Application/Window.h>
+#include <Core/IO/IO.h>
+#include <SDL.h>
+#include <Rendering/Renderer.h>
+#include <ImGui/ImGuiWrapper.h>
+#include <glm/glm.hpp>
+#include <Engine/Camera.h>
+#include <Engine/EngineFrontend.h>
+#include <Application/Application.h>
+#include <Application/ApplicationInput.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogEngine, ELogVerbosity::Log);
 
@@ -16,65 +24,93 @@ using namespace Zn;
 
 void Engine::Initialize()
 {
-	OutputDeviceManager::Get().RegisterOutputDevice<WindowsDebugOutput>();
+    ZN_TRACE_QUICKSCOPE();
 
-	if (CommandLine::Get().Param("-std"))
-	{
-		OutputDeviceManager::Get().RegisterOutputDevice<StdOutputDevice>();
-	}
+    // Initialize Renderer
 
-	SDLWrapper::Initialize();
+    if (!Renderer::initialize(RendererBackendType::Vulkan, Zn::RendererInitParams {Application::Get().GetWindow()}))
+    {
+        ZN_LOG(LogEngine, ELogVerbosity::Error, "Failed to create renderer.");
+        return;
+    }
 
-	// Create Window
+    ZN_LOG(LogEngine, ELogVerbosity::Log, "Engine initialized.");
 
-	m_Window = std::make_unique<Window>(640, 480, "Zn-Engine");
+    ZN_TRACE_INFO("Zn Engine");
 
-	ZN_LOG(LogEngine, ELogVerbosity::Log, "Engine initialized.");
-
-	ZN_TRACE_INFO("Zn Engine");
+    activeCamera = std::make_shared<Camera>();
+    m_FrontEnd   = std::make_shared<EngineFrontend>();
 }
 
-void Engine::Start()
+void Engine::Update(float deltaTime)
 {
-	//Automation::AutomationTestManager::Get().ExecuteStartupTests();
+    ZN_TRACE_QUICKSCOPE();
 
-	while (!m_IsRequestingExit)
-	{
-		ZN_TRACE_QUICKSCOPE();
+    m_DeltaTime = deltaTime;
 
-		double startFrame = Time::Seconds();
+    bool wantsToExit = false;
 
-		m_Window->NewFrame();
+    ProcessInput();
 
-		Editor& editor = Editor::Get();
+    Automation::AutomationTestManager::Get().Tick(deltaTime);
 
-		// Pre Update Work
+    auto engine_render = [=](float dTime)
+    {
+        RenderUI(dTime);
+    };
 
-		editor.PreUpdate(m_DeltaTime);
+    Renderer::Get().set_camera(activeCamera->GetViewInfo());
 
-		// Update Work
+    if (!Renderer::Get().render_frame(deltaTime, engine_render))
+    {
+        Application::Get().RequestExit("Error - Rendering has failed.");
+    }
 
-		editor.Update(m_DeltaTime);
+    if (m_FrontEnd->bIsRequestingExit)
+    {
+        Application::Get().RequestExit("User wants to exit.");
+    }
 
-		// Post Update Work
-
-		editor.PostUpdate(m_DeltaTime);
-
-		Automation::AutomationTestManager::Get().Tick(m_DeltaTime);
-
-		m_IsRequestingExit = m_Window->IsRequestingExit() || editor.IsRequestingExit();
-
-		// Render
-
-		m_Window->EndFrame();
-
-		m_DeltaTime = static_cast<float>(Time::Seconds() - startFrame);
-
-		ZN_END_FRAME();
-	}
+    ZN_END_FRAME();
 }
 
 void Engine::Shutdown()
 {
-	SDLWrapper::Shutdown();
+    m_FrontEnd = nullptr;
+
+    Renderer::destroy();
+}
+
+void Engine::RenderUI(float deltaTime)
+{
+    ZN_TRACE_QUICKSCOPE();
+
+    m_FrontEnd->DrawMainMenu();
+
+    m_FrontEnd->DrawAutomationWindow();
+}
+
+void Engine::ProcessInput()
+{
+    const u8* keyboardState = SDL_GetKeyboardState(nullptr);
+
+    if (keyboardState[SDL_SCANCODE_W])
+        camera_process_key_input(SDLK_w, m_DeltaTime, *activeCamera.get());
+    if (keyboardState[SDL_SCANCODE_A])
+        camera_process_key_input(SDLK_a, m_DeltaTime, *activeCamera.get());
+    if (keyboardState[SDL_SCANCODE_S])
+        camera_process_key_input(SDLK_s, m_DeltaTime, *activeCamera.get());
+    if (keyboardState[SDL_SCANCODE_D])
+        camera_process_key_input(SDLK_d, m_DeltaTime, *activeCamera.get());
+    if (keyboardState[SDL_SCANCODE_Q])
+        camera_process_key_input(SDLK_q, m_DeltaTime, *activeCamera.get());
+    if (keyboardState[SDL_SCANCODE_E])
+        camera_process_key_input(SDLK_e, m_DeltaTime, *activeCamera.get());
+
+    SharedPtr<InputState> input = Application::Get().GetInputState();
+
+    for (const SDL_Event& event : input->events)
+    {
+        camera_process_input(event, m_DeltaTime, *activeCamera.get());
+    }
 }

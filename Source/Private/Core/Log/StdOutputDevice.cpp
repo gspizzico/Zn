@@ -7,5 +7,5 @@ using namespace Zn;
 
 void StdOutputDevice::OutputMessage(const char* message)
 {
-	std::cout << message;
+    std::cout << message;
 }

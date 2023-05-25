@@ -1,9 +1,30 @@
 [submodule "tracy"]
-	path = tracy
+	path = Source/ThirdParty/tracy
 	url = https://github.com/wolfpld/tracy
 [submodule "SDL"]
-	path = SDL
+	path = Source/ThirdParty/SDL
 	url = https://github.com/libsdl-org/SDL.git
 [submodule "imgui"]
-	path = imgui
+	path = Source/ThirdParty/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "tinyobjloader"]
+	path = Source/ThirdParty/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader
+[submodule "Delegate"]
+	path = Source/ThirdParty/Delegate
+	url = https://github.com/bitwizeshift/Delegate
+[submodule "Source/ThirdParty/stb"]
+	path = Source/ThirdParty/stb
+	url = https://github.com/nothings/stb
+[submodule "Source/ThirdParty/VulkanMemoryAllocator-Hpp"]
+	path = Source/ThirdParty/VulkanMemoryAllocator-Hpp
+	url = https://github.com/YaaZ/VulkanMemoryAllocator-Hpp
+[submodule "Source/ThirdParty/wyhash"]
+	path = Source/ThirdParty/wyhash
+	url = https://github.com/wangyi-fudan/wyhash
+[submodule "Source/ThirdParty/tinygltf"]
+	path = Source/ThirdParty/tinygltf
+	url = https://github.com/syoyo/tinygltf
+[submodule "assets/glTF-Sample-Models"]
+	path = assets/glTF-Sample-Models
+	url = https://github.com/KhronosGroup/glTF-Sample-Models

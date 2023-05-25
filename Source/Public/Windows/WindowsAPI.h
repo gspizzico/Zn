@@ -1,25 +1,25 @@
-//#pragma once
-//#include "Core/HAL/BasicTypes.h"
+// #pragma once
+// #include "Core/HAL/BasicTypes.h"
 //
-//#ifdef __clang__
+// #ifdef __clang__
 //	#define WINDOWS_API
-//#else
+// #else
 //	#define WINDOWS_API extern "C" __declspec(dllimport)
-//#endif
+// #endif
 //
-//#pragma push_macro("TRUE")
-//#pragma push_macro("FALSE")
-//#undef TRUE
-//#undef FALSE
+// #pragma push_macro("TRUE")
+// #pragma push_macro("FALSE")
+// #undef TRUE
+// #undef FALSE
 //
-//struct _RTL_CRITICAL_SECTION;
+// struct _RTL_CRITICAL_SECTION;
 //
-//#ifndef WINAPI
-//#define WINAPI __stdcall
-//#endif
+// #ifndef WINAPI
+// #define WINAPI __stdcall
+// #endif
 //
-//namespace Zn::Windows
-//{	
+// namespace Zn::Windows
+//{
 //	typedef int32 BOOL;
 //	typedef unsigned long DWORD;
 //	typedef DWORD* LPDWORD;
@@ -32,14 +32,14 @@
 //	typedef const wchar_t* LPCTSTR;
 //	typedef size_t SIZE_T;
 //
-//	typedef void* HANDLE;	
+//	typedef void* HANDLE;
 //
 //	typedef _RTL_CRITICAL_SECTION* LPCRITICAL_SECTION;
 //
 //	static constexpr BOOL TRUE = 1;
 //	static constexpr BOOL FALSE = 0;
 //
-//	
+//
 //	typedef struct _SECURITY_ATTRIBUTES {
 //		DWORD Length;
 //		LPVOID SecurityDescriptor;
@@ -53,15 +53,12 @@
 //	typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;
 //
 //	WINDOWS_API HANDLE WINAPI OpenThread(DWORD desired_access, BOOL inherit_handle, DWORD thread_id);
-//	WINDOWS_API HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES security_attributes, SIZE_T stack_size, LPTHREAD_START_ROUTINE start_routine, LPVOID parameter, DWORD creation_flags, LPDWORD thread_id);
-//	WINDOWS_API void WINAPI SetThreadPriority(HANDLE thread_handle, int thread_priority);
-//	WINDOWS_API void WINAPI TerminateThread(HANDLE thread_handle, DWORD exit_code);
-//	WINDOWS_API DWORD WINAPI GetCurrentThreadId();
-//	WINDOWS_API DWORD WINAPI WaitForSingleObject(HANDLE handle, DWORD ms);
-//	WINDOWS_API void WINAPI Sleep(DWORD ms);
-//	WINDOWS_API void WINAPI CloseHandle(HANDLE handle);
+//	WINDOWS_API HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES security_attributes, SIZE_T stack_size, LPTHREAD_START_ROUTINE start_routine, LPVOID parameter,
+//DWORD creation_flags, LPDWORD thread_id); 	WINDOWS_API void WINAPI SetThreadPriority(HANDLE thread_handle, int thread_priority); 	WINDOWS_API void WINAPI
+//TerminateThread(HANDLE thread_handle, DWORD exit_code); 	WINDOWS_API DWORD WINAPI GetCurrentThreadId(); 	WINDOWS_API DWORD WINAPI WaitForSingleObject(HANDLE
+//handle, DWORD ms); 	WINDOWS_API void WINAPI Sleep(DWORD ms); 	WINDOWS_API void WINAPI CloseHandle(HANDLE handle);
 //
-//}
+// }
 //
-//#pragma pop_macro("FALSE")
-//#pragma pop_macro("TRUE")
+// #pragma pop_macro("FALSE")
+// #pragma pop_macro("TRUE")

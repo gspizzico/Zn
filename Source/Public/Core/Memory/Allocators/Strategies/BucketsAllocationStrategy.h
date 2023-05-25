@@ -5,39 +5,35 @@
 #include "Core/Memory/Allocators/FixedSizeAllocator.h"
 
 /*
-	Allocation Strategy that uses buckets. Their size is incremental by m_AllocationStep.
+    Allocation Strategy that uses buckets. Their size is incremental by m_AllocationStep.
 
-	Uses multiple FixedSizeAllocator that share the same reserved memory addresses.
-	Each allocator has a unique size of allocation.
+    Uses multiple FixedSizeAllocator that share the same reserved memory addresses.
+    Each allocator has a unique size of allocation.
 
-	The cost of Allocate & Free is O(1).
+    The cost of Allocate & Free is O(1).
 */
 namespace Zn
 {
-	class BucketsAllocationStrategy
-	{
-	public:
+class BucketsAllocationStrategy
+{
+  public:
+    static constexpr size_t kMinAllocationSize = sizeof(uintptr_t);
 
-		static constexpr size_t kMinAllocationSize = sizeof(uintptr_t);
+    BucketsAllocationStrategy(SharedPtr<PageAllocator> memory, size_t max_allocation_size, size_t allocation_step = sizeof(uintptr_t));
 
-		BucketsAllocationStrategy(SharedPtr<PageAllocator> memory, size_t max_allocation_size, size_t allocation_step = sizeof(uintptr_t));
+    void* Allocate(size_t size, size_t alignment = sizeof(uintptr_t));
 
-		BucketsAllocationStrategy(size_t reserve_memory_size, size_t max_allocation_size, size_t allocation_step = sizeof(uintptr_t));
+    void Free(void* address);
 
-		void* Allocate(size_t size, size_t alignment = sizeof(uintptr_t));
+    size_t GetMaxAllocationSize() const;
 
-		void Free(void* address);
+    size_t GetWastedMemory() const; // SLOW!
 
-		size_t GetMaxAllocationSize() const;
+  private:
+    size_t m_AllocationStep;
 
-		size_t GetWastedMemory() const;		// SLOW!
+    SharedPtr<PageAllocator> m_Memory;
 
-	private:
-
-		size_t m_AllocationStep;
-
-		SharedPtr<PageAllocator> m_Memory;
-
-		Vector<FixedSizeAllocator> m_Buckets;
-	};
-}
+    Vector<FixedSizeAllocator> m_Buckets;
+};
+} // namespace Zn

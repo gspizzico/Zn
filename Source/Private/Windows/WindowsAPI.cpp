@@ -1,15 +1,16 @@
 #include <Znpch.h>
-//#include "Core/Windows/WindowsAPI.h"
-//#include "Core/Windows/WindowsCommon.h"
+// #include "Core/Windows/WindowsAPI.h"
+// #include "Core/Windows/WindowsCommon.h"
 //
-//namespace Zn::Windows
+// namespace Zn::Windows
 //{
 //	//#ifdef __clang__
 //	HANDLE WINAPI OpenThread(DWORD desired_access, BOOL inherit_handle, DWORD thread_id)
 //	{
 //		return ::OpenThread(desired_access, inherit_handle, thread_id);
 //	}
-//	HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES security_attributes, SIZE_T stack_size, LPTHREAD_START_ROUTINE start_routine, LPVOID parameter, DWORD creation_flags, LPDWORD thread_id)
+//	HANDLE WINAPI CreateThread(LPSECURITY_ATTRIBUTES security_attributes, SIZE_T stack_size, LPTHREAD_START_ROUTINE start_routine, LPVOID parameter, DWORD
+//creation_flags, LPDWORD thread_id)
 //	{
 //		return ::CreateThread(security_attributes, stack_size, start_routine, parameter, creation_flags, thread_id);
 //	}
@@ -38,4 +39,4 @@
 //		::CloseHandle(handle);
 //	}
 //	//#endif
-//}
+// }

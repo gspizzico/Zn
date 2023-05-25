@@ -4,19 +4,18 @@
 
 namespace Zn
 {
-	struct WindowsCriticalSection
-	{
-		WindowsCriticalSection();
-		~WindowsCriticalSection();
+struct WindowsCriticalSection
+{
+    WindowsCriticalSection();
+    ~WindowsCriticalSection();
 
-		void Lock();
+    void Lock();
 
-		void Unlock();
+    void Unlock();
 
-		bool TryLock();
+    bool TryLock();
 
-	private:
-
-		CRITICAL_SECTION m_NativeCriticalSection;
-	};
-}
+  private:
+    CRITICAL_SECTION m_NativeCriticalSection;
+};
+} // namespace Zn
