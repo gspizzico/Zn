@@ -42,6 +42,7 @@
 /Intermediate
 /Binaries
 /Debug
+/src/obj
 .vs
 .vscode
 

@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Async">
+      <UniqueIdentifier>{2892E535-144A-2783-7D51-00DF6928C273}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Containers">
+      <UniqueIdentifier>{609AAB7B-CC25-1940-D536-9C3441417540}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\HAL">
+      <UniqueIdentifier>{FFC8B1C2-EB95-0CCE-14AF-FA7500DB415C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\IO">
+      <UniqueIdentifier>{82FE7134-EEDD-F0CF-F7F5-7BA663545731}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Log">
+      <UniqueIdentifier>{0CE0B1C2-F8AC-0CCE-21C6-FA750DF2415C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Math">
+      <UniqueIdentifier>{7434EE18-E09E-A28F-29DD-5335958680E4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Memory">
+      <UniqueIdentifier>{C3D9910D-2F8F-0A03-B883-04DA24380107}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Memory\Allocators">
+      <UniqueIdentifier>{13AC4977-FFA5-72C9-E812-09DAD4ABD835}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Platforms">
+      <UniqueIdentifier>{C28FAE29-AE5D-A22F-97F1-1256835E7E94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Platforms\Windows">
+      <UniqueIdentifier>{8947BBCE-7541-E420-5EAE-7A314A474A8D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Time">
+      <UniqueIdentifier>{392CF218-A596-A68F-EED4-57355A7E84E4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Trace">
+      <UniqueIdentifier>{D96F3C37-C527-7E84-2E2F-57E01A061975}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{107145F9-FC28-8746-6530-60A251072237}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\wyhash">
+      <UniqueIdentifier>{809F05D5-ECB5-036B-352D-8F8CA182D4F2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\delegate">
+      <UniqueIdentifier>{475512AA-B3B6-EFB7-3C24-366AA8842677}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\mimalloc">
+      <UniqueIdentifier>{DA765B2E-46D8-383C-CF45-7FEE3BA66FFB}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\AssertionMacros.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Build.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\CommandLine.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Corepch.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Event.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Hash.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Name.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platform.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Random.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Types.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Async\CallableJob.h">
+      <Filter>Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Async\ITaskGraphNode.h">
+      <Filter>Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Async\ScopedLock.h">
+      <Filter>Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Async\Task.h">
+      <Filter>Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Async\TaskGraph.h">
+      <Filter>Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Async\Thread.h">
+      <Filter>Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Async\ThreadedJob.h">
+      <Filter>Core\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Containers\Map.h">
+      <Filter>Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Containers\Set.h">
+      <Filter>Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Containers\Vector.h">
+      <Filter>Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\HAL\Guid.h">
+      <Filter>Core\HAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\HAL\Misc.h">
+      <Filter>Core\HAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\HAL\PlatformTypes.h">
+      <Filter>Core\HAL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IO\IO.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Log\Log.h">
+      <Filter>Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Log\LogMacros.h">
+      <Filter>Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Log\OutputDevice.h">
+      <Filter>Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Log\OutputDeviceManager.h">
+      <Filter>Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Log\StdOutputDevice.h">
+      <Filter>Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Math\Math.h">
+      <Filter>Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Memory\Memory.h">
+      <Filter>Core\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Memory\VirtualMemory.h">
+      <Filter>Core\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Memory\Allocators\BaseAllocator.h">
+      <Filter>Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Memory\Allocators\Mimalloc.hpp">
+      <Filter>Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsAPI.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsCommon.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsCriticalSection.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsDebugOutput.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsMemory.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsMisc.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsPlatform.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsThread.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsThreads.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Platforms\Windows\WindowsTypes.h">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Time\Time.h">
+      <Filter>Core\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Trace\Trace.h">
+      <Filter>Core\Trace</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\wyhash\wyhash.h">
+      <Filter>ThirdParty\wyhash</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\delegate\delegate.hpp">
+      <Filter>ThirdParty\delegate</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\mimalloc\mimalloc.h">
+      <Filter>ThirdParty\mimalloc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\CommandLine.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Corepch.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Name.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Async\TaskGraph.cpp">
+      <Filter>Core\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Async\Thread.cpp">
+      <Filter>Core\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\HAL\Guid.cpp">
+      <Filter>Core\HAL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\HAL\Misc.cpp">
+      <Filter>Core\HAL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\IO\IO.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Log\Log.cpp">
+      <Filter>Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Log\OutputDeviceManager.cpp">
+      <Filter>Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Log\StdOutputDevice.cpp">
+      <Filter>Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Memory\Memory.cpp">
+      <Filter>Core\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Memory\VirtualMemory.cpp">
+      <Filter>Core\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Memory\Allocators\BaseAllocator.cpp">
+      <Filter>Core\Memory\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Platforms\Windows\WindowsAPI.cpp">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Platforms\Windows\WindowsCriticalSection.cpp">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Platforms\Windows\WindowsDebugOutput.cpp">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Platforms\Windows\WindowsMemory.cpp">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Platforms\Windows\WindowsMisc.cpp">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Platforms\Windows\WindowsThread.cpp">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Platforms\Windows\WindowsThreads.cpp">
+      <Filter>Core\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Time\Time.cpp">
+      <Filter>Core\Time</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
