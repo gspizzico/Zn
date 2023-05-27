@@ -93,9 +93,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;ZN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;ZN_DEBUG;%(PreprocessorDefinitions);PLATFORM_WINDOWS;NOMINMAX;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinygltf;$(SolutionDir)Source\ThirdParty\mimalloc;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\ThirdParty\;$(SolutionDir)src\include\Core\Platforms\;$(SolutionDir)src\include\;$(SolutionDir)Source\ThirdParty\VulkanMemoryAllocator-Hpp\include;$(SolutionDir)Source\ThirdParty\stb;$(SolutionDir)Source\ThirdParty\Delegate\include;$(SolutionDir)Source\ThirdParty\wyhash;$(SolutionDir)Source\ThirdParty\tinygltf;$(SolutionDir)Source\ThirdParty\mimalloc;$(SolutionDir)Source\ThirdParty\tinyobjloader;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>Znpch.h</PrecompiledHeaderFile>
@@ -104,7 +104,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Rpcrt4.lib	;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib;vulkan-1.lib;mimalloc-static.lib</AdditionalDependencies>
+      <AdditionalDependencies>Rpcrt4.lib	;%(AdditionalDependencies);SDL2.lib;SDL2main.lib;d3d11.lib;vulkan-1.lib;mimalloc-static.lib;core-debug.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreLinkEvent>
@@ -206,36 +206,6 @@
     <ClCompile Include="Source\Private\Automation\AutomationTest.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestExample.cpp" />
     <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp" />
-    <ClCompile Include="Source\Private\Core\Async\TaskGraph.cpp" />
-    <ClCompile Include="Source\Private\Core\Async\Tests\TaskGraphAutomationTest.cpp" />
-    <ClCompile Include="Source\Private\Core\Async\Thread.cpp" />
-    <ClCompile Include="Source\Private\Core\CommandLine.cpp" />
-    <ClCompile Include="Source\Private\Core\HAL\Guid.cpp" />
-    <ClCompile Include="Source\Private\Core\HAL\Misc.cpp" />
-    <ClCompile Include="Source\Private\Core\IO\IO.cpp" />
-    <ClCompile Include="Source\Private\Core\Log\Log.cpp" />
-    <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp" />
-    <ClCompile Include="Source\Private\Core\Log\StdOutputDevice.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\BaseAllocator.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\FixedSizeAllocator.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\PageAllocator.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\DirectAllocationStrategyTest.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\BucketsAllocationStrategyTest.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\StackAllocatorTest.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TinyAllocatorStrategyTest.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\ThreeWaysAllocator.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\TLSFAllocator.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\Memory.cpp" />
-    <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp" />
-    <ClCompile Include="Source\Private\Core\Name.cpp" />
-    <ClCompile Include="Source\Private\Core\Time\Time.cpp" />
     <ClCompile Include="Source\Private\Engine\Camera.cpp" />
     <ClCompile Include="Source\Private\Engine\EngineFrontend.cpp" />
     <ClCompile Include="Source\Private\Application\Window.cpp" />
@@ -245,16 +215,8 @@
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanPipeline.cpp" />
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanTypes.cpp" />
-    <ClCompile Include="Source\Private\Windows\WindowsAPI.cpp" />
-    <ClCompile Include="Source\Private\Windows\WindowsCriticalSection.cpp" />
-    <ClCompile Include="Source\Private\Windows\WindowsDebugOutput.cpp" />
-    <ClCompile Include="Source\Private\Windows\WindowsMemory.cpp" />
-    <ClCompile Include="Source\Private\Windows\WindowsMisc.cpp" />
     <ClCompile Include="Source\Private\Engine\Engine.cpp" />
-    <ClCompile Include="Source\Private\Core\HAL\SDL\SDLWrapper.cpp" />
     <ClCompile Include="Source\Private\Main.cpp" />
-    <ClCompile Include="Source\Private\Windows\WindowsThread.cpp" />
-    <ClCompile Include="Source\Private\Windows\WindowsThreads.cpp" />
     <ClCompile Include="Source\Private\Znpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseWithTrace|x64'">Create</PrecompiledHeader>
@@ -268,11 +230,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Public\Core\AssertionMacros.h" />
-    <ClInclude Include="Source\Public\Core\Event.h" />
-    <ClInclude Include="Source\Public\Core\Hash.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Mimalloc.hpp" />
-    <ClInclude Include="Source\Public\Core\Random.h" />
     <ClInclude Include="Source\Public\Engine\Importer\MeshImporter.h" />
     <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />
     <ClInclude Include="Source\Public\Rendering\Material.h" />
@@ -299,44 +256,6 @@
     <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTest.h" />
     <ClInclude Include="Source\Public\Automation\AutomationTestManager.h" />
-    <ClInclude Include="Source\Public\Core\Async\CallableJob.h" />
-    <ClInclude Include="Source\Public\Core\Async\ITaskGraphNode.h" />
-    <ClInclude Include="Source\Public\Core\Async\ScopedLock.h" />
-    <ClInclude Include="Source\Public\Core\Async\Task.h" />
-    <ClInclude Include="Source\Public\Core\Async\TaskGraph.h" />
-    <ClInclude Include="Source\Public\Core\Async\Thread.h" />
-    <ClInclude Include="Source\Public\Core\Async\ThreadedJob.h" />
-    <ClInclude Include="Source\Public\Core\Build.h" />
-    <ClInclude Include="Source\Public\Core\CommandLine.h" />
-    <ClInclude Include="Source\Public\Core\Containers\Map.h" />
-    <ClInclude Include="Source\Public\Core\Containers\Set.h" />
-    <ClInclude Include="Source\Public\Core\Containers\Vector.h" />
-    <ClInclude Include="Source\Public\Core\HAL\BasicTypes.h" />
-    <ClInclude Include="Source\Public\Core\HAL\Guid.h" />
-    <ClInclude Include="Source\Public\Core\HAL\Misc.h" />
-    <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h" />
-    <ClInclude Include="Source\Public\Core\IO\IO.h" />
-    <ClInclude Include="Source\Public\Core\Log\Log.h" />
-    <ClInclude Include="Source\Public\Core\Log\LogMacros.h" />
-    <ClInclude Include="Source\Public\Core\Log\OutputDevice.h" />
-    <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h" />
-    <ClInclude Include="Source\Public\Core\Log\StdOutputDevice.h" />
-    <ClInclude Include="Source\Public\Core\Math\Math.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\BaseAllocator.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\FixedSizeAllocator.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\PageAllocator.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\ThreeWaysAllocator.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\TLSFAllocator.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Memory.h" />
-    <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h" />
-    <ClInclude Include="Source\Public\Core\Name.h" />
-    <ClInclude Include="Source\Public\Core\Time\Time.h" />
-    <ClInclude Include="Source\Public\Core\Trace\Trace.h" />
     <ClInclude Include="Source\Public\ImGui\ImGuiWrapper.h" />
     <ClInclude Include="Source\Public\Rendering\D3D11\D3D11.h" />
     <ClInclude Include="Source\Public\Rendering\Renderer.h" />
@@ -345,17 +264,7 @@
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanDevice.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanPipeline.h" />
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanTypes.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsAPI.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsCommon.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsCriticalSection.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsDebugOutput.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsMemory.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsMisc.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsThread.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsThreads.h" />
-    <ClInclude Include="Source\Public\Windows\WindowsTypes.h" />
     <ClInclude Include="Source\Public\Engine\Engine.h" />
-    <ClInclude Include="Source\Public\Core\HAL\SDL\SDLWrapper.h" />
     <ClInclude Include="Source\Public\Application\Window.h" />
     <ClInclude Include="Source\Public\Znpch.h" />
   </ItemGroup>

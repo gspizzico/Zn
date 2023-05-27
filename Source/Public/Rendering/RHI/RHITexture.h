@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/HAL/BasicTypes.h>
+#include <Core/Types.h>
 #include <Rendering/RHI/Vulkan/Vulkan.h>
 
 namespace Zn

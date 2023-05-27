@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/HAL/BasicTypes.h"
+#include "Core/Types.h"
 
 #include "Automation/AutomationTest.h"
 

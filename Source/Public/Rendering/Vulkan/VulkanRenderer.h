@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/HAL/BasicTypes.h>
+#include <Core/Types.h>
 #include <Rendering/Vulkan/VulkanTypes.h>
 #include <Rendering/Vulkan/VulkanDevice.h>
 #include <Rendering/Renderer.h>

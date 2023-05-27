@@ -43,13 +43,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='win-debug|x64'">
-    <OutDir>.\</OutDir>
+    <OutDir>.\..\Libs\Debug\</OutDir>
     <IntDir>obj\x64\win-debug\</IntDir>
     <TargetName>core-debug</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='win-release|x64'">
-    <OutDir>.\bin\</OutDir>
+    <OutDir>.\..\Libs\Debug\</OutDir>
     <IntDir>obj\x64\win-release\</IntDir>
     <TargetName>core-release</TargetName>
     <TargetExt>.lib</TargetExt>
@@ -58,7 +58,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Core;ThirdParty;Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -66,7 +66,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Corepch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>Core/Corepch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
@@ -77,7 +77,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core;ThirdParty;Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   <Lib>
     <OutputFile>$(OutDir)core-debug.lib</OutputFile>
@@ -93,7 +93,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Core;ThirdParty;Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
@@ -101,7 +101,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Corepch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>Core/Corepch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
@@ -112,7 +112,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core;ThirdParty;Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   <Lib>
     <OutputFile>$(OutDir)core-release.lib</OutputFile>
@@ -127,87 +127,87 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Core\AssertionMacros.h" />
-    <ClInclude Include="Core\Build.h" />
-    <ClInclude Include="Core\CommandLine.h" />
-    <ClInclude Include="Core\Corepch.h" />
-    <ClInclude Include="Core\Event.h" />
-    <ClInclude Include="Core\Guid.h" />
-    <ClInclude Include="Core\Hash.h" />
-    <ClInclude Include="Core\Name.h" />
-    <ClInclude Include="Core\Platform.h" />
-    <ClInclude Include="Core\Random.h" />
-    <ClInclude Include="Core\Types.h" />
-    <ClInclude Include="Core\Async\CallableJob.h" />
-    <ClInclude Include="Core\Async\ITaskGraphNode.h" />
-    <ClInclude Include="Core\Async\ScopedLock.h" />
-    <ClInclude Include="Core\Async\Task.h" />
-    <ClInclude Include="Core\Async\TaskGraph.h" />
-    <ClInclude Include="Core\Async\Thread.h" />
-    <ClInclude Include="Core\Async\ThreadedJob.h" />
-    <ClInclude Include="Core\Containers\Map.h" />
-    <ClInclude Include="Core\Containers\Set.h" />
-    <ClInclude Include="Core\Containers\Vector.h" />
-    <ClInclude Include="Core\HAL\Misc.h" />
-    <ClInclude Include="Core\IO\IO.h" />
-    <ClInclude Include="Core\Log\Log.h" />
-    <ClInclude Include="Core\Log\LogMacros.h" />
-    <ClInclude Include="Core\Memory\Memory.h" />
-    <ClInclude Include="Core\Memory\VirtualMemory.h" />
-    <ClInclude Include="Core\Memory\Allocators\BaseAllocator.h" />
-    <ClInclude Include="Core\Memory\Allocators\Mimalloc.hpp" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsAPI.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsCommon.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsCriticalSection.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsMemory.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsMisc.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsThread.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsThreads.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsTypes.h" />
-    <ClInclude Include="Core\Time\Time.h" />
-    <ClInclude Include="Core\Trace\Trace.h" />
+    <ClInclude Include="include\Core\AssertionMacros.h" />
+    <ClInclude Include="include\Core\Build.h" />
+    <ClInclude Include="include\Core\CommandLine.h" />
+    <ClInclude Include="include\Core\Corepch.h" />
+    <ClInclude Include="include\Core\Event.h" />
+    <ClInclude Include="include\Core\Guid.h" />
+    <ClInclude Include="include\Core\Hash.h" />
+    <ClInclude Include="include\Core\Name.h" />
+    <ClInclude Include="include\Core\Platform.h" />
+    <ClInclude Include="include\Core\Random.h" />
+    <ClInclude Include="include\Core\Types.h" />
+    <ClInclude Include="include\Core\Async\CallableJob.h" />
+    <ClInclude Include="include\Core\Async\ITaskGraphNode.h" />
+    <ClInclude Include="include\Core\Async\ScopedLock.h" />
+    <ClInclude Include="include\Core\Async\Task.h" />
+    <ClInclude Include="include\Core\Async\TaskGraph.h" />
+    <ClInclude Include="include\Core\Async\Thread.h" />
+    <ClInclude Include="include\Core\Async\ThreadedJob.h" />
+    <ClInclude Include="include\Core\Containers\Map.h" />
+    <ClInclude Include="include\Core\Containers\Set.h" />
+    <ClInclude Include="include\Core\Containers\Vector.h" />
+    <ClInclude Include="include\Core\HAL\Misc.h" />
+    <ClInclude Include="include\Core\IO\IO.h" />
+    <ClInclude Include="include\Core\Log\Log.h" />
+    <ClInclude Include="include\Core\Log\LogMacros.h" />
+    <ClInclude Include="include\Core\Memory\Memory.h" />
+    <ClInclude Include="include\Core\Memory\VirtualMemory.h" />
+    <ClInclude Include="include\Core\Memory\Allocators\BaseAllocator.h" />
+    <ClInclude Include="include\Core\Memory\Allocators\Mimalloc.hpp" />
+    <ClInclude Include="include\Core\Platforms\Windows\WindowsAPI.h" />
+    <ClInclude Include="include\Core\Platforms\Windows\WindowsCommon.h" />
+    <ClInclude Include="include\Core\Platforms\Windows\WindowsCriticalSection.h" />
+    <ClInclude Include="include\Core\Platforms\Windows\WindowsMemory.h" />
+    <ClInclude Include="include\Core\Platforms\Windows\WindowsMisc.h" />
+    <ClInclude Include="include\Core\Platforms\Windows\WindowsThread.h" />
+    <ClInclude Include="include\Core\Platforms\Windows\WindowsThreads.h" />
+    <ClInclude Include="include\Core\Platforms\Windows\WindowsTypes.h" />
+    <ClInclude Include="include\Core\Time\Time.h" />
+    <ClInclude Include="include\Core\Trace\Trace.h" />
     <ClInclude Include="ThirdParty\wyhash\wyhash.h" />
     <ClInclude Include="ThirdParty\delegate\delegate.hpp" />
     <ClInclude Include="ThirdParty\mimalloc\mimalloc.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\CommandLine.cpp">
+    <ClCompile Include="src\Core\CommandLine.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Corepch.cpp">
+    <ClCompile Include="src\Core\Corepch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='win-debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='win-release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Core\Guid.cpp">
+    <ClCompile Include="src\Core\Guid.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Name.cpp">
+    <ClCompile Include="src\Core\Name.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Async\TaskGraph.cpp">
+    <ClCompile Include="src\Core\Async\TaskGraph.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Async\Thread.cpp">
+    <ClCompile Include="src\Core\Async\Thread.cpp">
     </ClCompile>
-    <ClCompile Include="Core\IO\IO.cpp">
+    <ClCompile Include="src\Core\IO\IO.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Log\Log.cpp">
+    <ClCompile Include="src\Core\Log\Log.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Memory\Memory.cpp">
+    <ClCompile Include="src\Core\Memory\Memory.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Memory\VirtualMemory.cpp">
+    <ClCompile Include="src\Core\Memory\VirtualMemory.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Memory\Allocators\BaseAllocator.cpp">
+    <ClCompile Include="src\Core\Memory\Allocators\BaseAllocator.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Platforms\Windows\WindowsAPI.cpp">
+    <ClCompile Include="src\Core\Platforms\Windows\WindowsAPI.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Platforms\Windows\WindowsCriticalSection.cpp">
+    <ClCompile Include="src\Core\Platforms\Windows\WindowsCriticalSection.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Platforms\Windows\WindowsMemory.cpp">
+    <ClCompile Include="src\Core\Platforms\Windows\WindowsMemory.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Platforms\Windows\WindowsMisc.cpp">
+    <ClCompile Include="src\Core\Platforms\Windows\WindowsMisc.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Platforms\Windows\WindowsThread.cpp">
+    <ClCompile Include="src\Core\Platforms\Windows\WindowsThread.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Platforms\Windows\WindowsThreads.cpp">
+    <ClCompile Include="src\Core\Platforms\Windows\WindowsThreads.cpp">
     </ClCompile>
-    <ClCompile Include="Core\Time\Time.cpp">
+    <ClCompile Include="src\Core\Time\Time.cpp">
     </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

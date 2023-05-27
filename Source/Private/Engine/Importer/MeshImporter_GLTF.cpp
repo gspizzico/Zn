@@ -2,7 +2,7 @@
 #include <Engine/Importer/MeshImporter.h>
 #include <Engine/Importer/TextureImporter.h>
 #include <Rendering/RHI/RHIMesh.h>
-#include <Core/Math/Math.h>
+#include <Math/Math.h>
 
 #define TINYGLTF_IMPLEMENTATION
 

@@ -57,7 +57,10 @@ solution("ZnGenie")
   configuration "*-release"
     targetsuffix "-release"
 
-  targetsubdir "./bin/"
+  configuration "*"
+
+  -- targetsubdir "./bin/"
+  targetsubdir "./../Libs/Debug/"
 
 -- project("math")
   
@@ -94,17 +97,18 @@ project("core")
 
   configuration "*"
 
-  pchheader "Corepch.h"
-  pchsource "./Core/Corepch.cpp"
+  pchheader "Core/Corepch.h"
+  pchsource "src/Core/Corepch.cpp"
 
   files {
-    "./Core/**",
+    "./include/Core/**",
+    "./src/Core/**",
     "./ThirdParty/wyhash/*",
     "./ThirdParty/delegate/*",
   }
 
   includedirs {
-    "./Core/",    
+    "./include/",    
     "./ThirdParty/",
   }
 
@@ -113,10 +117,11 @@ project("core")
   links {"mimalloc-static.lib"}
   
   files {
-    "./Core/Platforms/Windows/**",
+    "./include/Core/Platforms/Windows/**",
+    "./src/Core/Platforms/Windows/**",
     "./ThirdParty/mimalloc/**"
   }
   includedirs {
-    "./Core/Platforms/",
+    "./include/Core/Platforms/",
     "./ThirdParty/mimalloc/"
   }

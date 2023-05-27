@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/HAL/BasicTypes.h>
+#include <Core/Types.h>
 
 DECLARE_LOG_CATEGORY(LogMeshImporter);
 

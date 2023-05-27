@@ -14,89 +14,17 @@
     <Filter Include="Source\Private">
       <UniqueIdentifier>{490daf2d-47db-4d1c-bfe2-2dee112ff1be}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Public\Core">
-      <UniqueIdentifier>{6d3c8c0e-ea04-464c-8262-30f86c4cc7c9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\Log">
-      <UniqueIdentifier>{e0b4d1a9-9a3f-4823-ae95-f62f1e96e402}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\HAL">
-      <UniqueIdentifier>{68be810a-a26a-425b-9743-835d059b267a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\Containers">
-      <UniqueIdentifier>{864690bd-91ce-462f-81fe-53f49d5c599e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core">
-      <UniqueIdentifier>{a9bf75b9-1e59-47e9-ab6e-ece595ff0e01}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\Log">
-      <UniqueIdentifier>{73ddd38c-9e3c-4195-b473-da1a2def9b24}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Windows">
-      <UniqueIdentifier>{d67f41ee-ac11-495a-a755-5269490359f0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\Time">
-      <UniqueIdentifier>{3a1fcdca-7c11-4ee3-bc07-ff341259b92a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\Time">
-      <UniqueIdentifier>{7924712d-f235-4628-8517-765b2c775cb7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\Memory">
-      <UniqueIdentifier>{df1ffad5-5936-40fa-bb66-9a99da319b2c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\Memory">
-      <UniqueIdentifier>{1ededc4f-9ff7-488b-a37b-dde9c2bcaf11}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\Memory\Allocators">
-      <UniqueIdentifier>{77cd16e3-7a9e-449a-86ab-f7aad1218b97}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\Memory\Allocators">
-      <UniqueIdentifier>{d2bece37-6f5c-4aff-bb16-2d4b6e712367}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\HAL">
-      <UniqueIdentifier>{3db15413-a897-4b79-9ee2-743a4241dd39}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\Math">
-      <UniqueIdentifier>{d75860d8-f77a-408a-a990-bb1f466d2177}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Public\Automation">
       <UniqueIdentifier>{0b35452c-84aa-4f23-8114-6249bd8b2375}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Private\Automation">
       <UniqueIdentifier>{b761ad88-ad98-4751-b849-a60ca5087c02}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Private\Core\Memory\Allocators\Tests">
-      <UniqueIdentifier>{a442219f-ab23-4efc-95d2-53f0e2dd3efa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\Memory\Allocators\Strategies">
-      <UniqueIdentifier>{609112c1-3b9e-4cb5-8797-9ab5c2c6d863}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\Memory\Allocators\Strategies">
-      <UniqueIdentifier>{25e0d0dd-4487-410c-9267-981b3cdac6b2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\Async">
-      <UniqueIdentifier>{820a7f9d-043b-4dd3-a8f9-ee5ccc61b343}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\Async">
-      <UniqueIdentifier>{8563138a-b9b7-45d1-ad7c-a5e4d5c5bed9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\Async\Tests">
-      <UniqueIdentifier>{c030cb69-9091-4546-b83c-6c6ff1d66548}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\HAL\SDL">
-      <UniqueIdentifier>{48ed124b-43ea-4807-9446-5b81264a66ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Core\HAL\SDL">
-      <UniqueIdentifier>{ddc5ae4c-5c93-4699-83b5-7efde2dde92c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Public\Engine">
       <UniqueIdentifier>{b09d64d9-3b96-49ab-8eb2-c0656e379eb7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Private\Engine">
       <UniqueIdentifier>{3aa85fc2-703c-4bbe-9bd6-af651785437c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Public\Windows">
-      <UniqueIdentifier>{22db1709-de3d-4ee2-840f-5f9573abcc61}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Public\Rendering">
       <UniqueIdentifier>{8b5bcc7c-ff3a-4c14-b7a9-d8b252b1f037}</UniqueIdentifier>
@@ -125,9 +53,6 @@
     <Filter Include="Source\Private\Editor">
       <UniqueIdentifier>{0f3336e1-8d64-4610-b6cc-4a09bcb50353}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Public\Core\Trace">
-      <UniqueIdentifier>{a4a52266-d56d-4c29-9fe8-3c1f1fa96ba2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Public\Rendering\Vulkan">
       <UniqueIdentifier>{86fd722b-bfc2-41a0-afa1-e7deefe95cef}</UniqueIdentifier>
     </Filter>
@@ -143,55 +68,10 @@
     <Filter Include="scripts">
       <UniqueIdentifier>{6412df33-04ba-48bc-8bd1-d54e232dbb1e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Public\Core\IO">
-      <UniqueIdentifier>{4c920979-15dc-4013-b45a-5c3c96e1dae6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Private\Core\IO">
-      <UniqueIdentifier>{78fc1543-6407-4208-9821-8d059db04dae}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Private\Main.cpp">
       <Filter>Source\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Name.cpp">
-      <Filter>Source\Private\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Log\Log.cpp">
-      <Filter>Source\Private\Core\Log</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Log\OutputDeviceManager.cpp">
-      <Filter>Source\Private\Core\Log</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Windows\WindowsDebugOutput.cpp">
-      <Filter>Source\Private\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Time\Time.cpp">
-      <Filter>Source\Private\Core\Time</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Windows\WindowsMemory.cpp">
-      <Filter>Source\Private\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Memory.cpp">
-      <Filter>Source\Private\Core\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\VirtualMemory.cpp">
-      <Filter>Source\Private\Core\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\LinearAllocator.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Windows\WindowsMisc.cpp">
-      <Filter>Source\Private\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\HAL\Misc.cpp">
-      <Filter>Source\Private\Core\HAL</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\StackAllocator.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\TLSFAllocator.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators</Filter>
     </ClCompile>
     <ClCompile Include="Source\Private\Automation\AutomationTestManager.cpp">
       <Filter>Source\Private\Automation</Filter>
@@ -202,42 +82,6 @@
     <ClCompile Include="Source\Private\Automation\AutomationTestExample.cpp">
       <Filter>Source\Private\Automation</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TLSFAutomationTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\FixedSizeAllocator.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\FSAAutomationTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\PageAllocator.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\BucketsAllocationStrategyTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\DirectAllocationStrategyTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Async\TaskGraph.cpp">
-      <Filter>Source\Private\Core\Async</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Async\Tests\TaskGraphAutomationTest.cpp">
-      <Filter>Source\Private\Core\Async\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\HAL\Guid.cpp">
-      <Filter>Source\Private\Core\HAL</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\HAL\SDL\SDLWrapper.cpp">
-      <Filter>Source\Private\Core\HAL\SDL</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Private\Engine\Engine.cpp">
       <Filter>Source\Private\Engine</Filter>
     </ClCompile>
@@ -247,42 +91,6 @@
     <ClCompile Include="Source\Private\ImGui\ImGuiWrapper.cpp">
       <Filter>Source\Private\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\StackAllocatorTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Strategies</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\Tests\TinyAllocatorStrategyTest.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Log\StdOutputDevice.cpp">
-      <Filter>Source\Private\Core\Log</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\CommandLine.cpp">
-      <Filter>Source\Private\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\BaseAllocator.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Memory\Allocators\ThreeWaysAllocator.cpp">
-      <Filter>Source\Private\Core\Memory\Allocators</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\Async\Thread.cpp">
-      <Filter>Source\Private\Core\Async</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Windows\WindowsAPI.cpp">
-      <Filter>Source\Private\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Windows\WindowsCriticalSection.cpp">
-      <Filter>Source\Private\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Windows\WindowsThread.cpp">
-      <Filter>Source\Private\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Windows\WindowsThreads.cpp">
-      <Filter>Source\Private\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Private\Znpch.cpp">
       <Filter>Source\Private</Filter>
     </ClCompile>
@@ -291,9 +99,6 @@
     </ClCompile>
     <ClCompile Include="Source\Private\Application\Window.cpp">
       <Filter>Source\Private\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Private\Core\IO\IO.cpp">
-      <Filter>Source\Private\Core\IO</Filter>
     </ClCompile>
     <ClCompile Include="Source\Private\Rendering\Vulkan\VulkanPipeline.cpp">
       <Filter>Source\Private\Rendering\Vulkan</Filter>
@@ -322,95 +127,11 @@
     <ClCompile Include="Source\Private\Engine\Importer\MeshImporter_GLTF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Public\Core\Log\Log.h">
-      <Filter>Source\Public\Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\HAL\PlatformTypes.h">
-      <Filter>Source\Public\Core\HAL</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Containers\Map.h">
-      <Filter>Source\Public\Core\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Name.h">
-      <Filter>Source\Public\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Build.h">
-      <Filter>Source\Public\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Containers\Vector.h">
-      <Filter>Source\Public\Core\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Containers\Set.h">
-      <Filter>Source\Public\Core\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Log\OutputDeviceManager.h">
-      <Filter>Source\Public\Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Log\OutputDevice.h">
-      <Filter>Source\Public\Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Log\LogMacros.h">
-      <Filter>Source\Public\Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Time\Time.h">
-      <Filter>Source\Public\Core\Time</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Memory.h">
-      <Filter>Source\Public\Core\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\VirtualMemory.h">
-      <Filter>Source\Public\Core\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\HAL\BasicTypes.h">
-      <Filter>Source\Public\Core\HAL</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\LinearAllocator.h">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\HAL\Misc.h">
-      <Filter>Source\Public\Core\HAL</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\StackAllocator.h">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\TLSFAllocator.h">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Math\Math.h">
-      <Filter>Source\Public\Core\Math</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\Automation\AutomationTest.h">
       <Filter>Source\Public\Automation</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Automation\AutomationTestManager.h">
       <Filter>Source\Public\Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\FixedSizeAllocator.h">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\PageAllocator.h">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\BucketsAllocationStrategy.h">
-      <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\DirectAllocationStrategy.h">
-      <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Async\Task.h">
-      <Filter>Source\Public\Core\Async</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Async\TaskGraph.h">
-      <Filter>Source\Public\Core\Async</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Async\ITaskGraphNode.h">
-      <Filter>Source\Public\Core\Async</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\HAL\Guid.h">
-      <Filter>Source\Public\Core\HAL</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\HAL\SDL\SDLWrapper.h">
-      <Filter>Source\Public\Core\HAL\SDL</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Engine\Engine.h">
       <Filter>Source\Public\Engine</Filter>
@@ -418,77 +139,17 @@
     <ClInclude Include="Source\Public\Application\Window.h">
       <Filter>Source\Public\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsCommon.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsDebugOutput.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsMemory.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsMisc.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsTypes.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\Rendering\D3D11\D3D11.h">
       <Filter>Source\Public\Rendering\D3D11</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\ImGui\ImGuiWrapper.h">
       <Filter>Source\Public\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Strategies\TinyAllocatorStrategy.h">
-      <Filter>Source\Public\Core\Memory\Allocators\Strategies</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Log\StdOutputDevice.h">
-      <Filter>Source\Public\Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\CommandLine.h">
-      <Filter>Source\Public\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\BaseAllocator.h">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\ThreeWaysAllocator.h">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Async\Thread.h">
-      <Filter>Source\Public\Core\Async</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Async\ThreadedJob.h">
-      <Filter>Source\Public\Core\Async</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Async\CallableJob.h">
-      <Filter>Source\Public\Core\Async</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Async\ScopedLock.h">
-      <Filter>Source\Public\Core\Async</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsAPI.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsCriticalSection.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsThread.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Windows\WindowsThreads.h">
-      <Filter>Source\Public\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\Trace\Trace.h">
-      <Filter>Source\Public\Core\Trace</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Public\Znpch.h">
       <Filter>Source\Public</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanDevice.h">
       <Filter>Source\Public\Rendering\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\IO\IO.h">
-      <Filter>Source\Public\Core\IO</Filter>
     </ClInclude>
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanPipeline.h">
       <Filter>Source\Public\Rendering\Vulkan</Filter>
@@ -503,7 +164,6 @@
     <ClInclude Include="Source\Public\Engine\EngineFrontend.h" />
     <ClInclude Include="Source\Public\Application\Application.h" />
     <ClInclude Include="Source\Public\Application\ApplicationInput.h" />
-    <ClInclude Include="Source\Public\Core\Event.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_sdl.h" />
     <ClInclude Include="Source\ThirdParty\imgui\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="Source\ThirdParty\imgui\imconfig.h" />
@@ -515,8 +175,6 @@
     <ClInclude Include="Source\Public\Rendering\Vulkan\VulkanMaterialManager.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHITexture.h" />
     <ClInclude Include="Source\Public\Engine\Importer\TextureImporter.h" />
-    <ClInclude Include="Source\Public\Core\Hash.h" />
-    <ClInclude Include="Source\Public\Core\Random.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHITypes.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHI.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\Vulkan\Vulkan.h" />
@@ -526,10 +184,6 @@
     <ClInclude Include="Source\Public\Rendering\RHI\RHIInputLayout.h" />
     <ClInclude Include="Source\Public\Rendering\Material.h" />
     <ClInclude Include="Source\Public\Rendering\RHI\RHIInstanceData.h" />
-    <ClInclude Include="Source\Public\Core\Memory\Allocators\Mimalloc.hpp">
-      <Filter>Source\Public\Core\Memory\Allocators</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Public\Core\AssertionMacros.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\PreLinking.bat">

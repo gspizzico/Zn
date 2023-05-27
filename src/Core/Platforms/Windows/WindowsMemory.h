@@ -1,6 +1,6 @@
 #pragma once
-#include "Memory/Memory.h"
-#include "Memory/VirtualMemory.h"
+#include "Core/Memory/Memory.h"
+#include "Core/Memory/VirtualMemory.h"
 
 namespace Zn
 {

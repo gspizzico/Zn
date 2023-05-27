@@ -2,6 +2,7 @@
 #include "Automation/AutomationTest.h"
 #include "Core/HAL/Misc.h"
 #include "Core/Time/Time.h"
+#include <Core/Platform.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogAutomationTest, ELogVerbosity::Log);
 
@@ -79,23 +80,33 @@ void AutomationTest::Terminate(bool bForce)
     switch (m_Result)
     {
     case Result::kCannotRun:
-        ZN_LOG(LogAutomationTest, ELogVerbosity::Warning, "%s could not be run for the following reason: \n\t\t %s", TestNameString, ErrorMessageCString);
+        ZN_LOG(LogAutomationTest,
+               ELogVerbosity::Warning,
+               "%s could not be run for the following reason: \n\t\t %s",
+               TestNameString,
+               ErrorMessageCString);
         break;
     case Result::kFailed:
-        ZN_LOG(LogAutomationTest, ELogVerbosity::Error, "%s has failed for the following reason: \n\t\t %s", TestNameString, ErrorMessageCString);
+        ZN_LOG(LogAutomationTest,
+               ELogVerbosity::Error,
+               "%s has failed for the following reason: \n\t\t %s",
+               TestNameString,
+               ErrorMessageCString);
         break;
     case Result::kOk:
         ZN_LOG(LogAutomationTest, ELogVerbosity::Log, "%s is successful.", TestNameString, ErrorMessageCString);
         break;
     case Result::kCritical:
     {
-        ZN_LOG(
-            LogAutomationTest, ELogVerbosity::Error, "%s has critically failed. Application will be closed. Reason: \n\t\t %s", TestNameString,
-            ErrorMessageCString);
+        ZN_LOG(LogAutomationTest,
+               ELogVerbosity::Error,
+               "%s has critically failed. Application will be closed. Reason: \n\t\t %s",
+               TestNameString,
+               ErrorMessageCString);
 
         if (ShouldQuitWhenCriticalError())
         {
-            Misc::Exit(true);
+            PlatformMisc::Exit(true);
         }
     }
     }

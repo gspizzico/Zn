@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/HAL/BasicTypes.h>
+#include <Core/Types.h>
 #include <Core/Name.h>
 #include <Core/Containers/Map.h>
 
