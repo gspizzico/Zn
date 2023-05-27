@@ -2,7 +2,26 @@
 #include "Log/Log.h"
 #include "Containers/Map.h"
 #include "Time/Time.h"
+#include "Platform.h"
 
+namespace
+{
+Zn::PFN_LogMessageCallback GLogCallback = nullptr;
+
+void DefaultLogMsg(cstring message)
+{
+    Zn::PlatformMisc::LogDebug(message);
+    Zn::PlatformMisc::LogConsole(message);
+}
+
+struct AutoMessageCallback
+{
+    AutoMessageCallback()
+    {
+        Zn::Log::SetLogMessageCallback(DefaultLogMsg);
+    }
+};
+} // namespace
 namespace Zn
 {
 // Internal use only. Map of registered log categories.
@@ -26,6 +45,11 @@ bool Log::ModifyVerbosity(const Name& name, ELogVerbosity verbosity)
     }
 
     return false;
+}
+
+void Log::SetLogMessageCallback(PFN_LogMessageCallback callback)
+{
+    GLogCallback = callback;
 }
 
 SharedPtr<LogCategory> Log::GetLogCategory(const Name& name)
@@ -56,7 +80,10 @@ void Log::LogMsgInternal(const Name& category, ELogVerbosity verbosity, const ch
 
     ExecPrintf(&Buffer[0], Buffer.size());
 
-    OutputDeviceManager::Get().OutputMessage(&Buffer[0]);
+    if (GLogCallback)
+    {
+        GLogCallback(&Buffer[0]);
+    }
 }
 
 const char* Log::ToCString(ELogVerbosity verbosity)

@@ -1,14 +1,12 @@
 #pragma once
 
-#include <HAL/PlatformTypes.h>
-
-#if 0
+#if ZN_DEBUG
     #define check(condition)                                                                                                               \
         if (!(condition))                                                                                                                  \
         {                                                                                                                                  \
             char buffer[512];                                                                                                              \
             std::snprintf(buffer, sizeof(buffer), "Assertion failed! %s line %d\n`" #condition "`\n", __FILE__, __LINE__);                 \
-            Zn::PlatformMisc::DebugMessage(&buffer[0]);                                                                                    \
+            Zn::PlatformMisc::LogDebug(&buffer[0]);                                                                                        \
             __debugbreak();                                                                                                                \
             std::exit(-1);                                                                                                                 \
         }
@@ -18,7 +16,7 @@
             char buffer[512];                                                                                                              \
             std::snprintf(                                                                                                                 \
                 buffer, sizeof(buffer), "Assertion failed! %s line %d\n`" #condition "` " message "\n", __FILE__, __LINE__, __VA_ARGS__);  \
-            Zn::PlatformMisc::DebugMessage(&buffer[0]);                                                                                    \
+            Zn::PlatformMisc::LogDebug(&buffer[0]);                                                                                        \
             __debugbreak();                                                                                                                \
             std::exit(-1);                                                                                                                 \
         }

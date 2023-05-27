@@ -1,8 +1,6 @@
 #pragma once
-#include <chrono>
-#include <ctime>
-#include <time.h>
 #include "Types.h"
+#include <chrono>
 
 namespace Zn
 {
@@ -12,10 +10,7 @@ using SystemClock = std::chrono::system_clock;
 class Time
 {
   public:
-    static String Now()
-    {
-        return ToString(SystemClock::now());
-    }
+    static String Now();
 
     static String ToString(std::chrono::time_point<SystemClock> time_point);
 

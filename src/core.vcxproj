@@ -59,7 +59,7 @@
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>Core;ThirdParty;Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -76,7 +76,7 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>Core;ThirdParty;Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   <Lib>
@@ -94,7 +94,7 @@
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>Core;ThirdParty;Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -111,7 +111,7 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>Core;ThirdParty;Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   <Lib>
@@ -132,6 +132,7 @@
     <ClInclude Include="Core\CommandLine.h" />
     <ClInclude Include="Core\Corepch.h" />
     <ClInclude Include="Core\Event.h" />
+    <ClInclude Include="Core\Guid.h" />
     <ClInclude Include="Core\Hash.h" />
     <ClInclude Include="Core\Name.h" />
     <ClInclude Include="Core\Platform.h" />
@@ -147,16 +148,10 @@
     <ClInclude Include="Core\Containers\Map.h" />
     <ClInclude Include="Core\Containers\Set.h" />
     <ClInclude Include="Core\Containers\Vector.h" />
-    <ClInclude Include="Core\HAL\Guid.h" />
     <ClInclude Include="Core\HAL\Misc.h" />
-    <ClInclude Include="Core\HAL\PlatformTypes.h" />
     <ClInclude Include="Core\IO\IO.h" />
     <ClInclude Include="Core\Log\Log.h" />
     <ClInclude Include="Core\Log\LogMacros.h" />
-    <ClInclude Include="Core\Log\OutputDevice.h" />
-    <ClInclude Include="Core\Log\OutputDeviceManager.h" />
-    <ClInclude Include="Core\Log\StdOutputDevice.h" />
-    <ClInclude Include="Core\Math\Math.h" />
     <ClInclude Include="Core\Memory\Memory.h" />
     <ClInclude Include="Core\Memory\VirtualMemory.h" />
     <ClInclude Include="Core\Memory\Allocators\BaseAllocator.h" />
@@ -164,10 +159,8 @@
     <ClInclude Include="Core\Platforms\Windows\WindowsAPI.h" />
     <ClInclude Include="Core\Platforms\Windows\WindowsCommon.h" />
     <ClInclude Include="Core\Platforms\Windows\WindowsCriticalSection.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsDebugOutput.h" />
     <ClInclude Include="Core\Platforms\Windows\WindowsMemory.h" />
     <ClInclude Include="Core\Platforms\Windows\WindowsMisc.h" />
-    <ClInclude Include="Core\Platforms\Windows\WindowsPlatform.h" />
     <ClInclude Include="Core\Platforms\Windows\WindowsThread.h" />
     <ClInclude Include="Core\Platforms\Windows\WindowsThreads.h" />
     <ClInclude Include="Core\Platforms\Windows\WindowsTypes.h" />
@@ -184,23 +177,17 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='win-debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='win-release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Core\Guid.cpp">
+    </ClCompile>
     <ClCompile Include="Core\Name.cpp">
     </ClCompile>
     <ClCompile Include="Core\Async\TaskGraph.cpp">
     </ClCompile>
     <ClCompile Include="Core\Async\Thread.cpp">
     </ClCompile>
-    <ClCompile Include="Core\HAL\Guid.cpp">
-    </ClCompile>
-    <ClCompile Include="Core\HAL\Misc.cpp">
-    </ClCompile>
     <ClCompile Include="Core\IO\IO.cpp">
     </ClCompile>
     <ClCompile Include="Core\Log\Log.cpp">
-    </ClCompile>
-    <ClCompile Include="Core\Log\OutputDeviceManager.cpp">
-    </ClCompile>
-    <ClCompile Include="Core\Log\StdOutputDevice.cpp">
     </ClCompile>
     <ClCompile Include="Core\Memory\Memory.cpp">
     </ClCompile>
@@ -211,8 +198,6 @@
     <ClCompile Include="Core\Platforms\Windows\WindowsAPI.cpp">
     </ClCompile>
     <ClCompile Include="Core\Platforms\Windows\WindowsCriticalSection.cpp">
-    </ClCompile>
-    <ClCompile Include="Core\Platforms\Windows\WindowsDebugOutput.cpp">
     </ClCompile>
     <ClCompile Include="Core\Platforms\Windows\WindowsMemory.cpp">
     </ClCompile>

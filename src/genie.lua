@@ -42,14 +42,8 @@ solution("ZnGenie")
   configuration "win-*"
   defines {
     "PLATFORM_WINDOWS",
-    "NOMINMAX"
-  }
-
-  links {
-    "kernel32",
-    "user32",
-    "gdi32",
-    "rpcrt4",
+    "NOMINMAX",
+    "_HAS_EXCEPTIONS=0",
   }
 
   configurations {
@@ -65,8 +59,33 @@ solution("ZnGenie")
 
   targetsubdir "./bin/"
 
+-- project("math")
+  
+--   kind "StaticLib"
+  
+--   configuration "*"
+
+--   files {
+--     "./Math/**",
+--     "./ThirdParty/glm/**.h",
+--     "./ThirdParty/glm/**.cpp",
+--     "./ThirdParty/glm/**.hpp",
+--     "./ThirdParty/glm/**.inl",
+--   }
+
+--   includedirs {
+--     "./Math/",
+--     "./ThirdParty/glm/"
+--   }
 
 project("core")
+
+  links {
+    "kernel32",
+    "user32",
+    "gdi32",
+    "rpcrt4",
+  }
 
   solution "ZnGenie"
   location = os.getcwd()

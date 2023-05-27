@@ -1,6 +1,5 @@
 #include <Corepch.h>
 #include "Memory/VirtualMemory.h"
-#include "HAL/PlatformTypes.h"
 #include <algorithm>
 
 DEFINE_LOG_CATEGORY(LogMemory, Zn::ELogVerbosity::Warning)
@@ -25,7 +24,7 @@ bool VirtualMemory::Commit(void* address, size_t size)
 
     if (Memory::GetMemoryStatus().m_AvailPhys < size)
     {
-        abort(); // OOM
+        abort(); // TODO: OOM
     }
     return PlatformVirtualMemory::Commit(address, size);
 }

@@ -1,7 +1,7 @@
 #include <Corepch.h>
 #include "Windows/WindowsMisc.h"
 #include "Windows/WindowsCommon.h"
-#include "HAL/Guid.h"
+#include "Guid.h"
 
 namespace Zn
 {
@@ -11,10 +11,10 @@ SystemInfo WindowsMisc::GetSystemInfo()
     GetNativeSystemInfo(&WinSystemInfo);
 
     SystemInfo SystemInfo;
-    SystemInfo.m_PageSize              = WinSystemInfo.dwPageSize;
-    SystemInfo.m_AllocationGranularity = WinSystemInfo.dwAllocationGranularity;
-    SystemInfo.m_NumOfProcessors       = (uint8) WinSystemInfo.dwNumberOfProcessors;
-    SystemInfo.m_Architecture          = [&WinSystemInfo]() -> ProcessorArchitecture
+    SystemInfo.pageSize              = WinSystemInfo.dwPageSize;
+    SystemInfo.allocationGranularity = WinSystemInfo.dwAllocationGranularity;
+    SystemInfo.numOfProcessors       = (uint8) WinSystemInfo.dwNumberOfProcessors;
+    SystemInfo.architecture          = [&WinSystemInfo]() -> ProcessorArchitecture
     {
         if (WinSystemInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
             return ProcessorArchitecture::x64;
@@ -69,8 +69,15 @@ uint32 WindowsMisc::GetLastError()
     return ::GetLastError(); // #TODO Print last error message in a nice way.
 }
 
-void WindowsMisc::DebugMessage(cstring message)
+void WindowsMisc::LogDebug(cstring message)
 {
-    OutputDebugStringA(message);
+    OutputDebugString(message);
+}
+void WindowsMisc::LogConsole(cstring message)
+{
+    if (HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE); consoleHandle != NULL)
+    {
+        WriteConsole(consoleHandle, message, static_cast<DWORD>(strlen(message)), nullptr, nullptr);
+    }
 }
 } // namespace Zn

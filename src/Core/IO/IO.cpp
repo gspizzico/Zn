@@ -7,17 +7,11 @@
 
 using namespace Zn;
 
-String IO::kExecutablePath = "";
-
 String IO::kRootPath = "";
 
-void Zn::IO::Initialize()
+void IO::Initialize(const String& root)
 {
-    kExecutablePath = CommandLine::Get().GetExeArgument();
-
-    std::filesystem::path RootPath(kExecutablePath);
-
-    kRootPath = RootPath.parent_path().parent_path().parent_path().parent_path().string();
+    kRootPath = root;
 }
 
 bool IO::ReadBinaryFile(const String& InFilename, Vector<uint8>& OutData)

@@ -11,6 +11,16 @@ struct Guid
     uint32 C = 0;
     uint32 D = 0;
 
+    Guid() = default;
+
+    constexpr Guid(uint32 a, uint32 b, uint32 c, uint32 d)
+        : A(a)
+        , B(b)
+        , C(c)
+        , D(d)
+    {
+    }
+
     bool operator==(const Guid& other) const
     {
         return A == other.A && B == other.B && C == other.C && D == other.D;
@@ -22,13 +32,14 @@ struct Guid
 
     // static Guid FromString();
 
-    static const Guid kNone;
+    static constexpr Guid Invalid();
 };
 } // namespace Zn
 
 namespace std
 {
-template<> struct hash<Zn::Guid>
+template<>
+struct hash<Zn::Guid>
 {
     std::size_t operator()(Zn::Guid const& guid) const noexcept
     {

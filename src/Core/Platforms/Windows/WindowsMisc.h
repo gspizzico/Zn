@@ -16,6 +16,8 @@ class WindowsMisc
 
     static uint32 GetLastError();
 
-    static void DebugMessage(cstring message);
+    static void LogDebug(cstring message);
+
+    static void LogConsole(cstring message);
 };
 } // namespace Zn

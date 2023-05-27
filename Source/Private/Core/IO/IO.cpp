@@ -17,6 +17,8 @@ void Zn::IO::Initialize()
 
     std::filesystem::path RootPath(kExecutablePath);
 
+    auto root = RootPath.root_path();
+
     kRootPath = RootPath.parent_path().parent_path().parent_path().parent_path().string();
 }
 

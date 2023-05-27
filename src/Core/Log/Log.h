@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Types.h>
-#include <Log/OutputDeviceManager.h>
 #include <Name.h>
 #include <optional>
 
@@ -31,6 +30,8 @@ struct LogCategory
     }
 };
 
+typedef void (*PFN_LogMessageCallback)(cstring message);
+
 // Utility class for logging functionalities.
 class Log
 {
@@ -45,6 +46,8 @@ class Log
     // Variadic function used to log a message.
     template<typename... Args>
     static void LogMsg(const Name& category, ELogVerbosity verbosity, const char* format, Args&&... args);
+
+    static void SetLogMessageCallback(PFN_LogMessageCallback callback);
 
   private:
     // Log Category getter
@@ -88,24 +91,3 @@ inline void Log::LogMsg(const Name& category, ELogVerbosity verbosity, const cha
     LogMsgInternal(category, verbosity, &MessageBuffer[0]);
 }
 } // namespace Zn
-
-#define CONCAT(A, B)            A##B
-
-#define CATEGORY_VAR_NAME(Name) CONCAT(Name, Category)
-
-#define GET_CATEGORY(Name)      Zn::LogCategories::CATEGORY_VAR_NAME(Name)
-
-// Log declarations/definitions macros.
-#define DECLARE_LOG_CATEGORY(Name)                                                                                                         \
-    namespace Zn::LogCategories                                                                                                            \
-    {                                                                                                                                      \
-    extern Zn::AutoLogCategory CATEGORY_VAR_NAME(Name);                                                                                    \
-    }
-
-#define DEFINE_LOG_CATEGORY(Name, Verbosity) Zn::AutoLogCategory Zn::LogCategories::CATEGORY_VAR_NAME(Name) {#Name, Verbosity};
-
-#define DEFINE_STATIC_LOG_CATEGORY(Name, Verbosity)                                                                                        \
-    namespace Zn::LogCategories                                                                                                            \
-    {                                                                                                                                      \
-    static Zn::AutoLogCategory CATEGORY_VAR_NAME(Name) {#Name, Verbosity};                                                                 \
-    }

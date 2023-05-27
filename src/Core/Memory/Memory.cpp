@@ -1,7 +1,5 @@
 #include <Corepch.h>
 #include "Memory/Memory.h"
-#include "HAL/PlatformTypes.h"
-#include "Math/Math.h"
 
 namespace Zn
 {

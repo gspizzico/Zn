@@ -86,7 +86,7 @@ bool WindowsVirtualMemory::Decommit(void* address, size_t size)
 
 size_t WindowsVirtualMemory::GetPageSize()
 {
-    return WindowsMisc::GetSystemInfo().m_PageSize;
+    return WindowsMisc::GetSystemInfo().pageSize;
 }
 
 VirtualMemoryInformation WindowsVirtualMemory::GetMemoryInformation(void* address, size_t size)

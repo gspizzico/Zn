@@ -1,31 +1,13 @@
 #pragma once
 
-#include <memory>
 #include <string>
 #include <functional>
 #include <Platform.h>
 #include <AssertionMacros.h>
 #include <Containers/Vector.h>
 #include <Containers/Map.h>
-#include <delegate/delegate.hpp>
-
-// glm
-// The following define will default align glm:: types.
-// There are still alignment problems though. for example
-// struct
-// {
-//		glm::vec3
-//		glm::vec3
-//		float
-// }
-// is GPU aligned to 32 while is cpp aligned to 48.
-// Leaving it commented because we might find a way to fix this.
-// #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
-// #include <glm/glm.hpp>
-// #include <glm/ext.hpp>
-
 // #define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
-// #include <delegate.hpp>
+#include <delegate/delegate.hpp>
 // #undef DELEGATE_NAMESPACE
 
 using int8   = char;

@@ -1,16 +1,8 @@
 #include <Corepch.h>
-#include "HAL/Guid.h"
-#include "HAL/Misc.h"
+#include "Guid.h"
 
 namespace Zn
 {
-const Guid Guid::kNone = Guid {
-    .A = 0,
-    .B = 0,
-    .C = 0,
-    .D = 0,
-};
-
 String Guid::ToString() const
 {
     // #todo [Memory] - use custom allocator
@@ -23,6 +15,10 @@ String Guid::ToString() const
 
 Guid Guid::Generate()
 {
-    return Misc::GenerateGuid();
+    return PlatformMisc::GenerateGuid();
+}
+constexpr Guid Guid::Invalid()
+{
+    return Guid(0, 0, 0, 0);
 }
 } // namespace Zn

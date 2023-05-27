@@ -1,5 +1,5 @@
 #pragma once
 
 #ifdef PLATFORM_WINDOWS
-    #include "Windows/WindowsPlatform.h"
+    #include "Windows/WindowsTypes.h"
 #endif

@@ -19,9 +19,6 @@
     <Filter Include="Core\Log">
       <UniqueIdentifier>{0CE0B1C2-F8AC-0CCE-21C6-FA750DF2415C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Math">
-      <UniqueIdentifier>{7434EE18-E09E-A28F-29DD-5335958680E4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Memory">
       <UniqueIdentifier>{C3D9910D-2F8F-0A03-B883-04DA24380107}</UniqueIdentifier>
     </Filter>
@@ -69,6 +66,9 @@
     <ClInclude Include="Core\Event.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Guid.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\Hash.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -114,13 +114,7 @@
     <ClInclude Include="Core\Containers\Vector.h">
       <Filter>Core\Containers</Filter>
     </ClInclude>
-    <ClInclude Include="Core\HAL\Guid.h">
-      <Filter>Core\HAL</Filter>
-    </ClInclude>
     <ClInclude Include="Core\HAL\Misc.h">
-      <Filter>Core\HAL</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\HAL\PlatformTypes.h">
       <Filter>Core\HAL</Filter>
     </ClInclude>
     <ClInclude Include="Core\IO\IO.h">
@@ -131,18 +125,6 @@
     </ClInclude>
     <ClInclude Include="Core\Log\LogMacros.h">
       <Filter>Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Log\OutputDevice.h">
-      <Filter>Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Log\OutputDeviceManager.h">
-      <Filter>Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Log\StdOutputDevice.h">
-      <Filter>Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Math\Math.h">
-      <Filter>Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="Core\Memory\Memory.h">
       <Filter>Core\Memory</Filter>
@@ -165,16 +147,10 @@
     <ClInclude Include="Core\Platforms\Windows\WindowsCriticalSection.h">
       <Filter>Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Platforms\Windows\WindowsDebugOutput.h">
-      <Filter>Core\Platforms\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Platforms\Windows\WindowsMemory.h">
       <Filter>Core\Platforms\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Core\Platforms\Windows\WindowsMisc.h">
-      <Filter>Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Platforms\Windows\WindowsPlatform.h">
       <Filter>Core\Platforms\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Core\Platforms\Windows\WindowsThread.h">
@@ -209,6 +185,9 @@
     <ClCompile Include="Core\Corepch.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Guid.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="Core\Name.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -218,22 +197,10 @@
     <ClCompile Include="Core\Async\Thread.cpp">
       <Filter>Core\Async</Filter>
     </ClCompile>
-    <ClCompile Include="Core\HAL\Guid.cpp">
-      <Filter>Core\HAL</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\HAL\Misc.cpp">
-      <Filter>Core\HAL</Filter>
-    </ClCompile>
     <ClCompile Include="Core\IO\IO.cpp">
       <Filter>Core\IO</Filter>
     </ClCompile>
     <ClCompile Include="Core\Log\Log.cpp">
-      <Filter>Core\Log</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Log\OutputDeviceManager.cpp">
-      <Filter>Core\Log</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Log\StdOutputDevice.cpp">
       <Filter>Core\Log</Filter>
     </ClCompile>
     <ClCompile Include="Core\Memory\Memory.cpp">
@@ -249,9 +216,6 @@
       <Filter>Core\Platforms\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Core\Platforms\Windows\WindowsCriticalSection.cpp">
-      <Filter>Core\Platforms\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Platforms\Windows\WindowsDebugOutput.cpp">
       <Filter>Core\Platforms\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Core\Platforms\Windows\WindowsMemory.cpp">
