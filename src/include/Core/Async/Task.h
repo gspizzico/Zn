@@ -20,6 +20,6 @@ class Task abstract : public ITaskGraphNode, public std::enable_shared_from_this
     virtual void Abort() = 0;
 
   private:
-    State m_State = State::Idle;
+    State state = State::Idle;
 };
 } // namespace Zn

@@ -8,110 +8,109 @@ MemoryStatus Memory::GetMemoryStatus()
     return PlatformMemory::GetMemoryStatus();
 }
 
-uintptr_t Memory::Align(uintptr_t bytes, size_t alignment)
+uintptr_t Memory::Align(uintptr bytes_, sizet alignment_)
 {
-    const size_t mask = alignment - 1;
-    return (bytes + mask) & ~mask;
+    const sizet mask = alignment_ - 1;
+    return (bytes_ + mask) & ~mask;
 }
 
-void* Memory::Align(void* address, size_t alignment)
+void* Memory::Align(void* address_, sizet alignment_)
 {
-    return reinterpret_cast<void*>(Memory::Align(reinterpret_cast<uintptr_t>(address), alignment));
+    return reinterpret_cast<void*>(Memory::Align(reinterpret_cast<uintptr_t>(address_), alignment_));
 }
 
-void* Memory::AlignToAddress(void* address, void* start_address, size_t alignment)
+void* Memory::AlignToAddress(void* address_, void* startAddress_, sizet alignment_)
 {
-    auto Distance = GetDistance(address, start_address);
-    return AddOffset(start_address, (Distance - Distance % alignment));
+    auto distance = GetDistance(address_, startAddress_);
+    return AddOffset(startAddress_, (distance - distance % alignment_));
 }
 
-// void* Memory::AlignDown(void* address, size_t alignment)
+// void* Memory::AlignDown(void* address_, sizet alignment)
 //{
-//	return IsAligned(address, alignment) ? address : Memory::SubOffset(Memory::Align(address, alignment), alignment);
+//	return IsAligned(address_, alignment) ? address_ : Memory::SubOffset(Memory::Align(address_, alignment), alignment);
 // }
 
-bool Memory::IsAligned(void* address, size_t alignment)
+bool Memory::IsAligned(void* address_, sizet alignment_)
 {
-    return reinterpret_cast<uintptr_t>(address) % alignment == 0;
+    return reinterpret_cast<uintptr>(address_) % alignment_ == 0;
 }
-void* Memory::AddOffset(void* address, size_t offset)
+void* Memory::AddOffset(void* address_, sizet offset_)
 {
-    return reinterpret_cast<uintptr_t*>((uintptr_t) address + (uintptr_t) offset);
+    return reinterpret_cast<uintptr*>((uintptr) address_ + (uintptr) offset_);
 }
-void* Memory::SubOffset(void* address, size_t offset)
+void* Memory::SubOffset(void* address_, sizet offset_)
 {
-    return reinterpret_cast<uintptr_t*>((uintptr_t) address - (uintptr_t) offset);
+    return reinterpret_cast<uintptr*>((uintptr) address_ - (uintptr) offset_);
 }
-ptrdiff_t Memory::GetDistance(const void* first, const void* second)
+ptrdiff Memory::GetDistance(const void* first_, const void* second_)
 {
-    return reinterpret_cast<intptr_t>(first) - reinterpret_cast<intptr_t>(second);
-}
-
-void Memory::MarkMemory(void* begin, void* end, int8_t pattern)
-{
-    std::fill(reinterpret_cast<int8_t*>(begin), reinterpret_cast<int8_t*>(end), pattern);
+    return reinterpret_cast<intptr>(first_) - reinterpret_cast<intptr_t>(second_);
 }
 
-void Memory::Memzero(void* begin, void* end)
+void Memory::MarkMemory(void* begin_, void* end_, int8_t pattern_)
 {
-    std::memset(begin, 0, static_cast<size_t>(GetDistance(end, begin)));
+    std::fill(reinterpret_cast<int8_t*>(begin_), reinterpret_cast<int8_t*>(end_), pattern_);
 }
 
-void Memory::Memzero(void* begin, size_t size)
+void Memory::Memzero(void* begin_, void* end_)
 {
-    std::memset(begin, 0, size);
+    std::memset(begin_, 0, static_cast<sizet>(GetDistance(end_, begin_)));
 }
 
-uint64_t Memory::Convert(uint64_t size, StorageUnit convert_to, StorageUnit convert_from)
+void Memory::Memzero(void* begin_, sizet size_)
 {
-    return size * uint64_t(convert_from) / uint64_t(convert_to);
+    std::memset(begin_, 0, size_);
 }
 
-void MemoryDebug::MarkUninitialized(void* begin, void* end)
+uint64 Memory::Convert(uint64 size_, StorageUnit convertTo_, StorageUnit convertFrom_)
+{
+    return size_ * uint64(convertFrom_) / uint64(convertTo_);
+}
+
+void MemoryDebug::MarkUninitialized(void* begin_, void* end_)
 {
 #if ZN_DEBUG
-    Memory::MarkMemory(begin, end, kUninitializedMemoryPattern);
+    Memory::MarkMemory(begin_, end_, kUninitializedMemoryPattern);
 #endif
 }
-void MemoryDebug::MarkFree(void* begin, void* end)
+void MemoryDebug::MarkFree(void* begin_, void* end_)
 {
 #if ZN_DEBUG
-    Memory::MarkMemory(begin, end, kFreeMemoryPattern);
+    Memory::MarkMemory(begin_, end_, kFreeMemoryPattern);
 #endif
 }
-void MemoryDebug::TrackAllocation(void* address, size_t size)
+void MemoryDebug::TrackAllocation(void* address_, sizet size)
 {
-    PlatformMemory::TrackAllocation(address, size);
+    PlatformMemory::TrackAllocation(address_, size);
 }
 
-void MemoryDebug::TrackDeallocation(void* address)
+void MemoryDebug::TrackDeallocation(void* address_)
 {
-    PlatformMemory::TrackDeallocation(address);
+    PlatformMemory::TrackDeallocation(address_);
 }
 
-MemoryRange::MemoryRange(MemoryRange&& other)
-    : m_Begin(other.m_Begin)
-    , m_End(other.m_End)
+MemoryRange::MemoryRange(MemoryRange&& other_)
+    : begin(other_.begin)
+    , end(other_.end)
 {
-    other.m_Begin = nullptr;
-    other.m_End   = nullptr;
+    Memory::Memzero(&other_, sizeof(MemoryRange));
 }
 
-bool MemoryRange::operator==(const MemoryRange& other) const
+bool MemoryRange::operator==(const MemoryRange& other_) const
 {
-    return m_Begin == other.m_Begin && m_End == other.m_End;
+    return begin == other_.begin && end == other_.end;
 }
 
-bool MemoryRange::Contains(const MemoryRange& other) const
+bool MemoryRange::Contains(const MemoryRange& other_) const
 {
-    if (*this == other)
+    if (*this == other_)
         return true;
 
-    const auto DistanceFromStart = Memory::GetDistance(other.Begin(), m_Begin);
+    const auto distanceFromStart = Memory::GetDistance(other_.begin, begin);
 
-    const auto DistanceFromEnd = Memory::GetDistance(m_End, other.End());
+    const auto distanceFromEnd = Memory::GetDistance(end, other_.end);
 
-    return (DistanceFromStart >= 0 && DistanceFromEnd > 0) || (DistanceFromStart > 0 && DistanceFromEnd >= 0);
+    return (distanceFromStart >= 0 && distanceFromEnd > 0) || (distanceFromStart > 0 && distanceFromEnd >= 0);
 }
 } // namespace Zn
 
@@ -136,10 +135,10 @@ int CreateGAllocatorSafe()
 void CreateGAllocator()
 {
     // Thread-safe, but do we need it?
-    static int StaticInstance = CreateGAllocatorSafe();
+    static int staticInstance = CreateGAllocatorSafe();
 }
 
-void* New(size_t size, size_t alignment)
+void* New(sizet size_, sizet alignment_)
 {
     if (GAllocator == NULL)
     {
@@ -153,25 +152,25 @@ void* New(size_t size, size_t alignment)
 
     auto allocator = GIsCreatingAllocator == false ? GAllocator : GDefaultAllocator;
 
-    auto Address = allocator->Malloc(size, alignment);
+    auto address = allocator->Malloc(size_, alignment_);
 
-    ZN_MEMTRACE_ALLOC(Address, size);
+    ZN_MEMTRACE_ALLOC(address, size_);
 
-    return Address;
+    return address;
 }
 
-void Delete(void* address)
+void Delete(void* address_)
 {
-    ZN_MEMTRACE_FREE(address);
+    ZN_MEMTRACE_FREE(address_);
 
-    bool success = GAllocator && GAllocator->Free(address);
+    bool success = GAllocator && GAllocator->Free(address_);
 
     if (!success)
     {
-        success = GDefaultAllocator->Free(address);
+        success = GDefaultAllocator->Free(address_);
     }
 
-    check(success || (address == nullptr));
+    check(success || (address_ == nullptr));
 }
 } // namespace Zn::Allocators
 
@@ -180,7 +179,7 @@ using namespace Zn::Allocators;
 #pragma warning(push)
 #pragma warning(disable : 28251) // microsoft vs code analysis warning
 
-static_assert(__STDCPP_DEFAULT_NEW_ALIGNMENT__ > 0);
+static_assert(Zn::MemoryAlignment::kDefaultAlignment > 0);
 
 void operator delete(void* p) noexcept
 {
@@ -202,22 +201,22 @@ void operator delete[](void* p, const std::nothrow_t&) noexcept
 
 void* operator new(std::size_t n) noexcept(false)
 {
-    return Zn::Allocators::New(n, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
+    return Zn::Allocators::New(n, Zn::MemoryAlignment::kDefaultAlignment);
 }
 void* operator new[](std::size_t n) noexcept(false)
 {
-    return Zn::Allocators::New(n, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
+    return Zn::Allocators::New(n, Zn::MemoryAlignment::kDefaultAlignment);
 }
 
 void* operator new(std::size_t n, const std::nothrow_t& tag) noexcept
 {
     (void) (tag);
-    return Zn::Allocators::New(n, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
+    return Zn::Allocators::New(n, Zn::MemoryAlignment::kDefaultAlignment);
 }
 void* operator new[](std::size_t n, const std::nothrow_t& tag) noexcept
 {
     (void) (tag);
-    return Zn::Allocators::New(n, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
+    return Zn::Allocators::New(n, Zn::MemoryAlignment::kDefaultAlignment);
 }
 
 #if (__cplusplus >= 201402L || _MSC_VER >= 1916)
@@ -259,19 +258,19 @@ void operator delete[](void* p, std::align_val_t al, const std::nothrow_t&) noex
 
 void* operator new(std::size_t n, std::align_val_t al) noexcept(false)
 {
-    return Zn::Allocators::New(n, static_cast<size_t>(al));
+    return Zn::Allocators::New(n, static_cast<sizet>(al));
 }
 void* operator new[](std::size_t n, std::align_val_t al) noexcept(false)
 {
-    return Zn::Allocators::New(n, static_cast<size_t>(al));
+    return Zn::Allocators::New(n, static_cast<sizet>(al));
 }
 void* operator new(std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept
 {
-    return Zn::Allocators::New(n, static_cast<size_t>(al));
+    return Zn::Allocators::New(n, static_cast<sizet>(al));
 }
 void* operator new[](std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept
 {
-    return Zn::Allocators::New(n, static_cast<size_t>(al));
+    return Zn::Allocators::New(n, static_cast<sizet>(al));
 }
 #endif
 

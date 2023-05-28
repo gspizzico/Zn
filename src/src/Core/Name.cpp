@@ -5,17 +5,17 @@ namespace Zn
 {
 UnorderedMap<size_t, String>& Names()
 {
-    static UnorderedMap<size_t, String> s_Names;
-    return s_Names;
+    static UnorderedMap<size_t, String> names;
+    return names;
 }
 
 Name::Name(Zn::String string)
 {
     std::transform(string.begin(), string.end(), string.begin(), ::toupper);
 
-    m_StringCode = std::hash<Zn::String> {}(string);
+    stringKey = std::hash<Zn::String> {}(string);
 
-    Zn::Names().try_emplace(m_StringCode, string);
+    Zn::Names().try_emplace(stringKey, string);
 }
 
 Zn::String Name::ToString() const
@@ -23,14 +23,14 @@ Zn::String Name::ToString() const
     if (*this == NO_NAME)
         return "";
 
-    return Zn::Names().at(m_StringCode);
+    return Zn::Names().at(stringKey);
 }
 
-const char* const Name::CString() const
+cstring const Name::CString() const
 {
     if (*this == NO_NAME)
         return "";
 
-    return Zn::Names().at(m_StringCode).c_str();
+    return Zn::Names().at(stringKey).c_str();
 }
 } // namespace Zn

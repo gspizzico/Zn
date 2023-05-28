@@ -18,11 +18,11 @@ class Thread
         WorkerThread
     };
 
-    static Thread* New(String name, ThreadedJob* job);
+    static Thread* New(String name_, ThreadedJob* job_);
 
     uint32 GetId() const
     {
-        return m_ThreadId;
+        return threadId;
     }
 
     // Thread::Type GetType() const { return m_Type; }
@@ -33,21 +33,21 @@ class Thread
 
     virtual void WaitUntilCompletion() = 0;
 
-    virtual bool Wait(uint32 ms) = 0;
+    virtual bool Wait(uint32 ms_) = 0;
 
     virtual ~Thread();
 
   protected:
-    virtual bool Start(ThreadedJob* job) = 0;
+    virtual bool Start(ThreadedJob* job_) = 0;
 
     uint32 Main();
 
-    uint32 m_ThreadId = 0;
+    uint32 threadId = 0;
 
-    ThreadedJob* m_Job {nullptr};
+    ThreadedJob* job {nullptr};
 
   private:
-    String m_Name;
+    String name;
 
     // Thread::Type m_Type;
 };

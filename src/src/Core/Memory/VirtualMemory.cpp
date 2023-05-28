@@ -6,72 +6,72 @@ DEFINE_LOG_CATEGORY(LogMemory, Zn::ELogVerbosity::Warning)
 
 namespace Zn
 {
-void* VirtualMemory::Reserve(size_t size)
+void* VirtualMemory::Reserve(sizet size_)
 {
-    return PlatformVirtualMemory::Reserve(size);
+    return PlatformVirtualMemory::Reserve(size_);
 }
-void* VirtualMemory::Allocate(size_t size)
+void* VirtualMemory::Allocate(sizet size_)
 {
-    return PlatformVirtualMemory::Allocate(size);
+    return PlatformVirtualMemory::Allocate(size_);
 }
-bool VirtualMemory::Release(void* address)
+bool VirtualMemory::Release(void* address_)
 {
-    return PlatformVirtualMemory::Release(address);
+    return PlatformVirtualMemory::Release(address_);
 }
-bool VirtualMemory::Commit(void* address, size_t size)
+bool VirtualMemory::Commit(void* address_, sizet size_)
 {
-    check(Memory::GetMemoryStatus().m_AvailPhys >= size);
+    check(Memory::GetMemoryStatus().availPhys >= size_);
 
-    if (Memory::GetMemoryStatus().m_AvailPhys < size)
+    if (Memory::GetMemoryStatus().availPhys < size_)
     {
         abort(); // TODO: OOM
     }
-    return PlatformVirtualMemory::Commit(address, size);
+    return PlatformVirtualMemory::Commit(address_, size_);
 }
-bool VirtualMemory::Decommit(void* address, size_t size)
+bool VirtualMemory::Decommit(void* address_, sizet size_)
 {
-    return PlatformVirtualMemory::Decommit(address, size);
+    return PlatformVirtualMemory::Decommit(address_, size_);
 }
-size_t VirtualMemory::GetPageSize()
+sizet VirtualMemory::GetPageSize()
 {
     return PlatformVirtualMemory::GetPageSize();
 }
-size_t VirtualMemory::AlignToPageSize(size_t size)
+sizet VirtualMemory::AlignToPageSize(sizet size_)
 {
-    return Memory::Align(size, GetPageSize());
+    return Memory::Align(size_, GetPageSize());
 }
 
-VirtualMemoryInformation VirtualMemory::GetMemoryInformation(void* address, size_t size)
+VirtualMemoryInformation VirtualMemory::GetMemoryInformation(void* address_, sizet size_)
 {
-    return PlatformVirtualMemory::GetMemoryInformation(address, size);
+    return PlatformVirtualMemory::GetMemoryInformation(address_, size_);
 }
 
-VirtualMemoryInformation VirtualMemory::GetMemoryInformation(MemoryRange range)
+VirtualMemoryInformation VirtualMemory::GetMemoryInformation(MemoryRange range_)
 {
-    return VirtualMemory::GetMemoryInformation(range.Begin(), range.Size());
+    return VirtualMemory::GetMemoryInformation(range_.begin, range_.Size());
 }
 
-VirtualMemoryRegion::VirtualMemoryRegion(size_t capacity)
-    : m_Range(VirtualMemory::Reserve(VirtualMemory::AlignToPageSize(capacity)), Memory::Align(capacity, VirtualMemory::GetPageSize()))
-{
-}
-
-VirtualMemoryRegion::VirtualMemoryRegion(VirtualMemoryRegion&& other) noexcept
-    : m_Range(std::move(other.m_Range))
+VirtualMemoryRegion::VirtualMemoryRegion(size_t capacity_)
+    : range(VirtualMemory::Reserve(VirtualMemory::AlignToPageSize(capacity_)), Memory::Align(capacity_, VirtualMemory::GetPageSize()))
 {
 }
 
-VirtualMemoryRegion::VirtualMemoryRegion(MemoryRange range) noexcept
-    : m_Range(range)
+VirtualMemoryRegion::VirtualMemoryRegion(VirtualMemoryRegion&& other_) noexcept
+    : range(std::move(other_.range))
 {
-    check(VirtualMemory::GetMemoryInformation(m_Range).m_State == VirtualMemory::State::kReserved);
+}
+
+VirtualMemoryRegion::VirtualMemoryRegion(MemoryRange range_) noexcept
+    : range(range_)
+{
+    check(VirtualMemory::GetMemoryInformation(range).state == VirtualMemory::State::kReserved);
 }
 
 VirtualMemoryRegion::~VirtualMemoryRegion()
 {
-    if (auto BaseAddress = m_Range.Begin())
+    if (auto baseAddress = range.begin)
     {
-        VirtualMemory::Release(BaseAddress);
+        VirtualMemory::Release(baseAddress);
     }
 }
 } // namespace Zn

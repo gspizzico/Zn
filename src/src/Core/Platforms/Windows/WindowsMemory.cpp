@@ -31,20 +31,20 @@ MemoryStatus WindowsMemory::GetMemoryStatus()
             (uint64) WinMemStatus.ullAvailExtendedVirtual};
 }
 #if ZN_WINDOWS_TRACK_MEMORY
-auto HeapTracker = std::make_unique<VSHeapTracker::CHeapTracker>("Zn::WindowsMemory");
+auto GHeapTracker = std::make_unique<VSHeapTracker::CHeapTracker>("Zn::WindowsMemory");
 #endif
 
-void WindowsMemory::TrackAllocation(void* address, size_t size)
+void WindowsMemory::TrackAllocation(void* address_, sizet size_)
 {
 #if ZN_WINDOWS_TRACK_MEMORY
-    HeapTracker->AllocateEvent(address, (unsigned long) size);
+    GHeapTracker->AllocateEvent(address_, (unsigned long) size_);
 #endif
 }
 
-void WindowsMemory::TrackDeallocation(void* address)
+void WindowsMemory::TrackDeallocation(void* address_)
 {
 #if ZN_WINDOWS_TRACK_MEMORY
-    HeapTracker->DeallocateEvent(address);
+    GHeapTracker->DeallocateEvent(address_);
 #endif
 }
 
@@ -53,33 +53,33 @@ BaseAllocator* WindowsMemory::CreateAllocator()
     return new Mimalloc();
 }
 
-void* WindowsVirtualMemory::Reserve(size_t size)
+void* WindowsVirtualMemory::Reserve(sizet size_)
 {
-    return VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_READWRITE);
+    return VirtualAlloc(NULL, size_, MEM_RESERVE, PAGE_READWRITE);
 }
 
-void* WindowsVirtualMemory::Allocate(size_t size)
+void* WindowsVirtualMemory::Allocate(sizet size_)
 {
-    return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    return VirtualAlloc(NULL, size_, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 }
 
-bool WindowsVirtualMemory::Release(void* address)
+bool WindowsVirtualMemory::Release(void* address_)
 {
-    return VirtualFree(address, 0, MEM_RELEASE);
+    return VirtualFree(address_, 0, MEM_RELEASE);
 }
 
-bool WindowsVirtualMemory::Commit(void* address, size_t size)
+bool WindowsVirtualMemory::Commit(void* address_, sizet size_)
 {
-    return VirtualAlloc(address, size, MEM_COMMIT, PAGE_READWRITE);
+    return VirtualAlloc(address_, size_, MEM_COMMIT, PAGE_READWRITE);
 }
 
 #pragma warning(push)
 #pragma warning(disable : 6250) // Warning C6250 Calling 'VirtualFree' without the MEM_RELEASE flag might free memory but not address
                                 // descriptors(VADs).This causes address space leaks.
 
-bool WindowsVirtualMemory::Decommit(void* address, size_t size)
+bool WindowsVirtualMemory::Decommit(void* address_, sizet size_)
 {
-    return VirtualFree(address, size, MEM_DECOMMIT);
+    return VirtualFree(address_, size_, MEM_DECOMMIT);
 }
 
 #pragma warning(pop)
@@ -89,34 +89,34 @@ size_t WindowsVirtualMemory::GetPageSize()
     return WindowsMisc::GetSystemInfo().pageSize;
 }
 
-VirtualMemoryInformation WindowsVirtualMemory::GetMemoryInformation(void* address, size_t size)
+VirtualMemoryInformation WindowsVirtualMemory::GetMemoryInformation(void* address_, sizet size_)
 {
-    MEMORY_BASIC_INFORMATION WinMemoryInformation;
-    auto                     Result = VirtualQuery(address, &WinMemoryInformation, sizeof(WinMemoryInformation));
+    MEMORY_BASIC_INFORMATION winMemoryInformation;
+    auto                     result = VirtualQuery(address_, &winMemoryInformation, sizeof(winMemoryInformation));
 
-    check(Result > 0 && Result == sizeof(WinMemoryInformation));
+    check(result > 0 && result == sizeof(winMemoryInformation));
 
-    VirtualMemoryInformation MemoryInformation;
+    VirtualMemoryInformation memoryInformation;
 
-    if (WinMemoryInformation.State == MEM_RESERVE)
+    if (winMemoryInformation.State == MEM_RESERVE)
     {
-        MemoryInformation.m_State = VirtualMemory::State::kReserved;
+        memoryInformation.state = VirtualMemory::State::kReserved;
     }
-    else if (WinMemoryInformation.State == MEM_FREE)
+    else if (winMemoryInformation.State == MEM_FREE)
     {
-        MemoryInformation.m_State = VirtualMemory::State::kFree;
+        memoryInformation.state = VirtualMemory::State::kFree;
 
-        MemoryInformation.m_Range = MemoryRange((void*) WinMemoryInformation.BaseAddress, 0ull);
+        memoryInformation.range = MemoryRange((void*) winMemoryInformation.BaseAddress, 0ull);
 
-        return MemoryInformation;
+        return memoryInformation;
     }
-    else if (WinMemoryInformation.State == MEM_COMMIT)
+    else if (winMemoryInformation.State == MEM_COMMIT)
     {
-        MemoryInformation.m_State = VirtualMemory::State::kCommitted;
+        memoryInformation.state = VirtualMemory::State::kCommitted;
     }
 
-    MemoryInformation.m_Range = MemoryRange((void*) WinMemoryInformation.AllocationBase, WinMemoryInformation.RegionSize);
+    memoryInformation.range = MemoryRange((void*) winMemoryInformation.AllocationBase, winMemoryInformation.RegionSize);
 
-    return MemoryInformation;
+    return memoryInformation;
 }
 } // namespace Zn

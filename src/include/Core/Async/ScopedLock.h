@@ -2,20 +2,21 @@
 
 namespace Zn
 {
-template<typename TLockable> struct TScopedLock
+template<typename TLockable>
+struct TScopedLock
 {
-    TScopedLock(TLockable* lockable)
-        : m_Lockable(lockable)
+    TScopedLock(TLockable& lockable_)
+        : lockable(&lockable_)
     {
-        m_Lockable->Lock();
+        lockable->Lock();
     }
 
     ~TScopedLock()
     {
-        m_Lockable->Unlock();
+        lockable->Unlock();
     }
 
   private:
-    TLockable* m_Lockable;
+    TLockable* lockable;
 };
 } // namespace Zn

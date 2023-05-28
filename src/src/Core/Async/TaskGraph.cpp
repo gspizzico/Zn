@@ -6,17 +6,17 @@ DEFINE_STATIC_LOG_CATEGORY(LogTaskGraph, ELogVerbosity::Log);
 
 namespace Zn
 {
-TaskGraph::TaskGraph(Name name)
-    : m_Name(name)
+TaskGraph::TaskGraph(Name name_)
+    : name(name_)
 {
 }
 
 Name TaskGraph::GetName() const
 {
-    return m_Name;
+    return name;
 }
 
-void TaskGraph::Enqueue(SharedPtr<ITaskGraphNode> task, std::initializer_list<SharedPtr<ITaskGraphNode>> dependencies)
+void TaskGraph::Enqueue(SharedPtr<ITaskGraphNode> task_, std::initializer_list<SharedPtr<ITaskGraphNode>> dependencies_)
 {
     // Task
     // Manager
@@ -110,106 +110,106 @@ void TaskGraph::Enqueue(SharedPtr<ITaskGraphNode> task, std::initializer_list<Sh
 
 
     */
-    const int32_t OriginalIndex = IndexOf(task); // -1 if not in Graph
+    const int32 originalIndex = IndexOf(task_); // -1 if not in Graph
 
-    int32_t Index = std::max(OriginalIndex, 0); // be sure to always start at 0
+    int32 index = std::max(originalIndex, 0); // be sure to always start at 0
 
-    if (dependencies.size() > 0)
+    if (dependencies_.size() > 0)
     {
-        for (const auto& Dependency : dependencies)
+        for (const auto& dependency : dependencies_)
         {
-            auto DependencyIndex = IndexOf(Dependency);
-            check(DependencyIndex >= 0);
+            auto dependencyIndex = IndexOf(dependency);
+            check(dependencyIndex >= 0);
 
-            Index = std::max(DependencyIndex + 1, Index); // Index is always the greater DependencyIndex + 1.
+            index = std::max(dependencyIndex + 1, index); // Index is always the greater DependencyIndex + 1.
         }
     }
 
-    if (Index > OriginalIndex)
+    if (index > originalIndex)
     {
         // #todo (check if we are executing the graph)
-        if (OriginalIndex != -1) // removed task from previous level.
+        if (originalIndex != -1) // removed task from previous level.
         {
-            auto It = At(OriginalIndex);
-            check(It.has_value());
+            auto it = At(originalIndex);
+            check(it.has_value());
 
-            (*It)->erase(std::find((**It).begin(), (**It).end(), task));
+            (*it)->erase(std::find((**it).begin(), (**it).end(), task_));
         }
 
-        if (m_Graph.size() <= Index)
+        if (graph.size() <= index)
         {
-            m_Graph.push_back({task});
+            graph.push_back({task_});
         }
         else
         {
-            if (auto It = At(Index); It != m_Graph.cend())
+            if (auto it = At(index); it != graph.cend())
             {
-                (*It)->emplace_back(task);
+                (*it)->emplace_back(task_);
             }
         }
     }
 }
 
-void TaskGraph::InsertAfter(SharedPtr<ITaskGraphNode> task, SharedPtr<ITaskGraphNode> insert_after_task)
+void TaskGraph::InsertAfter(SharedPtr<ITaskGraphNode> task_, SharedPtr<ITaskGraphNode> insertAfterTask_)
 {
-    auto It = At(insert_after_task);
-    check(It != m_Graph.cend());
+    auto it = At(insertAfterTask_);
+    check(it != graph.cend());
 
-    ++It;
+    ++it;
 
-    m_Graph.insert(It, {task});
+    graph.insert(it, {task_});
 }
 
 void TaskGraph::DumpNode() const
 {
-    ZN_LOG(LogTaskGraph, ELogVerbosity::Log, "Graph: %s", m_Name.CString());
+    ZN_LOG(LogTaskGraph, ELogVerbosity::Log, "Graph: %s", name.CString());
 
-    size_t Level = 0;
-    for (const auto& Node : m_Graph)
+    sizet level = 0;
+    for (const auto& node : graph)
     {
-        ZN_LOG(LogTaskGraph, ELogVerbosity::Log, "Level: %d", Level++);
+        ZN_LOG(LogTaskGraph, ELogVerbosity::Log, "Level: %d", level++);
 
-        for (const auto& Task : Node)
+        for (const auto& task : node)
         {
-            Task->DumpNode();
+            task->DumpNode();
         }
     }
 }
 
-int32_t TaskGraph::IndexOf(SharedPtr<ITaskGraphNode> task)
+int32 TaskGraph::IndexOf(SharedPtr<ITaskGraphNode> task_)
 {
-    int32_t Index = -1;
+    int32 index = -1;
 
-    for (const auto& Elem : m_Graph)
+    for (const auto& node : graph)
     {
-        Index++;
-        if (std::count(Elem.begin(), Elem.end(), task) > 0)
-            return Index;
+        index++;
+        if (std::count(node.begin(), node.end(), task_) > 0)
+            return index;
     }
     return -1;
 }
 
-TaskGraph::GraphType::const_iterator TaskGraph::At(SharedPtr<ITaskGraphNode> task)
+TaskGraph::GraphType::const_iterator TaskGraph::At(SharedPtr<ITaskGraphNode> task_)
 {
-    return std::find_if(m_Graph.begin(),
-                        m_Graph.end(),
-                        [task](const auto& It)
+    return std::find_if(graph.begin(),
+                        graph.end(),
+                        [task_](const auto& it)
                         {
-                            return std::count(It.begin(), It.end(), task) > 0;
+                            return std::count(it.begin(), it.end(), task_) > 0;
                         });
 }
 
-std::optional<TaskGraph::GraphType::iterator> TaskGraph::At(size_t index)
+std::optional<TaskGraph::GraphType::iterator> TaskGraph::At(size_t index_)
 {
-    if (index <= m_Graph.size())
+    if (index_ <= graph.size())
     {
-        size_t i = 0;
+        sizet i = 0;
 
-        for (auto It = m_Graph.begin(); It != m_Graph.end(); ++It)
+        for (auto it = graph.begin(); it != graph.end(); ++it)
         {
-            if (i == index)
+            if (i == index_)
             {
-                return It;
+                return it;
             }
 
             ++i;

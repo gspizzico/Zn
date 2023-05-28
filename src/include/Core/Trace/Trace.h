@@ -18,28 +18,21 @@ namespace Zn::Trace
 // Define a static trace stat.
 struct TraceDefinition
 {
-    const char* Name;
-    uint32      rgb;
+    cstring name;
+    uint32  rgb;
 
-    constexpr TraceDefinition(const char* name, uint8&& ir, uint8&& ig, uint8 ib)
-        : Name(name)
-        , rgb(ir << 8 | ig << 4 | ib)
+    constexpr TraceDefinition(cstring name_, uint8&& r_, uint8&& g_, uint8 b_)
+        : name(name_)
+        , rgb(r_ << 8 | g_ << 4 | b_)
     {
     }
 
-    constexpr TraceDefinition(const char* name, const uint32 inrgb)
-        : Name(name)
-        , rgb(inrgb)
+    constexpr TraceDefinition(cstring name_, const uint32 rgb_)
+        : name(name_)
+        , rgb(rgb_)
     {
     }
 };
-
-// constexpr function to determine the size of a const string.
-template<size_t N>
-constexpr size_t TStringLength(char const (&)[N])
-{
-    return N - 1;
-}
 
 // Some colours..
 namespace Colors
@@ -90,7 +83,7 @@ using GPUTraceContextPtr = TracyVkCtx;
     ///// APPLICATION INFO /////
 
     // Adds info to current capture
-    #define ZN_TRACE_INFO(info)          TracyAppInfo(info, Zn::Trace::TStringLength(info))
+    #define ZN_TRACE_INFO(info)          TracyAppInfo(info, StrLen(info))
 
     ///// FRAME /////
     #define ZN_END_FRAME()               FrameMark
@@ -98,16 +91,17 @@ using GPUTraceContextPtr = TracyVkCtx;
 ///// GPU ////
 
 template<typename Gpu, typename Device, typename Queue, typename CommandBuffer>
-__forceinline GPUTraceContextPtr ZN_TRACE_GPU_CONTEXT_CREATE(cstring name, Gpu gpu, Device device, Queue queue, CommandBuffer commandBuffer)
+__forceinline GPUTraceContextPtr ZN_TRACE_GPU_CONTEXT_CREATE(
+    cstring name_, Gpu gpu_, Device device, Queue queue_, CommandBuffer commandBuffer_)
 {
-    GPUTraceContextPtr context = TracyVkContext(gpu, device, queue, commandBuffer);
-    TracyVkContextName(context, name, strlen(name));
+    GPUTraceContextPtr context = TracyVkContext(gpu_, device, queue_, commandBuffer_);
+    TracyVkContextName(context, name_, strlen(name_));
     return context;
 }
 
-__forceinline void ZN_TRACE_GPU_CONTEXT_DESTROY(GPUTraceContextPtr context)
+__forceinline void ZN_TRACE_GPU_CONTEXT_DESTROY(GPUTraceContextPtr context_)
 {
-    TracyVkDestroy(context);
+    TracyVkDestroy(context_);
 }
 
     #define ZN_TRACE_GPU_SCOPE(name, context, commandBuffer) TracyVkZone(context, commandBuffer, name)
@@ -128,7 +122,7 @@ __forceinline void ZN_TRACE_GPU_CONTEXT_DESTROY(GPUTraceContextPtr context)
 using GPUTraceContextPtr = void*;
 
 template<typename Gpu, typename Device, typename Queue, typename CommandBuffer>
-void* ZN_TRACE_GPU_CONTEXT_CREATE(cstring name, Gpu gpu, Device device, Queue queue, CommandBuffer commandBuffer)
+void* ZN_TRACE_GPU_CONTEXT_CREATE(cstring name_, Gpu gpu_, Device device_, Queue queue_, CommandBuffer commandBuffer_)
 {
     return nullptr;
 }

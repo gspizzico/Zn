@@ -12,7 +12,7 @@ class Time
   public:
     static String Now();
 
-    static String ToString(std::chrono::time_point<SystemClock> time_point);
+    static String ToString(std::chrono::time_point<SystemClock> timePoint_);
 
     static uint64 GetTickCount();
 

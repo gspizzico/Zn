@@ -36,18 +36,19 @@ Zn::TrackedMalloc::~TrackedMalloc()
     allocations.clear();
 }
 
-void* Zn::TrackedMalloc::Malloc(size_t size, size_t alignment)
+void* Zn::TrackedMalloc::Malloc(sizet size_, sizet alignment_)
 {
-    auto address = SystemAllocator::operator new(size);
+    // TODO: Align
+    auto address = SystemAllocator::operator new(size_);
     allocations.insert(address);
     return address;
 }
 
-bool Zn::TrackedMalloc::Free(void* ptr)
+bool Zn::TrackedMalloc::Free(void* ptr_)
 {
-    if (ptr && allocations.erase(ptr) > 0)
+    if (ptr_ && allocations.erase(ptr_) > 0)
     {
-        SystemAllocator::operator delete(ptr);
+        SystemAllocator::operator delete(ptr_);
 
         return true;
     }

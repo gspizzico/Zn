@@ -7,22 +7,22 @@ namespace Zn
 {
 class CallableJob : public ThreadedJob
 {
-    CallableJob(std::function<void()>&& callable)
-        : m_Callable(std::move(callable))
+    CallableJob(std::function<void()>&& callable_)
+        : callable(std::move(callable_))
     {
     }
 
     virtual void DoWork() override
     {
-        m_Callable();
+        callable();
     }
 
     virtual void Finalize() override
     {
-        m_Callable = nullptr;
+        callable = nullptr;
     }
 
   private:
-    std::function<void()> m_Callable;
+    std::function<void()> callable;
 };
 } // namespace Zn

@@ -4,45 +4,45 @@
 namespace Zn
 {
 WindowsThread::WindowsThread()
-    : m_Handle(NULL)
+    : handle(NULL)
 {
     // #TODO Create Sync point to avoid  that RunThread is called before Initialize has been completed.
 
-    m_Handle = ::CreateThread(
-        NULL, 0, WindowsThread::RunThread, this, CREATE_SUSPENDED /*| STACK_SIZE_PARAM_IS_A_RESERVATION*/, (DWORD*) (&m_ThreadId));
+    handle = ::CreateThread(
+        NULL, 0, WindowsThread::RunThread, this, CREATE_SUSPENDED /*| STACK_SIZE_PARAM_IS_A_RESERVATION*/, (DWORD*) (&threadId));
 }
 
 void WindowsThread::WaitUntilCompletion()
 {
-    check(m_Handle);
-    ::WaitForSingleObject(m_Handle, INFINITE);
+    check(handle);
+    ::WaitForSingleObject(handle, INFINITE);
 }
 
-bool WindowsThread::Wait(uint32 ms)
+bool WindowsThread::Wait(uint32 ms_)
 {
-    check(m_Handle);
-    return ::WaitForSingleObject(m_Handle, ms) == WAIT_OBJECT_0;
+    check(handle);
+    return ::WaitForSingleObject(handle, ms_) == WAIT_OBJECT_0;
 }
 
 WindowsThread::~WindowsThread()
 {
-    if (m_Handle)
+    if (handle)
     {
-        ::TerminateThread(m_Handle, 0);
+        ::TerminateThread(handle, 0);
     }
 }
 
 bool WindowsThread::HasValidHandle() const
 {
-    return m_Handle != NULL;
+    return handle != NULL;
 }
 
-bool WindowsThread::Start(ThreadedJob* job)
+bool WindowsThread::Start(ThreadedJob* job_)
 {
-    if (m_Handle != NULL)
+    if (handle != NULL)
     {
-        m_Job = job;
-        ::ResumeThread(m_Handle);
+        job = job_;
+        ::ResumeThread(handle);
 
         return true;
     }
@@ -50,12 +50,12 @@ bool WindowsThread::Start(ThreadedJob* job)
     return false;
 }
 
-DWORD WINAPI WindowsThread::RunThread(LPVOID p_thread)
+DWORD WINAPI WindowsThread::RunThread(LPVOID thread_)
 {
-    check(p_thread != nullptr);
+    check(thread_ != nullptr);
 
-    WindowsThread* pThread = reinterpret_cast<WindowsThread*>(p_thread);
+    WindowsThread* winThread = reinterpret_cast<WindowsThread*>(thread_);
 
-    return pThread->Main();
+    return winThread->Main();
 }
 } // namespace Zn

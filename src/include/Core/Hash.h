@@ -6,43 +6,43 @@
 namespace Zn
 {
 template<typename T>
-inline u64 HashCalculate(const T& value, sizet seed = 0)
+inline u64 HashCalculate(const T& value_, sizet seed_ = 0)
 {
-    return wyhash(&value, sizeof(T), seed, _wyp);
+    return wyhash(&value_, sizeof(T), seed_, _wyp);
 }
 
 template<size_t N>
-inline u64 HashCalculate(const char (&value)[N], sizet seed = 0)
+inline u64 HashCalculate(const char (&value_)[N], sizet seed_ = 0)
 {
-    return wyhash(value, strlen(value), seed, _wyp);
+    return wyhash(value_, strlen(value_), seed_, _wyp);
 }
 
 template<>
-inline u64 HashCalculate(const cstring& value, sizet seed)
+inline u64 HashCalculate(const cstring& value_, sizet seed_)
 {
-    return wyhash(value, strlen(value), seed, _wyp);
+    return wyhash(value_, strlen(value_), seed_, _wyp);
 }
 
 template<>
-inline u64 HashCalculate(const String& value, sizet seed)
+inline u64 HashCalculate(const String& value_, sizet seed_)
 {
-    return HashCalculate(value.c_str(), seed);
+    return HashCalculate(value_.c_str(), seed_);
 };
 
-inline u64 HashBytes(const void* data, sizet length, sizet seed = 0)
+inline u64 HashBytes(const void* data_, sizet length_, sizet seed_ = 0)
 {
-    return wyhash(data, length, seed, _wyp);
+    return wyhash(data_, length_, seed_, _wyp);
 }
 
-inline u64 HashCombine(u64 first, u64 second)
+inline u64 HashCombine(u64 first_, u64 second_)
 {
-    return _wymix(first, second);
+    return _wymix(first_, second_);
 }
 
 template<typename... H>
-u64 HashCombine(u64 first, u64 second, H... hashes)
+u64 HashCombine(u64 first_, u64 second_, H... hashes_)
 {
-    u64 combinedHash = HashCombine(first, second);
-    return HashCombine(combinedHash, hashes...);
+    u64 combinedHash = HashCombine(first_, second_);
+    return HashCombine(combinedHash, hashes_...);
 }
 } // namespace Zn

@@ -11,26 +11,26 @@ Thread::~Thread()
     // ThreadManager::Get().RemoveThread(this);
 }
 
-Thread* Thread::New(String name, ThreadedJob* job)
+Thread* Thread::New(String name_, ThreadedJob* job_)
 {
-    if (job == nullptr)
+    if (job_ == nullptr)
         return nullptr;
 
-    Thread* NewThread = PlatformThreads::CreateNewThread();
+    Thread* newThread = PlatformThreads::CreateNewThread();
 
-    check(NewThread != nullptr);
+    check(newThread != nullptr);
 
-    NewThread->m_Name = name.length() > 0 ? name : "Unnamed Thread";
+    newThread->name = name_.length() > 0 ? name_ : "Unnamed Thread";
 
-    if (!NewThread->Start(job))
+    if (!newThread->Start(job_))
     {
         ZN_LOG(LogThread, ELogVerbosity::Warning, "Failed to create a thread.");
 
-        delete NewThread;
-        NewThread = nullptr;
+        delete newThread;
+        newThread = nullptr;
     }
 
-    return NewThread;
+    return newThread;
 }
 
 inline bool Thread::IsCurrentThread() const
@@ -40,11 +40,11 @@ inline bool Thread::IsCurrentThread() const
 
 uint32 Thread::Main()
 {
-    check(m_Job != nullptr);
+    check(job != nullptr);
 
-    m_Job->Prepare();
-    m_Job->DoWork();
-    m_Job->Finalize();
+    job->Prepare();
+    job->DoWork();
+    job->Finalize();
 
     return 0;
 }

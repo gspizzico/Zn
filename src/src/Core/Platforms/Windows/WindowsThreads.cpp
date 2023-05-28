@@ -20,45 +20,41 @@ Thread* WindowsThreads::CreateNewThread()
 
     return thread;
 }
-NativeThreadHandle WindowsThreads::OpenThread(NativeThreadId thread_id)
+NativeThreadHandle WindowsThreads::OpenThread(NativeThreadId threadId_)
 {
-    NativeThreadHandle Handle = ::OpenThread(THREAD_ALL_ACCESS, FALSE, static_cast<DWORD>(thread_id));
-    if (Handle == NULL)
+    NativeThreadHandle handle = ::OpenThread(THREAD_ALL_ACCESS, FALSE, static_cast<DWORD>(threadId_));
+    if (handle == NULL)
     {
         ZN_LOG(LogWindowsThreads,
                ELogVerbosity::Error,
                "Unable to open thread with id %d. Error: %d",
-               thread_id,
+               threadId_,
                PlatformMisc::GetLastError());
     }
-    return Handle;
+    return handle;
 }
 
-NativeThreadHandle WindowsThreads::CreateThread(NativeThreadId&         out_thread_id,
-                                                NativeThreadFunctionPtr function,
-                                                ThreadArgsPtr           args,
-                                                bool                    start_suspended /*= false*/)
+NativeThreadHandle WindowsThreads::CreateThread(NativeThreadId&         outThreadId_,
+                                                NativeThreadFunctionPtr function_,
+                                                ThreadArgsPtr           args_,
+                                                bool                    startSuspended_ /*= false*/)
 {
-    DWORD              ThreadId;
-    NativeThreadHandle Handle =
-        NativeThreadHandle(::CreateThread(NULL, 0, function, args, start_suspended ? CREATE_SUSPENDED : 0, &ThreadId));
-    out_thread_id = ThreadId;
-    return Handle;
+    return NativeThreadHandle(::CreateThread(NULL, 0, function_, args_, startSuspended_ ? CREATE_SUSPENDED : 0, &outThreadId_));
 }
 
-void WindowsThreads::SetThreadPriority(NativeThreadHandle handle, ThreadPriority priority)
+void WindowsThreads::SetThreadPriority(NativeThreadHandle handle_, ThreadPriority priority_)
 {
-    ::SetThreadPriority(handle, ToNativePriority(priority));
+    ::SetThreadPriority(handle_, ToNativePriority(priority_));
 }
 
-void WindowsThreads::CloseThread(NativeThreadHandle handle)
+void WindowsThreads::CloseThread(NativeThreadHandle handle_)
 {
-    ::CloseHandle(handle);
+    ::CloseHandle(handle_);
 }
 
-void WindowsThreads::KillThread(NativeThreadHandle handle)
+void WindowsThreads::KillThread(NativeThreadHandle handle_)
 {
-    ::TerminateThread(handle, 0);
+    ::TerminateThread(handle_, 0);
 }
 
 NativeThreadId WindowsThreads::GetCurrentThreadId()
@@ -66,31 +62,31 @@ NativeThreadId WindowsThreads::GetCurrentThreadId()
     return NativeThreadId(::GetCurrentThreadId());
 }
 
-bool WindowsThreads::IsThreadAlive(NativeThreadHandle handle)
+bool WindowsThreads::IsThreadAlive(NativeThreadHandle handle_)
 {
-    return handle != NULL && ::WaitForSingleObject(handle, 0) == WAIT_TIMEOUT;
+    return handle_ != NULL && ::WaitForSingleObject(handle_, 0) == WAIT_TIMEOUT;
 }
 
-bool WindowsThreads::WaitThread(NativeThreadHandle handle, uint32 ms)
+bool WindowsThreads::WaitThread(NativeThreadHandle handle_, uint32 ms_)
 {
-    check(handle != nullptr);
-    return ::WaitForSingleObject(handle, ms) == WAIT_OBJECT_0;
+    check(handle_ != nullptr);
+    return ::WaitForSingleObject(handle_, ms_) == WAIT_OBJECT_0;
 }
 
-void WindowsThreads::WaitThread(NativeThreadHandle handle)
+void WindowsThreads::WaitThread(NativeThreadHandle handle_)
 {
-    check(handle != nullptr);
-    ::WaitForSingleObject(handle, INFINITE);
+    check(handle_ != nullptr);
+    ::WaitForSingleObject(handle_, INFINITE);
 }
 
-void WindowsThreads::Sleep(uint32 ms)
+void WindowsThreads::Sleep(uint32 ms_)
 {
-    ::Sleep(ms);
+    ::Sleep(ms_);
 }
 
-int32 WindowsThreads::ToNativePriority(ThreadPriority priority)
+int32 WindowsThreads::ToNativePriority(ThreadPriority priority_)
 {
-    switch (priority)
+    switch (priority_)
     {
     case ThreadPriority::Idle:
         return THREAD_PRIORITY_IDLE;

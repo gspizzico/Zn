@@ -11,9 +11,9 @@ class WindowsMemory
   public:
     static MemoryStatus GetMemoryStatus();
 
-    static void TrackAllocation(void* address, size_t size);
+    static void TrackAllocation(void* address_, sizet size_);
 
-    static void TrackDeallocation(void* address);
+    static void TrackDeallocation(void* address_);
 
     static BaseAllocator* CreateAllocator();
 };
@@ -21,18 +21,18 @@ class WindowsMemory
 class WindowsVirtualMemory
 {
   public:
-    static void* Reserve(size_t size);
+    static void* Reserve(sizet size_);
 
-    static void* Allocate(size_t size);
+    static void* Allocate(sizet size_);
 
-    static bool Release(void* address);
+    static bool Release(void* address_);
 
-    static bool Commit(void* address, size_t size);
+    static bool Commit(void* address_, sizet size_);
 
-    static bool Decommit(void* address, size_t size);
+    static bool Decommit(void* address_, sizet size_);
 
-    static size_t GetPageSize();
+    static sizet GetPageSize();
 
-    static VirtualMemoryInformation GetMemoryInformation(void* address, size_t size);
+    static VirtualMemoryInformation GetMemoryInformation(void* address_, sizet size_);
 };
 } // namespace Zn

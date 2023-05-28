@@ -14,8 +14,8 @@ class TSingleEvent<R(Args...)>
   public:
     TSingleEvent() = default;
 
-    TSingleEvent(TDelegate<R(Args...)>&& inDelegate)
-        : delegate(inDelegate)
+    TSingleEvent(TDelegate<R(Args...)>&& delegate_)
+        : delegate(delegate_)
     {
     }
 
@@ -24,19 +24,19 @@ class TSingleEvent<R(Args...)>
         return delegate;
     }
 
-    inline std::optional<R> ExecuteSafe(Args&&... arguments) noexcept
+    inline std::optional<R> ExecuteSafe(Args&&... args_) noexcept
     {
         if (IsBound())
         {
-            return delegate(std::forward<Args>(arguments)...);
+            return delegate(std::forward<Args>(args_)...);
         }
 
         return std::optional<R>();
     }
 
-    inline R ExecuteUnsafe(Args&&... arguments)
+    inline R ExecuteUnsafe(Args&&... args_)
     {
-        return delegate(std::forward<Args>(arguments)...);
+        return delegate(std::forward<Args>(args_)...);
     }
 
   private:
@@ -49,21 +49,21 @@ class TMulticastEvent
   public:
     TMulticastEvent() = default;
 
-    inline void Bind(TDelegate<void(Args...)>&& inDelegate)
+    inline void Bind(TDelegate<void(Args...)>&& delegate_)
     {
-        if (inDelegate)
+        if (delegate_)
         {
-            delegates.push_back(std::move(inDelegate));
+            delegates.push_back(std::move(delegate_));
         }
     }
 
-    inline void Broadcast(Args&&... arguments) const
+    inline void Broadcast(Args&&... args_) const
     {
         for (const TDelegate<void(Args...)>& delegate : delegates)
         {
             check(delegate);
 
-            delegate(std::forward<Args>(arguments)...);
+            delegate(std::forward<Args>(args_)...);
         }
     }
 

@@ -20,17 +20,17 @@ enum class ELogVerbosity : uint8
 struct LogCategory
 {
   public:
-    Name m_Name;
+    Name name;
 
-    ELogVerbosity m_Verbosity;
+    ELogVerbosity verbosity;
 
-    bool IsSuppressed(ELogVerbosity verbosity) const
+    bool IsSuppressed(ELogVerbosity verbosity_) const
     {
-        return m_Verbosity > verbosity;
+        return verbosity > verbosity_;
     }
 };
 
-typedef void (*PFN_LogMessageCallback)(cstring message);
+typedef void (*PFN_LogMessageCallback)(cstring message_);
 
 // Utility class for logging functionalities.
 class Log
@@ -39,23 +39,23 @@ class Log
     // It provides only static methods, does not need a constructor.
     Log() = delete;
 
-    static void AddLogCategory(SharedPtr<LogCategory> category);
+    static void AddLogCategory(SharedPtr<LogCategory> category_);
 
-    static bool ModifyVerbosity(const Name& name, ELogVerbosity verbosity);
+    static bool ModifyVerbosity(const Name& name_, ELogVerbosity verbosity_);
 
     // Variadic function used to log a message.
     template<typename... Args>
-    static void LogMsg(const Name& category, ELogVerbosity verbosity, const char* format, Args&&... args);
+    static void LogMsg(const Name& category_, ELogVerbosity verbosity_, const char* format_, Args&&... args_);
 
-    static void SetLogMessageCallback(PFN_LogMessageCallback callback);
+    static void SetLogMessageCallback(PFN_LogMessageCallback callback_);
 
   private:
     // Log Category getter
-    static SharedPtr<LogCategory> GetLogCategory(const Name& name);
+    static SharedPtr<LogCategory> GetLogCategory(const Name& name_);
 
-    static void LogMsgInternal(const Name& category, ELogVerbosity verbosity, const char* message);
+    static void LogMsgInternal(const Name& category_, ELogVerbosity verbosity_, const char* message_);
 
-    static const char* ToCString(ELogVerbosity verbosity);
+    static const char* ToCString(ELogVerbosity verbosity_);
 };
 
 // Utility struct that autoregisters a log category.
@@ -63,31 +63,31 @@ struct AutoLogCategory
 {
     AutoLogCategory() = default;
 
-    AutoLogCategory(Name name, ELogVerbosity verbosity)
+    AutoLogCategory(Name name_, ELogVerbosity verbosity_)
     {
-        m_LogCategory = std::make_shared<LogCategory>(LogCategory {name, verbosity});
+        logCategory = std::make_shared<LogCategory>(LogCategory {name_, verbosity_});
 
-        Zn::Log::AddLogCategory(m_LogCategory);
+        Zn::Log::AddLogCategory(logCategory);
     }
 
-    SharedPtr<LogCategory> m_LogCategory;
+    SharedPtr<LogCategory> logCategory;
 
     LogCategory& Category()
     {
-        return *m_LogCategory;
+        return *logCategory;
     }
 };
 
 template<typename... Args>
-inline void Log::LogMsg(const Name& category, ELogVerbosity verbosity, const char* format, Args&&... args)
+inline void Log::LogMsg(const Name& category_, ELogVerbosity verbosity_, const char* format_, Args&&... args_)
 {
-    const auto MessageBufferSize = std::snprintf(nullptr, 0, format, std::forward<Args>(args)...);
+    const auto bufferSize = std::snprintf(nullptr, 0, format_, std::forward<Args>(args_)...);
 
     // #todo [Memory] - use custom allocator
-    Vector<char> MessageBuffer((size_t) MessageBufferSize + 1ull); // note +1 for null terminator
+    Vector<char> buffer((size_t) bufferSize + 1ull); // note +1 for null terminator
 
-    std::snprintf(&MessageBuffer[0], MessageBuffer.size(), format, std::forward<Args>(args)...);
+    std::snprintf(&buffer[0], buffer.size(), format_, std::forward<Args>(args_)...);
 
-    LogMsgInternal(category, verbosity, &MessageBuffer[0]);
+    LogMsgInternal(category_, verbosity_, &buffer[0]);
 }
 } // namespace Zn

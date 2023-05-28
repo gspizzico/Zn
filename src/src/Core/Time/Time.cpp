@@ -3,7 +3,7 @@
 
 using namespace Zn;
 
-namespace Zn::Globals
+namespace
 {
 static uint64 GStartTime = Time::GetTickCount();
 }
@@ -13,21 +13,21 @@ inline String Zn::Time::Now()
     return ToString(SystemClock::now());
 }
 
-String Time::ToString(std::chrono::time_point<SystemClock> time_point)
+String Time::ToString(std::chrono::time_point<SystemClock> timePoint_)
 {
     // Get c time from chrono::system_clock.
-    const auto CTime = SystemClock::to_time_t(time_point);
+    const auto cTime = SystemClock::to_time_t(timePoint_);
 
     // Convert to tm struct.
-    std::tm TMTime;
-    localtime_s(&TMTime, &CTime);
+    std::tm tmTime;
+    localtime_s(&tmTime, &cTime);
 
-    char
-        Buffer[50]; // 50 is an arbitrary number. It's more than enough, considering the format type. If the type changes, change this size.
-    auto WrittenSize = std::strftime(&Buffer[0], sizeof(Buffer), "%F:%T", &TMTime);
-    check(WrittenSize > 0); // std::strftime returns 0 in case of error.
+    // 50 is an arbitrary number. It's more than enough, considering the format type. If the type changes, change this size.
+    char buffer[50];
+    auto writtenSize = std::strftime(&buffer[0], sizeof(buffer), "%F:%T", &tmTime);
+    check(writtenSize > 0); // std::strftime returns 0 in case of error.
 
-    return {&Buffer[0], WrittenSize}; // Implicit String constructor.
+    return {&buffer[0], writtenSize}; // Implicit String constructor.
 }
 uint64 Time::GetTickCount()
 {
@@ -35,5 +35,5 @@ uint64 Time::GetTickCount()
 }
 double Time::Seconds()
 {
-    return static_cast<double>(GetTickCount() - Globals::GStartTime) / 1000.0;
+    return static_cast<double>(GetTickCount() - GStartTime) / 1000.0;
 }

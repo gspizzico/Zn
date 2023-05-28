@@ -8,39 +8,39 @@ struct Name
 {
     Name() = default;
 
-    Name(String string);
+    Name(String string_);
 
-    Name(const char* chars)
-        : Name(String(chars))
+    Name(cstring cstring_)
+        : Name(String(cstring_))
     {
     }
 
-    bool operator==(const Name& other) const
+    bool operator==(const Name& other_) const
     {
-        return m_StringCode == other.m_StringCode;
+        return stringKey == other_.stringKey;
     }
 
     bool operator<(const Name& other) const
     {
-        return m_StringCode < other.m_StringCode;
+        return stringKey < other.stringKey;
     }
 
     operator bool() const
     {
-        return m_StringCode != 0;
+        return stringKey != 0;
     }
 
     size_t Value() const
     {
-        return m_StringCode;
+        return stringKey;
     }
 
     Zn::String ToString() const;
 
-    const char* const CString() const;
+    cstring const CString() const;
 
   private:
-    size_t m_StringCode = 0;
+    sizet stringKey = 0;
 };
 
 static const Name NO_NAME;

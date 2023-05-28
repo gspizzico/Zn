@@ -10,14 +10,14 @@ class WindowsMisc
   public:
     static SystemInfo GetSystemInfo();
 
-    static void Exit(bool with_errors = false);
+    static void Exit(bool withErrors_ = false);
 
     static Guid GenerateGuid();
 
     static uint32 GetLastError();
 
-    static void LogDebug(cstring message);
+    static void LogDebug(cstring message_);
 
-    static void LogConsole(cstring message);
+    static void LogConsole(cstring message_);
 };
 } // namespace Zn

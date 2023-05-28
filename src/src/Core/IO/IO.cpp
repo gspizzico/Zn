@@ -7,57 +7,59 @@
 
 using namespace Zn;
 
-String IO::kRootPath = "";
-
-void IO::Initialize(const String& root)
+namespace
 {
-    kRootPath = root;
+String GRootPath = "";
 }
 
-bool IO::ReadBinaryFile(const String& InFilename, Vector<uint8>& OutData)
+void IO::Initialize(const String& root_)
 {
-    String AbsFilename = GetAbsolutePath(InFilename);
+    GRootPath = root_;
+}
+
+bool IO::ReadBinaryFile(const String& filename_, Vector<uint8>& outData_)
+{
+    String absFilename = GetAbsolutePath(filename_);
 
     // Open the file. With cursor at the end
-    std::ifstream File(AbsFilename.c_str(), std::ios::ate | std::ios::binary);
+    std::ifstream file(absFilename.c_str(), std::ios::ate | std::ios::binary);
 
-    if (!File.is_open())
+    if (!file.is_open())
     {
         return false;
     }
 
-    size_t Size = File.tellg();
+    size_t size = file.tellg();
 
-    OutData.resize(Size);
+    outData_.resize(size);
 
-    File.seekg(0);
+    file.seekg(0);
 
-    File.read((char*) OutData.data(), Size);
+    file.read((char*) outData_.data(), size);
 
-    File.close();
+    file.close();
 
     return true;
 }
 
-bool IO::ReadTextFile(const String& InFilename, Vector<const char*>& OutData)
+bool IO::ReadTextFile(const String& filename_, Vector<const char*>& outData_)
 {
     check(false); // Not Implemented
     return false;
 }
 
-String IO::GetAbsolutePath(const String& InFilename)
+String IO::GetAbsolutePath(const String& filename_)
 {
-    std::filesystem::path Path(InFilename);
+    std::filesystem::path path(filename_);
 
-    if (Path.is_absolute())
+    if (path.is_absolute())
     {
-        return InFilename;
+        return filename_;
     }
     else
     {
-        std::filesystem::path Root(kRootPath);
-        std::filesystem::path OutputPath = Root / Path;
+        std::filesystem::path outPath = std::filesystem::path(GRootPath) / path;
 
-        return OutputPath.string();
+        return outPath.string();
     }
 }

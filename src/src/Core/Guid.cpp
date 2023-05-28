@@ -6,11 +6,11 @@ namespace Zn
 String Guid::ToString() const
 {
     // #todo [Memory] - use custom allocator
-    Vector<char> MessageBuffer(128ull + 1ull); // note +1 for null terminator
+    Vector<char> buffer(128ull + 1ull); // note +1 for null terminator
 
-    std::snprintf(&MessageBuffer[0], MessageBuffer.size(), "%lu-%lu-%lu-%lu", A, B, C, D);
+    std::snprintf(&buffer[0], buffer.size(), "%lu-%lu-%lu-%lu", a, b, c, d);
 
-    return String(&MessageBuffer[0], MessageBuffer.size());
+    return String(&buffer[0], buffer.size());
 }
 
 Guid Guid::Generate()

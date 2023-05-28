@@ -5,22 +5,22 @@ namespace Zn
 {
 WindowsCriticalSection::WindowsCriticalSection()
 {
-    ::InitializeCriticalSectionAndSpinCount(&m_NativeCriticalSection, 2000);
+    ::InitializeCriticalSectionAndSpinCount(&nativeHandle, 2000);
 }
 WindowsCriticalSection::~WindowsCriticalSection()
 {
-    ::DeleteCriticalSection(&m_NativeCriticalSection);
+    ::DeleteCriticalSection(&nativeHandle);
 }
 void WindowsCriticalSection::Lock()
 {
-    ::EnterCriticalSection(&m_NativeCriticalSection);
+    ::EnterCriticalSection(&nativeHandle);
 }
 void WindowsCriticalSection::Unlock()
 {
-    ::LeaveCriticalSection(&m_NativeCriticalSection);
+    ::LeaveCriticalSection(&nativeHandle);
 }
 bool WindowsCriticalSection::TryLock()
 {
-    return bool(::TryEnterCriticalSection(&m_NativeCriticalSection));
+    return bool(::TryEnterCriticalSection(&nativeHandle));
 }
 } // namespace Zn

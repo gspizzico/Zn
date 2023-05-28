@@ -29,7 +29,7 @@
         #define ZN_LOG(LogCategory, Verbosity, Format, ...)                                                                                \
             {                                                                                                                              \
                 if (GET_CATEGORY(LogCategory).Category().IsSuppressed(Verbosity) == false)                                                 \
-                    Zn::Log::LogMsg(GET_CATEGORY(LogCategory).Category().m_Name, Verbosity, Format, __VA_ARGS__);                          \
+                    Zn::Log::LogMsg(GET_CATEGORY(LogCategory).Category().name, Verbosity, Format, __VA_ARGS__);                            \
             }
     #else
         #define ZN_LOG(LogCategory, Verbosity, Format, ...) Zn::Log::LogMsg(#LogCategory, Verbosity, Format, __VA_ARGS__);

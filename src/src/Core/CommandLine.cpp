@@ -6,67 +6,67 @@ using namespace Zn;
 
 CommandLine& CommandLine::Get()
 {
-    static CommandLine Instance;
-    return Instance;
+    static CommandLine instance;
+    return instance;
 }
 
-void CommandLine::Initialize(char* arguments[], size_t count)
+void CommandLine::Initialize(char* arguments_[], sizet count_)
 {
-    arguments_.reserve(count);
+    arguments.reserve(count_);
 
-    for (size_t index = 0; index < count; ++index)
+    for (size_t index = 0; index < count_; ++index)
     {
-        arguments_.emplace_back(ToLower(arguments[index]));
+        arguments.emplace_back(ToLower(arguments_[index]));
     }
 }
 
-bool CommandLine::Param(const char* param) const
+bool CommandLine::Param(cstring param_) const
 {
-    return std::any_of(arguments_.begin(),
-                       arguments_.end(),
-                       [lower = ToLower(param)](const auto& arg)
+    return std::any_of(arguments.begin(),
+                       arguments.end(),
+                       [lower = ToLower(param_)](const auto& arg_)
                        {
-                           return arg.compare(lower) == 0;
+                           return arg_.compare(lower) == 0;
                        });
 }
 
-bool CommandLine::Value(cstring param, String& value, String defaultValue) const
+bool CommandLine::Value(cstring param_, String& outValue_, String defaultValue_) const
 {
-    const String lowerParam = ToLower(param);
+    const String lowerParam = ToLower(param_);
 
-    for (const String& argument : arguments_)
+    for (const String& argument : arguments)
     {
         if (argument.starts_with(lowerParam.c_str()))
         {
-            cstring equalSign = argument.c_str() + strlen(param);
+            cstring equalSign = argument.c_str() + strlen(param_);
 
             if (*equalSign == '=')
             {
                 ++equalSign;
-                value = equalSign;
+                outValue_ = equalSign;
                 return true;
             }
         }
     }
 
-    value = defaultValue;
+    outValue_ = defaultValue_;
     return false;
 }
 
 String CommandLine::GetExeArgument() const
 {
-    return arguments_.size() > 0 ? arguments_[0] : "";
+    return arguments.size() > 0 ? arguments[0] : "";
 }
 
-String CommandLine::ToLower(const char* param) const
+String CommandLine::ToLower(cstring param_) const
 {
-    const auto size = strlen(param);
+    const auto size = strlen(param_);
     String     lower;
     lower.resize(size + 1);
 
-    for (size_t index = 0; index < strlen(param); ++index)
+    for (size_t index = 0; index < size; ++index)
     {
-        lower[index] = std::tolower(param[index]);
+        lower[index] = std::tolower(param_[index]);
     }
     lower[size] = '\0';
 

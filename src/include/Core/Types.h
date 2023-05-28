@@ -11,28 +11,33 @@
 #include <delegate/delegate.hpp>
 // #undef DELEGATE_NAMESPACE
 
-using int8   = char;
-using int16  = short;
-using int32  = int32_t;
-using int64  = int64_t;
-using uint8  = uint8_t;
-using uint16 = uint16_t;
-using uint32 = uint32_t;
-using uint64 = uint64_t;
+using int8    = char;
+using int16   = short;
+using int32   = int32_t;
+using int64   = int64_t;
+using intptr  = intptr_t;
+using uint8   = uint8_t;
+using uint16  = uint16_t;
+using uint32  = uint32_t;
+using uint64  = uint64_t;
+using uintptr = uintptr_t;
+using ptrdiff = ptrdiff_t;
 
 using cstring = const char*;
 using sizet   = size_t;
 
 // Testing alternative format
 
-using i8  = char;
-using i16 = short;
-using i32 = int32_t;
-using i64 = int64_t;
-using u8  = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
+using i8   = char;
+using i16  = short;
+using i32  = int32;
+using i64  = int64_t;
+using iptr = intptr_t;
+using u8   = uint8_t;
+using u16  = uint16_t;
+using u32  = uint32_t;
+using u64  = uint64_t;
+using uptr = uintptr_t;
 
 using f32 = float;
 using f64 = double;
@@ -144,8 +149,15 @@ constexpr u32 ArrayElementSize(const T (&)[N]) noexcept
 }
 
 template<typename T, u32 N>
-constexpr const T* ArrayData(const T (&arr)[N]) noexcept
+constexpr const T* ArrayData(const T (&arr_)[N]) noexcept
 {
-    return &arr[0];
+    return &arr_[0];
+}
+
+// constexpr function to determine the size of a const string.
+template<size_t N>
+constexpr size_t StrLen(char const (&)[N])
+{
+    return N - 1;
 }
 } // namespace Zn

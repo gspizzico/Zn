@@ -7,10 +7,10 @@ namespace
 {
 Zn::PFN_LogMessageCallback GLogCallback = nullptr;
 
-void DefaultLogMsg(cstring message)
+void DefaultLogMsg(cstring message_)
 {
-    Zn::PlatformMisc::LogDebug(message);
-    Zn::PlatformMisc::LogConsole(message);
+    Zn::PlatformMisc::LogDebug(message_);
+    Zn::PlatformMisc::LogConsole(message_);
 }
 
 struct AutoMessageCallback
@@ -20,91 +20,94 @@ struct AutoMessageCallback
         Zn::Log::SetLogMessageCallback(DefaultLogMsg);
     }
 };
+
+AutoMessageCallback GDefaultMessageCallback {};
 } // namespace
+
 namespace Zn
 {
 // Internal use only. Map of registered log categories.
 UnorderedMap<Name, SharedPtr<LogCategory>>& GetLogCategories()
 {
-    static UnorderedMap<Name, SharedPtr<LogCategory>> s_LogCategories;
-    return s_LogCategories;
+    static UnorderedMap<Name, SharedPtr<LogCategory>> logCategories;
+    return logCategories;
 }
 
-void Log::AddLogCategory(SharedPtr<LogCategory> category)
+void Log::AddLogCategory(SharedPtr<LogCategory> category_)
 {
-    GetLogCategories().try_emplace(category->m_Name, category);
+    GetLogCategories().try_emplace(category_->name, category_);
 }
 
-bool Log::ModifyVerbosity(const Name& name, ELogVerbosity verbosity)
+bool Log::ModifyVerbosity(const Name& name_, ELogVerbosity verbosity_)
 {
-    if (auto It = GetLogCategories().find(name); It != GetLogCategories().end())
+    if (auto it = GetLogCategories().find(name_); it != GetLogCategories().end())
     {
-        It->second->m_Verbosity = verbosity;
+        it->second->verbosity = verbosity_;
         return true;
     }
 
     return false;
 }
 
-void Log::SetLogMessageCallback(PFN_LogMessageCallback callback)
+void Log::SetLogMessageCallback(PFN_LogMessageCallback callback_)
 {
-    GLogCallback = callback;
+    GLogCallback = callback_;
 }
 
-SharedPtr<LogCategory> Log::GetLogCategory(const Name& name)
+SharedPtr<LogCategory> Log::GetLogCategory(const Name& name_)
 {
-    if (auto It = GetLogCategories().find(name); It != GetLogCategories().end())
+    if (auto it = GetLogCategories().find(name_); it != GetLogCategories().end())
     {
-        return It->second;
+        return it->second;
     }
 
     return nullptr;
 }
 
-void Log::LogMsgInternal(const Name& category, ELogVerbosity verbosity, const char* message)
+void Log::LogMsgInternal(const Name& category_, ELogVerbosity verbosity_, const char* message_)
 {
     // Printf wrapper, since it's called two times, the first one to get the size of the buffer, the second one to write to it.
-    auto ExecPrintf = [TimeString = Time::Now(), pLogCategory = category.CString(), pLogVerbosity = ToCString(verbosity), message](
-                          char* buffer, size_t size) -> size_t
+    auto execute_printf = [timeString = Time::Now(), pLogCategory = category_.CString(), pLogVerbosity = ToCString(verbosity_), message_](
+                              char* buffer_, size_t size_) -> size_t
     {
         // Log Format -> [TimeStamp]    [LogCategory]   [LogVerbosity]: Message \n
-        constexpr auto LogFormat = "[%s]\t[%s]\t%s:\t%s\n";
+        constexpr auto format = "[%s]\t[%s]\t%s:\t%s\n";
 
-        return std::snprintf(buffer, size, LogFormat, TimeString.c_str(), pLogCategory, pLogVerbosity, message);
+        return std::snprintf(buffer_, size_, format, timeString.c_str(), pLogCategory, pLogVerbosity, message_);
     };
 
-    const auto BufferSize = ExecPrintf(nullptr, 0);
+    const auto bufferSize = execute_printf(nullptr, 0);
 
-    Vector<char> Buffer(BufferSize + 1); // note +1 for null terminator
+    Vector<char> buffer(bufferSize + 1); // note +1 for null terminator
 
-    ExecPrintf(&Buffer[0], Buffer.size());
+    execute_printf(&buffer[0], buffer.size());
 
     if (GLogCallback)
     {
-        GLogCallback(&Buffer[0]);
+        GLogCallback(&buffer[0]);
     }
 }
 
-const char* Log::ToCString(ELogVerbosity verbosity)
+const char* Log::ToCString(ELogVerbosity verbosity_)
 {
-    static const Name sVerbose {"Verbose"};
-    static const Name sLog {"Log"};
-    static const Name sWarning {"Warning"};
-    static const Name sError {"Error"};
+    static const Name kVerbose {"Verbose"};
+    static const Name kLog {"Log"};
+    static const Name kWarning {"Warning"};
+    static const Name kError {"Error"};
 
-    switch (verbosity)
+    switch (verbosity_)
     {
     case ELogVerbosity::Verbose:
-        return sVerbose.CString();
+        return kVerbose.CString();
         break;
     case ELogVerbosity::Log:
-        return sLog.CString();
+        return kLog.CString();
         break;
     case ELogVerbosity::Warning:
-        return sWarning.CString();
+        return kWarning.CString();
         break;
     case ELogVerbosity::Error:
-        return sError.CString();
+        return kError.CString();
         break;
     default:
         check(false);

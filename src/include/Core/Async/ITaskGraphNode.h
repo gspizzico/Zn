@@ -17,6 +17,6 @@ class ITaskGraphNode abstract
     virtual void DumpNode() const = 0;
 
   private:
-    SharedPtr<class TaskHandle> m_Handle;
+    SharedPtr<class TaskHandle> handle;
 };
 } // namespace Zn

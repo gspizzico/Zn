@@ -6,24 +6,24 @@ namespace Zn
 {
 struct Guid
 {
-    uint32 A = 0;
-    uint32 B = 0;
-    uint32 C = 0;
-    uint32 D = 0;
+    uint32 a = 0;
+    uint32 b = 0;
+    uint32 c = 0;
+    uint32 d = 0;
 
     Guid() = default;
 
-    constexpr Guid(uint32 a, uint32 b, uint32 c, uint32 d)
-        : A(a)
-        , B(b)
-        , C(c)
-        , D(d)
+    constexpr Guid(uint32 a_, uint32 b_, uint32 c_, uint32 d_)
+        : a(a_)
+        , b(b_)
+        , c(c_)
+        , d(d_)
     {
     }
 
-    bool operator==(const Guid& other) const
+    bool operator==(const Guid& other_) const
     {
-        return A == other.A && B == other.B && C == other.C && D == other.D;
+        return a == other_.a && b == other_.b && c == other_.c && d == other_.d;
     }
 
     String ToString() const;

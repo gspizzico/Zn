@@ -12,18 +12,18 @@ class WindowsThread : public Thread
 
     virtual void WaitUntilCompletion() override;
 
-    virtual bool Wait(uint32 ms) override;
+    virtual bool Wait(uint32 ms_) override;
 
     virtual ~WindowsThread() override;
 
     virtual bool HasValidHandle() const override;
 
   protected:
-    virtual bool Start(ThreadedJob* job) override;
+    virtual bool Start(ThreadedJob* job_) override;
 
   private:
-    HANDLE m_Handle;
+    HANDLE handle;
 
-    static DWORD WINAPI RunThread(LPVOID p_thread);
+    static DWORD WINAPI RunThread(LPVOID thread_);
 };
 } // namespace Zn

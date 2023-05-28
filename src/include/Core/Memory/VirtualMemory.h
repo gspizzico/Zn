@@ -34,30 +34,30 @@ class VirtualMemory
         kFree = 2 // Indicates free pages not accessible to the calling process and available to be allocated.
     };
 
-    static void* Reserve(size_t size);
+    static void* Reserve(sizet size_);
 
-    static void* Allocate(size_t size);
+    static void* Allocate(sizet size_);
 
-    static bool Release(void* address);
+    static bool Release(void* address_);
 
-    static bool Commit(void* address, size_t size);
+    static bool Commit(void* address_, sizet size_);
 
-    static bool Decommit(void* address, size_t size);
+    static bool Decommit(void* address_, sizet size_);
 
     static size_t GetPageSize();
 
-    static size_t AlignToPageSize(size_t size);
+    static size_t AlignToPageSize(sizet size);
 
-    static VirtualMemoryInformation GetMemoryInformation(void* address, size_t size);
+    static VirtualMemoryInformation GetMemoryInformation(void* address_, sizet size_);
 
-    static VirtualMemoryInformation GetMemoryInformation(MemoryRange range);
+    static VirtualMemoryInformation GetMemoryInformation(MemoryRange range_);
 };
 
 struct VirtualMemoryInformation
 {
-    MemoryRange m_Range;
+    MemoryRange range;
 
-    VirtualMemory::State m_State; // Note: State::kFree -> m_Range is undefined.
+    VirtualMemory::State state; // Note: State::kFree -> m_Range is undefined.
 };
 
 struct VirtualMemoryRegion
@@ -65,11 +65,11 @@ struct VirtualMemoryRegion
   public:
     VirtualMemoryRegion() = default;
 
-    VirtualMemoryRegion(size_t capacity);
+    VirtualMemoryRegion(sizet capacity_);
 
-    VirtualMemoryRegion(VirtualMemoryRegion&& other) noexcept;
+    VirtualMemoryRegion(VirtualMemoryRegion&& other_) noexcept;
 
-    VirtualMemoryRegion(MemoryRange range) noexcept;
+    VirtualMemoryRegion(MemoryRange range_) noexcept;
 
     ~VirtualMemoryRegion();
 
@@ -79,30 +79,30 @@ struct VirtualMemoryRegion
 
     operator bool() const
     {
-        return m_Range.Begin() != nullptr;
+        return range.begin != nullptr;
     }
 
     size_t Size() const
     {
-        return m_Range.Size();
+        return range.Size();
     }
 
     void* Begin() const
     {
-        return m_Range.Begin();
+        return range.begin;
     }
 
     void* End() const
     {
-        return m_Range.End();
+        return range.end;
     }
 
     const MemoryRange& Range() const
     {
-        return m_Range;
+        return range;
     }
 
   private:
-    MemoryRange m_Range;
+    MemoryRange range;
 };
 } // namespace Zn

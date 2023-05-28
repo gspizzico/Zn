@@ -16,6 +16,6 @@ struct WindowsCriticalSection
     bool TryLock();
 
   private:
-    CRITICAL_SECTION m_NativeCriticalSection;
+    CRITICAL_SECTION nativeHandle;
 };
 } // namespace Zn
