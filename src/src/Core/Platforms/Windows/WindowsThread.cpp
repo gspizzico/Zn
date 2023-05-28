@@ -1,5 +1,5 @@
-#include <Corepch.h>
-#include "Windows/WindowsThread.h"
+#include <Windows/WindowsThread.h>
+#include <CoreAssert.h>
 
 namespace Zn
 {

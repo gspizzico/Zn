@@ -1,13 +1,14 @@
 #pragma once
 
-#include "Async/ITaskGraphNode.h"
+#include <CoreTypes.h>
+#include <Async/ITaskGraphNode.h>
 
 namespace Zn
 {
 class Task abstract : public ITaskGraphNode, public std::enable_shared_from_this<Task>
 {
   public:
-    enum class State : uint8_t
+    enum class State : uint8
     {
         Idle,
         InProgress,

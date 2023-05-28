@@ -1,14 +1,15 @@
 #pragma once
 
-#include <string>
-#include <functional>
-#include <CorePlatform.h>
-#include <CoreAssert.h>
-#include <Containers/Vector.h>
-#include <Containers/Map.h>
-#include <Containers/Set.h>
-// #define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
-#include <delegate/delegate.hpp>
+#ifndef _CORE_TYPES_H_
+    #define _CORE_TYPES_H_
+
+    #include <string>
+    #include <functional>
+    #include <Containers/Vector.h>
+    #include <Containers/Map.h>
+    #include <Containers/Set.h>
+    // #define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
+    #include <delegate/delegate.hpp>
 // #undef DELEGATE_NAMESPACE
 
 using int8    = char;
@@ -161,3 +162,4 @@ constexpr size_t StrLen(char const (&)[N])
     return N - 1;
 }
 } // namespace Zn
+#endif

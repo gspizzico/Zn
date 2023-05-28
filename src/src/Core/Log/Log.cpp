@@ -1,7 +1,7 @@
-#include <Corepch.h>
-#include "Log/Log.h"
-#include "Time/Time.h"
-#include "CorePlatform.h"
+#include <Log/Log.h>
+#include <Time/Time.h>
+#include <CoreAssert.h>
+#include <CorePlatform.h>
 
 namespace
 {

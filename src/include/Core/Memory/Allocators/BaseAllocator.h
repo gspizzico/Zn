@@ -1,5 +1,6 @@
 #pragma once
 
+#include <CoreTypes.h>
 #include <Memory/Memory.h>
 
 namespace Zn

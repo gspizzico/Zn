@@ -1,7 +1,6 @@
-#include <Corepch.h>
 #include <IO/IO.h>
+#include <CoreAssert.h>
 #include <CommandLine.h>
-
 #include <fstream>
 #include <filesystem>
 

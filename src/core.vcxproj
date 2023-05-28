@@ -65,8 +65,8 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Corepch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
@@ -79,10 +79,10 @@
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>include\Core;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-  <Lib>
-    <OutputFile>$(OutDir)core-debug.lib</OutputFile>
-    <TargetMachine>MachineX64</TargetMachine>
-  </Lib>
+    <Lib>
+      <OutputFile>$(OutDir)core-debug.lib</OutputFile>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Lib>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -100,8 +100,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Corepch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
@@ -114,10 +114,10 @@
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>include\Core;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-  <Lib>
-    <OutputFile>$(OutDir)core-release.lib</OutputFile>
-    <TargetMachine>MachineX64</TargetMachine>
-  </Lib>
+    <Lib>
+      <OutputFile>$(OutDir)core-release.lib</OutputFile>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Lib>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -130,7 +130,7 @@
     <ClInclude Include="include\Core\Build.h" />
     <ClInclude Include="include\Core\CommandLine.h" />
     <ClInclude Include="include\Core\CoreAssert.h" />
-    <ClInclude Include="include\Core\Corepch.h" />
+    <ClInclude Include="include\Core\CoreMinimal.h" />
     <ClInclude Include="include\Core\CorePlatform.h" />
     <ClInclude Include="include\Core\CoreTypes.h" />
     <ClInclude Include="include\Core\Async\CallableJob.h" />
@@ -173,14 +173,6 @@
   <ItemGroup>
     <ClCompile Include="src\Core\CommandLine.cpp">
     </ClCompile>
-    <ClCompile Include="src\Core\Corepch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='win-debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='win-release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="src\Core\Guid.cpp">
-    </ClCompile>
-    <ClCompile Include="src\Core\Name.cpp">
-    </ClCompile>
     <ClCompile Include="src\Core\Async\TaskGraph.cpp">
     </ClCompile>
     <ClCompile Include="src\Core\Async\Thread.cpp">
@@ -194,6 +186,10 @@
     <ClCompile Include="src\Core\Memory\VirtualMemory.cpp">
     </ClCompile>
     <ClCompile Include="src\Core\Memory\Allocators\BaseAllocator.cpp">
+    </ClCompile>
+    <ClCompile Include="src\Core\Misc\Guid.cpp">
+    </ClCompile>
+    <ClCompile Include="src\Core\Misc\Name.cpp">
     </ClCompile>
     <ClCompile Include="src\Core\Platforms\Windows\WindowsAPI.cpp">
     </ClCompile>

@@ -1,7 +1,8 @@
 #pragma once
-#include "WindowsCommon.h"
+
 #include <CoreTypes.h>
-#include "Async/Thread.h"
+#include <Async/Thread.h>
+#include <Windows/WindowsCommon.h>
 
 namespace Zn
 {

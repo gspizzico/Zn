@@ -1,7 +1,7 @@
 #pragma once
 
 #include <CoreTypes.h>
-#include "WindowsCommon.h"
+#include "Windows/WindowsCommon.h"
 
 #ifndef THREAD_FUNCTION_SIGNATURE
     #define THREAD_FUNCTION_SIGNATURE(RunThread, ArgName) static DWORD WINAPI RunThread(LPVOID ArgName)

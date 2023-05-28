@@ -1,6 +1,8 @@
-#include <Corepch.h>
-#include "Async/Thread.h"
-#include "Async/ThreadedJob.h"
+#include <Async/Thread.h>
+#include <Async/ThreadedJob.h>
+#include <Log/LogMacros.h>
+#include <CorePlatform.h>
+#include <CoreAssert.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogThread, ELogVerbosity::Log)
 

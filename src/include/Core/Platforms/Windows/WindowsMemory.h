@@ -1,4 +1,6 @@
 #pragma once
+
+#include <CoreTypes.h>
 #include <Memory/Memory.h>
 #include <Memory/VirtualMemory.h>
 

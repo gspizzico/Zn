@@ -1,5 +1,7 @@
 #pragma once
 
+#include <CoreTypes.h>
+
 namespace Zn
 {
 class IO

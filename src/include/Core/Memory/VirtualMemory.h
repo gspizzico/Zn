@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Memory/Memory.h"
-#include "Log/Log.h"
-#include "Log/LogMacros.h"
+#include <CoreTypes.h>
+#include <Memory/Memory.h>
+#include <Log/LogMacros.h>
 
 DECLARE_LOG_CATEGORY(LogMemory);
 

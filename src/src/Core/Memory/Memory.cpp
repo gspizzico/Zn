@@ -1,5 +1,7 @@
-#include <Corepch.h>
-#include "Memory/Memory.h"
+#include <Memory/Memory.h>
+#include <CoreAssert.h>
+#include <CorePlatform.h>
+#include <Trace/Trace.h>
 
 namespace Zn
 {

@@ -64,6 +64,9 @@
     <Filter Include="src\Core\Memory\Allocators">
       <UniqueIdentifier>{37FB763F-230B-2310-8CC4-872E78F311A9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Core\Misc">
+      <UniqueIdentifier>{FA3A840E-66FB-FF44-2F36-49C29BB54421}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Core\Platforms">
       <UniqueIdentifier>{E6FA203B-D2DE-E190-3B3F-DCE32742CC12}</UniqueIdentifier>
     </Filter>
@@ -94,6 +97,9 @@
       <Filter>include\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\Core\CoreAssert.h">
+      <Filter>include\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\CoreMinimal.h">
       <Filter>include\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\Core\Corepch.h">
@@ -221,12 +227,6 @@
     <ClCompile Include="src\Core\Corepch.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\Guid.cpp">
-      <Filter>src\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\Name.cpp">
-      <Filter>src\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\Core\Async\TaskGraph.cpp">
       <Filter>src\Core\Async</Filter>
     </ClCompile>
@@ -247,6 +247,12 @@
     </ClCompile>
     <ClCompile Include="src\Core\Memory\Allocators\BaseAllocator.cpp">
       <Filter>src\Core\Memory\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Misc\Guid.cpp">
+      <Filter>src\Core\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Misc\Name.cpp">
+      <Filter>src\Core\Misc</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\Platforms\Windows\WindowsAPI.cpp">
       <Filter>src\Core\Platforms\Windows</Filter>

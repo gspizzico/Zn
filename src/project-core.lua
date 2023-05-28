@@ -12,8 +12,8 @@ links {
 
 kind "StaticLib"
 
-pchheader "Corepch.h"
-pchsource "src/Core/Corepch.cpp"
+-- pchheader "Corepch.h"
+-- pchsource "src/Core/Corepch.cpp"
 
 -- Files
 configuration "*"

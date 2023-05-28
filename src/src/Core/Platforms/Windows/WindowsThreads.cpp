@@ -1,6 +1,7 @@
-#include <Corepch.h>
-#include "Windows/WindowsThreads.h"
-#include "Windows/WindowsThread.h"
+#include <Windows/WindowsThreads.h>
+#include <Windows/WindowsThread.h>
+#include <Log/LogMacros.h>
+#include <CoreAssert.h>
 
 DEFINE_STATIC_LOG_CATEGORY(LogWindowsThreads, ELogVerbosity::Log);
 
