@@ -44,13 +44,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='win-debug|x64'">
     <OutDir>.\..\Libs\Debug\</OutDir>
-    <IntDir>obj\x64\win-debug\</IntDir>
+    <IntDir>..\Intermediate\x64\win-debug\</IntDir>
     <TargetName>core-debug</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='win-release|x64'">
     <OutDir>.\..\Libs\Debug\</OutDir>
-    <IntDir>obj\x64\win-release\</IntDir>
+    <IntDir>..\Intermediate\x64\win-release\</IntDir>
     <TargetName>core-release</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>

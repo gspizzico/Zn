@@ -13,6 +13,8 @@ solution("ZnGenie")
     "Symbols"
   }
 
+  objdir "../Intermediate/"
+
   configurations {
     "win-debug", 
     "win-release",
