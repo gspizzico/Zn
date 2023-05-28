@@ -18,29 +18,33 @@ kind "StaticLib"
 -- Files
 configuration "*"
 files {
-  "./include/Core/**",
-  "./src/Core/**",
+  "./Core/**",  
   "./ThirdParty/wyhash/*",
   "./ThirdParty/delegate/*",
 }
 
+vpaths{
+  ["Headers/Core/*"] = "Core/include/**",
+  ["Source/Core/*"] = "Core/src/**",
+}
+
 configuration "win-*"
 files {
-  "./include/Core/Platforms/Windows/**",
-  "./src/Core/Platforms/Windows/**",
+  "./Core/include/Platforms/Windows/**",
+  "./Core/src/Platforms/Windows/**",
   "./ThirdParty/mimalloc/**"
 }
 
 -- Includes
 configuration "*"
 includedirs {
-  "./include/Core/",    
+  "./Core/include/",   
   "./ThirdParty/",
 }
 
 configuration "win-*"  
 includedirs {
-  "./include/Core/Platforms/",
+  "./Core/include/Platforms/",
   "./ThirdParty/mimalloc/"
 }
 
