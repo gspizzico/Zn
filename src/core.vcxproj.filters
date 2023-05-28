@@ -28,6 +28,9 @@
     <Filter Include="include\Core\Memory\Allocators">
       <UniqueIdentifier>{13382760-FF5D-F1C6-E8A3-7692D4681693}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Core\Misc">
+      <UniqueIdentifier>{5662D8B2-C278-D648-0BF0-616A7745A7D0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\Core\Platforms">
       <UniqueIdentifier>{C21BC083-AE15-E9D5-9782-7FE6831B4F42}</UniqueIdentifier>
     </Filter>
@@ -84,37 +87,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Core\AssertionMacros.h">
-      <Filter>include\Core</Filter>
-    </ClInclude>
     <ClInclude Include="include\Core\Build.h">
       <Filter>include\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\Core\CommandLine.h">
       <Filter>include\Core</Filter>
     </ClInclude>
+    <ClInclude Include="include\Core\CoreAssert.h">
+      <Filter>include\Core</Filter>
+    </ClInclude>
     <ClInclude Include="include\Core\Corepch.h">
       <Filter>include\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\Event.h">
+    <ClInclude Include="include\Core\CorePlatform.h">
       <Filter>include\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\Guid.h">
-      <Filter>include\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Core\Hash.h">
-      <Filter>include\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Core\Name.h">
-      <Filter>include\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Core\Platform.h">
-      <Filter>include\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Core\Random.h">
-      <Filter>include\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Core\Types.h">
+    <ClInclude Include="include\Core\CoreTypes.h">
       <Filter>include\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\Core\Async\CallableJob.h">
@@ -170,6 +158,21 @@
     </ClInclude>
     <ClInclude Include="include\Core\Memory\Allocators\Mimalloc.hpp">
       <Filter>include\Core\Memory\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\Misc\Event.h">
+      <Filter>include\Core\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\Misc\Guid.h">
+      <Filter>include\Core\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\Misc\Hash.h">
+      <Filter>include\Core\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\Misc\Name.h">
+      <Filter>include\Core\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\Misc\Random.h">
+      <Filter>include\Core\Misc</Filter>
     </ClInclude>
     <ClInclude Include="include\Core\Platforms\Windows\WindowsAPI.h">
       <Filter>include\Core\Platforms\Windows</Filter>

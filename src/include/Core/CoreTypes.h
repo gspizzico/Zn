@@ -2,11 +2,11 @@
 
 #include <string>
 #include <functional>
-#include <Core/Platform.h>
-#include <Core/AssertionMacros.h>
-#include <Core/Containers/Vector.h>
-#include <Core/Containers/Map.h>
-#include <Core/Containers/Set.h>
+#include <CorePlatform.h>
+#include <CoreAssert.h>
+#include <Containers/Vector.h>
+#include <Containers/Map.h>
+#include <Containers/Set.h>
 // #define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
 #include <delegate/delegate.hpp>
 // #undef DELEGATE_NAMESPACE

@@ -1,5 +1,5 @@
-#include <Core/Corepch.h>
-#include "Core/Memory/VirtualMemory.h"
+#include <Corepch.h>
+#include "Memory/VirtualMemory.h"
 #include <algorithm>
 
 DEFINE_LOG_CATEGORY(LogMemory, Zn::ELogVerbosity::Warning)

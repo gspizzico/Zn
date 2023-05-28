@@ -58,7 +58,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>include;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\Core;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -66,7 +66,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Core/Corepch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>Corepch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
@@ -77,7 +77,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>include;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\Core;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   <Lib>
     <OutputFile>$(OutDir)core-debug.lib</OutputFile>
@@ -93,7 +93,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>include;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\Core;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
@@ -101,7 +101,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Core/Corepch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>Corepch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
@@ -112,7 +112,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>include;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\Core;ThirdParty;include\Core\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   <Lib>
     <OutputFile>$(OutDir)core-release.lib</OutputFile>
@@ -127,17 +127,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\Core\AssertionMacros.h" />
     <ClInclude Include="include\Core\Build.h" />
     <ClInclude Include="include\Core\CommandLine.h" />
+    <ClInclude Include="include\Core\CoreAssert.h" />
     <ClInclude Include="include\Core\Corepch.h" />
-    <ClInclude Include="include\Core\Event.h" />
-    <ClInclude Include="include\Core\Guid.h" />
-    <ClInclude Include="include\Core\Hash.h" />
-    <ClInclude Include="include\Core\Name.h" />
-    <ClInclude Include="include\Core\Platform.h" />
-    <ClInclude Include="include\Core\Random.h" />
-    <ClInclude Include="include\Core\Types.h" />
+    <ClInclude Include="include\Core\CorePlatform.h" />
+    <ClInclude Include="include\Core\CoreTypes.h" />
     <ClInclude Include="include\Core\Async\CallableJob.h" />
     <ClInclude Include="include\Core\Async\ITaskGraphNode.h" />
     <ClInclude Include="include\Core\Async\ScopedLock.h" />
@@ -156,6 +151,11 @@
     <ClInclude Include="include\Core\Memory\VirtualMemory.h" />
     <ClInclude Include="include\Core\Memory\Allocators\BaseAllocator.h" />
     <ClInclude Include="include\Core\Memory\Allocators\Mimalloc.hpp" />
+    <ClInclude Include="include\Core\Misc\Event.h" />
+    <ClInclude Include="include\Core\Misc\Guid.h" />
+    <ClInclude Include="include\Core\Misc\Hash.h" />
+    <ClInclude Include="include\Core\Misc\Name.h" />
+    <ClInclude Include="include\Core\Misc\Random.h" />
     <ClInclude Include="include\Core\Platforms\Windows\WindowsAPI.h" />
     <ClInclude Include="include\Core\Platforms\Windows\WindowsCommon.h" />
     <ClInclude Include="include\Core\Platforms\Windows\WindowsCriticalSection.h" />

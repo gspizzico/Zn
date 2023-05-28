@@ -1,5 +1,5 @@
-#include <Core/Corepch.h>
-#include "Core/Time/Time.h"
+#include <Corepch.h>
+#include "Time/Time.h"
 
 using namespace Zn;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Types.h"
+#include <CoreTypes.h>
 #include "WindowsCommon.h"
 
 #ifndef THREAD_FUNCTION_SIGNATURE

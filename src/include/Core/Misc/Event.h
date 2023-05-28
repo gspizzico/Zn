@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/Types.h>
+#include <Types.h>
 #include <optional>
 
 namespace Zn

@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Async/ITaskGraphNode.h"
-#include "Core/Types.h"
+#include "Async/ITaskGraphNode.h"
+#include <CoreTypes.h>
 #include <list>
 #include <optional>
 

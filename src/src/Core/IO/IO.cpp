@@ -1,6 +1,6 @@
-#include <Core/Corepch.h>
-#include <Core/IO/IO.h>
-#include <Core/CommandLine.h>
+#include <Corepch.h>
+#include <IO/IO.h>
+#include <CommandLine.h>
 
 #include <fstream>
 #include <filesystem>

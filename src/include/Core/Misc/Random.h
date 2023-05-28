@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Core/Types.h>
 #include <wyhash/wyhash.h>
 
 namespace Zn

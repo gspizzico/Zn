@@ -1,5 +1,5 @@
-#include <Core/Corepch.h>
-#include "Core/Async/TaskGraph.h"
+#include <Corepch.h>
+#include "Async/TaskGraph.h"
 #include <algorithm>
 
 DEFINE_STATIC_LOG_CATEGORY(LogTaskGraph, ELogVerbosity::Log);

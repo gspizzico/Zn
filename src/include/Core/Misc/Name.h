@@ -1,6 +1,7 @@
 #pragma once
+
+#include <CoreTypes.h>
 #include <functional>
-#include "Core/Types.h"
 
 namespace Zn
 {

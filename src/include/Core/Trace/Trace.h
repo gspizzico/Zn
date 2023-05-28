@@ -1,11 +1,12 @@
 #pragma once
 
+#include <CoreTypes.h>
+
 #ifndef TRACY_ENABLE
     #define TRACY_ENABLE 0
 #endif
 
 #define TRACY_CALLSTACK 12
-#include <Core/Types.h>
 
 // #include <tracy/Tracy.hpp>
 // #include <vulkan/vulkan.h>

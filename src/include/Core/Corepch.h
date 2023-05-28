@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Core/Build.h>
-#include <Core/Platform.h>
-#include <Core/AssertionMacros.h>
-#include <Core/Types.h>
-#include <Core/Name.h>
-#include <Core/Hash.h>
-#include <Core/Random.h>
-#include <Core/Log/Log.h>
-#include <Core/Log/LogMacros.h>
-#include <Core/Trace/Trace.h>
+#include <Build.h>
+#include <CorePlatform.h>
+#include <CoreAssert.h>
+#include <CoreTypes.h>
+#include <Misc/Name.h>
+#include <Misc/Hash.h>
+#include <Misc/Random.h>
+#include <Log/Log.h>
+#include <Log/LogMacros.h>
+#include <Trace/Trace.h>

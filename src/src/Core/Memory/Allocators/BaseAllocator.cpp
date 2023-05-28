@@ -1,5 +1,5 @@
-#include <Core/Corepch.h>
-#include <Core/Memory/Allocators/BaseAllocator.h>
+#include <Corepch.h>
+#include <Memory/Allocators/BaseAllocator.h>
 #include <memory>
 
 using namespace Zn;

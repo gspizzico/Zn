@@ -1,5 +1,5 @@
-#include <Core/Corepch.h>
-#include "Core/Guid.h"
+#include <Corepch.h>
+#include "Misc/Guid.h"
 
 namespace Zn
 {

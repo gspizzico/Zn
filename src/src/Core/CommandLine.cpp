@@ -1,5 +1,5 @@
-#include <Core/Corepch.h>
-#include <Core/CommandLine.h>
+#include <Corepch.h>
+#include <CommandLine.h>
 #include <algorithm>
 
 using namespace Zn;

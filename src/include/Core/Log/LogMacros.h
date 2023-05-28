@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Build.h"
-#include "Core/Log/Log.h"
+#include "Build.h"
+#include "Log/Log.h"
 
 #define CONCAT(A, B)            A##B
 

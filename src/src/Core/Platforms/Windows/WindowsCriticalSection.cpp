@@ -1,4 +1,4 @@
-#include <Core/Corepch.h>
+#include <Corepch.h>
 #include "Windows/WindowsCriticalSection.h"
 
 namespace Zn

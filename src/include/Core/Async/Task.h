@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Async/ITaskGraphNode.h"
+#include "Async/ITaskGraphNode.h"
 
 namespace Zn
 {

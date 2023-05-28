@@ -1,7 +1,7 @@
-#include <Core/Corepch.h>
+#include <Corepch.h>
 #include "Windows/WindowsMisc.h"
 #include "Windows/WindowsCommon.h"
-#include "Core/Guid.h"
+#include "Misc/Guid.h"
 
 namespace Zn
 {

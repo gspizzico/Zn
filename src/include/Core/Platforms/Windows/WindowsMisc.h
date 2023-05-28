@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/HAL/Misc.h"
+#include "HAL/Misc.h"
 
 namespace Zn
 {

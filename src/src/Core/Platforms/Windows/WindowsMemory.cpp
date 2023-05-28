@@ -1,10 +1,10 @@
-#include <Core/Corepch.h>
+#include <Corepch.h>
 #include "Windows/WindowsMemory.h"
 #include "Windows/WindowsMisc.h"
 #include "Windows/WindowsCommon.h"
-#include "Core/Build.h"
+#include "Build.h"
 
-#include <Core/Memory/Allocators/Mimalloc.hpp>
+#include <Memory/Allocators/Mimalloc.hpp>
 
 #define ZN_WINDOWS_TRACK_MEMORY (ZN_TRACK_MEMORY && !ZN_RELEASE) && 0
 

@@ -12,7 +12,7 @@ links {
 
 kind "StaticLib"
 
-pchheader "Core/Corepch.h"
+pchheader "Corepch.h"
 pchsource "src/Core/Corepch.cpp"
 
 -- Files
@@ -34,7 +34,7 @@ files {
 -- Includes
 configuration "*"
 includedirs {
-  "./include/",    
+  "./include/Core/",    
   "./ThirdParty/",
 }
 

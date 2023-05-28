@@ -1,5 +1,5 @@
-#include <Core/Corepch.h>
-#include "Core/Memory/Memory.h"
+#include <Corepch.h>
+#include "Memory/Memory.h"
 
 namespace Zn
 {
@@ -116,7 +116,7 @@ bool MemoryRange::Contains(const MemoryRange& other_) const
 
 // Allocators
 
-#include <Core/Memory/Allocators/BaseAllocator.h>
+#include <Memory/Allocators/BaseAllocator.h>
 
 namespace Zn::Allocators
 {
