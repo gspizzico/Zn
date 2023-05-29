@@ -85,6 +85,9 @@
     <Filter Include="ThirdParty\delegate">
       <UniqueIdentifier>{475512AA-B3B6-EFB7-3C24-366AA8842677}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ThirdParty\tracy">
+      <UniqueIdentifier>{6FDE873C-5BD7-A68E-8409-8C137061869A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="ThirdParty\mimalloc">
       <UniqueIdentifier>{DA765B2E-46D8-383C-CF45-7FEE3BA66FFB}</UniqueIdentifier>
     </Filter>
@@ -330,6 +333,9 @@
     </ClCompile>
     <ClCompile Include="Core\src\Time\Time.cpp">
       <Filter>Source\Core\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\tracy\TracyClient.cpp">
+      <Filter>ThirdParty\tracy</Filter>
     </ClCompile>
     <ClCompile Include="Application\include\Application.cpp">
       <Filter>Headers\Application</Filter>

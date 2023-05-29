@@ -17,7 +17,9 @@ solution("ZnGenie")
 
   configurations {
     "win-debug", 
+    "win-tracy-debug",
     "win-release",
+    "win-tracy-release",
   }
 
   -- Defines
@@ -26,8 +28,16 @@ solution("ZnGenie")
   defines {
     "_DEBUG",
     "ZN_DEBUG",
-    "_CONSOLE"
+    "_CONSOLE",
   } 
+
+  configuration "*-tracy-*"
+  flags{
+    "NoEditAndContinue"
+  }
+  defines {
+    "TRACY_ENABLE"
+  }
   
   configuration "*-release"
   defines {

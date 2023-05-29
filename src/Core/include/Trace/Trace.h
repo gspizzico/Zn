@@ -8,7 +8,7 @@
 
 #define TRACY_CALLSTACK 12
 
-// #include <tracy/Tracy.hpp>
+#include <tracy/tracy/Tracy.hpp>
 // #include <vulkan/vulkan.h>
 // #include <tracy/TracyVulkan.hpp>
 
@@ -51,7 +51,8 @@ constexpr uint32 Purple = 0x6A5ACD;
 
 #if ZN_TRACE_ENABLED
 
-using GPUTraceContextPtr = TracyVkCtx;
+// using GPUTraceContextPtr = TracyVkCtx;
+using GPUTraceContextPtr = void*;
 
     ///// SCOPED TRACE /////
 
@@ -102,7 +103,7 @@ __forceinline GPUTraceContextPtr ZN_TRACE_GPU_CONTEXT_CREATE(
 
 __forceinline void ZN_TRACE_GPU_CONTEXT_DESTROY(GPUTraceContextPtr context_)
 {
-    TracyVkDestroy(context_);
+    // TracyVkDestroy(context_);
 }
 
     #define ZN_TRACE_GPU_SCOPE(name, context, commandBuffer) TracyVkZone(context, commandBuffer, name)

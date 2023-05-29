@@ -4,6 +4,7 @@ files {
   "./Core/**",  
   "./ThirdParty/wyhash/*",
   "./ThirdParty/delegate/*",
+  "./ThirdParty/tracy/TracyClient.cpp"
 }
 
 vpaths{
