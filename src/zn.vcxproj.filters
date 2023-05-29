@@ -337,8 +337,8 @@
     <ClCompile Include="ThirdParty\tracy\TracyClient.cpp">
       <Filter>ThirdParty\tracy</Filter>
     </ClCompile>
-    <ClCompile Include="Application\include\Application.cpp">
-      <Filter>Headers\Application</Filter>
+    <ClCompile Include="Application\src\Application.cpp">
+      <Filter>Source\Application</Filter>
     </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">
       <Filter>Source\Application\Platforms\Windows</Filter>

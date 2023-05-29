@@ -334,7 +334,7 @@
     </ClCompile>
     <ClCompile Include="ThirdParty\tracy\TracyClient.cpp">
     </ClCompile>
-    <ClCompile Include="Application\include\Application.cpp">
+    <ClCompile Include="Application\src\Application.cpp">
     </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">
     </ClCompile>
