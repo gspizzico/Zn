@@ -60,15 +60,14 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
@@ -78,8 +77,8 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,15 +95,14 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
@@ -114,8 +112,8 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -177,9 +175,15 @@
     <ClInclude Include="Application\include\ApplicationInput.h" />
     <ClInclude Include="Application\include\Platforms\Windows\SDLApplication.h" />
     <ClInclude Include="Application\include\Platforms\Windows\SDLWindow.h" />
+    <ClInclude Include="ThirdParty\imgui\imconfig.h" />
+    <ClInclude Include="ThirdParty\imgui\imgui.h" />
+    <ClInclude Include="ThirdParty\imgui\imgui_internal.h" />
+    <ClInclude Include="ThirdParty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="ThirdParty\imgui\imstb_textedit.h" />
+    <ClInclude Include="ThirdParty\imgui\imstb_truetype.h" />
+    <ClInclude Include="ThirdParty\imgui\backends\imgui_impl_sdl.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application\include\Application.cpp" />
     <ClCompile Include="Core\src\CommandLine.cpp">
     </ClCompile>
     <ClCompile Include="Core\src\Async\TaskGraph.cpp">
@@ -214,12 +218,29 @@
     </ClCompile>
     <ClCompile Include="Core\src\Time\Time.cpp">
     </ClCompile>
+    <ClCompile Include="Application\include\Application.cpp">
+    </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">
     </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\SDLWindow.cpp">
     </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\WindowsMain.cpp">
     </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui.cpp">
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui_demo.cpp">
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui_draw.cpp">
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui_tables.cpp">
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui_widgets.cpp">
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ThirdParty\imgui\LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

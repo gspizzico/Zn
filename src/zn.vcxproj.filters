@@ -106,6 +106,17 @@
     <Filter Include="Source\Application\Platforms\Windows">
       <UniqueIdentifier>{81235CE3-6D0A-1EDB-165B-84F802219741}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ThirdParty\imgui">
+      <UniqueIdentifier>{C72EBE3B-B327-DD8D-DC59-C212C8B1BC99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\imgui\backends">
+      <UniqueIdentifier>{FE153EC3-6AD8-714D-B388-00DA1F8A4A2B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ThirdParty\imgui\LICENSE.txt">
+      <Filter>ThirdParty\imgui</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\include\Build.h">
@@ -246,6 +257,27 @@
     <ClInclude Include="Application\include\Platforms\Windows\SDLWindow.h">
       <Filter>Headers\Application\Platforms\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="ThirdParty\imgui\imconfig.h">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\imgui\imgui.h">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\imgui\imgui_internal.h">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\imgui\imstb_rectpack.h">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\imgui\imstb_textedit.h">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\imgui\imstb_truetype.h">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\imgui\backends\imgui_impl_sdl.h">
+      <Filter>ThirdParty\imgui\backends</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\src\CommandLine.cpp">
@@ -299,6 +331,9 @@
     <ClCompile Include="Core\src\Time\Time.cpp">
       <Filter>Source\Core\Time</Filter>
     </ClCompile>
+    <ClCompile Include="Application\include\Application.cpp">
+      <Filter>Headers\Application</Filter>
+    </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">
       <Filter>Source\Application\Platforms\Windows</Filter>
     </ClCompile>
@@ -307,6 +342,24 @@
     </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\WindowsMain.cpp">
       <Filter>Source\Application\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui_demo.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui_draw.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui_tables.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\imgui_widgets.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
+      <Filter>ThirdParty\imgui\backends</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

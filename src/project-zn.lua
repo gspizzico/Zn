@@ -8,8 +8,13 @@ kind "ConsoleApp"
 configuration "*"
 files {
   "./Application/**",
-  "./ThirdParty/wyhash/*",
-  "./ThirdParty/delegate/*",
+  "./ThirdParty/imgui/*",
+  "./ThirdParty/imgui/backends/*sdl.**",
+}
+
+-- Defines
+defines {
+  "WITH_IMGUI=1"
 }
 
 vpaths{
@@ -28,6 +33,9 @@ configuration "*"
 includedirs {
   "./Application/include/",   
   "./ThirdParty/",
+  "./ThirdParty/sdl/",
+  "./ThirdParty/imgui/",
+  "./ThirdParty/imgui/backends/",
 }
 
 configuration "win-*"  
