@@ -13,3 +13,4 @@
 #include <Misc/Hash.h>
 #include <HAL/Misc.h>
 #include <Time/Time.h>
+#include <Trace/Trace.h>

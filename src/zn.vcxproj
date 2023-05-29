@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4E40957C-3A77-960D-E363-7C10CF79120F}</ProjectGuid>
-    <RootNamespace>core</RootNamespace>
+    <ProjectGuid>{6D7A5900-5906-880B-C2B4-880BAE5F880B}</ProjectGuid>
+    <RootNamespace>zn</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
     <Keyword>Win32Proj</Keyword>
@@ -20,14 +20,14 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='win-debug|x64'" Label="Configuration">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='win-release|x64'" Label="Configuration">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -43,85 +43,91 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='win-debug|x64'">
-    <OutDir>.\..\Libs\Debug\</OutDir>
+    <OutDir>Binaries\</OutDir>
     <IntDir>..\Intermediate\x64\win-debug\</IntDir>
-    <TargetName>core-debug</TargetName>
-    <TargetExt>.lib</TargetExt>
+    <TargetName>zn-debug</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='win-release|x64'">
-    <OutDir>.\..\Libs\Debug\</OutDir>
+    <OutDir>Binaries\</OutDir>
     <IntDir>..\Intermediate\x64\win-release\</IntDir>
-    <TargetName>core-release</TargetName>
-    <TargetExt>.lib</TargetExt>
+    <TargetName>zn-release</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='win-debug|x64'">
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(OutDir)core-debug.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(IntDir)zn-debug.compile.pdb</ProgramDataBaseFileName>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-  <Lib>
-    <OutputFile>$(OutDir)core-debug.lib</OutputFile>
-    <TargetMachine>MachineX64</TargetMachine>
-  </Lib>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)core-debug.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)zn-debug.pdb</ProgramDatabaseFile>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)zn-debug.exe</OutputFile>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <TargetMachine>MachineX64</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='win-release|x64'">
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(OutDir)core-release.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(IntDir)zn-release.compile.pdb</ProgramDataBaseFileName>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-  <Lib>
-    <OutputFile>$(OutDir)core-release.lib</OutputFile>
-    <TargetMachine>MachineX64</TargetMachine>
-  </Lib>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)core-release.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)zn-release.pdb</ProgramDatabaseFile>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Libs\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)zn-release.exe</OutputFile>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <TargetMachine>MachineX64</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -167,8 +173,13 @@
     <ClInclude Include="ThirdParty\wyhash\wyhash.h" />
     <ClInclude Include="ThirdParty\delegate\delegate.hpp" />
     <ClInclude Include="ThirdParty\mimalloc\mimalloc.h" />
+    <ClInclude Include="Application\include\Application.h" />
+    <ClInclude Include="Application\include\ApplicationInput.h" />
+    <ClInclude Include="Application\include\Platforms\Windows\SDLApplication.h" />
+    <ClInclude Include="Application\include\Platforms\Windows\SDLWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Application\include\Application.cpp" />
     <ClCompile Include="Core\src\CommandLine.cpp">
     </ClCompile>
     <ClCompile Include="Core\src\Async\TaskGraph.cpp">
@@ -202,6 +213,12 @@
     <ClCompile Include="Core\src\Platforms\Windows\WindowsThreads.cpp">
     </ClCompile>
     <ClCompile Include="Core\src\Time\Time.cpp">
+    </ClCompile>
+    <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">
+    </ClCompile>
+    <ClCompile Include="Application\src\Platforms\Windows\SDLWindow.cpp">
+    </ClCompile>
+    <ClCompile Include="Application\src\Platforms\Windows\WindowsMain.cpp">
     </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

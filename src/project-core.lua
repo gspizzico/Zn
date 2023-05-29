@@ -1,20 +1,3 @@
-project("core")
-
-links {
-  "kernel32",
-  "user32",
-  "gdi32",
-  "rpcrt4",
-}
-
--- solution "ZnGenie"
--- location = os.getcwd()
-
-kind "StaticLib"
-
--- pchheader "Corepch.h"
--- pchsource "src/Core/Corepch.cpp"
-
 -- Files
 configuration "*"
 files {
@@ -49,5 +32,5 @@ includedirs {
 }
 
 -- Links
-configuration "win-*"  
-links {"mimalloc-static.lib"}
+configuration "win-*"
+links {"mimalloc-static"}

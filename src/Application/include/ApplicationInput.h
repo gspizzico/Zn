@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Core/Types.h>
-#include <SDL.h>
+#include <CoreMinimal.h>
+#include <sdl/SDL.h> // TODO: TEMP
 
 namespace Zn
 {

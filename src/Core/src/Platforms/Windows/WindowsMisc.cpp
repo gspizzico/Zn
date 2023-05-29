@@ -44,7 +44,7 @@ void WindowsMisc::Exit(bool withErrors_)
 Guid WindowsMisc::GenerateGuid()
 {
     UUID winGuid;
-    auto result = UuidCreateSequential(&winGuid);
+    auto result = ::UuidCreateSequential(&winGuid);
 
     check(result != RPC_S_UUID_NO_ADDRESS);
 

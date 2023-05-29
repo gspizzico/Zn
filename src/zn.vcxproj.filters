@@ -88,6 +88,24 @@
     <Filter Include="ThirdParty\mimalloc">
       <UniqueIdentifier>{DA765B2E-46D8-383C-CF45-7FEE3BA66FFB}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Application">
+      <UniqueIdentifier>{1166091A-7DC7-E627-0635-2DDA72951DE7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Application\Platforms">
+      <UniqueIdentifier>{6539FA8B-D151-E1B5-9AFE-704F06D6754F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Application\Platforms\Windows">
+      <UniqueIdentifier>{2CE4DB9D-98A8-DA8D-610E-0B58CD9176C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Application">
+      <UniqueIdentifier>{2642401C-1226-0172-7B86-FBC46789EBF3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Application\Platforms">
+      <UniqueIdentifier>{BAF30EE6-A6AE-FE91-4F66-77DC3B004922}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Application\Platforms\Windows">
+      <UniqueIdentifier>{81235CE3-6D0A-1EDB-165B-84F802219741}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\include\Build.h">
@@ -216,6 +234,18 @@
     <ClInclude Include="ThirdParty\mimalloc\mimalloc.h">
       <Filter>ThirdParty\mimalloc</Filter>
     </ClInclude>
+    <ClInclude Include="Application\include\Application.h">
+      <Filter>Headers\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\include\ApplicationInput.h">
+      <Filter>Headers\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\include\Platforms\Windows\SDLApplication.h">
+      <Filter>Headers\Application\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\include\Platforms\Windows\SDLWindow.h">
+      <Filter>Headers\Application\Platforms\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\src\CommandLine.cpp">
@@ -268,6 +298,15 @@
     </ClCompile>
     <ClCompile Include="Core\src\Time\Time.cpp">
       <Filter>Source\Core\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">
+      <Filter>Source\Application\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\src\Platforms\Windows\SDLWindow.cpp">
+      <Filter>Source\Application\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\src\Platforms\Windows\WindowsMain.cpp">
+      <Filter>Source\Application\Platforms\Windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

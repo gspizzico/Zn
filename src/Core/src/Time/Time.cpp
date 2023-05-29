@@ -1,19 +1,17 @@
 #include <Time/Time.h>
 #include <CoreAssert.h>
 
-using namespace Zn;
-
 namespace
 {
-static uint64 GStartTime = Time::GetTickCount();
+static uint64 GStartTime = Zn::Time::GetTickCount();
 }
 
-inline String Zn::Time::Now()
+Zn::String Zn::Time::Now()
 {
     return ToString(SystemClock::now());
 }
 
-String Time::ToString(std::chrono::time_point<SystemClock> timePoint_)
+Zn::String Zn::Time::ToString(std::chrono::time_point<SystemClock> timePoint_)
 {
     // Get c time from chrono::system_clock.
     const auto cTime = SystemClock::to_time_t(timePoint_);
@@ -29,11 +27,11 @@ String Time::ToString(std::chrono::time_point<SystemClock> timePoint_)
 
     return {&buffer[0], writtenSize}; // Implicit String constructor.
 }
-uint64 Time::GetTickCount()
+uint64 Zn::Time::GetTickCount()
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(SteadyClock::now().time_since_epoch()).count();
 }
-double Time::Seconds()
+double Zn::Time::Seconds()
 {
     return static_cast<double>(GetTickCount() - GStartTime) / 1000.0;
 }

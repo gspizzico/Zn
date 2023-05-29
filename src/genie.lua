@@ -60,12 +60,23 @@ solution("ZnGenie")
 
   configuration "*-debug"
   libdirs {
-    "../libs/Debug/**"
+    "../Libs/Debug/"
   }
   
   configuration "*-release"
   libdirs {
-    "../libs/Release/**"
+    "../Libs/Release/"
+  }
+
+  -- Linker
+
+  configuration "*"
+
+  links {
+    "kernel32",
+    "user32",
+    "gdi32",
+    "rpcrt4",
   }
 
   -- Suffixes
@@ -78,7 +89,7 @@ solution("ZnGenie")
 
   configuration "*"
 
-  -- targetsubdir "./bin/"
-  targetsubdir "./../Libs/Debug/"
+  -- targetsubdir "./../Libs/Debug/" 
+  targetsubdir "Binaries" -- to be changed to parent
 
-  dofile("project-core.lua")
+  dofile("project-zn.lua")
