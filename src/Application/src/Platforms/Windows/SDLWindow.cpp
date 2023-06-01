@@ -1,4 +1,5 @@
 #include <Windows/SDLWindow.h>
+#include <ApplicationEventHandler.h>
 #include <sdl/SDL.h>
 #include <sdl/SDL_syswm.h>
 
@@ -10,8 +11,10 @@ constexpr auto ZN_SDL_WINDOW_FLAGS = (SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HI
 }
 
 Zn::SDLWindow::SDLWindow(int32 width_, int32 height_, cstring title_)
+    : width(width_)
+    , height(height_)
 {
-    window = SDL_CreateWindow(title_, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width_, height_, ZN_SDL_WINDOW_FLAGS);
+    window = SDL_CreateWindow(title_, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, ZN_SDL_WINDOW_FLAGS);
 
     if (!window)
     {
@@ -49,18 +52,23 @@ bool Zn::SDLWindow::ProcessEvent(SDL_Event event)
             return false;
         }
 
-        // TODO: Implement as events, so that we remove the strong-reference to Renderer
-        if (event.window.event == SDL_WINDOWEVENT_RESIZED)
+        if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
         {
-            // Renderer::Get().on_window_resized();
+            if (width != event.window.data1 || height != event.window.data2)
+            {
+                width  = event.window.data1;
+                height = event.window.data2;
+
+                ApplicationEventHandler::Get().OnWindowSizeChanged(width, height);
+            }
         }
         else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
         {
-            // Renderer::Get().on_window_minimized();
+            ApplicationEventHandler::Get().OnWindowMinimized();
         }
         else if (event.window.event == SDL_WINDOWEVENT_RESTORED)
         {
-            // Renderer::Get().on_window_restored();
+            ApplicationEventHandler::Get().OnWindowRestored();
         }
     }
 

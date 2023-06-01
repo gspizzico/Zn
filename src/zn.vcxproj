@@ -286,6 +286,7 @@
     <ClInclude Include="ThirdParty\delegate\delegate.hpp" />
     <ClInclude Include="ThirdParty\mimalloc\mimalloc.h" />
     <ClInclude Include="Application\include\Application.h" />
+    <ClInclude Include="Application\include\ApplicationEventHandler.h" />
     <ClInclude Include="Application\include\ApplicationInput.h" />
     <ClInclude Include="Application\include\Platforms\Windows\SDLApplication.h" />
     <ClInclude Include="Application\include\Platforms\Windows\SDLWindow.h" />
@@ -335,6 +336,8 @@
     <ClCompile Include="ThirdParty\tracy\TracyClient.cpp">
     </ClCompile>
     <ClCompile Include="Application\src\Application.cpp">
+    </ClCompile>
+    <ClCompile Include="Application\src\ApplicationEventHandler.cpp">
     </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">
     </ClCompile>

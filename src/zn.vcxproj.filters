@@ -251,6 +251,9 @@
     <ClInclude Include="Application\include\Application.h">
       <Filter>Headers\Application</Filter>
     </ClInclude>
+    <ClInclude Include="Application\include\ApplicationEventHandler.h">
+      <Filter>Headers\Application</Filter>
+    </ClInclude>
     <ClInclude Include="Application\include\ApplicationInput.h">
       <Filter>Headers\Application</Filter>
     </ClInclude>
@@ -338,6 +341,9 @@
       <Filter>ThirdParty\tracy</Filter>
     </ClCompile>
     <ClCompile Include="Application\src\Application.cpp">
+      <Filter>Source\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\src\ApplicationEventHandler.cpp">
       <Filter>Source\Application</Filter>
     </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">

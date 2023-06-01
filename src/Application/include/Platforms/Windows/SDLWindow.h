@@ -21,5 +21,7 @@ class SDLWindow
     SDL_Window* window {nullptr};
     uint32      windowId {0};
     void*       nativeHandle {nullptr};
+    int32       width {0};
+    int32       height {0};
 };
 } // namespace Zn
