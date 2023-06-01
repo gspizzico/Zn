@@ -4,6 +4,7 @@
 #include <sdl/SDL.h>
 #include <IO/IO.h>
 #include <filesystem>
+#include <cmath>
 
 #if WITH_IMGUI
     #include <CommandLine.h>
@@ -87,7 +88,9 @@ void SDLApplication::Initialize()
         PlatformMisc::Exit(true);
     }
 
-    window = std::make_shared<SDLWindow>(SCREEN_WIDTH, SCREEN_HEIGHT, "Zn-Engine");
+    title = "Zn-Engine";
+
+    window = std::make_shared<SDLWindow>(SCREEN_WIDTH, SCREEN_HEIGHT, title);
 
     inputState = std::make_shared<InputState>();
 
@@ -155,11 +158,17 @@ void SDLApplication::Shutdown()
 
     SetApplication(nullptr);
 }
-bool SDLApplication::ProcessOSEvents(float deltaTime)
+
+bool SDLApplication::ProcessOSEvents(float deltaTime_)
 {
     check(isInitialized);
 
+    deltaTime_ = std::max(deltaTime_, FLT_EPSILON);
+
     SDL_Event event;
+
+    String titleString = title + String(" FPS: ") + std::to_string(static_cast<int32>(floor(1.f / deltaTime_)));
+    window->SetTitle(titleString.c_str());
 
     inputState->events.clear();
 

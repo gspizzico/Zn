@@ -43,6 +43,12 @@ Zn::SDLWindow::~SDLWindow()
     }
 }
 
+void Zn::SDLWindow::SetTitle(cstring title_)
+{
+    SDL_Window* sdlWindow = SDL_GetWindowFromID(windowId);
+    SDL_SetWindowTitle(sdlWindow, title_);
+}
+
 bool Zn::SDLWindow::ProcessEvent(SDL_Event event)
 {
     if (event.window.windowID == windowId)

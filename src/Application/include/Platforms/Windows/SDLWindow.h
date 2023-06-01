@@ -13,6 +13,8 @@ class SDLWindow
 
     ~SDLWindow();
 
+    void SetTitle(cstring title_);
+
     bool ProcessEvent(SDL_Event event);
 
     WindowHandle GetHandle() const;

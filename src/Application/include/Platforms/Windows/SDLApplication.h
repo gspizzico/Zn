@@ -17,6 +17,7 @@ class SDLApplication : public Application
     virtual bool                  WantsToExit() const override;
 
   private:
+    cstring                    title;
     SharedPtr<class SDLWindow> window {};
     SharedPtr<InputState>      inputState {};
     bool                       isInitialized   = false;
