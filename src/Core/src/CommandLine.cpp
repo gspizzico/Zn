@@ -9,7 +9,7 @@ CommandLine& CommandLine::Get()
     return instance;
 }
 
-void CommandLine::Initialize(char* arguments_[], sizet count_)
+void CommandLine::Initialize(sizet count_, char* arguments_[])
 {
     arguments.reserve(count_);
 

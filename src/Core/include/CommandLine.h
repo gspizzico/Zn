@@ -9,7 +9,7 @@ class CommandLine
   public:
     static CommandLine& Get();
 
-    void Initialize(char* arguments_[], sizet count_);
+    void Initialize(sizet count_, char* arguments_[]);
 
     bool Param(cstring param_) const;
 

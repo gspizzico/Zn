@@ -2,6 +2,8 @@
 #include <Windows/SDLWindow.h>
 #include <ApplicationInput.h>
 #include <sdl/SDL.h>
+#include <IO/IO.h>
+#include <filesystem>
 
 #if WITH_IMGUI
     #include <CommandLine.h>
@@ -9,6 +11,8 @@
     #include <imgui/imgui.h>
     #include <imgui/backends/imgui_impl_sdl.h>
 #endif
+
+using namespace Zn;
 
 DEFINE_STATIC_LOG_CATEGORY(LogSDLApplication, ELogVerbosity::Log);
 
@@ -18,6 +22,14 @@ constexpr int32 SCREEN_WIDTH  = 1280;
 constexpr int32 SCREEN_HEIGHT = 720;
 
 bool GPlatformApplicationInitialized = false;
+
+String GetIORootPath()
+{
+    std::filesystem::path executablePath(CommandLine::Get().GetExeArgument());
+
+    // TODO: Fix path after refactor directory change
+    return executablePath.parent_path().parent_path().parent_path().string();
+}
 
 #if WITH_IMGUI
 bool ImGuiUseZnAllocator()
@@ -43,6 +55,8 @@ namespace Zn
 void Platform_InitializeApplication()
 {
     check(GPlatformApplicationInitialized == false);
+
+    IO::Initialize(GetIORootPath());
 
     SDLApplication* application = new SDLApplication();
 
