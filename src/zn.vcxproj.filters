@@ -115,6 +115,18 @@
     <Filter Include="ThirdParty\imgui\backends">
       <UniqueIdentifier>{FE153EC3-6AD8-714D-B388-00DA1F8A4A2B}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Engine">
+      <UniqueIdentifier>{13EC6C97-FFB9-609D-E84D-D1C3D4BA3C02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Application">
+      <UniqueIdentifier>{6346C1F5-4F56-6DC6-B80F-D2E4A43E5C5F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine">
+      <UniqueIdentifier>{08A75FB7-7467-DBED-3DA2-246BA92120CA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\Application">
+      <UniqueIdentifier>{D8188F93-44DB-C21D-8D8B-51AAF98C9BFB}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ThirdParty\imgui\LICENSE.txt">
@@ -284,6 +296,12 @@
     <ClInclude Include="ThirdParty\imgui\backends\imgui_impl_sdl.h">
       <Filter>ThirdParty\imgui\backends</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\include\Engine.h">
+      <Filter>Headers\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\include\Application\EngineApp.h">
+      <Filter>Headers\Engine\Application</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\src\CommandLine.cpp">
@@ -352,9 +370,6 @@
     <ClCompile Include="Application\src\Platforms\Windows\SDLWindow.cpp">
       <Filter>Source\Application\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Application\src\Platforms\Windows\WindowsMain.cpp">
-      <Filter>Source\Application\Platforms\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="ThirdParty\imgui\imgui.cpp">
       <Filter>ThirdParty\imgui</Filter>
     </ClCompile>
@@ -372,6 +387,15 @@
     </ClCompile>
     <ClCompile Include="ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
       <Filter>ThirdParty\imgui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\src\Engine.cpp">
+      <Filter>Source\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\src\WindowsMain.cpp">
+      <Filter>Source\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\src\Application\EngineApp.cpp">
+      <Filter>Source\Engine\Application</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

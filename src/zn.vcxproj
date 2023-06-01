@@ -102,7 +102,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;Engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -120,7 +120,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;Engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +137,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;Engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;TRACY_ENABLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -155,7 +155,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;TRACY_ENABLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;Engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,7 +172,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;Engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
@@ -190,7 +190,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;Engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -209,7 +209,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;Engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TRACY_ENABLE;NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
@@ -227,7 +227,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>TRACY_ENABLE;NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Core\include;ThirdParty;Core\include\Platforms;ThirdParty\mimalloc;Application\include;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Application\include\Platforms;Engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -297,6 +297,8 @@
     <ClInclude Include="ThirdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="ThirdParty\imgui\imstb_truetype.h" />
     <ClInclude Include="ThirdParty\imgui\backends\imgui_impl_sdl.h" />
+    <ClInclude Include="Engine\include\Engine.h" />
+    <ClInclude Include="Engine\include\Application\EngineApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\src\CommandLine.cpp">
@@ -343,8 +345,6 @@
     </ClCompile>
     <ClCompile Include="Application\src\Platforms\Windows\SDLWindow.cpp">
     </ClCompile>
-    <ClCompile Include="Application\src\Platforms\Windows\WindowsMain.cpp">
-    </ClCompile>
     <ClCompile Include="ThirdParty\imgui\imgui.cpp">
     </ClCompile>
     <ClCompile Include="ThirdParty\imgui\imgui_demo.cpp">
@@ -356,6 +356,12 @@
     <ClCompile Include="ThirdParty\imgui\imgui_widgets.cpp">
     </ClCompile>
     <ClCompile Include="ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
+    </ClCompile>
+    <ClCompile Include="Engine\src\Engine.cpp">
+    </ClCompile>
+    <ClCompile Include="Engine\src\WindowsMain.cpp">
+    </ClCompile>
+    <ClCompile Include="Engine\src\Application\EngineApp.cpp">
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
