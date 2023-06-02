@@ -1,7 +1,7 @@
-#include <Engine/RHI/RHIDevice.h>
-#include <Engine/RHI/Vulkan/Vulkan.h>
-#include <Engine/RHI/Vulkan/VulkanPlatform.h>
-#include <Engine/RHI/Vulkan/VulkanGPU.h>
+#include <RHI/RHIDevice.h>
+#include <RHI/Vulkan/Vulkan.h>
+#include <RHI/Vulkan/VulkanPlatform.h>
+#include <RHI/Vulkan/VulkanGPU.h>
 #include <Core/CoreAssert.h>
 
 using namespace Zn;
