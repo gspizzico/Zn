@@ -2,7 +2,7 @@
 
 #include <Core/CoreTypes.h>
 #include <Core/Async/Thread.h>
-#include <Windows/WindowsCommon.h>
+#include <Windows/WindowsPublic.h>
 
 namespace Zn
 {
@@ -25,6 +25,6 @@ class WindowsThread : public Thread
   private:
     HANDLE handle;
 
-    static DWORD WINAPI RunThread(LPVOID thread_);
+    static DWORD __stdcall RunThread(LPVOID thread_);
 };
 } // namespace Zn

@@ -1,10 +1,11 @@
 #pragma once
 
 #include <Core/CoreTypes.h>
-#include "Windows/WindowsCommon.h"
+#include <Windows/WindowsPublic.h>
+// #include "Windows/WindowsPrivate.h"
 
 #ifndef THREAD_FUNCTION_SIGNATURE
-    #define THREAD_FUNCTION_SIGNATURE(RunThread, ArgName) static DWORD WINAPI RunThread(LPVOID ArgName)
+    #define THREAD_FUNCTION_SIGNATURE(RunThread, ArgName) static DWORD __stdcall RunThread(LPVOID ArgName)
 #endif
 
 #ifndef THREAD_FUNCTION_RETURN
@@ -19,7 +20,7 @@ typedef DWORD NativeThreadId;
 
 typedef LPTHREAD_START_ROUTINE NativeThreadFunctionPtr;
 
-typedef __drv_aliasesMem LPVOID ThreadArgsPtr;
+typedef /*__drv_aliasesMem*/ LPVOID ThreadArgsPtr;
 
 class Thread;
 

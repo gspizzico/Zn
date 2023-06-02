@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Windows/WindowsCommon.h"
-
 namespace Zn
 {
 struct WindowsCriticalSection
@@ -16,6 +14,7 @@ struct WindowsCriticalSection
     bool TryLock();
 
   private:
-    CRITICAL_SECTION nativeHandle;
+    struct CriticalSectionHandle;
+    CriticalSectionHandle* criticalSection;
 };
 } // namespace Zn

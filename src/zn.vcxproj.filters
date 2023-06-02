@@ -227,9 +227,6 @@
     <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsAPI.h">
       <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsCommon.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsCriticalSection.h">
       <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
@@ -237,6 +234,12 @@
       <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsMisc.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsPrivate.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsPublic.h">
       <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsThread.h">

@@ -1,25 +1,33 @@
 #include <Windows/WindowsCriticalSection.h>
+#include <Windows/WindowsPrivate.h>
 
 namespace Zn
 {
+struct WindowsCriticalSection::CriticalSectionHandle
+{
+    CRITICAL_SECTION handle;
+};
 WindowsCriticalSection::WindowsCriticalSection()
 {
-    ::InitializeCriticalSectionAndSpinCount(&nativeHandle, 2000);
+    criticalSection = new CriticalSectionHandle();
+
+    ::InitializeCriticalSectionAndSpinCount(&criticalSection->handle, 2000);
 }
 WindowsCriticalSection::~WindowsCriticalSection()
 {
-    ::DeleteCriticalSection(&nativeHandle);
+    ::DeleteCriticalSection(&criticalSection->handle);
+    delete criticalSection;
 }
 void WindowsCriticalSection::Lock()
 {
-    ::EnterCriticalSection(&nativeHandle);
+    ::EnterCriticalSection(&criticalSection->handle);
 }
 void WindowsCriticalSection::Unlock()
 {
-    ::LeaveCriticalSection(&nativeHandle);
+    ::LeaveCriticalSection(&criticalSection->handle);
 }
 bool WindowsCriticalSection::TryLock()
 {
-    return bool(::TryEnterCriticalSection(&nativeHandle));
+    return bool(::TryEnterCriticalSection(&criticalSection->handle));
 }
 } // namespace Zn
