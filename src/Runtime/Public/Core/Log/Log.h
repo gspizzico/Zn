@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CoreTypes.h>
-#include <Misc/Name.h>
+#include <Core/CoreTypes.h>
+#include <Core/Misc/Name.h>
 #include <optional>
 
 namespace Zn

@@ -102,7 +102,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Runtime\Public\Core;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;Runtime\Public\Application;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;Runtime\Public\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -120,7 +120,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Runtime\Public\Core;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;Runtime\Public\Application;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;Runtime\Public\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +137,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Runtime\Public\Core;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;Runtime\Public\Application;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;Runtime\Public\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;TRACY_ENABLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -155,7 +155,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;TRACY_ENABLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Runtime\Public\Core;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;Runtime\Public\Application;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;Runtime\Public\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,7 +172,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Runtime\Public\Core;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;Runtime\Public\Application;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;Runtime\Public\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
@@ -190,7 +190,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Runtime\Public\Core;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;Runtime\Public\Application;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;Runtime\Public\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -209,7 +209,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Runtime\Public\Core;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;Runtime\Public\Application;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;Runtime\Public\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TRACY_ENABLE;NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
@@ -227,7 +227,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>TRACY_ENABLE;NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Runtime\Public\Core;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;Runtime\Public\Application;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;Runtime\Public\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>

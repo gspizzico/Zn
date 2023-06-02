@@ -7,5 +7,5 @@ files {
 -- Includes
 configuration "*"
 includedirs {
-  "./Runtime/Public/Engine/"
+  "./Runtime/Public/",
 }

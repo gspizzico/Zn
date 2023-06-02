@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CoreTypes.h>
-#include <CoreAssert.h>
+#include <Core/CoreTypes.h>
+#include <Core/CoreAssert.h>
 #include <optional>
 
 namespace Zn

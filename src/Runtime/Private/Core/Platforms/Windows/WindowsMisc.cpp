@@ -1,7 +1,7 @@
 #include <Windows/WindowsMisc.h>
 #include <Windows/WindowsCommon.h>
-#include <Misc/Guid.h>
-#include <CoreAssert.h>
+#include <Core/Misc/Guid.h>
+#include <Core/CoreAssert.h>
 
 namespace Zn
 {

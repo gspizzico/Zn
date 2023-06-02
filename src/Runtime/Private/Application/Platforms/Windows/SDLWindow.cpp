@@ -1,5 +1,5 @@
 #include <Windows/SDLWindow.h>
-#include <ApplicationEventHandler.h>
+#include <Application/ApplicationEventHandler.h>
 #include <sdl/SDL.h>
 #include <sdl/SDL_syswm.h>
 

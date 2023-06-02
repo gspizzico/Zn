@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CoreTypes.h>
-#include <Memory/Allocators/BaseAllocator.h>
+#include <Core/CoreTypes.h>
+#include <Core/Memory/Allocators/BaseAllocator.h>
 #include <mimalloc.h>
 
 namespace Zn

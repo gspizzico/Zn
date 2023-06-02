@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CoreTypes.h>
+#include <Core/CoreTypes.h>
 
 #ifndef TRACY_ENABLE
     #define TRACY_ENABLE 0

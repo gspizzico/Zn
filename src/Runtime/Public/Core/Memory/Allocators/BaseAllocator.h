@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CoreTypes.h>
-#include <Memory/Memory.h>
+#include <Core/CoreTypes.h>
+#include <Core/Memory/Memory.h>
 
 namespace Zn
 {

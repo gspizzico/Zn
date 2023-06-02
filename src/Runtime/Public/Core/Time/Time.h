@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CoreTypes.h>
+#include <Core/CoreTypes.h>
 #include <chrono>
 
 namespace Zn

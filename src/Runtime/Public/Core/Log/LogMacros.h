@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Log/Log.h>
-#include <CoreTypes.h>
+#include <Core/Log/Log.h>
+#include <Core/CoreTypes.h>
 
 #define CONCAT(A, B)            A##B
 

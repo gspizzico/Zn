@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CoreMinimal.h>
-#include <Application.h>
+#include <Core/CoreMinimal.h>
+#include <Application/Application.h>
 #include <sdl/SDL.h>
 
 namespace Zn

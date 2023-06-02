@@ -1,7 +1,7 @@
-#include <CommandLine.h>
-#include <Application.h>
+#include <Core/CommandLine.h>
+#include <Application/Application.h>
 
-#include <Engine.h>
+#include <Engine/Engine.h>
 
 using namespace Zn;
 

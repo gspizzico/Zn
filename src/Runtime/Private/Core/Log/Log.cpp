@@ -1,7 +1,7 @@
-#include <Log/Log.h>
-#include <Time/Time.h>
-#include <CoreAssert.h>
-#include <CorePlatform.h>
+#include <Core/Log/Log.h>
+#include <Core/Time/Time.h>
+#include <Core/CoreAssert.h>
+#include <Core/CorePlatform.h>
 
 namespace
 {

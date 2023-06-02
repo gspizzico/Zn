@@ -1,7 +1,7 @@
-#include <Memory/Memory.h>
-#include <CoreAssert.h>
-#include <CorePlatform.h>
-#include <Trace/Trace.h>
+#include <Core/Memory/Memory.h>
+#include <Core/CoreAssert.h>
+#include <Core/CorePlatform.h>
+#include <Core/Trace/Trace.h>
 
 namespace Zn
 {
@@ -118,7 +118,7 @@ bool MemoryRange::Contains(const MemoryRange& other_) const
 
 // Allocators
 
-#include <Memory/Allocators/BaseAllocator.h>
+#include <Core/Memory/Allocators/BaseAllocator.h>
 
 namespace Zn::Allocators
 {

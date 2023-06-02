@@ -1,6 +1,6 @@
-#include <Memory/VirtualMemory.h>
-#include <CoreAssert.h>
-#include <CorePlatform.h>
+#include <Core/Memory/VirtualMemory.h>
+#include <Core/CoreAssert.h>
+#include <Core/CorePlatform.h>
 #include <algorithm>
 
 DEFINE_LOG_CATEGORY(LogMemory, Zn::ELogVerbosity::Warning)

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CoreTypes.h>
-#include <ApplicationEventHandler.h>
+#include <Core/CoreTypes.h>
+#include <Application/ApplicationEventHandler.h>
 
 namespace Zn
 {

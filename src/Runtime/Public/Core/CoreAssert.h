@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CorePlatform.h>
+#include <Core/CorePlatform.h>
 
 #if ZN_DEBUG
     #define check(condition)                                                                                                               \

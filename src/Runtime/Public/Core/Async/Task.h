@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CoreTypes.h>
-#include <Async/ITaskGraphNode.h>
+#include <Core/CoreTypes.h>
+#include <Core/Async/ITaskGraphNode.h>
 
 namespace Zn
 {

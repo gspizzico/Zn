@@ -16,7 +16,7 @@ files {
 -- Includes
 configuration "*"
 includedirs {
-  "./Runtime/Public/Core/",   
+  "./Runtime/Public/",
   "./ThirdParty/",
 }
 

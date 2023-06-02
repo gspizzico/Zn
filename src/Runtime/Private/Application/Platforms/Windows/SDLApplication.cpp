@@ -1,14 +1,14 @@
 #include <Windows/SDLApplication.h>
 #include <Windows/SDLWindow.h>
-#include <ApplicationInput.h>
+#include <Application/ApplicationInput.h>
 #include <sdl/SDL.h>
-#include <IO/IO.h>
+#include <Core/IO/IO.h>
 #include <filesystem>
 #include <cmath>
 
 #if WITH_IMGUI
-    #include <CommandLine.h>
-    #include <Memory/Memory.h>
+    #include <Core/CommandLine.h>
+    #include <Core/Memory/Memory.h>
     #include <imgui/imgui.h>
     #include <imgui/backends/imgui_impl_sdl.h>
 #endif

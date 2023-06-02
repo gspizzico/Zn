@@ -1,5 +1,5 @@
-#include <Time/Time.h>
-#include <CoreAssert.h>
+#include <Core/Time/Time.h>
+#include <Core/CoreAssert.h>
 
 namespace
 {

@@ -1,8 +1,8 @@
 #include <Windows/WindowsMemory.h>
 #include <Windows/WindowsMisc.h>
 #include <Windows/WindowsCommon.h>
-#include <CoreAssert.h>
-#include <Memory/Allocators/Mimalloc.hpp>
+#include <Core/CoreAssert.h>
+#include <Core/Memory/Allocators/Mimalloc.hpp>
 
 #define ZN_WINDOWS_TRACK_MEMORY (ZN_TRACK_MEMORY && !ZN_RELEASE) && 0
 

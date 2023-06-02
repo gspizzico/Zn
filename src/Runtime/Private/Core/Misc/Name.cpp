@@ -1,4 +1,4 @@
-#include <Misc/Name.h>
+#include <Core/Misc/Name.h>
 #include <algorithm>
 
 namespace Zn

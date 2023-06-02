@@ -19,7 +19,7 @@ files {
 -- Includes
 configuration "*"
 includedirs {
-  "./Runtime/Public/Application/",   
+  "./Runtime/Public/",
   "./ThirdParty/",
   "./ThirdParty/sdl/",
   "./ThirdParty/imgui/",

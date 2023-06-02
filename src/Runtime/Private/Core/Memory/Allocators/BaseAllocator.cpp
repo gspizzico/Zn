@@ -1,5 +1,5 @@
-#include <Memory/Allocators/BaseAllocator.h>
-#include <Trace/Trace.h>
+#include <Core/Memory/Allocators/BaseAllocator.h>
+#include <Core/Trace/Trace.h>
 #include <memory>
 
 using namespace Zn;

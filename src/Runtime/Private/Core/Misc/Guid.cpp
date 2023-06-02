@@ -1,5 +1,5 @@
-#include <Misc/Guid.h>
-#include <CorePlatform.h>
+#include <Core/Misc/Guid.h>
+#include <Core/CorePlatform.h>
 
 namespace Zn
 {

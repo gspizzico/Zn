@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CoreMinimal.h>
+#include <Core/CoreMinimal.h>
 #include <sdl/SDL.h> // TODO: TEMP
 
 namespace Zn

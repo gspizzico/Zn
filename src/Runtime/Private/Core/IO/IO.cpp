@@ -1,6 +1,6 @@
-#include <IO/IO.h>
-#include <CoreAssert.h>
-#include <CommandLine.h>
+#include <Core/IO/IO.h>
+#include <Core/CoreAssert.h>
+#include <Core/CommandLine.h>
 #include <fstream>
 #include <filesystem>
 

@@ -1,9 +1,9 @@
-#include <Engine.h>
-#include <Application.h>
-#include <Time/Time.h>
+#include <Engine/Engine.h>
+#include <Application/Application.h>
+#include <Core/Time/Time.h>
 
-#include <ApplicationEventHandler.h>
-#include <Application/EngineApp.h>
+#include <Application/ApplicationEventHandler.h>
+#include <Engine/Application/EngineApp.h>
 
 namespace
 {
