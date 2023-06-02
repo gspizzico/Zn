@@ -6,6 +6,10 @@ files {
   "./ThirdParty/mimalloc/**",
 }
 
+defines{
+  "PLATFORM_WINDOWS=1",
+}
+
 -- Includes
 includedirs {
   "./Platforms/Public/",
