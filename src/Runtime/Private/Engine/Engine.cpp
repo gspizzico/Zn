@@ -4,7 +4,7 @@
 
 #include <Application/AppEventHandler.h>
 #include <Engine/Application/AppEventHandlerImpl.h>
-#include <Engine/RHI/RHIDevice.h>
+#include <RHI/RHIDevice.h>
 
 using namespace Zn;
 

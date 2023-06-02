@@ -2,7 +2,7 @@
 #include <Application/Application.h>
 #include <ImGui/ImGuiApp.h>
 #include <Engine/Engine.h>
-#include <Engine/RHI/RHIDevice.h>
+#include <RHI/RHIDevice.h>
 
 #include <Core/Time/Time.h>
 

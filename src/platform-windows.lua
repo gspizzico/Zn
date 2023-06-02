@@ -1,8 +1,7 @@
 -- Files
 configuration "win-*"
 files {
-  "./Platforms/Public/Windows/**",
-  "./Platforms/Private/Windows/**",
+  "./Runtime/*/Platform/Windows/**",
   "./ThirdParty/mimalloc/**",
 }
 
@@ -12,7 +11,7 @@ defines{
 
 -- Includes
 includedirs {
-  "./Platforms/Public/",
+  "./Runtime/Public/Platform/",
   "./ThirdParty/sdl/",
   "./ThirdParty/mimalloc/"
 }
