@@ -4,13 +4,13 @@
 
 namespace Zn
 {
-class ApplicationEventHandler
+class AppEventHandler abstract
 {
   public:
-    static ApplicationEventHandler& Get();
-    static void                     SetEventHandler(ApplicationEventHandler* eventHandler_);
+    static AppEventHandler& Get();
+    static void             SetEventHandler(AppEventHandler* eventHandler_);
 
-    virtual ~ApplicationEventHandler() = default;
+    virtual ~AppEventHandler() = default;
 
     virtual void OnWindowSizeChanged(uint32 width_, uint32 height_)
     {

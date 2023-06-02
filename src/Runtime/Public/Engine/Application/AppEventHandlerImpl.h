@@ -1,11 +1,11 @@
 #pragma once
 
 #include <Core/CoreTypes.h>
-#include <Application/ApplicationEventHandler.h>
+#include <Application/AppEventHandler.h>
 
 namespace Zn
 {
-class EngineApp : public ApplicationEventHandler
+class AppEventHandlerImpl : public AppEventHandler
 {
   public:
     virtual void OnWindowSizeChanged(uint32 width_, uint32 height_) override;

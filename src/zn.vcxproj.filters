@@ -266,10 +266,10 @@
     <ClInclude Include="ThirdParty\mimalloc\mimalloc.h">
       <Filter>ThirdParty\mimalloc</Filter>
     </ClInclude>
-    <ClInclude Include="Runtime\Public\Application\Application.h">
+    <ClInclude Include="Runtime\Public\Application\AppEventHandler.h">
       <Filter>Runtime\Public\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Runtime\Public\Application\ApplicationEventHandler.h">
+    <ClInclude Include="Runtime\Public\Application\Application.h">
       <Filter>Runtime\Public\Application</Filter>
     </ClInclude>
     <ClInclude Include="Runtime\Public\Application\ApplicationInput.h">
@@ -305,7 +305,7 @@
     <ClInclude Include="Runtime\Public\Engine\Engine.h">
       <Filter>Runtime\Public\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Runtime\Public\Engine\Application\EngineApp.h">
+    <ClInclude Include="Runtime\Public\Engine\Application\AppEventHandlerImpl.h">
       <Filter>Runtime\Public\Engine\Application</Filter>
     </ClInclude>
   </ItemGroup>
@@ -364,10 +364,10 @@
     <ClCompile Include="ThirdParty\tracy\TracyClient.cpp">
       <Filter>ThirdParty\tracy</Filter>
     </ClCompile>
-    <ClCompile Include="Runtime\Private\Application\Application.cpp">
+    <ClCompile Include="Runtime\Private\Application\AppEventHandler.cpp">
       <Filter>Runtime\Private\Application</Filter>
     </ClCompile>
-    <ClCompile Include="Runtime\Private\Application\ApplicationEventHandler.cpp">
+    <ClCompile Include="Runtime\Private\Application\Application.cpp">
       <Filter>Runtime\Private\Application</Filter>
     </ClCompile>
     <ClCompile Include="Runtime\Private\Application\Platforms\Windows\SDLApplication.cpp">
@@ -400,7 +400,7 @@
     <ClCompile Include="Runtime\Private\Engine\WindowsMain.cpp">
       <Filter>Runtime\Private\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Runtime\Private\Engine\Application\EngineApp.cpp">
+    <ClCompile Include="Runtime\Private\Engine\Application\AppEventHandlerImpl.cpp">
       <Filter>Runtime\Private\Engine\Application</Filter>
     </ClCompile>
   </ItemGroup>

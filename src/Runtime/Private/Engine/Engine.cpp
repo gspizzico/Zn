@@ -2,8 +2,8 @@
 #include <Application/Application.h>
 #include <Core/Time/Time.h>
 
-#include <Application/ApplicationEventHandler.h>
-#include <Engine/Application/EngineApp.h>
+#include <Application/AppEventHandler.h>
+#include <Engine/Application/AppEventHandlerImpl.h>
 
 namespace
 {
@@ -12,7 +12,7 @@ float GDeltaTime = 0.f;
 
 int32 Zn::Engine::Launch()
 {
-    ApplicationEventHandler::SetEventHandler(new EngineApp());
+    AppEventHandler::SetEventHandler(new AppEventHandlerImpl());
 
     Application& app = Application::Get();
 

@@ -286,8 +286,8 @@
     <ClInclude Include="ThirdParty\wyhash\wyhash.h" />
     <ClInclude Include="ThirdParty\delegate\delegate.hpp" />
     <ClInclude Include="ThirdParty\mimalloc\mimalloc.h" />
+    <ClInclude Include="Runtime\Public\Application\AppEventHandler.h" />
     <ClInclude Include="Runtime\Public\Application\Application.h" />
-    <ClInclude Include="Runtime\Public\Application\ApplicationEventHandler.h" />
     <ClInclude Include="Runtime\Public\Application\ApplicationInput.h" />
     <ClInclude Include="Runtime\Public\Application\Platforms\Windows\SDLApplication.h" />
     <ClInclude Include="Runtime\Public\Application\Platforms\Windows\SDLWindow.h" />
@@ -299,7 +299,7 @@
     <ClInclude Include="ThirdParty\imgui\imstb_truetype.h" />
     <ClInclude Include="ThirdParty\imgui\backends\imgui_impl_sdl.h" />
     <ClInclude Include="Runtime\Public\Engine\Engine.h" />
-    <ClInclude Include="Runtime\Public\Engine\Application\EngineApp.h" />
+    <ClInclude Include="Runtime\Public\Engine\Application\AppEventHandlerImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Runtime\Private\Core\CommandLine.cpp">
@@ -338,9 +338,9 @@
     </ClCompile>
     <ClCompile Include="ThirdParty\tracy\TracyClient.cpp">
     </ClCompile>
-    <ClCompile Include="Runtime\Private\Application\Application.cpp">
+    <ClCompile Include="Runtime\Private\Application\AppEventHandler.cpp">
     </ClCompile>
-    <ClCompile Include="Runtime\Private\Application\ApplicationEventHandler.cpp">
+    <ClCompile Include="Runtime\Private\Application\Application.cpp">
     </ClCompile>
     <ClCompile Include="Runtime\Private\Application\Platforms\Windows\SDLApplication.cpp">
     </ClCompile>
@@ -362,7 +362,7 @@
     </ClCompile>
     <ClCompile Include="Runtime\Private\Engine\WindowsMain.cpp">
     </ClCompile>
-    <ClCompile Include="Runtime\Private\Engine\Application\EngineApp.cpp">
+    <ClCompile Include="Runtime\Private\Engine\Application\AppEventHandlerImpl.cpp">
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
