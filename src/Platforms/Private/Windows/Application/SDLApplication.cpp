@@ -1,5 +1,5 @@
-#include <Windows/SDLApplication.h>
-#include <Windows/SDLWindow.h>
+#include <Windows/Application/SDLApplication.h>
+#include <Windows/Application/SDLWindow.h>
 #include <Application/ApplicationInput.h>
 #include <sdl/SDL.h>
 #include <Core/IO/IO.h>

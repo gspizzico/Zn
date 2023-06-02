@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Windows/WindowsThreads.h"
-#include "Windows/WindowsCriticalSection.h"
-#include "Windows/WindowsMemory.h"
-#include "Windows/WindowsMisc.h"
+#include "Windows/Core/WindowsThreads.h"
+#include "Windows/Core/WindowsCriticalSection.h"
+#include "Windows/Core/WindowsMemory.h"
+#include "Windows/Core/WindowsMisc.h"
 
 namespace Zn
 {

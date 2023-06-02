@@ -1,5 +1,5 @@
-#include <Windows/WindowsCriticalSection.h>
-#include <Windows/WindowsPrivate.h>
+#include <Windows/Core/WindowsCriticalSection.h>
+#include <Windows/Core/WindowsPrivate.h>
 
 namespace Zn
 {

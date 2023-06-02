@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Core/CoreTypes.h>
-#include <Windows/WindowsPublic.h>
-// #include "Windows/WindowsPrivate.h"
+#include <Windows/Core/WindowsPublic.h>
 
 #ifndef THREAD_FUNCTION_SIGNATURE
     #define THREAD_FUNCTION_SIGNATURE(RunThread, ArgName) static DWORD __stdcall RunThread(LPVOID ArgName)

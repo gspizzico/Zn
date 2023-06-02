@@ -1,5 +1,6 @@
+-- Editor is Windows only for now.
 -- Files
-configuration "*"
+configuration "win-*"
 files {
   "./Editor/**",
   "./ThirdParty/imgui/*",
@@ -12,7 +13,7 @@ defines {
 }
 
 -- Includes
-configuration "*"
+configuration "win-*"
 includedirs {
   "./Editor/Public/",
   "./ThirdParty/",

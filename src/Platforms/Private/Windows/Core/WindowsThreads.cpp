@@ -1,6 +1,6 @@
-#include <Windows/WindowsThreads.h>
-#include <Windows/WindowsThread.h>
-#include <Windows/WindowsPrivate.h>
+#include <Windows/Core/WindowsThreads.h>
+#include <Windows/Core/WindowsThread.h>
+#include <Windows/Core/WindowsPrivate.h>
 #include <Core/Log/LogMacros.h>
 #include <Core/CoreAssert.h>
 

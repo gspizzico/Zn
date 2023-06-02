@@ -1,4 +1,4 @@
-#include <Windows/SDLWindow.h>
+#include <Windows/Application/SDLWindow.h>
 #include <Application/AppEventHandler.h>
 #include <sdl/SDL.h>
 #include <sdl/SDL_syswm.h>

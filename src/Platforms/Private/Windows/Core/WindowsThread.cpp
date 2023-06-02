@@ -1,6 +1,6 @@
-#include <Windows/WindowsThread.h>
+#include <Windows/Core/WindowsThread.h>
+#include <Windows/Core/WindowsPrivate.h>
 #include <Core/CoreAssert.h>
-#include <Windows/WindowsPrivate.h>
 
 namespace Zn
 {

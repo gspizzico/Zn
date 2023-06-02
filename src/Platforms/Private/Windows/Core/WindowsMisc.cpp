@@ -1,5 +1,5 @@
-#include <Windows/WindowsMisc.h>
-#include <Windows/WindowsPrivate.h>
+#include <Windows/Core/WindowsMisc.h>
+#include <Windows/Core/WindowsPrivate.h>
 #include <Core/Misc/Guid.h>
 #include <Core/CoreAssert.h>
 

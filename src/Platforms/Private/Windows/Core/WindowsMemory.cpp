@@ -1,6 +1,6 @@
-#include <Windows/WindowsMemory.h>
-#include <Windows/WindowsMisc.h>
-#include <Windows/WindowsPrivate.h>
+#include <Windows/Core/WindowsMemory.h>
+#include <Windows/Core/WindowsMisc.h>
+#include <Windows/Core/WindowsPrivate.h>
 #include <Core/CoreAssert.h>
 #include <Core/Memory/Allocators/Mimalloc.hpp>
 

@@ -2,7 +2,7 @@
 
 #include <Core/CoreTypes.h>
 #include <Core/Async/Thread.h>
-#include <Windows/WindowsPublic.h>
+#include <Windows/Core/WindowsPublic.h>
 
 namespace Zn
 {

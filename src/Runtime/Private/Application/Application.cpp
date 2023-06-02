@@ -1,7 +1,7 @@
 #include <Application/Application.h>
 #include <Core/CoreAssert.h>
 #if PLATFORM_WINDOWS
-    #include <Application/Platforms/Windows/SDLApplication.h>
+    #include <Windows/Application/SDLApplication.h>
 #endif
 
 using namespace Zn;

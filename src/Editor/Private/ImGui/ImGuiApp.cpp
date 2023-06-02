@@ -6,7 +6,7 @@
 
 #include <Application/Application.h>
 #if PLATFORM_WINDOWS
-    #include <Application/Platforms/Windows/SDLApplication.h>
+    #include <Windows/Application/SDLApplication.h>
 #endif
 
 #include <imgui/imgui.h>

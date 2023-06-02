@@ -1,6 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Platforms">
+      <UniqueIdentifier>{DDACA145-4917-56BC-9255-0762FEFE3311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Public">
+      <UniqueIdentifier>{58436423-443C-8375-6D6E-68FA59C66281}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Public\Windows">
+      <UniqueIdentifier>{1F315EF1-0B56-AD71-34A1-92012025AC8F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Public\Windows\Application">
+      <UniqueIdentifier>{6F7D3617-5B64-F80E-04B5-5E2CF07A7175}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Public\Windows\Core">
+      <UniqueIdentifier>{842FDC17-F047-C341-B9F4-52DB25CC57DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Public\Windows\Vulkan">
+      <UniqueIdentifier>{AC9361AC-1877-70EC-217A-9E288DDC363D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Private">
+      <UniqueIdentifier>{543C7189-C052-6F1F-09CA-FA40751F40A7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Private\Windows">
+      <UniqueIdentifier>{1B6662DB-8728-9665-D0D8-24F23CDA6E43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Private\Windows\Application">
+      <UniqueIdentifier>{6B0CB696-D7D0-B486-A036-E5500CBA50BC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Private\Windows\Core">
+      <UniqueIdentifier>{00E2747C-EC07-3FE3-D54D-C4AEC11264AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Private\Windows\Vulkan">
+      <UniqueIdentifier>{28D5F099-1426-DCDB-3D8A-CA9D293A6F45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{107145F9-FC28-8746-6530-60A251072237}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\mimalloc">
+      <UniqueIdentifier>{DA765B2E-46D8-383C-CF45-7FEE3BA66FFB}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime">
       <UniqueIdentifier>{4995DAC4-B574-5960-BE8C-E4362AEBBFC1}</UniqueIdentifier>
     </Filter>
@@ -27,12 +66,6 @@
     </Filter>
     <Filter Include="Runtime\Private\Core\Misc">
       <UniqueIdentifier>{4DB43B08-B976-6F92-0227-FE1E6E284870}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Runtime\Private\Core\Platforms">
-      <UniqueIdentifier>{194008E1-0566-D247-EEAB-5713DA70F713}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Runtime\Private\Core\Platforms\Windows">
-      <UniqueIdentifier>{E05E0FF3-CCB0-E6E2-B5CF-23F3A1C0FFCB}</UniqueIdentifier>
     </Filter>
     <Filter Include="Runtime\Private\Core\Time">
       <UniqueIdentifier>{308A3F08-9C4C-7392-E5FC-011F51FE4B70}</UniqueIdentifier>
@@ -67,20 +100,11 @@
     <Filter Include="Runtime\Public\Core\Misc">
       <UniqueIdentifier>{D192CCBC-BDB7-1B3D-E602-01CDD2861A5B}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Runtime\Public\Core\Platforms">
-      <UniqueIdentifier>{1DD1BCFC-89E9-A326-5296-33C0BE6D38C0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Runtime\Public\Core\Platforms\Windows">
-      <UniqueIdentifier>{E4B3B6D0-5078-B5C0-19DE-E58A856151F6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Runtime\Public\Core\Time">
       <UniqueIdentifier>{B468D0BC-A08D-1F3D-C9D8-04CDB55C1E5B}</UniqueIdentifier>
     </Filter>
     <Filter Include="Runtime\Public\Core\Trace">
       <UniqueIdentifier>{B43BE256-20FE-15E1-69AE-A46DD5AFEEBE}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ThirdParty">
-      <UniqueIdentifier>{107145F9-FC28-8746-6530-60A251072237}</UniqueIdentifier>
     </Filter>
     <Filter Include="ThirdParty\wyhash">
       <UniqueIdentifier>{809F05D5-ECB5-036B-352D-8F8CA182D4F2}</UniqueIdentifier>
@@ -91,26 +115,11 @@
     <Filter Include="ThirdParty\tracy">
       <UniqueIdentifier>{6FDE873C-5BD7-A68E-8409-8C137061869A}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ThirdParty\mimalloc">
-      <UniqueIdentifier>{DA765B2E-46D8-383C-CF45-7FEE3BA66FFB}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Runtime\Private\Application">
       <UniqueIdentifier>{909695A7-FCA3-C38D-858A-BF78F1968F44}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Runtime\Private\Application\Platforms">
-      <UniqueIdentifier>{A4548003-1019-7FF3-D97E-AFBD45021B29}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Runtime\Private\Application\Platforms\Windows">
-      <UniqueIdentifier>{6BCEEC05-D73E-EF7E-A05D-69070C8D2780}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Runtime\Public\Application">
       <UniqueIdentifier>{1426D8C3-0036-8494-69EF-E8B2551E732D}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Runtime\Public\Application\Platforms">
-      <UniqueIdentifier>{28194F67-1400-115F-BD50-777CA9168AC5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Runtime\Public\Application\Platforms\Windows">
-      <UniqueIdentifier>{EFD669AE-DBE9-6907-84D3-46F470C50655}</UniqueIdentifier>
     </Filter>
     <Filter Include="Runtime\Private\Engine">
       <UniqueIdentifier>{3211AADF-1E0B-D331-0778-6942F310399E}</UniqueIdentifier>
@@ -124,9 +133,6 @@
     <Filter Include="Runtime\Private\Engine\RHI\Vulkan">
       <UniqueIdentifier>{BE85AA0F-2AF4-FF8E-73DD-BA8EDF8AF52A}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Runtime\Private\Engine\RHI\Vulkan\Windows">
-      <UniqueIdentifier>{85795B42-F193-BEE3-3AB6-CE77A60FE6EA}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Runtime\Public\Engine">
       <UniqueIdentifier>{36DEEF0D-A24A-AB08-6B3E-4366D769CD70}</UniqueIdentifier>
     </Filter>
@@ -139,14 +145,50 @@
     <Filter Include="Runtime\Public\Engine\RHI\Vulkan">
       <UniqueIdentifier>{42A8634E-2EF9-4E90-575D-3D52430DE2F9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Runtime\Public\Engine\RHI\Vulkan\Windows">
-      <UniqueIdentifier>{09E040C1-F55C-3404-1EDA-34180AB6D097}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ThirdParty\vk_mem_alloc">
       <UniqueIdentifier>{95250CFD-015D-5494-0A67-B8B7761D7B8D}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Platforms\Public\Windows\Application\SDLApplication.h">
+      <Filter>Platforms\Public\Windows\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Application\SDLWindow.h">
+      <Filter>Platforms\Public\Windows\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsAPI.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsCriticalSection.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsMemory.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsMisc.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsPrivate.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsPublic.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsThread.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsThreads.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Core\WindowsTypes.h">
+      <Filter>Platforms\Public\Windows\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Platforms\Public\Windows\Vulkan\WindowsVulkan.h">
+      <Filter>Platforms\Public\Windows\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\mimalloc\mimalloc.h">
+      <Filter>ThirdParty\mimalloc</Filter>
+    </ClInclude>
     <ClInclude Include="Runtime\Public\Core\Build.h">
       <Filter>Runtime\Public\Core</Filter>
     </ClInclude>
@@ -234,33 +276,6 @@
     <ClInclude Include="Runtime\Public\Core\Misc\Random.h">
       <Filter>Runtime\Public\Core\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsAPI.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsCriticalSection.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsMemory.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsMisc.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsPrivate.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsPublic.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsThread.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsThreads.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsTypes.h">
-      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Runtime\Public\Core\Time\Time.h">
       <Filter>Runtime\Public\Core\Time</Filter>
     </ClInclude>
@@ -273,9 +288,6 @@
     <ClInclude Include="ThirdParty\delegate\delegate.hpp">
       <Filter>ThirdParty\delegate</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\mimalloc\mimalloc.h">
-      <Filter>ThirdParty\mimalloc</Filter>
-    </ClInclude>
     <ClInclude Include="Runtime\Public\Application\AppEventHandler.h">
       <Filter>Runtime\Public\Application</Filter>
     </ClInclude>
@@ -284,12 +296,6 @@
     </ClInclude>
     <ClInclude Include="Runtime\Public\Application\ApplicationInput.h">
       <Filter>Runtime\Public\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Application\Platforms\Windows\SDLApplication.h">
-      <Filter>Runtime\Public\Application\Platforms\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Application\Platforms\Windows\SDLWindow.h">
-      <Filter>Runtime\Public\Application\Platforms\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Runtime\Public\Engine\Engine.h">
       <Filter>Runtime\Public\Engine</Filter>
@@ -311,9 +317,6 @@
     </ClInclude>
     <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\VulkanPlatform.h">
       <Filter>Runtime\Public\Engine\RHI\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\Windows\WindowsVulkan.h">
-      <Filter>Runtime\Public\Engine\RHI\Vulkan\Windows</Filter>
     </ClInclude>
     <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc.h">
       <Filter>ThirdParty\vk_mem_alloc</Filter>
@@ -338,6 +341,33 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Platforms\Private\Windows\Application\SDLApplication.cpp">
+      <Filter>Platforms\Private\Windows\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Private\Windows\Application\SDLWindow.cpp">
+      <Filter>Platforms\Private\Windows\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Private\Windows\Core\WindowsAPI.cpp">
+      <Filter>Platforms\Private\Windows\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Private\Windows\Core\WindowsCriticalSection.cpp">
+      <Filter>Platforms\Private\Windows\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Private\Windows\Core\WindowsMemory.cpp">
+      <Filter>Platforms\Private\Windows\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Private\Windows\Core\WindowsMisc.cpp">
+      <Filter>Platforms\Private\Windows\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Private\Windows\Core\WindowsThread.cpp">
+      <Filter>Platforms\Private\Windows\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Private\Windows\Core\WindowsThreads.cpp">
+      <Filter>Platforms\Private\Windows\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Platforms\Private\Windows\Vulkan\WindowsVulkan.cpp">
+      <Filter>Platforms\Private\Windows\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="Runtime\Private\Core\CommandLine.cpp">
       <Filter>Runtime\Private\Core</Filter>
     </ClCompile>
@@ -368,24 +398,6 @@
     <ClCompile Include="Runtime\Private\Core\Misc\Name.cpp">
       <Filter>Runtime\Private\Core\Misc</Filter>
     </ClCompile>
-    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsAPI.cpp">
-      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsCriticalSection.cpp">
-      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsMemory.cpp">
-      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsMisc.cpp">
-      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsThread.cpp">
-      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsThreads.cpp">
-      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Runtime\Private\Core\Time\Time.cpp">
       <Filter>Runtime\Private\Core\Time</Filter>
     </ClCompile>
@@ -398,17 +410,14 @@
     <ClCompile Include="Runtime\Private\Application\Application.cpp">
       <Filter>Runtime\Private\Application</Filter>
     </ClCompile>
-    <ClCompile Include="Runtime\Private\Application\Platforms\Windows\SDLApplication.cpp">
-      <Filter>Runtime\Private\Application\Platforms\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Runtime\Private\Application\Platforms\Windows\SDLWindow.cpp">
-      <Filter>Runtime\Private\Application\Platforms\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Runtime\Private\Engine\Engine.cpp">
       <Filter>Runtime\Private\Engine</Filter>
     </ClCompile>
     <ClCompile Include="Runtime\Private\Engine\Application\AppEventHandlerImpl.cpp">
       <Filter>Runtime\Private\Engine\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\RHIDevice.cpp">
+      <Filter>Runtime\Private\Engine\RHI</Filter>
     </ClCompile>
     <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\Vulkan.cpp">
       <Filter>Runtime\Private\Engine\RHI\Vulkan</Filter>
@@ -418,9 +427,6 @@
     </ClCompile>
     <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\VulkanRHI.cpp">
       <Filter>Runtime\Private\Engine\RHI\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\Windows\WindowsVulkan.cpp">
-      <Filter>Runtime\Private\Engine\RHI\Vulkan\Windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
