@@ -1,7 +1,7 @@
 -- Files
 configuration "*"
 files {
-  "./Application/**",
+  "./Runtime/*/Application/**",
   "./ThirdParty/imgui/*",
   "./ThirdParty/imgui/backends/*sdl.**",
 }
@@ -11,21 +11,15 @@ defines {
   "WITH_IMGUI=1"
 }
 
-vpaths{
-  ["Headers/Application/*"] = "Application/include/**",
-  ["Source/Application/*"] = "Application/src/**",
-}
-
 configuration "win-*"
 files {
-  "./Application/include/Platforms/Windows/**",
-  "./Application/src/Platforms/Windows/**",
+  "./Runtime/*/Application/Platforms/Windows/**",
 }
 
 -- Includes
 configuration "*"
 includedirs {
-  "./Application/include/",   
+  "./Runtime/Public/Application/",   
   "./ThirdParty/",
   "./ThirdParty/sdl/",
   "./ThirdParty/imgui/",
@@ -34,7 +28,7 @@ includedirs {
 
 configuration "win-*"  
 includedirs {
-  "./Application/include/Platforms/",
+  "./Runtime/Public/Application/Platforms/",
 }
 
 -- Links

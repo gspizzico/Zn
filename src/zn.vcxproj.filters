@@ -1,80 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{C196CD9C-2D76-4C38-368E-D70EA2ECB299}</UniqueIdentifier>
+    <Filter Include="Runtime">
+      <UniqueIdentifier>{4995DAC4-B574-5960-BE8C-E4362AEBBFC1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core">
-      <UniqueIdentifier>{666A9653-52CD-25F8-FB52-5EAEE794F17A}</UniqueIdentifier>
+    <Filter Include="Runtime\Private">
+      <UniqueIdentifier>{C0D091AB-2C5C-FF6F-356D-8264A1775B70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Async">
-      <UniqueIdentifier>{60126650-4CF6-26A6-B556-21F9A1591128}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core">
+      <UniqueIdentifier>{C5BBB985-B14A-434F-5A69-574A46D753F5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Containers">
-      <UniqueIdentifier>{98FD1C3D-0435-65D4-0D3F-C9F779F58BCD}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\Async">
+      <UniqueIdentifier>{FFAEDE0E-EBBE-8ADF-5478-EFFD40A77978}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\HAL">
-      <UniqueIdentifier>{37DB24B4-23D4-4306-4C06-298B385E2312}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\IO">
+      <UniqueIdentifier>{B972113E-25AA-59D5-2EB4-BDF89A6A80CE}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\IO">
-      <UniqueIdentifier>{BAA92FEE-2635-9DB2-2F46-20A79B50F9B2}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\Log">
+      <UniqueIdentifier>{23DB3F00-0F00-8F80-384B-741024CF8D9E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Log">
-      <UniqueIdentifier>{44F224B4-30EB-4306-591D-298B45752312}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\Memory">
+      <UniqueIdentifier>{7A91AE05-E69E-DCEB-6F85-D8D6DB91A8A2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Memory">
-      <UniqueIdentifier>{FB602278-67C2-FF85-F02F-46385C903645}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\Memory\Allocators">
+      <UniqueIdentifier>{6AC39D9B-5615-758B-3F34-B29B2B258E74}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Memory\Allocators">
-      <UniqueIdentifier>{4B405433-3766-1E9A-20AC-A3650C714366}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\Misc">
+      <UniqueIdentifier>{4DB43B08-B976-6F92-0227-FE1E6E284870}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Misc">
-      <UniqueIdentifier>{8EAFC338-FAC5-C1CE-433D-4DF0AF929256}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\Platforms">
+      <UniqueIdentifier>{194008E1-0566-D247-EEAB-5713DA70F713}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Platforms">
-      <UniqueIdentifier>{FA6B6494-E665-8DE6-CFD2-23F7BB6BF352}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\Platforms\Windows">
+      <UniqueIdentifier>{E05E0FF3-CCB0-E6E2-B5CF-23F3A1C0FFCB}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Platforms\Windows">
-      <UniqueIdentifier>{C1DBC58A-AD01-90F1-9647-15BD820CB5BD}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Core\Time">
+      <UniqueIdentifier>{308A3F08-9C4C-7392-E5FC-011F51FE4B70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Time">
-      <UniqueIdentifier>{7185C738-DD9B-C5CE-2613-51F092689656}</UniqueIdentifier>
+    <Filter Include="Runtime\Public">
+      <UniqueIdentifier>{44FA4DA8-30C8-41AE-195C-B2D405C91D13}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Core\Trace">
-      <UniqueIdentifier>{11F0BC51-FDD3-7DA7-6634-78FA52376829}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core">
+      <UniqueIdentifier>{C97760AF-35D9-3DBD-BE46-846F2AA7747C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source">
-      <UniqueIdentifier>{56EB95D1-428D-C0A7-2B48-D4FB178947F8}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Async">
+      <UniqueIdentifier>{035E8B55-6F20-BFDF-B8D0-4D6C24D297BD}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core">
-      <UniqueIdentifier>{1BE44312-8799-BC07-108E-B6DE7C42B30B}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Containers">
+      <UniqueIdentifier>{1B0782B0-072D-4C17-F072-D1E2DC3771E3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\Async">
-      <UniqueIdentifier>{D53F7750-4156-75E6-8ACD-0008F622466E}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\HAL">
+      <UniqueIdentifier>{1AE22CD7-8619-756E-8F23-D991FBD99B67}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\IO">
-      <UniqueIdentifier>{4FC3790C-3B91-6D12-2425-DE3810924977}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\IO">
+      <UniqueIdentifier>{3DE01035-29DA-3987-1247-D097FEDF9FF3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\Log">
-      <UniqueIdentifier>{793EB29B-E5C9-1F60-EEDA-A2545AE57B60}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Log">
+      <UniqueIdentifier>{27F92CD7-9330-756E-9C3A-D99108F19B67}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\Memory">
-      <UniqueIdentifier>{103D597A-FC20-1AD0-6581-142351840452}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Memory">
+      <UniqueIdentifier>{FE20F121-EA30-9DF2-53EA-01113F198C8B}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\Memory\Allocators">
-      <UniqueIdentifier>{404500D0-AC5D-E7F9-750A-7793E1E17B93}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Memory\Allocators">
+      <UniqueIdentifier>{6E184579-DADC-4369-A342-74330FC6DF9E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\Misc">
-      <UniqueIdentifier>{6382FA11-4F7B-1964-78AD-FEE86405F96F}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Misc">
+      <UniqueIdentifier>{D192CCBC-BDB7-1B3D-E602-01CDD2861A5B}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\Platforms">
-      <UniqueIdentifier>{EF4B896B-5BB8-4466-24AC-DCC390D766CE}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Platforms">
+      <UniqueIdentifier>{1DD1BCFC-89E9-A326-5296-33C0BE6D38C0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\Platforms\Windows">
-      <UniqueIdentifier>{B6E07127-22F9-5851-EBA5-E8EA577DEDEA}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Platforms\Windows">
+      <UniqueIdentifier>{E4B3B6D0-5078-B5C0-19DE-E58A856151F6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core\Time">
-      <UniqueIdentifier>{4658FE11-3251-1D64-5B83-02E947DBFC6F}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Core\Time">
+      <UniqueIdentifier>{B468D0BC-A08D-1F3D-C9D8-04CDB55C1E5B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Public\Core\Trace">
+      <UniqueIdentifier>{B43BE256-20FE-15E1-69AE-A46DD5AFEEBE}</UniqueIdentifier>
     </Filter>
     <Filter Include="ThirdParty">
       <UniqueIdentifier>{107145F9-FC28-8746-6530-60A251072237}</UniqueIdentifier>
@@ -91,23 +94,23 @@
     <Filter Include="ThirdParty\mimalloc">
       <UniqueIdentifier>{DA765B2E-46D8-383C-CF45-7FEE3BA66FFB}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Application">
-      <UniqueIdentifier>{1166091A-7DC7-E627-0635-2DDA72951DE7}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Application">
+      <UniqueIdentifier>{909695A7-FCA3-C38D-858A-BF78F1968F44}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Application\Platforms">
-      <UniqueIdentifier>{6539FA8B-D151-E1B5-9AFE-704F06D6754F}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Application\Platforms">
+      <UniqueIdentifier>{A4548003-1019-7FF3-D97E-AFBD45021B29}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Application\Platforms\Windows">
-      <UniqueIdentifier>{2CE4DB9D-98A8-DA8D-610E-0B58CD9176C3}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Application\Platforms\Windows">
+      <UniqueIdentifier>{6BCEEC05-D73E-EF7E-A05D-69070C8D2780}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Application">
-      <UniqueIdentifier>{2642401C-1226-0172-7B86-FBC46789EBF3}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Application">
+      <UniqueIdentifier>{1426D8C3-0036-8494-69EF-E8B2551E732D}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Application\Platforms">
-      <UniqueIdentifier>{BAF30EE6-A6AE-FE91-4F66-77DC3B004922}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Application\Platforms">
+      <UniqueIdentifier>{28194F67-1400-115F-BD50-777CA9168AC5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Application\Platforms\Windows">
-      <UniqueIdentifier>{81235CE3-6D0A-1EDB-165B-84F802219741}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Application\Platforms\Windows">
+      <UniqueIdentifier>{EFD669AE-DBE9-6907-84D3-46F470C50655}</UniqueIdentifier>
     </Filter>
     <Filter Include="ThirdParty\imgui">
       <UniqueIdentifier>{C72EBE3B-B327-DD8D-DC59-C212C8B1BC99}</UniqueIdentifier>
@@ -115,17 +118,17 @@
     <Filter Include="ThirdParty\imgui\backends">
       <UniqueIdentifier>{FE153EC3-6AD8-714D-B388-00DA1F8A4A2B}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine">
-      <UniqueIdentifier>{13EC6C97-FFB9-609D-E84D-D1C3D4BA3C02}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Engine">
+      <UniqueIdentifier>{3211AADF-1E0B-D331-0778-6942F310399E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine\Application">
-      <UniqueIdentifier>{6346C1F5-4F56-6DC6-B80F-D2E4A43E5C5F}</UniqueIdentifier>
+    <Filter Include="Runtime\Private\Engine\Application">
+      <UniqueIdentifier>{021260DA-EE4D-6344-5760-7B3B43BB0B5F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine">
-      <UniqueIdentifier>{08A75FB7-7467-DBED-3DA2-246BA92120CA}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Engine">
+      <UniqueIdentifier>{36DEEF0D-A24A-AB08-6B3E-4366D769CD70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\Application">
-      <UniqueIdentifier>{D8188F93-44DB-C21D-8D8B-51AAF98C9BFB}</UniqueIdentifier>
+    <Filter Include="Runtime\Public\Engine\Application">
+      <UniqueIdentifier>{06853DF0-72F3-926F-BBDC-4D6F278A880B}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -134,122 +137,122 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\include\Build.h">
-      <Filter>Headers\Core</Filter>
+    <ClInclude Include="Runtime\Public\Core\Build.h">
+      <Filter>Runtime\Public\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\CommandLine.h">
-      <Filter>Headers\Core</Filter>
+    <ClInclude Include="Runtime\Public\Core\CommandLine.h">
+      <Filter>Runtime\Public\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\CoreAssert.h">
-      <Filter>Headers\Core</Filter>
+    <ClInclude Include="Runtime\Public\Core\CoreAssert.h">
+      <Filter>Runtime\Public\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\CoreMinimal.h">
-      <Filter>Headers\Core</Filter>
+    <ClInclude Include="Runtime\Public\Core\CoreMinimal.h">
+      <Filter>Runtime\Public\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\CorePlatform.h">
-      <Filter>Headers\Core</Filter>
+    <ClInclude Include="Runtime\Public\Core\CorePlatform.h">
+      <Filter>Runtime\Public\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\CoreTypes.h">
-      <Filter>Headers\Core</Filter>
+    <ClInclude Include="Runtime\Public\Core\CoreTypes.h">
+      <Filter>Runtime\Public\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Async\CallableJob.h">
-      <Filter>Headers\Core\Async</Filter>
+    <ClInclude Include="Runtime\Public\Core\Async\CallableJob.h">
+      <Filter>Runtime\Public\Core\Async</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Async\ITaskGraphNode.h">
-      <Filter>Headers\Core\Async</Filter>
+    <ClInclude Include="Runtime\Public\Core\Async\ITaskGraphNode.h">
+      <Filter>Runtime\Public\Core\Async</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Async\ScopedLock.h">
-      <Filter>Headers\Core\Async</Filter>
+    <ClInclude Include="Runtime\Public\Core\Async\ScopedLock.h">
+      <Filter>Runtime\Public\Core\Async</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Async\Task.h">
-      <Filter>Headers\Core\Async</Filter>
+    <ClInclude Include="Runtime\Public\Core\Async\Task.h">
+      <Filter>Runtime\Public\Core\Async</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Async\TaskGraph.h">
-      <Filter>Headers\Core\Async</Filter>
+    <ClInclude Include="Runtime\Public\Core\Async\TaskGraph.h">
+      <Filter>Runtime\Public\Core\Async</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Async\Thread.h">
-      <Filter>Headers\Core\Async</Filter>
+    <ClInclude Include="Runtime\Public\Core\Async\Thread.h">
+      <Filter>Runtime\Public\Core\Async</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Async\ThreadedJob.h">
-      <Filter>Headers\Core\Async</Filter>
+    <ClInclude Include="Runtime\Public\Core\Async\ThreadedJob.h">
+      <Filter>Runtime\Public\Core\Async</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Containers\Map.h">
-      <Filter>Headers\Core\Containers</Filter>
+    <ClInclude Include="Runtime\Public\Core\Containers\Map.h">
+      <Filter>Runtime\Public\Core\Containers</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Containers\Set.h">
-      <Filter>Headers\Core\Containers</Filter>
+    <ClInclude Include="Runtime\Public\Core\Containers\Set.h">
+      <Filter>Runtime\Public\Core\Containers</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Containers\Vector.h">
-      <Filter>Headers\Core\Containers</Filter>
+    <ClInclude Include="Runtime\Public\Core\Containers\Vector.h">
+      <Filter>Runtime\Public\Core\Containers</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\HAL\Misc.h">
-      <Filter>Headers\Core\HAL</Filter>
+    <ClInclude Include="Runtime\Public\Core\HAL\Misc.h">
+      <Filter>Runtime\Public\Core\HAL</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\IO\IO.h">
-      <Filter>Headers\Core\IO</Filter>
+    <ClInclude Include="Runtime\Public\Core\IO\IO.h">
+      <Filter>Runtime\Public\Core\IO</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Log\Log.h">
-      <Filter>Headers\Core\Log</Filter>
+    <ClInclude Include="Runtime\Public\Core\Log\Log.h">
+      <Filter>Runtime\Public\Core\Log</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Log\LogMacros.h">
-      <Filter>Headers\Core\Log</Filter>
+    <ClInclude Include="Runtime\Public\Core\Log\LogMacros.h">
+      <Filter>Runtime\Public\Core\Log</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Memory\Memory.h">
-      <Filter>Headers\Core\Memory</Filter>
+    <ClInclude Include="Runtime\Public\Core\Memory\Memory.h">
+      <Filter>Runtime\Public\Core\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Memory\VirtualMemory.h">
-      <Filter>Headers\Core\Memory</Filter>
+    <ClInclude Include="Runtime\Public\Core\Memory\VirtualMemory.h">
+      <Filter>Runtime\Public\Core\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Memory\Allocators\BaseAllocator.h">
-      <Filter>Headers\Core\Memory\Allocators</Filter>
+    <ClInclude Include="Runtime\Public\Core\Memory\Allocators\BaseAllocator.h">
+      <Filter>Runtime\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Memory\Allocators\Mimalloc.hpp">
-      <Filter>Headers\Core\Memory\Allocators</Filter>
+    <ClInclude Include="Runtime\Public\Core\Memory\Allocators\Mimalloc.hpp">
+      <Filter>Runtime\Public\Core\Memory\Allocators</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Misc\Event.h">
-      <Filter>Headers\Core\Misc</Filter>
+    <ClInclude Include="Runtime\Public\Core\Misc\Event.h">
+      <Filter>Runtime\Public\Core\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Misc\Guid.h">
-      <Filter>Headers\Core\Misc</Filter>
+    <ClInclude Include="Runtime\Public\Core\Misc\Guid.h">
+      <Filter>Runtime\Public\Core\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Misc\Hash.h">
-      <Filter>Headers\Core\Misc</Filter>
+    <ClInclude Include="Runtime\Public\Core\Misc\Hash.h">
+      <Filter>Runtime\Public\Core\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Misc\Name.h">
-      <Filter>Headers\Core\Misc</Filter>
+    <ClInclude Include="Runtime\Public\Core\Misc\Name.h">
+      <Filter>Runtime\Public\Core\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Misc\Random.h">
-      <Filter>Headers\Core\Misc</Filter>
+    <ClInclude Include="Runtime\Public\Core\Misc\Random.h">
+      <Filter>Runtime\Public\Core\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Platforms\Windows\WindowsAPI.h">
-      <Filter>Headers\Core\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsAPI.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Platforms\Windows\WindowsCommon.h">
-      <Filter>Headers\Core\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsCommon.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Platforms\Windows\WindowsCriticalSection.h">
-      <Filter>Headers\Core\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsCriticalSection.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Platforms\Windows\WindowsMemory.h">
-      <Filter>Headers\Core\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsMemory.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Platforms\Windows\WindowsMisc.h">
-      <Filter>Headers\Core\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsMisc.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Platforms\Windows\WindowsThread.h">
-      <Filter>Headers\Core\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsThread.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Platforms\Windows\WindowsThreads.h">
-      <Filter>Headers\Core\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsThreads.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Platforms\Windows\WindowsTypes.h">
-      <Filter>Headers\Core\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Core\Platforms\Windows\WindowsTypes.h">
+      <Filter>Runtime\Public\Core\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Time\Time.h">
-      <Filter>Headers\Core\Time</Filter>
+    <ClInclude Include="Runtime\Public\Core\Time\Time.h">
+      <Filter>Runtime\Public\Core\Time</Filter>
     </ClInclude>
-    <ClInclude Include="Core\include\Trace\Trace.h">
-      <Filter>Headers\Core\Trace</Filter>
+    <ClInclude Include="Runtime\Public\Core\Trace\Trace.h">
+      <Filter>Runtime\Public\Core\Trace</Filter>
     </ClInclude>
     <ClInclude Include="ThirdParty\wyhash\wyhash.h">
       <Filter>ThirdParty\wyhash</Filter>
@@ -260,20 +263,20 @@
     <ClInclude Include="ThirdParty\mimalloc\mimalloc.h">
       <Filter>ThirdParty\mimalloc</Filter>
     </ClInclude>
-    <ClInclude Include="Application\include\Application.h">
-      <Filter>Headers\Application</Filter>
+    <ClInclude Include="Runtime\Public\Application\Application.h">
+      <Filter>Runtime\Public\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Application\include\ApplicationEventHandler.h">
-      <Filter>Headers\Application</Filter>
+    <ClInclude Include="Runtime\Public\Application\ApplicationEventHandler.h">
+      <Filter>Runtime\Public\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Application\include\ApplicationInput.h">
-      <Filter>Headers\Application</Filter>
+    <ClInclude Include="Runtime\Public\Application\ApplicationInput.h">
+      <Filter>Runtime\Public\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Application\include\Platforms\Windows\SDLApplication.h">
-      <Filter>Headers\Application\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Application\Platforms\Windows\SDLApplication.h">
+      <Filter>Runtime\Public\Application\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Application\include\Platforms\Windows\SDLWindow.h">
-      <Filter>Headers\Application\Platforms\Windows</Filter>
+    <ClInclude Include="Runtime\Public\Application\Platforms\Windows\SDLWindow.h">
+      <Filter>Runtime\Public\Application\Platforms\Windows</Filter>
     </ClInclude>
     <ClInclude Include="ThirdParty\imgui\imconfig.h">
       <Filter>ThirdParty\imgui</Filter>
@@ -296,79 +299,79 @@
     <ClInclude Include="ThirdParty\imgui\backends\imgui_impl_sdl.h">
       <Filter>ThirdParty\imgui\backends</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\include\Engine.h">
-      <Filter>Headers\Engine</Filter>
+    <ClInclude Include="Runtime\Public\Engine\Engine.h">
+      <Filter>Runtime\Public\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\include\Application\EngineApp.h">
-      <Filter>Headers\Engine\Application</Filter>
+    <ClInclude Include="Runtime\Public\Engine\Application\EngineApp.h">
+      <Filter>Runtime\Public\Engine\Application</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\src\CommandLine.cpp">
-      <Filter>Source\Core</Filter>
+    <ClCompile Include="Runtime\Private\Core\CommandLine.cpp">
+      <Filter>Runtime\Private\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Async\TaskGraph.cpp">
-      <Filter>Source\Core\Async</Filter>
+    <ClCompile Include="Runtime\Private\Core\Async\TaskGraph.cpp">
+      <Filter>Runtime\Private\Core\Async</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Async\Thread.cpp">
-      <Filter>Source\Core\Async</Filter>
+    <ClCompile Include="Runtime\Private\Core\Async\Thread.cpp">
+      <Filter>Runtime\Private\Core\Async</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\IO\IO.cpp">
-      <Filter>Source\Core\IO</Filter>
+    <ClCompile Include="Runtime\Private\Core\IO\IO.cpp">
+      <Filter>Runtime\Private\Core\IO</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Log\Log.cpp">
-      <Filter>Source\Core\Log</Filter>
+    <ClCompile Include="Runtime\Private\Core\Log\Log.cpp">
+      <Filter>Runtime\Private\Core\Log</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Memory\Memory.cpp">
-      <Filter>Source\Core\Memory</Filter>
+    <ClCompile Include="Runtime\Private\Core\Memory\Memory.cpp">
+      <Filter>Runtime\Private\Core\Memory</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Memory\VirtualMemory.cpp">
-      <Filter>Source\Core\Memory</Filter>
+    <ClCompile Include="Runtime\Private\Core\Memory\VirtualMemory.cpp">
+      <Filter>Runtime\Private\Core\Memory</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Memory\Allocators\BaseAllocator.cpp">
-      <Filter>Source\Core\Memory\Allocators</Filter>
+    <ClCompile Include="Runtime\Private\Core\Memory\Allocators\BaseAllocator.cpp">
+      <Filter>Runtime\Private\Core\Memory\Allocators</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Misc\Guid.cpp">
-      <Filter>Source\Core\Misc</Filter>
+    <ClCompile Include="Runtime\Private\Core\Misc\Guid.cpp">
+      <Filter>Runtime\Private\Core\Misc</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Misc\Name.cpp">
-      <Filter>Source\Core\Misc</Filter>
+    <ClCompile Include="Runtime\Private\Core\Misc\Name.cpp">
+      <Filter>Runtime\Private\Core\Misc</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Platforms\Windows\WindowsAPI.cpp">
-      <Filter>Source\Core\Platforms\Windows</Filter>
+    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsAPI.cpp">
+      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Platforms\Windows\WindowsCriticalSection.cpp">
-      <Filter>Source\Core\Platforms\Windows</Filter>
+    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsCriticalSection.cpp">
+      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Platforms\Windows\WindowsMemory.cpp">
-      <Filter>Source\Core\Platforms\Windows</Filter>
+    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsMemory.cpp">
+      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Platforms\Windows\WindowsMisc.cpp">
-      <Filter>Source\Core\Platforms\Windows</Filter>
+    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsMisc.cpp">
+      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Platforms\Windows\WindowsThread.cpp">
-      <Filter>Source\Core\Platforms\Windows</Filter>
+    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsThread.cpp">
+      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Platforms\Windows\WindowsThreads.cpp">
-      <Filter>Source\Core\Platforms\Windows</Filter>
+    <ClCompile Include="Runtime\Private\Core\Platforms\Windows\WindowsThreads.cpp">
+      <Filter>Runtime\Private\Core\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Core\src\Time\Time.cpp">
-      <Filter>Source\Core\Time</Filter>
+    <ClCompile Include="Runtime\Private\Core\Time\Time.cpp">
+      <Filter>Runtime\Private\Core\Time</Filter>
     </ClCompile>
     <ClCompile Include="ThirdParty\tracy\TracyClient.cpp">
       <Filter>ThirdParty\tracy</Filter>
     </ClCompile>
-    <ClCompile Include="Application\src\Application.cpp">
-      <Filter>Source\Application</Filter>
+    <ClCompile Include="Runtime\Private\Application\Application.cpp">
+      <Filter>Runtime\Private\Application</Filter>
     </ClCompile>
-    <ClCompile Include="Application\src\ApplicationEventHandler.cpp">
-      <Filter>Source\Application</Filter>
+    <ClCompile Include="Runtime\Private\Application\ApplicationEventHandler.cpp">
+      <Filter>Runtime\Private\Application</Filter>
     </ClCompile>
-    <ClCompile Include="Application\src\Platforms\Windows\SDLApplication.cpp">
-      <Filter>Source\Application\Platforms\Windows</Filter>
+    <ClCompile Include="Runtime\Private\Application\Platforms\Windows\SDLApplication.cpp">
+      <Filter>Runtime\Private\Application\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Application\src\Platforms\Windows\SDLWindow.cpp">
-      <Filter>Source\Application\Platforms\Windows</Filter>
+    <ClCompile Include="Runtime\Private\Application\Platforms\Windows\SDLWindow.cpp">
+      <Filter>Runtime\Private\Application\Platforms\Windows</Filter>
     </ClCompile>
     <ClCompile Include="ThirdParty\imgui\imgui.cpp">
       <Filter>ThirdParty\imgui</Filter>
@@ -388,14 +391,14 @@
     <ClCompile Include="ThirdParty\imgui\backends\imgui_impl_sdl.cpp">
       <Filter>ThirdParty\imgui\backends</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\src\Engine.cpp">
-      <Filter>Source\Engine</Filter>
+    <ClCompile Include="Runtime\Private\Engine\Engine.cpp">
+      <Filter>Runtime\Private\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\src\WindowsMain.cpp">
-      <Filter>Source\Engine</Filter>
+    <ClCompile Include="Runtime\Private\Engine\WindowsMain.cpp">
+      <Filter>Runtime\Private\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\src\Application\EngineApp.cpp">
-      <Filter>Source\Engine\Application</Filter>
+    <ClCompile Include="Runtime\Private\Engine\Application\EngineApp.cpp">
+      <Filter>Runtime\Private\Engine\Application</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,34 +1,28 @@
 -- Files
 configuration "*"
 files {
-  "./Core/**",  
+  "./Runtime/*/Core/**",  
   "./ThirdParty/wyhash/*",
   "./ThirdParty/delegate/*",
   "./ThirdParty/tracy/TracyClient.cpp"
 }
 
-vpaths{
-  ["Headers/Core/*"] = "Core/include/**",
-  ["Source/Core/*"] = "Core/src/**",
-}
-
 configuration "win-*"
 files {
-  "./Core/include/Platforms/Windows/**",
-  "./Core/src/Platforms/Windows/**",
+  "./Runtime/*/Core/Platforms/Windows/**",
   "./ThirdParty/mimalloc/**"
 }
 
 -- Includes
 configuration "*"
 includedirs {
-  "./Core/include/",   
+  "./Runtime/Public/Core/",   
   "./ThirdParty/",
 }
 
 configuration "win-*"  
 includedirs {
-  "./Core/include/Platforms/",
+  "./Runtime/Public/Core/Platforms/",
   "./ThirdParty/mimalloc/"
 }
 
