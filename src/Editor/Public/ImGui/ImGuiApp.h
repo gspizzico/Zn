@@ -4,11 +4,12 @@
 
 namespace Zn
 {
-class Engine
+struct ImGuiApp
 {
-  public:
     static void Create();
     static void Destroy();
+
+    static void BeginFrame();
     static void Tick(float deltaTime_);
 };
 } // namespace Zn

@@ -2,6 +2,7 @@
 
 #include <Core/Log/Log.h>
 #include <Core/CoreTypes.h>
+#include <Core/Build.h>
 
 #define CONCAT(A, B)            A##B
 

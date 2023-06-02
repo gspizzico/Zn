@@ -4,39 +4,22 @@
 
 #include <Application/AppEventHandler.h>
 #include <Engine/Application/AppEventHandlerImpl.h>
+#include <Engine/RHI/RHIDevice.h>
+
+using namespace Zn;
 
 namespace
 {
 float GDeltaTime = 0.f;
-}
+} // namespace
 
-int32 Zn::Engine::Launch()
+void Zn::Engine::Create()
 {
     AppEventHandler::SetEventHandler(new AppEventHandlerImpl());
+}
 
-    Application& app = Application::Get();
-
-    double lastFrameTime = Time::Seconds();
-
-    double currentFrameTime = lastFrameTime;
-
-    while (!app.WantsToExit())
-    {
-        currentFrameTime = Time::Seconds();
-
-        GDeltaTime = static_cast<float>(currentFrameTime - lastFrameTime);
-
-        lastFrameTime = currentFrameTime;
-
-        if (!app.ProcessOSEvents(GDeltaTime))
-        {
-            break;
-        }
-
-        Engine::Tick(GDeltaTime);
-    }
-
-    return 0;
+void Zn::Engine::Destroy()
+{
 }
 
 void Zn::Engine::Tick(float deltaTime_)

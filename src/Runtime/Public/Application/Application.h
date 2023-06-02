@@ -13,7 +13,12 @@ struct WindowHandle
 class Application
 {
   public:
-    static Application&                  Get();
+    static Application& Get();
+    static void         Create();
+    static void         Destroy();
+
+    virtual void                         Initialize()                      = 0;
+    virtual void                         Shutdown()                        = 0;
     virtual bool                         ProcessOSEvents(float deltaTime_) = 0;
     virtual WindowHandle                 GetWindowHandle() const           = 0;
     virtual SharedPtr<struct InputState> GetInputState() const             = 0;
@@ -23,7 +28,4 @@ class Application
   protected:
     static void SetApplication(Application* application_);
 };
-
-void Platform_InitializeApplication();
-void Platform_ShutdownApplication();
 } // namespace Zn

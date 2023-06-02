@@ -11,6 +11,8 @@ struct QueueFamilyIndices
 {
     std::optional<uint32> graphics;
     std::optional<uint32> present;
+    std::optional<uint32> compute;
+    std::optional<uint32> transfer;
 };
 
 QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice device_, vk::SurfaceKHR surface_)
@@ -26,6 +28,16 @@ QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice device_, vk::Surface
         if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
         {
             outIndices.graphics = idx;
+        }
+
+        if (queueFamily.queueFlags & vk::QueueFlagBits::eCompute)
+        {
+            outIndices.compute = idx;
+        }
+
+        if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer)
+        {
+            outIndices.transfer = idx;
         }
 
         // tbd: We could enforce that Graphics and Present are in the same queue but is not mandatory.
@@ -122,10 +134,12 @@ VulkanGPU::VulkanGPU(vk::Instance instance_, vk::SurfaceKHR surface_)
 
     gpu           = physicalDevice.first;
     features      = gpu.getFeatures();
-    graphicsQueue = physicalDevice.second.graphics.value_or(-1);
-    presentQueue  = physicalDevice.second.present.value_or(-1);
+    graphicsQueue = physicalDevice.second.graphics.value_or(u32_max);
+    presentQueue  = physicalDevice.second.present.value_or(u32_max);
+    computeQueue  = physicalDevice.second.compute.value_or(u32_max);
+    transferQueue = physicalDevice.second.transfer.value_or(u32_max);
 
-    if (gpu.getSurfaceFormatsKHR().size() == 0 || gpu.getSurfacePresentModesKHR().size() == 0)
+    if (gpu.getSurfaceFormatsKHR(surface_).size() == 0 || gpu.getSurfacePresentModesKHR(surface_).size() == 0)
     {
         PlatformMisc::Exit(true);
     }

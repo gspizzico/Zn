@@ -7,11 +7,13 @@ namespace Zn
 class RHIDevice
 {
   public:
-    RHIDevice();
-
-    ~RHIDevice();
+    static void       Create();
+    static void       Destroy();
+    static RHIDevice& Get();
 
   private:
+    RHIDevice();
+    ~RHIDevice();
     void CreateSwapChain();
     void CleanupSwapChain();
 };

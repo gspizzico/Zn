@@ -2,6 +2,7 @@
 
 #include <Core/CoreMinimal.h>
 #include <Application/Application.h>
+#include <sdl/SDL.h>
 
 namespace Zn
 {
@@ -15,6 +16,8 @@ class SDLApplication : public Application
     virtual SharedPtr<InputState> GetInputState() const override;
     virtual void                  RequestExit(cstring exitReason_) override;
     virtual bool                  WantsToExit() const override;
+
+    TMulticastEvent<const SDL_Event*> externalEventProcessor;
 
   private:
     cstring                    title;

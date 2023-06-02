@@ -2,13 +2,6 @@
 configuration "*"
 files {
   "./Runtime/*/Application/**",
-  "./ThirdParty/imgui/*",
-  "./ThirdParty/imgui/backends/*sdl.**",
-}
-
--- Defines
-defines {
-  "WITH_IMGUI=1"
 }
 
 configuration "win-*"
@@ -22,8 +15,6 @@ includedirs {
   "./Runtime/Public/",
   "./ThirdParty/",
   "./ThirdParty/sdl/",
-  "./ThirdParty/imgui/",
-  "./ThirdParty/imgui/backends/",
 }
 
 configuration "win-*"  

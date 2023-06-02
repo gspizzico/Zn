@@ -1,5 +1,8 @@
 #include <Application/Application.h>
 #include <Core/CoreAssert.h>
+#if PLATFORM_WINDOWS
+    #include <Application/Platforms/Windows/SDLApplication.h>
+#endif
 
 using namespace Zn;
 
@@ -14,14 +17,22 @@ Zn::Application& Zn::Application::Get()
     return *GApplication;
 }
 
-void Zn::Application::SetApplication(Application* application_)
+void Zn::Application::Create()
 {
-    check(GApplication == nullptr || application_ == nullptr);
+    check(GApplication == nullptr);
 
-    if (GApplication)
-    {
-        delete GApplication;
-    }
+#if PLATFORM_WINDOWS
+    GApplication = new SDLApplication();
+#endif
 
-    GApplication = application_;
+    GApplication->Initialize();
+}
+
+void Zn::Application::Destroy()
+{
+    check(GApplication);
+
+    GApplication->Shutdown();
+
+    delete GApplication;
 }

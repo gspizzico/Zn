@@ -211,6 +211,7 @@ RHIDevice::~RHIDevice()
     }
 
     delete GVulkanGPU;
+    GVulkanGPU = nullptr;
 
 #if ZN_VK_VALIDATION_LAYERS
     VulkanValidation::DeinitializeDebugMessenger(GVkInstance);
@@ -224,7 +225,7 @@ void Zn::RHIDevice::CreateSwapChain()
 {
     vk::SurfaceFormatKHR surfaceFormat = {vk::Format::eUndefined, vk::ColorSpaceKHR::eSrgbNonlinear};
 
-    auto gpuSurfaceFormats = GVulkanGPU->gpu.getSurfaceFormatsKHR();
+    auto gpuSurfaceFormats = GVulkanGPU->gpu.getSurfaceFormatsKHR(GVkSurfaceKHR);
 
     for (const vk::SurfaceFormatKHR& format : gpuSurfaceFormats)
     {
@@ -247,7 +248,7 @@ void Zn::RHIDevice::CreateSwapChain()
     // Always guaranteed to be available.
     vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
 
-    auto gpuPresentModes = GVulkanGPU->gpu.getSurfacePresentModesKHR();
+    auto gpuPresentModes = GVulkanGPU->gpu.getSurfacePresentModesKHR(GVkSurfaceKHR);
 
     const bool useMailboxPresentMode = std::any_of(gpuPresentModes.begin(),
                                                    gpuPresentModes.end(),

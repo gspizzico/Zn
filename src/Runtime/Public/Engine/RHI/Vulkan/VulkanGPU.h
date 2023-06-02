@@ -18,5 +18,7 @@ struct VulkanGPU
 
     uint32 graphicsQueue = u32_max;
     uint32 presentQueue  = u32_max;
+    uint32 computeQueue  = u32_max;
+    uint32 transferQueue = u32_max;
 };
 } // namespace Zn

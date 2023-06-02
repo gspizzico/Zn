@@ -2,10 +2,20 @@
 
 #include <Core/CoreTypes.h>
 #include <Core/CoreAssert.h>
+#include <Core/Misc/Hash.h>
 #include <optional>
 
 namespace Zn
 {
+struct EventHandle
+{
+    uint64 handle = 0;
+
+    operator bool()
+    {
+        return handle != 0;
+    }
+};
 template<typename Signature>
 class TSingleEvent;
 
@@ -50,21 +60,38 @@ class TMulticastEvent
   public:
     TMulticastEvent() = default;
 
-    inline void Bind(TDelegate<void(Args...)>&& delegate_)
+    inline EventHandle Bind(TDelegate<void(Args...)>&& delegate_)
     {
         if (delegate_)
         {
-            delegates.push_back(std::move(delegate_));
+            EventHandle handle {HashCombine(HashCalculate(delegate_), HashCalculate(*this))};
+            delegates.push_back({handle, std::move(delegate_)});
+            return handle;
+        }
+
+        return EventHandle {};
+    }
+
+    inline void Unbind(EventHandle& handle_)
+    {
+        for (auto it = delegates.begin(); it != delegates.end(); ++it)
+        {
+            if ((*it).first == handle_)
+            {
+                delegates.erase(it);
+                handle_ = EventHandle();
+                break;
+            }
         }
     }
 
-    inline void Broadcast(Args&&... args_) const
+    inline void Broadcast(const Args&... args_) const
     {
-        for (const TDelegate<void(Args...)>& delegate : delegates)
+        for (const std::pair<EventHandle, TDelegate<void(Args...)>>& delegate : delegates)
         {
-            check(delegate);
+            check(delegate.second);
 
-            delegate(std::forward<Args>(args_)...);
+            delegate.second(std::forward<const Args&>(args_)...);
         }
     }
 
@@ -74,6 +101,6 @@ class TMulticastEvent
     }
 
   private:
-    Vector<TDelegate<void(Args...)>> delegates;
+    Vector<std::pair<EventHandle, TDelegate<void(Args...)>>> delegates;
 };
 } // namespace Zn
