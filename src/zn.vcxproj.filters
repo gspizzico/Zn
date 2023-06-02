@@ -124,11 +124,32 @@
     <Filter Include="Runtime\Private\Engine\Application">
       <UniqueIdentifier>{021260DA-EE4D-6344-5760-7B3B43BB0B5F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Private\Engine\RHI">
+      <UniqueIdentifier>{713307DC-5D43-B3AC-C6FC-17CBB22BA245}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Private\Engine\RHI\Vulkan">
+      <UniqueIdentifier>{BE85AA0F-2AF4-FF8E-73DD-BA8EDF8AF52A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Private\Engine\RHI\Vulkan\Windows">
+      <UniqueIdentifier>{85795B42-F193-BEE3-3AB6-CE77A60FE6EA}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\Public\Engine">
       <UniqueIdentifier>{36DEEF0D-A24A-AB08-6B3E-4366D769CD70}</UniqueIdentifier>
     </Filter>
     <Filter Include="Runtime\Public\Engine\Application">
       <UniqueIdentifier>{06853DF0-72F3-926F-BBDC-4D6F278A880B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Public\Engine\RHI">
+      <UniqueIdentifier>{75E2B322-E1A4-E7AC-2A55-76399656C08A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Public\Engine\RHI\Vulkan">
+      <UniqueIdentifier>{42A8634E-2EF9-4E90-575D-3D52430DE2F9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Public\Engine\RHI\Vulkan\Windows">
+      <UniqueIdentifier>{09E040C1-F55C-3404-1EDA-34180AB6D097}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\vk_mem_alloc">
+      <UniqueIdentifier>{95250CFD-015D-5494-0A67-B8B7761D7B8D}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -308,6 +329,45 @@
     <ClInclude Include="Runtime\Public\Engine\Application\AppEventHandlerImpl.h">
       <Filter>Runtime\Public\Engine\Application</Filter>
     </ClInclude>
+    <ClInclude Include="Runtime\Public\Engine\RHI\RHI.h">
+      <Filter>Runtime\Public\Engine\RHI</Filter>
+    </ClInclude>
+    <ClInclude Include="Runtime\Public\Engine\RHI\RHIDevice.h">
+      <Filter>Runtime\Public\Engine\RHI</Filter>
+    </ClInclude>
+    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\Vulkan.h">
+      <Filter>Runtime\Public\Engine\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\VulkanGPU.h">
+      <Filter>Runtime\Public\Engine\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\VulkanPlatform.h">
+      <Filter>Runtime\Public\Engine\RHI\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\Windows\WindowsVulkan.h">
+      <Filter>Runtime\Public\Engine\RHI\Vulkan\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc.h">
+      <Filter>ThirdParty\vk_mem_alloc</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc.hpp">
+      <Filter>ThirdParty\vk_mem_alloc</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_enums.hpp">
+      <Filter>ThirdParty\vk_mem_alloc</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_funcs.hpp">
+      <Filter>ThirdParty\vk_mem_alloc</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_handles.hpp">
+      <Filter>ThirdParty\vk_mem_alloc</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_raii.hpp">
+      <Filter>ThirdParty\vk_mem_alloc</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_structs.hpp">
+      <Filter>ThirdParty\vk_mem_alloc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Runtime\Private\Core\CommandLine.cpp">
@@ -402,6 +462,18 @@
     </ClCompile>
     <ClCompile Include="Runtime\Private\Engine\Application\AppEventHandlerImpl.cpp">
       <Filter>Runtime\Private\Engine\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\Vulkan.cpp">
+      <Filter>Runtime\Private\Engine\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\VulkanGPU.cpp">
+      <Filter>Runtime\Private\Engine\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\VulkanRHI.cpp">
+      <Filter>Runtime\Private\Engine\RHI\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\Windows\WindowsVulkan.cpp">
+      <Filter>Runtime\Private\Engine\RHI\Vulkan\Windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

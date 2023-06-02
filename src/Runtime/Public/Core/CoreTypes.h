@@ -138,7 +138,7 @@ constexpr sizet SizeOfDataType(DataType e)
 }
 
 template<typename T, u32 N>
-constexpr u32 ArrayLength(const T (&)[N]) noexcept
+constexpr u32 ArraySize(const T (&)[N]) noexcept
 {
     return N;
 }

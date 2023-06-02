@@ -102,7 +102,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;ThirdParty\vk_mem_alloc;c:\VulkanSDK\1.3.243.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -120,14 +120,14 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;ThirdParty\vk_mem_alloc;c:\VulkanSDK\1.3.243.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)zn-debug.pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;vulkan-1.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Libs\Debug;c:\VulkanSDK\1.3.243.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)zn-debug.exe</OutputFile>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <TargetMachine>MachineX64</TargetMachine>
@@ -137,7 +137,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;ThirdParty\vk_mem_alloc;c:\VulkanSDK\1.3.243.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;TRACY_ENABLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -155,14 +155,14 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;ZN_DEBUG;_CONSOLE;TRACY_ENABLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;ThirdParty\vk_mem_alloc;c:\VulkanSDK\1.3.243.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)zn-debug.pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Libs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;vulkan-1.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Libs\Debug;c:\VulkanSDK\1.3.243.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)zn-debug.exe</OutputFile>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <TargetMachine>MachineX64</TargetMachine>
@@ -172,7 +172,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;ThirdParty\vk_mem_alloc;c:\VulkanSDK\1.3.243.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
@@ -190,7 +190,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;ThirdParty\vk_mem_alloc;c:\VulkanSDK\1.3.243.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -198,8 +198,8 @@
       <ProgramDatabaseFile>$(OutDir)zn-release.pdb</ProgramDatabaseFile>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Libs\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;vulkan-1.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Libs\Release;c:\VulkanSDK\1.3.243.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)zn-release.exe</OutputFile>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <TargetMachine>MachineX64</TargetMachine>
@@ -209,7 +209,7 @@
     <ClCompile>
       <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;ThirdParty\vk_mem_alloc;c:\VulkanSDK\1.3.243.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TRACY_ENABLE;NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
@@ -227,7 +227,7 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>TRACY_ENABLE;NDEBUG;ZN_RELEASE;_CONSOLE;PLATFORM_WINDOWS;NOMINMAX;_HAS_EXCEPTIONS=0;WITH_IMGUI=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Runtime\Public;ThirdParty;Runtime\Public\Core\Platforms;ThirdParty\mimalloc;ThirdParty\sdl;ThirdParty\imgui;ThirdParty\imgui\backends;Runtime\Public\Application\Platforms;ThirdParty\vk_mem_alloc;c:\VulkanSDK\1.3.243.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -235,8 +235,8 @@
       <ProgramDatabaseFile>$(OutDir)zn-release.pdb</ProgramDatabaseFile>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Libs\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;rpcrt4.lib;mimalloc-static.lib;SDL2.lib;vulkan-1.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Libs\Release;c:\VulkanSDK\1.3.243.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)zn-release.exe</OutputFile>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <TargetMachine>MachineX64</TargetMachine>
@@ -300,6 +300,19 @@
     <ClInclude Include="ThirdParty\imgui\backends\imgui_impl_sdl.h" />
     <ClInclude Include="Runtime\Public\Engine\Engine.h" />
     <ClInclude Include="Runtime\Public\Engine\Application\AppEventHandlerImpl.h" />
+    <ClInclude Include="Runtime\Public\Engine\RHI\RHI.h" />
+    <ClInclude Include="Runtime\Public\Engine\RHI\RHIDevice.h" />
+    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\Vulkan.h" />
+    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\VulkanGPU.h" />
+    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\VulkanPlatform.h" />
+    <ClInclude Include="Runtime\Public\Engine\RHI\Vulkan\Windows\WindowsVulkan.h" />
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc.h" />
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc.hpp" />
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_enums.hpp" />
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_funcs.hpp" />
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_handles.hpp" />
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_raii.hpp" />
+    <ClInclude Include="ThirdParty\vk_mem_alloc\vk_mem_alloc_structs.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Runtime\Private\Core\CommandLine.cpp">
@@ -363,6 +376,14 @@
     <ClCompile Include="Runtime\Private\Engine\WindowsMain.cpp">
     </ClCompile>
     <ClCompile Include="Runtime\Private\Engine\Application\AppEventHandlerImpl.cpp">
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\Vulkan.cpp">
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\VulkanGPU.cpp">
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\VulkanRHI.cpp">
+    </ClCompile>
+    <ClCompile Include="Runtime\Private\Engine\RHI\Vulkan\Windows\WindowsVulkan.cpp">
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
