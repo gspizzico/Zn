@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/Log/LogMacros.h>
+#include <Core/CoreAssert.h>
 #include <vulkan/vulkan.h>
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #define VULKAN_HPP_NO_SPACESHIP_OPERATOR
@@ -9,7 +10,7 @@
 // #include <vma/vk_mem_alloc.h>
 #include <vk_mem_alloc/vk_mem_alloc.hpp>
 #if PLATFORM_WINDOWS
-    #include <sdl/SDL_vulkan.h>
+#include <sdl/SDL_vulkan.h>
 #endif
 
 #define ZN_VK_VALIDATION_LAYERS  (ZN_DEBUG)
