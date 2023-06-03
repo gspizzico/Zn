@@ -9,6 +9,10 @@ files {
   "./ThirdParty/vk_mem_alloc/**"
 }
 
+defines{
+  "WITH_VULKAN=1"
+}
+
 configuration "win-*"
 files {
   "./Runtime/*/PlatformRHI/Windows/Vulkan/**"

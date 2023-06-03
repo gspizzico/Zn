@@ -2,15 +2,18 @@
 #include <Core/CommandLine.h>
 #include <Core/Memory/Memory.h>
 #include <Core/Log/LogMacros.h>
-#include <ImGui/RHIImGui.h>
-
 #include <Application/Application.h>
-#if PLATFORM_WINDOWS
-    #include <Windows/Application/SDLApplication.h>
-#endif
 
 #include <imgui/imgui.h>
+
+#if PLATFORM_WINDOWS
+#include <Windows/Application/SDLApplication.h>
 #include <imgui/backends/imgui_impl_sdl.h>
+#endif // PLATFORM_WINDOWS
+
+#if WITH_VULKAN
+#include <imgui/backends/imgui_impl_vulkan.h>
+#endif // WITH_VULKAN
 
 using namespace Zn;
 
@@ -83,9 +86,18 @@ void ImGuiApp::Create()
     SDLApplication* sdlApp = static_cast<SDLApplication*>(&app);
 
     GProcessSDLEventHandle = sdlApp->externalEventProcessor.Bind(cpp::bind(&ProcessSDLEvent));
-#endif
 
-    RHIImGui::Initialize();
+#if WITH_VULKAN
+    WindowHandle windowHandle = app.GetWindowHandle();
+
+    check(windowHandle.handle != nullptr);
+
+    SDL_Window* window = SDL_GetWindowFromID(static_cast<uint32>(windowHandle.id));
+
+    ImGui_ImplSDL2_InitForVulkan(window);
+#endif // WITH_VULKAN
+
+#endif // PLATFORM_WINDOWS
 
     ZN_LOG(LogImGui, ELogVerbosity::Log, "ImGui context initialized.");
 }
@@ -103,7 +115,9 @@ void ImGuiApp::Destroy()
     }
 #endif
 
-    RHIImGui::Shutdown();
+#if WITH_VULKAN
+// ImGui_ImplVulkan_Shutdown();
+#endif // WITH_VULKAN
 
     ImGui::DestroyContext();
 }
