@@ -1,5 +1,6 @@
 #include <RHI/RHIDevice.h>
 #include <RHI/Vulkan/Vulkan.h>
+#include <RHI/Vulkan/VulkanDebug.h>
 #include <RHI/Vulkan/VulkanPlatform.h>
 #include <RHI/Vulkan/VulkanGPU.h>
 #include <RHI/Vulkan/VulkanContext.h>
@@ -17,12 +18,6 @@
 
 using namespace Zn;
 
-struct QueueFamilyIndices
-{
-    std::optional<uint32> graphics;
-    std::optional<uint32> present;
-};
-
 namespace
 {
 static const cstring       GDepthTextureName = "__DepthTexture";
@@ -30,9 +25,6 @@ static const TextureHandle GDepthTextureHandle(MAKE_RESOURCE_HANDLE(GDepthTextur
 
 using TTextureResource = TResource<RHITexture, VulkanTexture>;
 using TBufferResource  = TResource<RHIBuffer, VulkanBuffer>;
-
-const Vector<cstring> GValidationExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
-const Vector<cstring> GValidationLayers     = {"VK_LAYER_KHRONOS_validation"};
 
 VulkanSwapChain                       GSwapChain;
 vk::RenderPass                        GVkRenderPass;
@@ -118,103 +110,6 @@ void CopyToGPU(vma::Allocation allocation_, void* src_, uint32 size_)
 }
 } // namespace
 
-#if ZN_VK_VALIDATION_LAYERS
-namespace Zn::VulkanValidation
-{
-vk::DebugUtilsMessengerEXT GVkDebugMessenger {};
-
-ELogVerbosity VkMessageSeverityToZnVerbosity(vk::DebugUtilsMessageSeverityFlagBitsEXT severity)
-{
-    switch (severity)
-    {
-    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
-        return ELogVerbosity::Verbose;
-    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
-        return ELogVerbosity::Log;
-    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
-        return ELogVerbosity::Warning;
-    case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
-    default:
-        return ELogVerbosity::Error;
-    }
-}
-
-VKAPI_ATTR VkBool32 VKAPI_CALL OnDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT      severity,
-                                              VkDebugUtilsMessageTypeFlagsEXT             type,
-                                              const VkDebugUtilsMessengerCallbackDataEXT* data,
-                                              void*                                       userData)
-{
-    ELogVerbosity verbosity = VkMessageSeverityToZnVerbosity(vk::DebugUtilsMessageSeverityFlagBitsEXT(severity));
-
-    const String& messageType = vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(type));
-
-    ZN_LOG(LogVulkanValidation, verbosity, "[%s] %s", messageType.c_str(), data->pMessage);
-
-    if (verbosity >= ELogVerbosity::Error)
-    {
-        __debugbreak();
-    }
-
-    return VK_FALSE;
-}
-
-vk::DebugUtilsMessengerCreateInfoEXT GetDebugMessengerCreateInfo()
-{
-    vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo
-    {
-#if ZN_VK_VALIDATION_VERBOSE
-        .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-                           vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-#else
-        .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-                           vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
-#endif
-        .messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-                       vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
-        .pfnUserCallback = VulkanValidation::OnDebugMessage
-    };
-
-    return debugCreateInfo;
-}
-
-void InitializeDebugMessenger(vk::Instance instance_)
-{
-    check(!GVkDebugMessenger);
-
-    GVkDebugMessenger = instance_.createDebugUtilsMessengerEXT(GetDebugMessengerCreateInfo());
-}
-
-void DeinitializeDebugMessenger(vk::Instance instance_)
-{
-    if (GVkDebugMessenger)
-    {
-        instance_.destroyDebugUtilsMessengerEXT(GVkDebugMessenger);
-        GVkDebugMessenger = nullptr;
-    }
-}
-
-bool SupportsValidationLayers()
-{
-    Vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
-
-    return std::any_of(availableLayers.begin(),
-                       availableLayers.end(),
-                       [](const vk::LayerProperties& it)
-                       {
-                           for (const auto& layerName : GValidationLayers)
-                           {
-                               if (strcmp(it.layerName, layerName) == 0)
-                               {
-                                   return true;
-                               }
-                           }
-
-                           return false;
-                       });
-}
-} // namespace Zn::VulkanValidation
-#endif
-
 RHIDevice::RHIDevice()
 {
     // Initialize vk::DynamicLoader - It's needed to call .dll functions.
@@ -233,13 +128,7 @@ RHIDevice::RHIDevice()
     Vector<cstring> instanceExtensions = PlatformVulkan::GetInstanceExtensions();
 
 #if ZN_VK_VALIDATION_LAYERS
-    // Request debug utils extension if validation layers are enabled.
-    instanceExtensions.insert(instanceExtensions.end(), GValidationExtensions.begin(), GValidationExtensions.end());
-
-    if (VulkanValidation::SupportsValidationLayers())
-    {
-        instanceCreateInfo.setPEnabledLayerNames(GValidationLayers);
-    }
+    VulkanValidation::InitializeInstanceForDebug(instanceCreateInfo, instanceExtensions);
 #endif
 
     instanceCreateInfo.setPEnabledExtensionNames(instanceExtensions);
