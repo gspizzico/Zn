@@ -28,3 +28,6 @@
 [submodule "assets/glTF-Sample-Models"]
 	path = assets/glTF-Sample-Models
 	url = https://github.com/KhronosGroup/glTF-Sample-Models
+[submodule "unordered_dense"]
+	path = unordered_dense
+	url = https://github.com/martinus/unordered_dense.git

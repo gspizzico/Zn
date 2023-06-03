@@ -42,6 +42,6 @@ class TrackedMalloc : public BaseAllocator
     virtual bool Free(void* ptr_) override;
 
   private:
-    UnorderedSet<void*> allocations;
+    Set<void*> allocations;
 };
 } // namespace Zn

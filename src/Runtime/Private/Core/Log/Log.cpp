@@ -27,9 +27,9 @@ AutoMessageCallback GDefaultMessageCallback {};
 namespace Zn
 {
 // Internal use only. Map of registered log categories.
-UnorderedMap<Name, SharedPtr<LogCategory>>& GetLogCategories()
+Map<Name, SharedPtr<LogCategory>>& GetLogCategories()
 {
-    static UnorderedMap<Name, SharedPtr<LogCategory>> logCategories;
+    static Map<Name, SharedPtr<LogCategory>> logCategories;
     return logCategories;
 }
 

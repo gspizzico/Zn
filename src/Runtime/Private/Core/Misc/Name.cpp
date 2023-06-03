@@ -3,9 +3,9 @@
 
 namespace Zn
 {
-UnorderedMap<size_t, String>& Names()
+Map<size_t, String>& Names()
 {
-    static UnorderedMap<size_t, String> names;
+    static Map<size_t, String> names;
     return names;
 }
 

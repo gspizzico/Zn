@@ -129,30 +129,35 @@ bool           GIsCreatingAllocator = false;
 
 int CreateGAllocatorSafe()
 {
-    GDefaultAllocator = new TrackedMalloc();
-    GAllocator        = PlatformMemory::CreateAllocator();
+    GAllocator = PlatformMemory::CreateAllocator();
     return 1;
 }
 
 void CreateGAllocator()
 {
+    if (GIsCreatingAllocator == false)
+    {
+        GIsCreatingAllocator      = true;
+        static int staticInstance = CreateGAllocatorSafe();
+        GIsCreatingAllocator      = false;
+    }
+    else if (GDefaultAllocator == nullptr)
+    {
+        GDefaultAllocator = new TrackedMalloc();
+    }
     // Thread-safe, but do we need it?
-    static int staticInstance = CreateGAllocatorSafe();
 }
 
 void* New(sizet size_, sizet alignment_)
 {
     if (GAllocator == NULL)
     {
-        if (GIsCreatingAllocator == false)
-        {
-            GIsCreatingAllocator = true;
-            CreateGAllocator();
-            GIsCreatingAllocator = false;
-        }
+        CreateGAllocator();
     }
 
     auto allocator = GIsCreatingAllocator == false ? GAllocator : GDefaultAllocator;
+
+    check(allocator);
 
     auto address = allocator->Malloc(size_, alignment_);
 
