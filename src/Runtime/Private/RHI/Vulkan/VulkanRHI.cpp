@@ -2,6 +2,7 @@
 #include <RHI/Vulkan/Vulkan.h>
 #include <RHI/Vulkan/VulkanPlatform.h>
 #include <RHI/Vulkan/VulkanGPU.h>
+#include <RHI/Vulkan/VulkanContext.h>
 #include <Core/CoreAssert.h>
 #include <RHI/RHIResource.h>
 #include <RHI/RHITexture.h>
@@ -9,6 +10,7 @@
 #include <RHI/RHIBuffer.h>
 #include <RHI/Vulkan/VulkanBuffer.h>
 #include <RHI/Vulkan/VulkanResource.h>
+#include <RHI/Vulkan/VulkanSwapChain.h>
 #include <Core/Misc/Hash.h>
 
 #define MAKE_RESOURCE_HANDLE(name) ResourceHandle(HashCalculate(name))
@@ -32,16 +34,7 @@ using TBufferResource  = TResource<RHIBuffer, VulkanBuffer>;
 const Vector<cstring> GValidationExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
 const Vector<cstring> GValidationLayers     = {"VK_LAYER_KHRONOS_validation"};
 
-vk::Instance                          GVkInstance   = nullptr;
-vk::SurfaceKHR                        GVkSurfaceKHR = nullptr;
-VulkanGPU*                            GVulkanGPU    = nullptr;
-vk::Device                            GVkDevice     = nullptr;
-vma::Allocator                        GVkAllocator  = nullptr;
-vk::SurfaceFormatKHR                  GVkSwapChainFormat;
-vk::Extent2D                          GVkSwapChainExtent;
-vk::SwapchainKHR                      GVkSwapChain = nullptr;
-Vector<vk::Image>                     GVkSwapChainImages;
-Vector<vk::ImageView>                 GVkSwapChainImageViews;
+VulkanSwapChain                       GSwapChain;
 vk::RenderPass                        GVkRenderPass;
 Vector<vk::Framebuffer>               GVkFrameBuffers;
 Map<ResourceHandle, TTextureResource> GTextures;
@@ -76,7 +69,8 @@ TTextureResource CreateRHITexture(const RHITextureDescriptor& descriptor_)
                                                  },
                                                  VulkanTexture {}};
 
-    ZN_VK_CHECK(GVkAllocator.createImage(&createInfo, &allocation, &texture.payload.image, &texture.payload.memory, nullptr));
+    ZN_VK_CHECK(
+        VulkanContext::Get().allocator.createImage(&createInfo, &allocation, &texture.payload.image, &texture.payload.memory, nullptr));
 
     return texture;
 }
@@ -95,9 +89,10 @@ TBufferResource CreateBuffer(const RHIBufferDescriptor& descriptor_)
         .requiredFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
     };
 
-    check(GVkAllocator);
+    auto& allocator = VulkanContext::Get().allocator;
+    check(allocator);
 
-    auto [buffer, allocation] = GVkAllocator.createBuffer(createInfo, allocationInfo);
+    auto [buffer, allocation] = allocator.createBuffer(createInfo, allocationInfo);
 
     return TBufferResource(
         RHIBuffer {
@@ -113,11 +108,13 @@ TBufferResource CreateBuffer(const RHIBufferDescriptor& descriptor_)
 
 void CopyToGPU(vma::Allocation allocation_, void* src_, uint32 size_)
 {
-    void* dst = GVkAllocator.mapMemory(allocation_);
+    auto& allocator = VulkanContext::Get().allocator;
+
+    void* dst = allocator.mapMemory(allocation_);
 
     memcpy(dst, src_, size_);
 
-    GVkAllocator.unmapMemory(allocation_);
+    allocator.unmapMemory(allocation_);
 }
 } // namespace
 
@@ -247,41 +244,45 @@ RHIDevice::RHIDevice()
 
     instanceCreateInfo.setPEnabledExtensionNames(instanceExtensions);
 
-    GVkInstance = vk::createInstance(instanceCreateInfo);
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(GVkInstance);
+    VulkanContext& vkContext = VulkanContext::Get();
+    vkContext.instance       = vk::createInstance(instanceCreateInfo);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(vkContext.instance);
 
 #if ZN_VK_VALIDATION_LAYERS
-    VulkanValidation::InitializeDebugMessenger(GVkInstance);
+    VulkanValidation::InitializeDebugMessenger(vkContext.instance);
 #endif
 
-    GVkSurfaceKHR = PlatformVulkan::CreateSurface(GVkInstance);
+    vkContext.surface = PlatformVulkan::CreateSurface(vkContext.instance);
 
-    GVulkanGPU = new VulkanGPU(GVkInstance, GVkSurfaceKHR);
+    vkContext.gpu = VulkanGPU(vkContext.instance, vkContext.surface);
 
     // Logical Device
 
-    GVkDevice = GVulkanGPU->CreateDevice();
+    vkContext.device = vkContext.gpu.CreateDevice();
 
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(GVkDevice);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(vkContext.device);
 
     // Vma Allocator
-    vma::AllocatorCreateInfo allocatorCreateInfo {.physicalDevice = GVulkanGPU->gpu, .device = GVkDevice, .instance = GVkInstance};
+    vma::AllocatorCreateInfo allocatorCreateInfo {
+        .physicalDevice = vkContext.gpu.gpu, .device = vkContext.device, .instance = vkContext.instance};
 
-    GVkAllocator = vma::createAllocator(allocatorCreateInfo);
+    vkContext.allocator = vma::createAllocator(allocatorCreateInfo);
 
     CreateSwapChain();
 }
 
 RHIDevice::~RHIDevice()
 {
-    if (!GVkInstance)
+    VulkanContext& vkContext = VulkanContext::Get();
+
+    if (!vkContext.instance)
     {
         return;
     }
 
-    if (GVkDevice)
+    if (vkContext.device)
     {
-        GVkDevice.waitIdle();
+        vkContext.device.waitIdle();
     }
 
     CleanupSwapChain();
@@ -290,39 +291,38 @@ RHIDevice::~RHIDevice()
     {
         VulkanTexture& texture = textureResource.second.payload;
 
-        GVkDevice.destroyImageView(texture.imageView);
-        GVkAllocator.destroyImage(texture.image, texture.memory);
+        vkContext.device.destroyImageView(texture.imageView);
+        vkContext.allocator.destroyImage(texture.image, texture.memory);
     }
 
     GTextures.clear();
 
-    if (GVkAllocator)
+    if (vkContext.allocator)
     {
-        GVkAllocator.destroy();
-        GVkAllocator = nullptr;
+        vkContext.allocator.destroy();
+        vkContext.allocator = nullptr;
     }
 
-    if (GVkSurfaceKHR)
+    if (vkContext.surface)
     {
-        GVkInstance.destroySurfaceKHR(GVkSurfaceKHR);
-        GVkSurfaceKHR = nullptr;
+        vkContext.instance.destroySurfaceKHR(vkContext.surface);
+        vkContext.surface = nullptr;
     }
 
-    if (GVkDevice)
+    if (vkContext.device)
     {
-        GVkDevice.destroy();
-        GVkDevice = nullptr;
+        vkContext.device.destroy();
+        vkContext.device = nullptr;
     }
 
-    delete GVulkanGPU;
-    GVulkanGPU = nullptr;
+    vkContext.gpu = VulkanGPU();
 
 #if ZN_VK_VALIDATION_LAYERS
-    VulkanValidation::DeinitializeDebugMessenger(GVkInstance);
+    VulkanValidation::DeinitializeDebugMessenger(vkContext.instance);
 #endif
 
-    GVkInstance.destroy();
-    GVkInstance = nullptr;
+    vkContext.instance.destroy();
+    vkContext.instance = nullptr;
 }
 
 TextureHandle RHIDevice::CreateTexture(const RHITextureDescriptor& descriptor_)
@@ -348,117 +348,11 @@ TextureHandle RHIDevice::CreateTexture(const RHITextureDescriptor& descriptor_)
 
 void Zn::RHIDevice::CreateSwapChain()
 {
-    vk::SurfaceFormatKHR surfaceFormat = {vk::Format::eUndefined, vk::ColorSpaceKHR::eSrgbNonlinear};
-
-    auto gpuSurfaceFormats = GVulkanGPU->gpu.getSurfaceFormatsKHR(GVkSurfaceKHR);
-
-    for (const vk::SurfaceFormatKHR& format : gpuSurfaceFormats)
-    {
-        if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
-        {
-            surfaceFormat = format;
-            break;
-        }
-    }
-
-    if (surfaceFormat.format == vk::Format::eUndefined)
-    {
-        ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find requrested SurfaceFormatKHR. Fallback to first available.");
-
-        surfaceFormat = gpuSurfaceFormats[0];
-    }
-
-    GVkSwapChainFormat = surfaceFormat;
-
-    // Always guaranteed to be available.
-    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
-
-    auto gpuPresentModes = GVulkanGPU->gpu.getSurfacePresentModesKHR(GVkSurfaceKHR);
-
-    const bool useMailboxPresentMode = std::any_of(gpuPresentModes.begin(),
-                                                   gpuPresentModes.end(),
-                                                   [](vk::PresentModeKHR presentMode_)
-                                                   {
-                                                       // 'Triple Buffering'
-                                                       return presentMode_ == vk::PresentModeKHR::eMailbox;
-                                                   });
-
-    if (useMailboxPresentMode)
-    {
-        presentMode = vk::PresentModeKHR::eMailbox;
-    }
-
-    uint32 width, height;
-    PlatformVulkan::GetSurfaceDrawableSize(width, height);
-
-    vk::SurfaceCapabilitiesKHR capabilities = GVulkanGPU->gpu.getSurfaceCapabilitiesKHR(GVkSurfaceKHR);
-
-    width  = std::clamp(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-    height = std::clamp(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-    uint32 imageCount = capabilities.minImageCount + 1;
-    if (capabilities.maxImageCount > 0)
-    {
-        imageCount = std::min(imageCount, capabilities.maxImageCount);
-    }
-
-    GVkSwapChainExtent = vk::Extent2D {
-        .width  = width,
-        .height = height,
-    };
-
-    vk::SwapchainCreateInfoKHR swapChainCreateInfo {.surface               = GVkSurfaceKHR,
-                                                    .minImageCount         = imageCount,
-                                                    .imageFormat           = GVkSwapChainFormat.format,
-                                                    .imageColorSpace       = GVkSwapChainFormat.colorSpace,
-                                                    .imageExtent           = GVkSwapChainExtent,
-                                                    .imageArrayLayers      = 1,
-                                                    .imageUsage            = vk::ImageUsageFlagBits::eColorAttachment,
-                                                    .imageSharingMode      = vk::SharingMode::eExclusive,
-                                                    .queueFamilyIndexCount = 0,
-                                                    .pQueueFamilyIndices   = nullptr,
-                                                    .preTransform          = capabilities.currentTransform,
-                                                    .compositeAlpha        = vk::CompositeAlphaFlagBitsKHR::eOpaque,
-                                                    .presentMode           = presentMode,
-                                                    .clipped               = true};
-
-    if (GVulkanGPU->graphicsQueue != GVulkanGPU->presentQueue)
-    {
-        uint32 queueFamilies[]               = {GVulkanGPU->graphicsQueue, GVulkanGPU->presentQueue};
-        swapChainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-        swapChainCreateInfo.setQueueFamilyIndices(queueFamilies);
-    }
-
-    GVkSwapChain = GVkDevice.createSwapchainKHR(swapChainCreateInfo);
-
-    GVkSwapChainImages = GVkDevice.getSwapchainImagesKHR(GVkSwapChain);
-
-    GVkSwapChainImageViews.resize(GVkSwapChainImages.size());
-
-    for (auto index = 0; index < GVkSwapChainImages.size(); ++index)
-    {
-        vk::ImageViewCreateInfo imageViewCreateInfo {.image            = GVkSwapChainImages[index],
-                                                     .viewType         = vk::ImageViewType::e2D,
-                                                     .format           = GVkSwapChainFormat.format,
-                                                     // RGBA
-                                                     .components       = {vk::ComponentSwizzle::eIdentity,
-                                                                          vk::ComponentSwizzle::eIdentity,
-                                                                          vk::ComponentSwizzle::eIdentity,
-                                                                          vk::ComponentSwizzle::eIdentity},
-                                                     .subresourceRange = {
-                                                         .aspectMask     = vk::ImageAspectFlagBits::eColor,
-                                                         .baseMipLevel   = 0,
-                                                         .levelCount     = 1,
-                                                         .baseArrayLayer = 0,
-                                                         .layerCount     = 1,
-                                                     }};
-
-        GVkSwapChainImageViews[index] = GVkDevice.createImageView(imageViewCreateInfo);
-    }
+    GSwapChain.Create();
 
     TTextureResource depthTexture = CreateRHITexture(RHITextureDescriptor {
-        .width       = GVkSwapChainExtent.width,
-        .height      = GVkSwapChainExtent.height,
+        .width       = GSwapChain.extent.width,
+        .height      = GSwapChain.extent.height,
         .numMips     = 1,
         .numChannels = 1,
         .channelSize = sizeof(float),
@@ -482,53 +376,48 @@ void Zn::RHIDevice::CreateSwapChain()
             },
     };
 
-    depthTexture.payload.imageView = GVkDevice.createImageView(depthTextureViewCreateInfo);
+    depthTexture.payload.imageView = VulkanContext::Get().device.createImageView(depthTextureViewCreateInfo);
 
     GTextures.emplace(GDepthTextureHandle, std::move(depthTexture));
 }
 
 void RHIDevice::CleanupSwapChain()
 {
-    for (auto index = 0; index < GVkSwapChainImageViews.size(); ++index)
-    {
-        GVkDevice.destroyImageView(GVkSwapChainImageViews[index]);
-    }
+    VulkanContext& vkContext = VulkanContext::Get();
 
     if (auto it = GTextures.find(GDepthTextureHandle); it != GTextures.end())
     {
         TTextureResource& depthTexture = it->second;
 
-        GVkDevice.destroyImageView(depthTexture.payload.imageView);
-        GVkAllocator.destroyImage(depthTexture.payload.image, depthTexture.payload.memory);
+        vkContext.device.destroyImageView(depthTexture.payload.imageView);
+        vkContext.allocator.destroyImage(depthTexture.payload.image, depthTexture.payload.memory);
 
         GTextures.erase(it);
     }
 
-    GVkDevice.destroySwapchainKHR(GVkSwapChain);
-
-    GVkSwapChain = nullptr;
+    GSwapChain.Destroy();
 }
 
 void RHIDevice::CreateFrameBuffers()
 {
     vk::FramebufferCreateInfo frameBufferCreate {
         .renderPass = GVkRenderPass,
-        .width      = GVkSwapChainExtent.width,
-        .height     = GVkSwapChainExtent.height,
+        .width      = GSwapChain.extent.width,
+        .height     = GSwapChain.extent.height,
         .layers     = 1,
     };
 
-    GVkFrameBuffers = Vector<vk::Framebuffer>(GVkSwapChainImages.size());
+    GVkFrameBuffers = Vector<vk::Framebuffer>(GSwapChain.imageCount);
 
     TTextureResource& depthTexture = GTextures[GDepthTextureHandle];
 
-    for (auto index = 0; index < GVkSwapChainImages.size(); ++index)
+    for (uint32 index = 0; index < GSwapChain.imageCount; ++index)
     {
-        vk::ImageView attachments[2] = {GVkSwapChainImageViews[index], depthTexture.payload.imageView};
+        vk::ImageView attachments[2] = {GSwapChain.imageViews[index], depthTexture.payload.imageView};
 
         frameBufferCreate.setAttachments(attachments);
 
-        GVkFrameBuffers[index] = GVkDevice.createFramebuffer(frameBufferCreate);
+        GVkFrameBuffers[index] = VulkanContext::Get().device.createFramebuffer(frameBufferCreate);
     }
 }
 
@@ -536,6 +425,6 @@ void RHIDevice::CleanupFrameBuffers()
 {
     for (vk::Framebuffer& frameBuffer : GVkFrameBuffers)
     {
-        GVkDevice.destroyFramebuffer(frameBuffer);
+        VulkanContext::Get().device.destroyFramebuffer(frameBuffer);
     }
 }

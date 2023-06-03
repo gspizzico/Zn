@@ -58,13 +58,14 @@ bool HasRequiredDeviceExtensions(vk::PhysicalDevice device_)
 
     auto numFoundExtensions = std::count_if(availableExtensions.begin(),
                                             availableExtensions.end(),
-                                            [](const vk::ExtensionProperties& extension)
+                                            [](const vk::ExtensionProperties& extension_)
                                             {
-                                                return kRequiredDeviceExtensions.contains(extension.extensionName);
+                                                return kRequiredDeviceExtensions.contains(extension_.extensionName);
                                             });
 
     return kRequiredDeviceExtensions.size() == numFoundExtensions;
 }
+
 std::pair<vk::PhysicalDevice, QueueFamilyIndices> SelectPhysicalDevice(vk::Instance instance_, vk::SurfaceKHR surface_)
 {
     Vector<vk::PhysicalDevice> devices = instance_.enumeratePhysicalDevices();

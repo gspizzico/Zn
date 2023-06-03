@@ -8,6 +8,8 @@ namespace Zn
 
 struct VulkanGPU
 {
+    VulkanGPU() = default;
+
     VulkanGPU(vk::Instance instance_, vk::SurfaceKHR surface_);
     ~VulkanGPU();
 
