@@ -8,7 +8,7 @@ namespace Zn
 {
 class Mimalloc : public BaseAllocator
 {
-    virtual void* Malloc(sizet size_, sizet alignment_ = MemoryAlignment::kDefaultAlignment)
+    virtual void* Malloc(sizet size_, sizet alignment_ = MemoryAlignment::DefaultAlignment)
     {
         return mi_new_aligned(size_, alignment_);
     }

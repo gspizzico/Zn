@@ -28,7 +28,7 @@ bool ImGuiUseZnAllocator()
 
 void* ImGuiAlloc(sizet size_, void*)
 {
-    return Zn::Allocators::New(size_, Zn::MemoryAlignment::kDefaultAlignment);
+    return Zn::Allocators::New(size_, Zn::MemoryAlignment::DefaultAlignment);
 }
 
 void ImGuiFree(void* address_, void*)

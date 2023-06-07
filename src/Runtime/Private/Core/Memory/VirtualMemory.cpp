@@ -21,9 +21,9 @@ bool VirtualMemory::Release(void* address_)
 }
 bool VirtualMemory::Commit(void* address_, sizet size_)
 {
-    check(Memory::GetMemoryStatus().availPhys >= size_);
+    check(PlatformMemory::GetMemoryStatus().availPhys >= size_);
 
-    if (Memory::GetMemoryStatus().availPhys < size_)
+    if (PlatformMemory::GetMemoryStatus().availPhys < size_)
     {
         abort(); // TODO: OOM
     }

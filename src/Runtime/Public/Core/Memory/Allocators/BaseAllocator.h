@@ -25,7 +25,7 @@ class BaseAllocator : public SystemAllocator
   public:
     virtual ~BaseAllocator() = default;
 
-    virtual void* Malloc(size_t size_, size_t alignment_ = MemoryAlignment::kDefaultAlignment) = 0;
+    virtual void* Malloc(size_t size_, size_t alignment_ = MemoryAlignment::DefaultAlignment) = 0;
 
     virtual bool Free(void* ptr_) = 0;
 
@@ -37,7 +37,7 @@ class TrackedMalloc : public BaseAllocator
   public:
     virtual ~TrackedMalloc();
 
-    virtual void* Malloc(sizet size_, sizet alignment_ = MemoryAlignment::kDefaultAlignment) override;
+    virtual void* Malloc(sizet size_, sizet alignment_ = MemoryAlignment::DefaultAlignment) override;
 
     virtual bool Free(void* ptr_) override;
 

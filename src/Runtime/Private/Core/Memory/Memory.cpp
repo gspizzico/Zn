@@ -2,123 +2,9 @@
 #include <Core/CoreAssert.h>
 #include <Core/CorePlatform.h>
 #include <Core/Trace/Trace.h>
-
-namespace Zn
-{
-MemoryStatus Memory::GetMemoryStatus()
-{
-    return PlatformMemory::GetMemoryStatus();
-}
-
-uintptr_t Memory::Align(uintptr bytes_, sizet alignment_)
-{
-    const sizet mask = alignment_ - 1;
-    return (bytes_ + mask) & ~mask;
-}
-
-void* Memory::Align(void* address_, sizet alignment_)
-{
-    return reinterpret_cast<void*>(Memory::Align(reinterpret_cast<uintptr_t>(address_), alignment_));
-}
-
-void* Memory::AlignToAddress(void* address_, void* startAddress_, sizet alignment_)
-{
-    auto distance = GetDistance(address_, startAddress_);
-    return AddOffset(startAddress_, (distance - distance % alignment_));
-}
-
-// void* Memory::AlignDown(void* address_, sizet alignment)
-//{
-//	return IsAligned(address_, alignment) ? address_ : Memory::SubOffset(Memory::Align(address_, alignment), alignment);
-// }
-
-bool Memory::IsAligned(void* address_, sizet alignment_)
-{
-    return reinterpret_cast<uintptr>(address_) % alignment_ == 0;
-}
-void* Memory::AddOffset(void* address_, sizet offset_)
-{
-    return reinterpret_cast<uintptr*>((uintptr) address_ + (uintptr) offset_);
-}
-void* Memory::SubOffset(void* address_, sizet offset_)
-{
-    return reinterpret_cast<uintptr*>((uintptr) address_ - (uintptr) offset_);
-}
-ptrdiff Memory::GetDistance(const void* first_, const void* second_)
-{
-    return reinterpret_cast<intptr>(first_) - reinterpret_cast<intptr_t>(second_);
-}
-
-void Memory::MarkMemory(void* begin_, void* end_, int8_t pattern_)
-{
-    std::fill(reinterpret_cast<int8_t*>(begin_), reinterpret_cast<int8_t*>(end_), pattern_);
-}
-
-void Memory::Memzero(void* begin_, void* end_)
-{
-    std::memset(begin_, 0, static_cast<sizet>(GetDistance(end_, begin_)));
-}
-
-void Memory::Memzero(void* begin_, sizet size_)
-{
-    std::memset(begin_, 0, size_);
-}
-
-uint64 Memory::Convert(uint64 size_, StorageUnit convertTo_, StorageUnit convertFrom_)
-{
-    return size_ * uint64(convertFrom_) / uint64(convertTo_);
-}
-
-void MemoryDebug::MarkUninitialized(void* begin_, void* end_)
-{
-#if ZN_DEBUG
-    Memory::MarkMemory(begin_, end_, kUninitializedMemoryPattern);
-#endif
-}
-void MemoryDebug::MarkFree(void* begin_, void* end_)
-{
-#if ZN_DEBUG
-    Memory::MarkMemory(begin_, end_, kFreeMemoryPattern);
-#endif
-}
-void MemoryDebug::TrackAllocation(void* address_, sizet size)
-{
-    PlatformMemory::TrackAllocation(address_, size);
-}
-
-void MemoryDebug::TrackDeallocation(void* address_)
-{
-    PlatformMemory::TrackDeallocation(address_);
-}
-
-MemoryRange::MemoryRange(MemoryRange&& other_)
-    : begin(other_.begin)
-    , end(other_.end)
-{
-    Memory::Memzero(&other_, sizeof(MemoryRange));
-}
-
-bool MemoryRange::operator==(const MemoryRange& other_) const
-{
-    return begin == other_.begin && end == other_.end;
-}
-
-bool MemoryRange::Contains(const MemoryRange& other_) const
-{
-    if (*this == other_)
-        return true;
-
-    const auto distanceFromStart = Memory::GetDistance(other_.begin, begin);
-
-    const auto distanceFromEnd = Memory::GetDistance(end, other_.end);
-
-    return (distanceFromStart >= 0 && distanceFromEnd > 0) || (distanceFromStart > 0 && distanceFromEnd >= 0);
-}
-} // namespace Zn
-
-// Allocators
-
 #include <Core/Memory/Allocators/BaseAllocator.h>
+
+using namespace Zn;
 
 namespace Zn::Allocators
 {
@@ -186,7 +72,7 @@ using namespace Zn::Allocators;
 #pragma warning(push)
 #pragma warning(disable : 28251) // microsoft vs code analysis warning
 
-static_assert(Zn::MemoryAlignment::kDefaultAlignment > 0);
+static_assert(Zn::MemoryAlignment::DefaultAlignment > 0);
 
 void operator delete(void* p) noexcept
 {
@@ -208,22 +94,22 @@ void operator delete[](void* p, const std::nothrow_t&) noexcept
 
 void* operator new(std::size_t n) noexcept(false)
 {
-    return Zn::Allocators::New(n, Zn::MemoryAlignment::kDefaultAlignment);
+    return Zn::Allocators::New(n, MemoryAlignment::DefaultAlignment);
 }
 void* operator new[](std::size_t n) noexcept(false)
 {
-    return Zn::Allocators::New(n, Zn::MemoryAlignment::kDefaultAlignment);
+    return Zn::Allocators::New(n, MemoryAlignment::DefaultAlignment);
 }
 
 void* operator new(std::size_t n, const std::nothrow_t& tag) noexcept
 {
     (void) (tag);
-    return Zn::Allocators::New(n, Zn::MemoryAlignment::kDefaultAlignment);
+    return Zn::Allocators::New(n, MemoryAlignment::DefaultAlignment);
 }
 void* operator new[](std::size_t n, const std::nothrow_t& tag) noexcept
 {
     (void) (tag);
-    return Zn::Allocators::New(n, Zn::MemoryAlignment::kDefaultAlignment);
+    return Zn::Allocators::New(n, MemoryAlignment::DefaultAlignment);
 }
 
 #if (__cplusplus >= 201402L || _MSC_VER >= 1916)

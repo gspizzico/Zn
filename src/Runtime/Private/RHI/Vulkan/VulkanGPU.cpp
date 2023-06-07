@@ -168,8 +168,8 @@ vk::Device Zn::VulkanGPU::CreateDevice()
     };
 
     vk::DeviceCreateInfo deviceCreateInfo {
-        .queueCreateInfoCount = ArraySize(queueCreateInfo),
-        .pQueueCreateInfos    = ArrayData(queueCreateInfo),
+        .queueCreateInfoCount = SizeOf(queueCreateInfo),
+        .pQueueCreateInfos    = DataPtr(queueCreateInfo),
     };
 
     deviceCreateInfo.setPEnabledExtensionNames(GDeviceExtensions);

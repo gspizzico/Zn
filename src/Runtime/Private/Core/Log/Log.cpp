@@ -3,6 +3,8 @@
 #include <Core/CoreAssert.h>
 #include <Core/CorePlatform.h>
 
+using namespace Zn;
+
 namespace
 {
 Zn::PFN_LogMessageCallback GLogCallback = nullptr;
