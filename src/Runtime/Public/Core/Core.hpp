@@ -154,6 +154,12 @@ constexpr const T* DataPtr(const T (&arr_)[N]) noexcept
     return &arr_[0];
 }
 
+template<typename T, u32 N>
+constexpr T* DataPtr(T (&arr_)[N]) noexcept
+{
+    return &arr_[0];
+}
+
 // constexpr function to determine the size of a const string.
 template<size_t N>
 constexpr size_t StrLen(char const (&)[N])
@@ -277,6 +283,12 @@ class Memory
         Memzero(std::addressof(data_), sizeof(T));
     }
 
+    template<typename T, sizet N>
+    static void Memzero(T (&data_)[N])
+    {
+        Memzero(DataPtr(data_), sizeof(T) * N);
+    }
+
     static constexpr uint64 Convert(uint64 size_, StorageUnit convertTo_, StorageUnit convertFrom_)
     {
         return size_ * (uint64) (convertFrom_) / (uint64) convertTo_;
@@ -330,13 +342,15 @@ struct MemoryRange
   public:
     MemoryRange() = default;
 
-    MemoryRange(void* begin_, void* end_)
-        : begin(begin_)
-        , end(end_) {};
+    template<typename T>
+    MemoryRange(T* begin_, T* end_)
+        : begin((void*) begin_)
+        , end((void*) end_) {};
 
-    MemoryRange(void* begin_, sizet size_)
-        : begin(begin_)
-        , end(Memory::AddOffset(begin_, size_))
+    template<typename T>
+    MemoryRange(T* begin_, sizet size_)
+        : begin((void*) begin_)
+        , end(Memory::AddOffset((void*) begin_, size_))
     {
     }
 
@@ -371,7 +385,8 @@ struct MemoryRange
         return begin == other_.begin && end == other_.end;
     }
 
-    bool Contains(const void* address_) const
+    template<typename T>
+    bool Contains(const T* address_) const
     {
         return Memory::GetDistance(address_, begin) >= 0 && Memory::GetDistance(address_, end) < 0;
     }
@@ -386,6 +401,12 @@ struct MemoryRange
         const auto distanceFromEnd = Memory::GetDistance(end, other_.end);
 
         return (distanceFromStart >= 0 && distanceFromEnd > 0) || (distanceFromStart > 0 && distanceFromEnd >= 0);
+    }
+
+    template<typename T, sizet N>
+    static bool Contains(const T (&arr_)[N], T* ptr_)
+    {
+        return MemoryRange(DataPtr(arr_), sizeof(T) * N).Contains(ptr_);
     }
 
     sizet Size() const
