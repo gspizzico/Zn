@@ -24,27 +24,34 @@ struct AutoMessageCallback
 };
 
 AutoMessageCallback GDefaultMessageCallback {};
+
+static constexpr uint16 GMaxCategories = 1024;
+static LogCategory      GCategories[GMaxCategories];
+static uint16           GNumCategories = 0;
 } // namespace
 
 namespace Zn
 {
-// Internal use only. Map of registered log categories.
-Map<Name, SharedPtr<LogCategory>>& GetLogCategories()
+LogCategoryHandle Log::AddLogCategory(const LogCategory& category_)
 {
-    static Map<Name, SharedPtr<LogCategory>> logCategories;
-    return logCategories;
+    check(GNumCategories < GMaxCategories);
+
+    uint16 index = GNumCategories;
+
+    GCategories[index] = category_;
+
+    ++GNumCategories;
+
+    return LogCategoryHandle {
+        .handle = index,
+    };
 }
 
-void Log::AddLogCategory(SharedPtr<LogCategory> category_)
+bool Log::ModifyVerbosity(cstring name_, ELogVerbosity verbosity_)
 {
-    GetLogCategories().try_emplace(category_->name, category_);
-}
-
-bool Log::ModifyVerbosity(const Name& name_, ELogVerbosity verbosity_)
-{
-    if (auto it = GetLogCategories().find(name_); it != GetLogCategories().end())
+    if (LogCategory* category = GetLogCategory(name_))
     {
-        it->second->verbosity = verbosity_;
+        category->verbosity = verbosity_;
         return true;
     }
 
@@ -56,64 +63,50 @@ void Log::SetLogMessageCallback(PFN_LogMessageCallback callback_)
     GLogCallback = callback_;
 }
 
-SharedPtr<LogCategory> Log::GetLogCategory(const Name& name_)
+const LogCategory& Log::GetLogCategory(LogCategoryHandle handle_)
 {
-    if (auto it = GetLogCategories().find(name_); it != GetLogCategories().end())
+    check(handle_.handle < GNumCategories);
+    return GCategories[handle_.handle];
+}
+
+LogCategory* Log::GetLogCategory(cstring name_)
+{
+    for (uint16 index = 0; index < GNumCategories; ++index)
     {
-        return it->second;
+        if (_strcmpi(GCategories[index].name, name_))
+        {
+            return &GCategories[index];
+        }
     }
 
     return nullptr;
 }
 
-void Log::LogMsgInternal(const Name& category_, ELogVerbosity verbosity_, const char* message_)
+void Log::LogMsgInternal(LogCategoryHandle handle_, ELogVerbosity verbosity_, const char* message_)
 {
-    // Printf wrapper, since it's called two times, the first one to get the size of the buffer, the second one to write to it.
-    auto execute_printf = [timeString = Time::Now(), pLogCategory = category_.CString(), pLogVerbosity = ToCString(verbosity_), message_](
-                              char* buffer_, size_t size_) -> size_t
-    {
-        // Log Format -> [TimeStamp]    [LogCategory]   [LogVerbosity]: Message \n
-        constexpr auto format = "[%s]\t[%s]\t%s:\t%s\n";
+    check(handle_.handle < GNumCategories);
 
-        return std::snprintf(buffer_, size_, format, timeString.c_str(), pLogCategory, pLogVerbosity, message_);
-    };
+    LogCategory& category = GCategories[handle_.handle];
 
-    const auto bufferSize = execute_printf(nullptr, 0);
+    char buffer[512];
 
-    Vector<char> buffer(bufferSize + 1); // note +1 for null terminator
+    // [TimeStamp] [LogCategory] [LogVerbosity]: Message \n
+    static constexpr cstring format = "[%s] [%s] %s: %s\n";
 
-    execute_printf(&buffer[0], buffer.size());
+    std::snprintf(buffer, sizeof(buffer), format, Time::Now().c_str(), category.name, ToCString(verbosity_), message_);
 
     if (GLogCallback)
     {
-        GLogCallback(&buffer[0]);
+        GLogCallback(buffer);
     }
 }
 
-const char* Log::ToCString(ELogVerbosity verbosity_)
+cstring Log::ToCString(ELogVerbosity verbosity_)
 {
-    static const Name kVerbose {"Verbose"};
-    static const Name kLog {"Log"};
-    static const Name kWarning {"Warning"};
-    static const Name kError {"Error"};
+    check(verbosity_ != ELogVerbosity::MAX);
 
-    switch (verbosity_)
-    {
-    case ELogVerbosity::Verbose:
-        return kVerbose.CString();
-        break;
-    case ELogVerbosity::Log:
-        return kLog.CString();
-        break;
-    case ELogVerbosity::Warning:
-        return kWarning.CString();
-        break;
-    case ELogVerbosity::Error:
-        return kError.CString();
-        break;
-    default:
-        check(false);
-        return nullptr;
-    }
+    static cstring kVerbosities[] = {"Verbose", "Log", "Warning", "Error"};
+
+    return kVerbosities[(int32) verbosity_];
 }
 } // namespace Zn
