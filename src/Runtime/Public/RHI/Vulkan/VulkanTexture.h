@@ -16,9 +16,9 @@ vk::Format TranslateRHIFormat(RHIFormat format_)
 {
     switch (format_)
     {
-    case RHIFormat::B8G8R8A8_SRGB:
+    case RHIFormat::BGRA8_SRGB:
         return vk::Format::eB8G8R8A8Srgb;
-    case RHIFormat::R8G8B8A8_UNorm:
+    case RHIFormat::RGBA8_UNorm:
         return vk::Format::eR8G8B8A8Unorm;
     case RHIFormat::D32_Float:
         return vk::Format::eD32Sfloat;

@@ -4,6 +4,7 @@
 #include <RHI/Vulkan/VulkanPlatform.h>
 #include <RHI/Vulkan/VulkanGPU.h>
 #include <RHI/Vulkan/VulkanContext.h>
+#include <RHI/RHIResourceBuffer.h>
 #include <Core/CoreAssert.h>
 #include <RHI/RHIResource.h>
 #include <RHI/RHITexture.h>
@@ -20,16 +21,16 @@ using namespace Zn;
 
 namespace
 {
-static const cstring       GDepthTextureName = "__DepthTexture";
-static const TextureHandle GDepthTextureHandle(MAKE_RESOURCE_HANDLE(GDepthTextureName));
+static const cstring GDepthTextureName = "__DepthTexture";
+static TextureHandle GDepthTextureHandle;
 
 using TTextureResource = TResource<RHITexture, VulkanTexture>;
 using TBufferResource  = TResource<RHIBuffer, VulkanBuffer>;
 
-VulkanSwapChain                       GSwapChain;
-vk::RenderPass                        GVkRenderPass;
-Vector<vk::Framebuffer>               GVkFrameBuffers;
-Map<ResourceHandle, TTextureResource> GTextures;
+VulkanSwapChain                                                 GSwapChain;
+vk::RenderPass                                                  GVkRenderPass;
+Vector<vk::Framebuffer>                                         GVkFrameBuffers;
+RHIResourceBuffer<TTextureResource, TextureHandle, u16_max + 1> GTextures;
 
 TTextureResource CreateRHITexture(const RHITextureDescriptor& descriptor_)
 {
@@ -178,13 +179,13 @@ RHIDevice::~RHIDevice()
 
     for (auto& textureResource : GTextures)
     {
-        VulkanTexture& texture = textureResource.second.payload;
+        VulkanTexture& texture = textureResource.payload;
 
         vkContext.device.destroyImageView(texture.imageView);
         vkContext.allocator.destroyImage(texture.image, texture.memory);
     }
 
-    GTextures.clear();
+    GTextures.Clear();
 
     if (vkContext.allocator)
     {
@@ -228,9 +229,7 @@ TextureHandle RHIDevice::CreateTexture(const RHITextureDescriptor& descriptor_)
 
     // CopyToGPU(stagingBuffer.payload.memory, descriptor_.data, bufferSize);
 
-    TextureHandle resourceHandle(MAKE_RESOURCE_HANDLE(descriptor_.id));
-
-    GTextures.try_emplace(resourceHandle, std::move(texture));
+    TextureHandle resourceHandle = GTextures.Add(std::move(texture));
 
     return resourceHandle;
 }
@@ -267,21 +266,21 @@ void Zn::RHIDevice::CreateSwapChain()
 
     depthTexture.payload.imageView = VulkanContext::Get().device.createImageView(depthTextureViewCreateInfo);
 
-    GTextures.emplace(GDepthTextureHandle, std::move(depthTexture));
+    GDepthTextureHandle = GTextures.Add(std::move(depthTexture));
 }
 
 void RHIDevice::CleanupSwapChain()
 {
     VulkanContext& vkContext = VulkanContext::Get();
 
-    if (auto it = GTextures.find(GDepthTextureHandle); it != GTextures.end())
+    if (TTextureResource* depthTexture = GTextures[GDepthTextureHandle])
     {
-        TTextureResource& depthTexture = it->second;
+        vkContext.device.destroyImageView(depthTexture->payload.imageView);
+        vkContext.allocator.destroyImage(depthTexture->payload.image, depthTexture->payload.memory);
 
-        vkContext.device.destroyImageView(depthTexture.payload.imageView);
-        vkContext.allocator.destroyImage(depthTexture.payload.image, depthTexture.payload.memory);
+        GTextures.Evict(GDepthTextureHandle);
 
-        GTextures.erase(it);
+        GDepthTextureHandle = TextureHandle();
     }
 
     GSwapChain.Destroy();
@@ -298,11 +297,13 @@ void RHIDevice::CreateFrameBuffers()
 
     GVkFrameBuffers = Vector<vk::Framebuffer>(GSwapChain.imageCount);
 
-    TTextureResource& depthTexture = GTextures[GDepthTextureHandle];
+    TTextureResource* depthTexture = GTextures[GDepthTextureHandle];
+
+    check(depthTexture);
 
     for (uint32 index = 0; index < GSwapChain.imageCount; ++index)
     {
-        vk::ImageView attachments[2] = {GSwapChain.imageViews[index], depthTexture.payload.imageView};
+        vk::ImageView attachments[2] = {GSwapChain.imageViews[index], depthTexture->payload.imageView};
 
         frameBufferCreate.setAttachments(attachments);
 

@@ -29,23 +29,28 @@ enum class RHIResourceUsage
 
 struct ResourceHandle
 {
-    static constexpr uint64 kInvalidHandle = u64_max;
+    static constexpr uint16 kInvalidGen = u16_max;
 
-    uint64 handle = kInvalidHandle;
+    uint16 gen   = u16_max;
+    uint16 index = 0;
 
     operator bool() const
     {
-        return handle != u64_max;
+        return gen != u64_max;
     }
 };
 
 template<RHIResourceType type>
 struct TResourceHandle : ResourceHandle
 {
+    TResourceHandle() = default;
     TResourceHandle(ResourceHandle&& other_)
     {
-        handle        = other_.handle;
-        other_.handle = kInvalidHandle;
+        gen   = other_.gen;
+        index = other_.index;
+
+        other_.gen   = kInvalidGen;
+        other_.index = 0;
     }
 };
 
@@ -61,16 +66,3 @@ struct TResource
     TNativeRHI payload;
 };
 } // namespace Zn
-
-namespace MAP_HASH_NAMESPACE
-{
-template<>
-struct hash<Zn::ResourceHandle>
-{
-    using is_avalanching = void;
-    auto operator()(Zn::ResourceHandle const& handle_) const noexcept -> uint64
-    {
-        return handle_.handle;
-    }
-};
-} // namespace MAP_HASH_NAMESPACE
