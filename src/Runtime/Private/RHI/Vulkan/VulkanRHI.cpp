@@ -27,10 +27,10 @@ static TextureHandle GDepthTextureHandle;
 using TTextureResource = TResource<RHITexture, VulkanTexture>;
 using TBufferResource  = TResource<RHIBuffer, VulkanBuffer>;
 
-VulkanSwapChain                                                 GSwapChain;
-vk::RenderPass                                                  GVkRenderPass;
-Vector<vk::Framebuffer>                                         GVkFrameBuffers;
-RHIResourceBuffer<TTextureResource, TextureHandle, u16_max + 1> GTextures;
+VulkanSwapChain                                             GSwapChain;
+vk::RenderPass                                              GVkRenderPass;
+Vector<vk::Framebuffer>                                     GVkFrameBuffers;
+RHIResourceBuffer<TTextureResource, TextureHandle, u16_max> GTextures;
 
 TTextureResource CreateRHITexture(const RHITextureDescriptor& descriptor_)
 {
@@ -177,9 +177,9 @@ RHIDevice::~RHIDevice()
 
     CleanupSwapChain();
 
-    for (auto& textureResource : GTextures)
+    for (auto it = std::begin(GTextures); it != std::end(GTextures); ++it)
     {
-        VulkanTexture& texture = textureResource.payload;
+        VulkanTexture& texture = it->payload;
 
         vkContext.device.destroyImageView(texture.imageView);
         vkContext.allocator.destroyImage(texture.image, texture.memory);

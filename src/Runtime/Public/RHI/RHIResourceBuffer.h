@@ -144,15 +144,16 @@ class RHIResourceBuffer
         freeList.Reset();
     }
 
+    sizet AvailableSlots() const
+    {
+        return N - freeList.Count();
+    }
+
+    // Iterates over occupied entries.
     struct EntryIterator
     {
-        const BitArray<N>& freeList;
-        T*                 ptr;
-        IndexType          index;
-
-        EntryIterator(const BitArray<N>& freeList_, T* ptr_, IndexType index_)
-            : freeList(freeList_)
-            , ptr(ptr_)
+        EntryIterator(RHIResourceBuffer* buffer_, sizet index_)
+            : buffer(buffer_)
             , index(index_)
         {
         }
@@ -162,31 +163,64 @@ class RHIResourceBuffer
             do
             {
                 ++index;
-            } while (freeList[index] == false && index < N);
+            } while (index < N && buffer->freeList[index] == false);
 
             return *this;
         }
 
-        // TODO:
-        bool operator!=(const EntryIterator& other_)
+        EntryIterator& operator--()
         {
-            return index != other_.index && ptr != other_.ptr;
+            do
+            {
+                --index;
+            } while (index > 0 && buffer->freeList[index] == false);
+
+            return *this;
         }
 
-        auto& operator*() const
+        bool operator==(const EntryIterator& other_) const
         {
-            return *Memory::AddOffset(ptr, sizeof(T) + index);
+            return buffer == other_.buffer && index == other_.index;
         }
+
+        bool operator!=(const EntryIterator& other_) const
+        {
+            return !(this->operator==(other_));
+        }
+
+        T& operator*() const
+        {
+            return buffer->buffer[index];
+        }
+
+        T* operator->() const
+        {
+            return &buffer->buffer[index];
+        }
+
+        void Evict()
+        {
+            ResourceHandle handle {
+                .gen   = buffer->generations[index],
+                .index = static_cast<IndexType>(index),
+            };
+
+            buffer->Evict(H(std::move(handle)));
+        }
+
+      private:
+        RHIResourceBuffer* buffer;
+        sizet              index;
     };
 
     EntryIterator begin()
     {
-        return EntryIterator(freeList, DataPtr(buffer), 0);
+        return EntryIterator(this, 0);
     }
 
     EntryIterator end()
     {
-        return EntryIterator(freeList, DataPtr(buffer), N);
+        return EntryIterator(this, N);
     }
 
   private:

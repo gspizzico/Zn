@@ -30,11 +30,7 @@ SOFTWARE.
 
 namespace Zn
 {
-template<typename T, sizet N>
-concept TIsMultipleOf = (N % (sizeof(T) * CHAR_BIT) == 0);
-
 template<sizet N>
-    requires TIsMultipleOf<uint64, N>
 class BitArray
 {
   public:
@@ -49,6 +45,12 @@ class BitArray
     BitArray(bool value_)
     {
         Memory::Memset(chunks, value_ ? 0xFF : 0x00);
+
+        if constexpr (N < kNumBits)
+        {
+            const uint64 mask = ~(1ull << (N + 1));
+            chunks[0] &= mask;
+        }
     }
 
     BitArray(const BitArray& other_)
@@ -61,6 +63,8 @@ class BitArray
         memmove(DataPtr(chunks), DataPtr(other_.chunks), sizeof(chunks));
     }
 
+    // Constructs from a bit array of a different size.
+    // Will always copy the least significants bits.
     template<sizet K>
     BitArray(const BitArray<K>& other_)
         : BitArray()
@@ -76,6 +80,12 @@ class BitArray
         {
             constexpr sizet sourceChunk = OtherBitArray::kNumChunks - kNumChunks;
             memcpy(&chunks[0], &other_.chunks[sourceChunk], sizeof(chunks));
+        }
+
+        if constexpr (N < kNumBits)
+        {
+            const uint64 mask = ~(1ull << (N + 1));
+            chunks[0] &= mask;
         }
     }
 
@@ -168,9 +178,16 @@ class BitArray
 
     bool All() const
     {
-        for (sizet index = kNumChunks - 1; index >= 0; --index)
+        uint64 mask = u64_max;
+
+        if constexpr (N < kNumBits)
         {
-            if (chunks[index] != u64_max)
+            mask = ~(1ull << (N + 1));
+        }
+
+        for (int32 index = kNumChunks - 1; index >= 0; --index)
+        {
+            if (chunks[index] != mask)
             {
                 return false;
             }
@@ -181,7 +198,7 @@ class BitArray
 
     bool Any() const
     {
-        for (sizet index = kNumChunks - 1; index >= 0; --index)
+        for (int32 index = kNumChunks - 1; index >= 0; --index)
         {
             if (chunks[index])
                 return true;
@@ -216,6 +233,7 @@ class BitArray
 
     void Flip(sizet index_)
     {
+        checkMsg(index_ < N, "Out of bounds access");
         sizet chunkIndex = 0;
         sizet bitIndex   = 0;
 
@@ -241,6 +259,12 @@ class BitArray
         {
             chunks[index] = ~chunks[index];
         }
+
+        if constexpr (N < kNumBits)
+        {
+            const uint64 mask = ~(1ull << (N + 1));
+            chunks[0] &= mask;
+        }
     }
 
     void Reset()
@@ -248,15 +272,16 @@ class BitArray
         Memory::Memzero(chunks);
     }
 
+    // Returns the number of bits set to 1.
     sizet Count() const
     {
         sizet outCount = 0;
-        for (sizet index = kNumChunks - 1; index >= 0; --index)
+        for (int32 index = kNumChunks - 1; index >= 0; --index)
         {
             outCount += std::popcount(chunks[index]);
         }
 
-        return outCount;
+        return std::min(outCount, N);
     }
 
     sizet Size() const
@@ -270,6 +295,10 @@ class BitArray
         for (sizet index = 0; index < kNumChunks; ++index)
         {
             sizet leadingZeros = std::countl_zero(chunks[index]);
+            if constexpr (N < kNumBits)
+            {
+                leadingZeros -= kNumBits - N;
+            }
             outCount += leadingZeros;
 
             if (leadingZeros < kNumBits)
@@ -278,7 +307,7 @@ class BitArray
             }
         }
 
-        return outCount;
+        return std::min(outCount, N);
     }
 
     sizet CountLeadingOne() const
@@ -295,13 +324,13 @@ class BitArray
             }
         }
 
-        return outCount;
+        return std::min(outCount, N);
     }
 
     sizet CountReverseZero() const
     {
         sizet outCount = 0;
-        for (sizet index = kNumChunks - 1; index >= 0; --index)
+        for (int32 index = kNumChunks - 1; index >= 0; --index)
         {
             sizet reverseZeros = std::countr_zero(chunks[index]);
             outCount += reverseZeros;
@@ -312,13 +341,13 @@ class BitArray
             }
         }
 
-        return outCount;
+        return std::min(outCount, N);
     }
 
     sizet CountReverseOne() const
     {
         sizet outCount = 0;
-        for (sizet index = kNumChunks - 1; index >= 0; --index)
+        for (int32 index = kNumChunks - 1; index >= 0; --index)
         {
             sizet reverseOnes = std::countr_one(chunks[index]);
             outCount += reverseOnes;
@@ -329,12 +358,11 @@ class BitArray
             }
         }
 
-        return outCount;
+        return std::min(outCount, N);
     }
 
   private:
     template<sizet K>
-        requires TIsMultipleOf<uint64, K>
     friend class BitArray;
 
     friend BitArray operator&(const BitArray& lhs_, const BitArray& rhs_)
