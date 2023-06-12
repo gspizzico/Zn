@@ -29,6 +29,53 @@ SOFTWARE.
 #include <functional>
 #include <type_traits>
 
+#define ENABLE_BITMASK_OPERATORS(EnumType)                                                                                                 \
+    inline EnumType operator|(EnumType a, EnumType b)                                                                                      \
+    {                                                                                                                                      \
+        return static_cast<EnumType>(static_cast<std::underlying_type<EnumType>::type>(a) |                                                \
+                                     static_cast<std::underlying_type<EnumType>::type>(b));                                                \
+    }                                                                                                                                      \
+    inline EnumType operator&(EnumType a, EnumType b)                                                                                      \
+    {                                                                                                                                      \
+        return static_cast<EnumType>(static_cast<std::underlying_type<EnumType>::type>(a) &                                                \
+                                     static_cast<std::underlying_type<EnumType>::type>(b));                                                \
+    }                                                                                                                                      \
+    inline EnumType operator~(EnumType a)                                                                                                  \
+    {                                                                                                                                      \
+        return static_cast<EnumType>(~static_cast<std::underlying_type<EnumType>::type>(a));                                               \
+    }                                                                                                                                      \
+    inline EnumType& operator|=(EnumType& a, EnumType b)                                                                                   \
+    {                                                                                                                                      \
+        return a = a | b;                                                                                                                  \
+    }                                                                                                                                      \
+    inline EnumType& operator&=(EnumType& a, EnumType b)                                                                                   \
+    {                                                                                                                                      \
+        return a = a & b;                                                                                                                  \
+    }                                                                                                                                      \
+    inline bool EnumHasAll(EnumType a, EnumType b)                                                                                         \
+    {                                                                                                                                      \
+        return (a & b) == b;                                                                                                               \
+    }                                                                                                                                      \
+    inline bool EnumHasAny(EnumType a, EnumType b)                                                                                         \
+    {                                                                                                                                      \
+        return std::underlying_type_t<EnumType>(a & b) > 0;                                                                                \
+    }                                                                                                                                      \
+    inline bool EnumHasNone(EnumType a, EnumType b)                                                                                        \
+    {                                                                                                                                      \
+        return !EnumHasAll(a, b);                                                                                                          \
+    }
+
+// Usage
+// enum class MyEnum : unsigned int
+//{
+//    None  = 0,
+//    Flag1 = 1 << 0,
+//    Flag2 = 1 << 1,
+//    Flag3 = 1 << 2,
+//};
+//
+// ENABLE_BITMASK_OPERATORS(MyEnum);
+
 #if ZN_TYPES_UNDER_NAMESPACE
 namespace Zn
 {
@@ -146,6 +193,12 @@ template<typename T, u32 N>
 constexpr u32 SizeOfElement(const T (&)[N]) noexcept
 {
     return sizeof(T);
+}
+
+template<typename T, u32 N>
+constexpr u32 SizeOfArray(const T (&)[N]) noexcept
+{
+    return sizeof(T) * N;
 }
 
 template<typename T, u32 N>
