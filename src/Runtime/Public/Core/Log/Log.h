@@ -91,7 +91,7 @@ struct AutoLogCategory
 template<typename... Args>
 inline void Log::LogMsg(LogCategoryHandle handle_, ELogVerbosity verbosity_, const char* format_, Args&&... args_)
 {
-    char buffer[512];
+    char buffer[1024];
 
     std::snprintf(buffer, sizeof(buffer), format_, std::forward<Args>(args_)...);
 
