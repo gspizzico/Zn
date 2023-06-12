@@ -156,6 +156,10 @@ class RHIResourceBuffer
             : buffer(buffer_)
             , index(index_)
         {
+            if (index < N && buffer->freeList[index] == false)
+            {
+                this->operator++();
+            }
         }
 
         EntryIterator& operator++()
@@ -233,7 +237,7 @@ class RHIResourceBuffer
 
     bool GenerationCheck(const H& handle_) const
     {
-        const bool valid = handle_.gen > 0 && generations[handle_.index] == handle_.gen;
+        const bool valid = generations[handle_.index] == handle_.gen;
         return valid;
     }
 
