@@ -5,6 +5,7 @@
 #include <Core/Containers/Vector.h>
 #include <Core/Containers/Map.h>
 #include <Core/Containers/Set.h>
+#include <Core/Containers/Span.h>
 // #define DELEGATE_NAMESPACE TDelegate //TODO: If we want to override the cpp namespace, use this.
 #include <delegate/delegate.hpp>
 // #undef DELEGATE_NAMESPACE
