@@ -29,3 +29,5 @@
 
 DECLARE_LOG_CATEGORY(LogVulkan);
 DECLARE_LOG_CATEGORY(LogVulkanValidation);
+
+static constexpr sizet kVkMaxImageCount = 3;

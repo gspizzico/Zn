@@ -64,7 +64,7 @@ void Zn::VulkanSwapChain::Create()
         imageCount = std::min(imageCount, capabilities.maxImageCount);
     }
 
-    check(imageCount <= kMaxImageCount);
+    check(imageCount <= kVkMaxImageCount);
 
     extent = vk::Extent2D {
         .width  = width,
@@ -99,7 +99,7 @@ void Zn::VulkanSwapChain::Create()
     Vector<vk::Image> vImages = device.getSwapchainImagesKHR(swapChain);
 
     imageCount = static_cast<uint32>(vImages.size());
-    check(imageCount <= kMaxImageCount);
+    check(imageCount <= kVkMaxImageCount);
 
     for (uint32 index = 0; index < imageCount; ++index)
     {

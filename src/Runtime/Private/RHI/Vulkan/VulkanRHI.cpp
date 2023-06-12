@@ -13,7 +13,10 @@
 #include <RHI/Vulkan/VulkanBuffer.h>
 #include <RHI/Vulkan/VulkanResource.h>
 #include <RHI/Vulkan/VulkanSwapChain.h>
+#include <RHI/Vulkan/VulkanRenderPass.h>
 #include <Core/Misc/Hash.h>
+
+#include <deque>
 
 #define MAKE_RESOURCE_HANDLE(name) ResourceHandle(HashCalculate(name))
 
@@ -21,16 +24,43 @@ using namespace Zn;
 
 namespace
 {
+class CleanupQueue
+{
+  public:
+    ~CleanupQueue()
+    {
+        Flush();
+    }
+
+    void Push(std::function<void()>&& function_)
+    {
+        queue.emplace_back(std::move(function_));
+    }
+
+    void Flush()
+    {
+        while (!queue.empty())
+        {
+            std::invoke(queue.front());
+
+            queue.pop_front();
+        }
+    }
+
+  private:
+    std::deque<std::function<void()>> queue;
+};
 static const cstring GDepthTextureName = "__DepthTexture";
 static TextureHandle GDepthTextureHandle;
 
 using TTextureResource = TResource<RHITexture, VulkanTexture>;
 using TBufferResource  = TResource<RHIBuffer, VulkanBuffer>;
 
-VulkanSwapChain                                             GSwapChain;
-vk::RenderPass                                              GVkRenderPass;
-Vector<vk::Framebuffer>                                     GVkFrameBuffers;
-RHIResourceBuffer<TTextureResource, TextureHandle, u16_max> GTextures;
+VulkanSwapChain                                               GSwapChain;
+RHIResourceBuffer<TTextureResource, TextureHandle, u16_max>   GTextures;
+RHIResourceBuffer<VulkanRenderPass, RenderPassHandle, u8_max> GRenderPasses;
+RenderPassHandle                                              GMainRenderPass;
+CleanupQueue                                                  GCleanupQueue;
 
 TTextureResource CreateRHITexture(const RHITextureDescriptor& descriptor_)
 {
@@ -109,6 +139,30 @@ void CopyToGPU(vma::Allocation allocation_, void* src_, uint32 size_)
 
     allocator.unmapMemory(allocation_);
 }
+
+void CreateFramebuffer(VulkanRenderPass& renderPass_)
+{
+    vk::ImageView depthTextureIV = GTextures[GDepthTextureHandle]->payload.imageView;
+
+    auto frameBuffers = Span(renderPass_.frameBuffer);
+
+    for (auto it = std::begin(frameBuffers); it != std::end(frameBuffers); ++it)
+    {
+        Span<const vk::ImageView> attachments = {GSwapChain.imageViews[it.Index()], depthTextureIV};
+
+        // TODO: Layers?
+        vk::FramebufferCreateInfo createInfo {
+            .renderPass      = renderPass_.renderPass,
+            .attachmentCount = static_cast<uint32>(attachments.Size()),
+            .pAttachments    = attachments.Data(),
+            .width           = GSwapChain.extent.width,
+            .height          = GSwapChain.extent.height,
+            .layers          = 1,
+        };
+
+        *it = VulkanContext::Get().device.createFramebuffer(createInfo);
+    }
+}
 } // namespace
 
 RHIDevice::RHIDevice()
@@ -159,6 +213,147 @@ RHIDevice::RHIDevice()
     vkContext.allocator = vma::createAllocator(allocatorCreateInfo);
 
     CreateSwapChain();
+
+    // Allocate command contexts
+
+    // === GFX Context
+
+    vkContext.graphicsCmdContext.commandPool = vkContext.device.createCommandPool(vk::CommandPoolCreateInfo {
+        .flags            = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        .queueFamilyIndex = vkContext.gpu.graphicsQueue,
+    });
+
+    {
+        auto commandBuffers = vkContext.device.allocateCommandBuffers(vk::CommandBufferAllocateInfo {
+            .commandPool        = vkContext.graphicsCmdContext.commandPool,
+            .level              = vk::CommandBufferLevel::ePrimary,
+            .commandBufferCount = kVkMaxImageCount,
+        });
+
+        memcpy(DataPtr(vkContext.graphicsCmdContext.commandBuffers),
+               commandBuffers.data(),
+               SizeOfArray(vkContext.graphicsCmdContext.commandBuffers));
+    }
+
+    for (uint32 index = 0; index < SizeOf(vkContext.graphicsCmdContext.fences); ++index)
+    {
+        // Using Signaled flag so we can wait on it before using it on a GPU command (for the first frame)
+        vkContext.graphicsCmdContext.fences[index] = vkContext.device.createFence(vk::FenceCreateInfo {
+            .flags = vk::FenceCreateFlagBits::eSignaled,
+        });
+    }
+
+    GCleanupQueue.Push(
+        []()
+        {
+            VulkanContext& vkContext = VulkanContext::Get();
+
+            vkContext.device.destroyCommandPool(vkContext.graphicsCmdContext.commandPool);
+            for (uint32 index = 0; index < SizeOf(vkContext.graphicsCmdContext.fences); ++index)
+            {
+                vkContext.device.destroyFence(vkContext.graphicsCmdContext.fences[index]);
+            }
+
+            Memory::Memzero(vkContext.graphicsCmdContext);
+        });
+
+    // === Upload Context
+
+    vkContext.uploadCmdContext.commandPool = vkContext.device.createCommandPool(vk::CommandPoolCreateInfo {
+        .flags            = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        .queueFamilyIndex = vkContext.gpu.transferQueue, // TODO: It was GFX queue previously, need to check for sync?
+    });
+
+    {
+        auto commandBuffers = vkContext.device.allocateCommandBuffers(vk::CommandBufferAllocateInfo {
+            .commandPool        = vkContext.uploadCmdContext.commandPool,
+            .level              = vk::CommandBufferLevel::ePrimary,
+            .commandBufferCount = SizeOf(vkContext.uploadCmdContext.commandBuffers),
+        });
+
+        memcpy(DataPtr(vkContext.uploadCmdContext.commandBuffers),
+               commandBuffers.data(),
+               SizeOfArray(vkContext.uploadCmdContext.commandBuffers));
+    }
+
+    for (uint32 index = 0; index < SizeOf(vkContext.uploadCmdContext.fences); ++index)
+    {
+        vkContext.uploadCmdContext.fences[index] = vkContext.device.createFence(vk::FenceCreateInfo {
+            .flags = vk::FenceCreateFlags {0},
+        });
+    }
+
+    GCleanupQueue.Push(
+        []()
+        {
+            VulkanContext& vkContext = VulkanContext::Get();
+
+            vkContext.device.destroyCommandPool(vkContext.uploadCmdContext.commandPool);
+            for (uint32 index = 0; index < SizeOf(vkContext.uploadCmdContext.fences); ++index)
+            {
+                vkContext.device.destroyFence(vkContext.uploadCmdContext.fences[index]);
+            }
+
+            Memory::Memzero(vkContext.uploadCmdContext);
+        });
+
+    // Create Render Pass
+
+    RHIRenderPassDescription renderPassDescription {
+        .attachments =
+            {
+                {
+                    .type          = AttachmentType::Color,
+                    .format        = TranslateVkFormat(GSwapChain.surfaceFormat.format),
+                    .samples       = SampleCount::s1,
+                    .loadOp        = LoadOp::Clear,
+                    .storeOp       = StoreOp::Store,
+                    .initialLayout = ImageLayout::Undefined,
+                    .finalLayout   = ImageLayout::Present,
+                },
+                {
+                    .type          = AttachmentType::Depth,
+                    .format        = GTextures[GDepthTextureHandle]->resource.format,
+                    .samples       = SampleCount::s1,
+                    .loadOp        = LoadOp::Clear,
+                    .storeOp       = StoreOp::Store,
+                    .initialLayout = ImageLayout::Undefined,
+                    .finalLayout   = ImageLayout::DepthStencilAttachment,
+                },
+            },
+        .subpasses    = {{
+               .pipeline         = PipelineType::Graphics,
+               .colorAttachments = {{
+                   .attachment = 0,
+                   .layout     = ImageLayout::ColorAttachment,
+            }},
+               .depthStencilAttachment =
+                {
+                       .attachment = 1,
+                       .layout     = ImageLayout::DepthStencilAttachment,
+                },
+        }},
+        .dependencies = {{
+                             .srcSubpass    = SubpassDependency::kExternalSubpass,
+                             .dstSubpass    = 0,
+                             .srcStageMask  = PipelineStage::ColorAttachmentOutput,
+                             .dstStageMask  = PipelineStage::ColorAttachmentOutput,
+                             .srcAccessMask = AccessFlag::None,
+                             .dstAccessMask = AccessFlag::ColorAttachmentWrite,
+                         },
+                         {
+                             .srcSubpass    = SubpassDependency::kExternalSubpass,
+                             .dstSubpass    = 0,
+                             .srcStageMask  = PipelineStage::EarlyFragmentTests | PipelineStage::LateFragmentTests,
+                             .dstStageMask  = PipelineStage::EarlyFragmentTests | PipelineStage::LateFragmentTests,
+                             .srcAccessMask = AccessFlag::None,
+                             .dstAccessMask = AccessFlag::DepthStencilAttachmentWrite,
+                         }
+
+        }};
+
+    // TODO: Create RenderPass object that also contains FrameBuffer.
+    GMainRenderPass = CreateRenderPass(renderPassDescription);
 }
 
 RHIDevice::~RHIDevice()
@@ -186,6 +381,15 @@ RHIDevice::~RHIDevice()
     }
 
     GTextures.Clear();
+
+    for (VulkanRenderPass& renderPass : GRenderPasses)
+    {
+        vkContext.device.destroyRenderPass(renderPass.renderPass);
+    }
+
+    GRenderPasses.Clear();
+
+    GCleanupQueue.Flush();
 
     if (vkContext.allocator)
     {
@@ -234,6 +438,27 @@ TextureHandle RHIDevice::CreateTexture(const RHITextureDescriptor& descriptor_)
     return resourceHandle;
 }
 
+RenderPassHandle Zn::RHIDevice::CreateRenderPass(const RHIRenderPassDescription& description_)
+{
+    VulkanRenderPassDescription vkRenderPass = TranslateRenderPass(description_);
+
+    vk::RenderPassCreateInfo createInfo {
+        .attachmentCount = static_cast<uint32>(vkRenderPass.attachments.size()),
+        .pAttachments    = vkRenderPass.attachments.data(),
+        .subpassCount    = static_cast<uint32>(vkRenderPass.vkSubpasses.size()),
+        .pSubpasses      = vkRenderPass.vkSubpasses.data(),
+        .dependencyCount = static_cast<uint32>(vkRenderPass.dependencies.size()),
+        .pDependencies   = vkRenderPass.dependencies.data(),
+    };
+
+    VulkanRenderPass renderPass;
+    renderPass.renderPass = VulkanContext::Get().device.createRenderPass(createInfo);
+
+    CreateFramebuffer(renderPass);
+
+    return GRenderPasses.Add(std::move(renderPass));
+}
+
 void Zn::RHIDevice::CreateSwapChain()
 {
     GSwapChain.Create();
@@ -273,6 +498,15 @@ void RHIDevice::CleanupSwapChain()
 {
     VulkanContext& vkContext = VulkanContext::Get();
 
+    for (VulkanRenderPass& renderPass : GRenderPasses)
+    {
+        for (vk::Framebuffer& frameBuffer : Span(renderPass.frameBuffer))
+        {
+            vkContext.device.destroyFramebuffer(frameBuffer);
+            frameBuffer = VK_NULL_HANDLE;
+        }
+    }
+
     if (TTextureResource* depthTexture = GTextures[GDepthTextureHandle])
     {
         vkContext.device.destroyImageView(depthTexture->payload.imageView);
@@ -284,37 +518,4 @@ void RHIDevice::CleanupSwapChain()
     }
 
     GSwapChain.Destroy();
-}
-
-void RHIDevice::CreateFrameBuffers()
-{
-    vk::FramebufferCreateInfo frameBufferCreate {
-        .renderPass = GVkRenderPass,
-        .width      = GSwapChain.extent.width,
-        .height     = GSwapChain.extent.height,
-        .layers     = 1,
-    };
-
-    GVkFrameBuffers = Vector<vk::Framebuffer>(GSwapChain.imageCount);
-
-    TTextureResource* depthTexture = GTextures[GDepthTextureHandle];
-
-    check(depthTexture);
-
-    for (uint32 index = 0; index < GSwapChain.imageCount; ++index)
-    {
-        vk::ImageView attachments[2] = {GSwapChain.imageViews[index], depthTexture->payload.imageView};
-
-        frameBufferCreate.setAttachments(attachments);
-
-        GVkFrameBuffers[index] = VulkanContext::Get().device.createFramebuffer(frameBufferCreate);
-    }
-}
-
-void RHIDevice::CleanupFrameBuffers()
-{
-    for (vk::Framebuffer& frameBuffer : GVkFrameBuffers)
-    {
-        VulkanContext::Get().device.destroyFramebuffer(frameBuffer);
-    }
 }

@@ -25,6 +25,8 @@ enum class RHITextureFlags : uint32
     Input        = 0b10000000,
 };
 
+ENABLE_BITMASK_OPERATORS(RHITextureFlags);
+
 struct RHITextureDescriptor
 {
     uint32          width;

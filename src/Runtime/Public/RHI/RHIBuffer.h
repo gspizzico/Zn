@@ -13,7 +13,7 @@ enum class RHIBufferUsage : uint32
     Storage     = 0b1000,
     Indirect    = 0b10000,
     Vertex      = 0b100000,
-    Index       = 0b100000,
+    Index       = 0b1000000,
 };
 
 struct RHIBuffer

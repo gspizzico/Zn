@@ -12,7 +12,7 @@ struct VulkanTexture
     vma::Allocation memory;
 };
 
-vk::Format TranslateRHIFormat(RHIFormat format_)
+inline vk::Format TranslateRHIFormat(RHIFormat format_)
 {
     switch (format_)
     {
@@ -31,20 +31,38 @@ vk::Format TranslateRHIFormat(RHIFormat format_)
     return vk::Format::eUndefined;
 }
 
-vk::ImageUsageFlags TranslateRHITextureFlags(RHITextureFlags flags_)
+inline RHIFormat TranslateVkFormat(vk::Format format_)
+{
+    switch (format_)
+    {
+    case vk::Format::eB8G8R8A8Srgb:
+        return RHIFormat::BGRA8_SRGB;
+    case vk::Format::eR8G8B8A8Unorm:
+        return RHIFormat::RGBA8_UNorm;
+    case vk::Format::eD32Sfloat:
+        return RHIFormat::D32_Float;
+    case vk::Format::eUndefined:
+        return RHIFormat::Undefined;
+    }
+
+    check(false);
+    return RHIFormat::Undefined;
+}
+
+inline vk::ImageUsageFlags TranslateRHITextureFlags(RHITextureFlags flags_)
 {
     static constexpr vk::ImageUsageFlags kNoFlag {0};
 
     vk::ImageUsageFlags outFlags = kNoFlag;
 
-    outFlags |= ((uint32) flags_ & (uint32) RHITextureFlags::TransferSrc) ? vk::ImageUsageFlagBits::eTransferSrc : kNoFlag;
-    outFlags |= ((uint32) flags_ & (uint32) RHITextureFlags::TransferDst) ? vk::ImageUsageFlagBits::eTransferDst : kNoFlag;
-    outFlags |= ((uint32) flags_ & (uint32) RHITextureFlags::Sampled) ? vk::ImageUsageFlagBits::eSampled : kNoFlag;
-    outFlags |= ((uint32) flags_ & (uint32) RHITextureFlags::Storage) ? vk::ImageUsageFlagBits::eStorage : kNoFlag;
-    outFlags |= ((uint32) flags_ & (uint32) RHITextureFlags::Color) ? vk::ImageUsageFlagBits::eColorAttachment : kNoFlag;
-    outFlags |= ((uint32) flags_ & (uint32) RHITextureFlags::DepthStencil) ? vk::ImageUsageFlagBits::eDepthStencilAttachment : kNoFlag;
-    outFlags |= ((uint32) flags_ & (uint32) RHITextureFlags::Transient) ? vk::ImageUsageFlagBits::eTransientAttachment : kNoFlag;
-    outFlags |= ((uint32) flags_ & (uint32) RHITextureFlags::Input) ? vk::ImageUsageFlagBits::eInputAttachment : kNoFlag;
+    outFlags |= EnumHasAll(flags_, RHITextureFlags::TransferSrc) ? vk::ImageUsageFlagBits::eTransferSrc : kNoFlag;
+    outFlags |= EnumHasAll(flags_, RHITextureFlags::TransferDst) ? vk::ImageUsageFlagBits::eTransferDst : kNoFlag;
+    outFlags |= EnumHasAll(flags_, RHITextureFlags::Sampled) ? vk::ImageUsageFlagBits::eSampled : kNoFlag;
+    outFlags |= EnumHasAll(flags_, RHITextureFlags::Storage) ? vk::ImageUsageFlagBits::eStorage : kNoFlag;
+    outFlags |= EnumHasAll(flags_, RHITextureFlags::Color) ? vk::ImageUsageFlagBits::eColorAttachment : kNoFlag;
+    outFlags |= EnumHasAll(flags_, RHITextureFlags::DepthStencil) ? vk::ImageUsageFlagBits::eDepthStencilAttachment : kNoFlag;
+    outFlags |= EnumHasAll(flags_, RHITextureFlags::Transient) ? vk::ImageUsageFlagBits::eTransientAttachment : kNoFlag;
+    outFlags |= EnumHasAll(flags_, RHITextureFlags::Input) ? vk::ImageUsageFlagBits::eInputAttachment : kNoFlag;
 
     return outFlags;
 }

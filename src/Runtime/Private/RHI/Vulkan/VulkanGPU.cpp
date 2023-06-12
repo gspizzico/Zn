@@ -28,6 +28,11 @@ QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice device_, vk::Surface
         if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
         {
             outIndices.graphics = idx;
+
+            if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer)
+            {
+                outIndices.transfer = idx;
+            }
         }
 
         if (queueFamily.queueFlags & vk::QueueFlagBits::eCompute)
@@ -35,7 +40,7 @@ QueueFamilyIndices GetQueueFamilyIndices(vk::PhysicalDevice device_, vk::Surface
             outIndices.compute = idx;
         }
 
-        if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer)
+        if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer && !outIndices.transfer.has_value())
         {
             outIndices.transfer = idx;
         }

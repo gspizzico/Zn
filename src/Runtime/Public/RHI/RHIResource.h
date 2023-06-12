@@ -10,7 +10,8 @@ enum class RHIResourceType
     VertexBuffer,
     IndexBuffer,
     UniformBuffer,
-    StagingBuffer
+    StagingBuffer,
+    RenderPass,
 };
 
 enum class RHIResourceUsage
@@ -58,6 +59,7 @@ using TextureHandle      = TResourceHandle<RHIResourceType::Texture>;
 using UBOHandle          = TResourceHandle<RHIResourceType::UniformBuffer>;
 using VertexBufferHandle = TResourceHandle<RHIResourceType::VertexBuffer>;
 using IndexBufferHandle  = TResourceHandle<RHIResourceType::IndexBuffer>;
+using RenderPassHandle   = TResourceHandle<RHIResourceType::RenderPass>;
 
 template<typename TRHI, typename TNativeRHI>
 struct TResource
