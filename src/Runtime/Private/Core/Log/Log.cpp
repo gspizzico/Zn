@@ -88,7 +88,7 @@ void Log::LogMsgInternal(LogCategoryHandle handle_, ELogVerbosity verbosity_, co
 
     LogCategory& category = GCategories[handle_.handle];
 
-    char buffer[512];
+    char buffer[1024];
 
     // [TimeStamp] [LogCategory] [LogVerbosity]: Message \n
     static constexpr cstring format = "[%s] [%s] %s: %s\n";
