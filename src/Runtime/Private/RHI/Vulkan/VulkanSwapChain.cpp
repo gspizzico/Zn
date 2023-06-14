@@ -123,6 +123,19 @@ void Zn::VulkanSwapChain::Create()
 
         imageViews[index] = device.createImageView(imageViewCreateInfo);
     }
+
+    for (vk::Fence& fence : Span(fences))
+    {
+        // Using Signaled flag so we can wait on it before using it on a GPU command (for the first frame)
+        fence = device.createFence(vk::FenceCreateInfo {
+            .flags = vk::FenceCreateFlagBits::eSignaled,
+        });
+    }
+
+    for (vk::Semaphore& semaphore : Span(semaphores))
+    {
+        semaphore = device.createSemaphore(vk::SemaphoreCreateInfo {});
+    }
 }
 
 void Zn::VulkanSwapChain::Destroy()
@@ -135,6 +148,17 @@ void Zn::VulkanSwapChain::Destroy()
     }
 
     vkContext.device.destroySwapchainKHR(swapChain);
+
+    // TODO: Creation/Destruction was not done at every swapchain re-creation so it might be a waste.
+    for (vk::Fence& fence : Span(fences))
+    {
+        vkContext.device.destroyFence(fence);
+    }
+
+    for (vk::Semaphore& semaphore : Span(semaphores))
+    {
+        vkContext.device.destroySemaphore(semaphore);
+    }
 
     *this = VulkanSwapChain();
 }

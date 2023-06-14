@@ -14,6 +14,8 @@ struct VulkanSwapChain
     uint32               imageCount = 0;
     vk::Image            images[kVkMaxImageCount];
     vk::ImageView        imageViews[kVkMaxImageCount];
+    vk::Fence            fences[kVkMaxImageCount];
+    vk::Semaphore        semaphores[kVkMaxImageCount];
 
     void Create();
     void Destroy();

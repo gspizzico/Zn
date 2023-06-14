@@ -10,7 +10,6 @@ struct VulkanCommandContext
 {
     vk::CommandPool   commandPool;
     vk::CommandBuffer commandBuffers[NumCommandBuffers];
-    vk::Fence         fences[NumCommandBuffers];
 };
 
 struct VulkanContext
@@ -20,9 +19,14 @@ struct VulkanContext
     vk::Instance                           instance;
     VulkanGPU                              gpu;
     vk::Device                             device;
+    vk::Queue                              graphicsQueue;
+    vk::Queue                              presentQueue;
+    vk::Queue                              computeQueue;
+    vk::Queue                              transferQueue;
     vk::SurfaceKHR                         surface;
     vma::Allocator                         allocator;
     VulkanCommandContext<kVkMaxImageCount> graphicsCmdContext;
     VulkanCommandContext<1>                uploadCmdContext;
+    vk::Fence                              uploadFence;
 };
 } // namespace Zn

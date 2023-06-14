@@ -207,6 +207,26 @@ RHIDevice::RHIDevice()
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init(vkContext.device);
 
+    if (vkContext.gpu.graphicsQueue != u32_max)
+    {
+        vkContext.graphicsQueue = vkContext.device.getQueue(vkContext.gpu.graphicsQueue, 0);
+    }
+
+    if (vkContext.gpu.presentQueue != u32_max)
+    {
+        vkContext.presentQueue = vkContext.device.getQueue(vkContext.gpu.presentQueue, 0);
+    }
+
+    if (vkContext.gpu.computeQueue != u32_max)
+    {
+        vkContext.presentQueue = vkContext.device.getQueue(vkContext.gpu.computeQueue, 0);
+    }
+
+    if (vkContext.gpu.transferQueue != u32_max)
+    {
+        vkContext.transferQueue = vkContext.device.getQueue(vkContext.gpu.transferQueue, 0);
+    }
+
     // Vma Allocator
     vma::AllocatorCreateInfo allocatorCreateInfo {
         .physicalDevice = vkContext.gpu.gpu, .device = vkContext.device, .instance = vkContext.instance};
@@ -236,24 +256,12 @@ RHIDevice::RHIDevice()
                SizeOfArray(vkContext.graphicsCmdContext.commandBuffers));
     }
 
-    for (uint32 index = 0; index < SizeOf(vkContext.graphicsCmdContext.fences); ++index)
-    {
-        // Using Signaled flag so we can wait on it before using it on a GPU command (for the first frame)
-        vkContext.graphicsCmdContext.fences[index] = vkContext.device.createFence(vk::FenceCreateInfo {
-            .flags = vk::FenceCreateFlagBits::eSignaled,
-        });
-    }
-
     GCleanupQueue.Push(
         []()
         {
             VulkanContext& vkContext = VulkanContext::Get();
 
             vkContext.device.destroyCommandPool(vkContext.graphicsCmdContext.commandPool);
-            for (uint32 index = 0; index < SizeOf(vkContext.graphicsCmdContext.fences); ++index)
-            {
-                vkContext.device.destroyFence(vkContext.graphicsCmdContext.fences[index]);
-            }
 
             Memory::Memzero(vkContext.graphicsCmdContext);
         });
@@ -277,12 +285,9 @@ RHIDevice::RHIDevice()
                SizeOfArray(vkContext.uploadCmdContext.commandBuffers));
     }
 
-    for (uint32 index = 0; index < SizeOf(vkContext.uploadCmdContext.fences); ++index)
-    {
-        vkContext.uploadCmdContext.fences[index] = vkContext.device.createFence(vk::FenceCreateInfo {
-            .flags = vk::FenceCreateFlags {0},
-        });
-    }
+    vkContext.uploadFence = vkContext.device.createFence(vk::FenceCreateInfo {
+        .flags = vk::FenceCreateFlags {0},
+    });
 
     GCleanupQueue.Push(
         []()
@@ -290,10 +295,8 @@ RHIDevice::RHIDevice()
             VulkanContext& vkContext = VulkanContext::Get();
 
             vkContext.device.destroyCommandPool(vkContext.uploadCmdContext.commandPool);
-            for (uint32 index = 0; index < SizeOf(vkContext.uploadCmdContext.fences); ++index)
-            {
-                vkContext.device.destroyFence(vkContext.uploadCmdContext.fences[index]);
-            }
+            vkContext.device.destroyFence(vkContext.uploadFence);
+            vkContext.uploadFence = VK_NULL_HANDLE;
 
             Memory::Memzero(vkContext.uploadCmdContext);
         });
