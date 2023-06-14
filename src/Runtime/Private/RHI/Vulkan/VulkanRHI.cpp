@@ -5,6 +5,7 @@
 #include <RHI/Vulkan/VulkanPlatform.h>
 #include <RHI/Vulkan/VulkanGPU.h>
 #include <RHI/Vulkan/VulkanContext.h>
+#include <RHI/Vulkan/VulkanDescriptor.h>
 #include <RHI/RHIResourceBuffer.h>
 #include <Core/CoreAssert.h>
 #include <RHI/RHIResource.h>
@@ -57,11 +58,13 @@ static TextureHandle GDepthTextureHandle;
 using TTextureResource = TResource<RHITexture, VulkanTexture>;
 using TBufferResource  = TResource<RHIBuffer, VulkanBuffer>;
 
-VulkanSwapChain                                               GSwapChain;
-RHIResourceBuffer<TTextureResource, TextureHandle, u16_max>   GTextures;
-RHIResourceBuffer<VulkanRenderPass, RenderPassHandle, u8_max> GRenderPasses;
-RenderPassHandle                                              GMainRenderPass;
-CleanupQueue                                                  GCleanupQueue;
+VulkanSwapChain                                                                GSwapChain;
+RHIResourceBuffer<TTextureResource, TextureHandle, u16_max>                    GTextures;
+RHIResourceBuffer<VulkanRenderPass, RenderPassHandle, u8_max>                  GRenderPasses;
+RHIResourceBuffer<vk::DescriptorPool, DescriptorPoolHandle, u8_max>            GDescriptorPools;
+RHIResourceBuffer<vk::DescriptorSetLayout, DescriptorSetLayoutHandle, u16_max> GDescriptorSetLayouts;
+RenderPassHandle                                                               GMainRenderPass;
+CleanupQueue                                                                   GCleanupQueue;
 
 TTextureResource CreateRHITexture(const RHITextureDescriptor& descriptor_)
 {
@@ -393,6 +396,20 @@ RHIDevice::~RHIDevice()
 
     GRenderPasses.Clear();
 
+    for (vk::DescriptorSetLayout& descriptorSetLayout : GDescriptorSetLayouts)
+    {
+        vkContext.device.destroyDescriptorSetLayout(descriptorSetLayout);
+    }
+
+    GDescriptorSetLayouts.Clear();
+
+    for (vk::DescriptorPool& descriptorPool : GDescriptorPools)
+    {
+        vkContext.device.destroyDescriptorPool(descriptorPool);
+    }
+
+    GDescriptorPools.Clear();
+
     GCleanupQueue.Flush();
 
     if (vkContext.allocator)
@@ -461,6 +478,51 @@ RenderPassHandle Zn::RHIDevice::CreateRenderPass(const RHIRenderPassDescription&
     CreateFramebuffer(renderPass);
 
     return GRenderPasses.Add(std::move(renderPass));
+}
+
+DescriptorPoolHandle Zn::RHIDevice::CreateDescriptorPool(const RHI::DescriptorPoolDescription& description_)
+{
+    Vector<vk::DescriptorPoolSize> sizes;
+    for (const auto& typeToSize : description_.desc)
+    {
+        sizes.push_back(vk::DescriptorPoolSize {
+            .type            = RHI::TranslateDescriptorType(typeToSize.first),
+            .descriptorCount = typeToSize.second,
+        });
+    }
+
+    vk::DescriptorPoolCreateInfo createInfo {
+        .flags   = vk::DescriptorPoolCreateFlags {0},
+        .maxSets = description_.maxSets,
+    };
+
+    createInfo.setPoolSizes(sizes);
+
+    vk::DescriptorPool pool = VulkanContext::Get().device.createDescriptorPool(createInfo);
+
+    return GDescriptorPools.Add(std::move(pool));
+}
+
+DescriptorSetLayoutHandle Zn::RHIDevice::CreateDescriptorSetLayout(const RHI::DescriptorSetLayoutDescription& description_)
+{
+    Vector<vk::DescriptorSetLayoutBinding> bindings;
+
+    for (const RHI::DescriptorSetLayoutBinding& binding : description_.bindings)
+    {
+        bindings.push_back(vk::DescriptorSetLayoutBinding {
+            .binding         = binding.binding,
+            .descriptorType  = RHI::TranslateDescriptorType(binding.descriptorType),
+            .descriptorCount = binding.descriptorCount,
+            .stageFlags      = TranslateShaderStageFlags(binding.shaderStages),
+        });
+    }
+
+    vk::DescriptorSetLayout layout = VulkanContext::Get().device.createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo {
+        .bindingCount = static_cast<uint32>(bindings.size()),
+        .pBindings    = bindings.data(),
+    });
+
+    return GDescriptorSetLayouts.Add(std::move(layout));
 }
 
 void Zn::RHIDevice::CreateSwapChain()

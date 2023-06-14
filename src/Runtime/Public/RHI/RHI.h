@@ -59,6 +59,28 @@ enum class PipelineStage : uint32
 
 ENABLE_BITMASK_OPERATORS(PipelineStage);
 
+enum class ShaderStage : uint32
+{
+    Vertex                 = 0x1,
+    TessellationControl    = 0x2,
+    TessellationEvaluation = 0x4,
+    Geometry               = 0x8,
+    Fragment               = 0x10,
+    Compute                = 0x20,
+    Task                   = 0x40,
+    Mesh                   = 0x80,
+    AllGraphics            = 0x1F,
+    Raygen                 = 0x100,
+    AnyHit                 = 0x200,
+    ClosestHit             = 0x400,
+    Miss                   = 0x800,
+    Intersection           = 0x1000,
+    Callable               = 0x2000,
+    All                    = 0x7FFFFFFF,
+};
+
+ENABLE_BITMASK_OPERATORS(ShaderStage);
+
 enum class AccessFlag
 {
     None                        = 0,

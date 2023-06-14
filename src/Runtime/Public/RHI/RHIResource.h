@@ -11,7 +11,10 @@ enum class RHIResourceType
     IndexBuffer,
     UniformBuffer,
     StagingBuffer,
+    // TODO: These are not really resources.
     RenderPass,
+    DescriptorPool,
+    DescriptorSetLayout,
 };
 
 enum class RHIResourceUsage
@@ -55,11 +58,14 @@ struct TResourceHandle : ResourceHandle
     }
 };
 
-using TextureHandle      = TResourceHandle<RHIResourceType::Texture>;
-using UBOHandle          = TResourceHandle<RHIResourceType::UniformBuffer>;
-using VertexBufferHandle = TResourceHandle<RHIResourceType::VertexBuffer>;
-using IndexBufferHandle  = TResourceHandle<RHIResourceType::IndexBuffer>;
-using RenderPassHandle   = TResourceHandle<RHIResourceType::RenderPass>;
+using TextureHandle             = TResourceHandle<RHIResourceType::Texture>;
+using UBOHandle                 = TResourceHandle<RHIResourceType::UniformBuffer>;
+using VertexBufferHandle        = TResourceHandle<RHIResourceType::VertexBuffer>;
+using IndexBufferHandle         = TResourceHandle<RHIResourceType::IndexBuffer>;
+// TODO: These are not really resources.
+using RenderPassHandle          = TResourceHandle<RHIResourceType::RenderPass>;
+using DescriptorPoolHandle      = TResourceHandle<RHIResourceType::DescriptorPool>;
+using DescriptorSetLayoutHandle = TResourceHandle<RHIResourceType::DescriptorSetLayout>;
 
 template<typename TRHI, typename TNativeRHI>
 struct TResource
