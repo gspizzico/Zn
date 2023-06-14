@@ -1,5 +1,6 @@
 #include <RHI/RHIDevice.h>
 #include <RHI/Vulkan/Vulkan.h>
+#include <RHI/Vulkan/VulkanRHI.h>
 #include <RHI/Vulkan/VulkanDebug.h>
 #include <RHI/Vulkan/VulkanPlatform.h>
 #include <RHI/Vulkan/VulkanGPU.h>
@@ -70,7 +71,7 @@ TTextureResource CreateRHITexture(const RHITextureDescriptor& descriptor_)
         .extent      = vk::Extent3D {descriptor_.width, descriptor_.height, 1},
         .mipLevels   = descriptor_.numMips,
         .arrayLayers = 1,
-        .samples     = vk::SampleCountFlagBits::e1,
+        .samples     = TranslateSampleCount(descriptor_.samples),
         .tiling      = vk::ImageTiling::eOptimal,
         .usage       = TranslateRHITextureFlags(descriptor_.flags),
     };
@@ -469,6 +470,7 @@ void Zn::RHIDevice::CreateSwapChain()
         .numMips     = 1,
         .numChannels = 1,
         .channelSize = sizeof(float),
+        .samples     = SampleCount::s1,
         .format      = RHIFormat::D32_Float,
         .flags       = RHITextureFlags::DepthStencil,
         .id          = GDepthTextureName,

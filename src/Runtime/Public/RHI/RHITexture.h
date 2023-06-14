@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/CoreTypes.h>
+#include <RHI/RHI.h>
 
 namespace Zn
 {
@@ -34,6 +35,7 @@ struct RHITextureDescriptor
     uint8           numMips;
     uint8           numChannels;
     uint8           channelSize;
+    SampleCount     samples;
     RHIFormat       format;
     RHITextureFlags flags;
     void*           data;

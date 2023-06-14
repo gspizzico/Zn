@@ -1,4 +1,5 @@
 #include <RHI/Vulkan/VulkanRenderPass.h>
+#include <RHI/Vulkan/VulkanRHI.h>
 #include <RHI/Vulkan/VulkanTexture.h>
 
 vk::AttachmentDescription Zn::TranslateAttachment(const RenderPassAttachment& description_)
