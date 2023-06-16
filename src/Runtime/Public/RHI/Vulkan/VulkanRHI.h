@@ -35,7 +35,56 @@ inline vk::AccessFlags TranslateAccessFlags(AccessFlag flags_)
     return vk::AccessFlags(static_cast<uint32>(flags_));
 }
 
-inline vk::ShaderStageFlags TranslateShaderStageFlags(ShaderStage flags_)
+inline vk::ShaderStageFlagBits TranslateShaderStage(ShaderStage flag_)
+{
+    if (EnumHasAll(flag_, ShaderStage::Vertex))
+        return vk::ShaderStageFlagBits::eVertex;
+
+    if (EnumHasAll(flag_, ShaderStage::TessellationControl))
+        return vk::ShaderStageFlagBits::eTessellationControl;
+
+    if (EnumHasAll(flag_, ShaderStage::TessellationEvaluation))
+        return vk::ShaderStageFlagBits::eTessellationEvaluation;
+
+    if (EnumHasAll(flag_, ShaderStage::Geometry))
+        return vk::ShaderStageFlagBits::eGeometry;
+
+    if (EnumHasAll(flag_, ShaderStage::Fragment))
+        return vk::ShaderStageFlagBits::eFragment;
+
+    if (EnumHasAll(flag_, ShaderStage::Compute))
+        return vk::ShaderStageFlagBits::eCompute;
+
+    if (EnumHasAll(flag_, ShaderStage::Task))
+        return vk::ShaderStageFlagBits::eTaskEXT;
+
+    if (EnumHasAll(flag_, ShaderStage::Mesh))
+        return vk::ShaderStageFlagBits::eMeshEXT;
+
+    if (EnumHasAll(flag_, ShaderStage::Raygen))
+        return vk::ShaderStageFlagBits::eRaygenKHR;
+
+    if (EnumHasAll(flag_, ShaderStage::AnyHit))
+        return vk::ShaderStageFlagBits::eAnyHitNV;
+
+    if (EnumHasAll(flag_, ShaderStage::ClosestHit))
+        return vk::ShaderStageFlagBits::eClosestHitNV;
+
+    if (EnumHasAll(flag_, ShaderStage::Miss))
+        return vk::ShaderStageFlagBits::eMissNV;
+
+    if (EnumHasAll(flag_, ShaderStage::Intersection))
+        return vk::ShaderStageFlagBits::eIntersectionNV;
+
+    if (EnumHasAll(flag_, ShaderStage::Callable))
+        return vk::ShaderStageFlagBits::eCallableNV;
+
+    check(false);
+
+    return vk::ShaderStageFlagBits::eVertex;
+}
+
+inline vk::ShaderStageFlags TranslateShaderStagesMask(ShaderStage flags_)
 {
     if (flags_ == ShaderStage::All)
     {
@@ -62,5 +111,30 @@ inline vk::ShaderStageFlags TranslateShaderStageFlags(ShaderStage flags_)
     outFlags |= EnumHasAll(flags_, ShaderStage::Callable) ? vk::ShaderStageFlagBits::eCallableNV : kNoFlag;
 
     return outFlags;
+}
+
+inline vk::ColorComponentFlags TranslateColorComponents(ColorComponent colors_)
+{
+    return (vk::ColorComponentFlags)(uint32(colors_));
+}
+
+inline vk::BlendFactor TranslateBlendFactor(BlendFactor blendFactor_)
+{
+    return (vk::BlendFactor)(uint32(blendFactor_));
+}
+
+inline vk::BlendOp TranslateBlendOp(BlendOp blendOp_)
+{
+    return (vk::BlendOp)(uint32(blendOp_));
+}
+
+inline vk::LogicOp TranslateLogicOp(LogicOp logicOp_)
+{
+    return (vk::LogicOp)(uint32(logicOp_));
+}
+
+inline vk::CompareOp TranslateCompareOp(CompareOp compareOp_)
+{
+    return (vk::CompareOp)(uint32(compareOp_));
 }
 } // namespace Zn

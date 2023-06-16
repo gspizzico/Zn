@@ -106,4 +106,78 @@ enum class AccessFlag
 
 ENABLE_BITMASK_OPERATORS(AccessFlag);
 
+enum class ColorComponent : uint8
+{
+    R = 0x1,
+    G = 0x2,
+    B = 0x4,
+    A = 0x8
+};
+
+ENABLE_BITMASK_OPERATORS(ColorComponent);
+
+enum class BlendFactor : uint32
+{
+    Zero,
+    One,
+    SrcColor,
+    OneMinusSrcColor,
+    DstColor,
+    OneMinusDstColor,
+    SrcAlpha,
+    OneMinusSrcAlpha,
+    DstAlpha,
+    OneMinusDstAlpha,
+    ConstantColor,
+    OneMinusConstantColor,
+    ConstantAlpha,
+    OneMinusConstantAlpha,
+    SrcAlphaSaturate,
+    Src1Color,
+    OneMinusSrc1Color,
+    Src1Alpha,
+    OneMinusSrc1Alpha,
+};
+
+enum class BlendOp
+{
+    Add,
+    Subtract,
+    ReverseSubtract,
+    Min,
+    Max,
+};
+
+enum class LogicOp
+{
+    Clear,
+    And,
+    AndReverse,
+    Copy,
+    AndInverted,
+    NoOp,
+    Xor,
+    Or,
+    Nor,
+    Equivalent,
+    Invert,
+    OrReverse,
+    CopyInverted,
+    OrInverted,
+    Nand,
+    Set,
+};
+
+enum class CompareOp
+{
+    Never,
+    Less,
+    Equal,
+    LessOrEqual,
+    Greater,
+    NotEqual,
+    GreaterOrEqual,
+    Always,
+};
+
 } // namespace Zn

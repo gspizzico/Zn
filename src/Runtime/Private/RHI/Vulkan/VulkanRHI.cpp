@@ -16,6 +16,7 @@
 #include <RHI/Vulkan/VulkanResource.h>
 #include <RHI/Vulkan/VulkanSwapChain.h>
 #include <RHI/Vulkan/VulkanRenderPass.h>
+#include <RHI/Vulkan/VulkanPipeline.h>
 #include <Core/Misc/Hash.h>
 
 #include <deque>
@@ -58,13 +59,15 @@ static TextureHandle GDepthTextureHandle;
 using TTextureResource = TResource<RHITexture, VulkanTexture>;
 using TBufferResource  = TResource<RHIBuffer, VulkanBuffer>;
 
-VulkanSwapChain                                                                GSwapChain;
-RHIResourceBuffer<TTextureResource, TextureHandle, u16_max>                    GTextures;
-RHIResourceBuffer<VulkanRenderPass, RenderPassHandle, u8_max>                  GRenderPasses;
-RHIResourceBuffer<vk::DescriptorPool, DescriptorPoolHandle, u8_max>            GDescriptorPools;
-RHIResourceBuffer<vk::DescriptorSetLayout, DescriptorSetLayoutHandle, u16_max> GDescriptorSetLayouts;
-RenderPassHandle                                                               GMainRenderPass;
-CleanupQueue                                                                   GCleanupQueue;
+VulkanSwapChain                                                                         GSwapChain;
+RHIResourceBuffer<TTextureResource, TextureHandle, u16_max>                             GTextures;
+RHIResourceBuffer<VulkanRenderPass, RenderPassHandle, u8_max>                           GRenderPasses;
+RHIResourceBuffer<vk::DescriptorPool, DescriptorPoolHandle, u8_max>                     GDescriptorPools;
+RHIResourceBuffer<vk::DescriptorSetLayout, DescriptorSetLayoutHandle, u16_max>          GDescriptorSetLayouts;
+RHIResourceBuffer<vk::ShaderModule, ShaderModuleHandle, u16_max>                        GShaders;
+RHIResourceBuffer<std::pair<vk::PipelineLayout, vk::Pipeline>, PipelineHandle, u16_max> GPipelines;
+RenderPassHandle                                                                        GMainRenderPass;
+CleanupQueue                                                                            GCleanupQueue;
 
 TTextureResource CreateRHITexture(const RHITextureDescriptor& descriptor_)
 {
@@ -410,6 +413,21 @@ RHIDevice::~RHIDevice()
 
     GDescriptorPools.Clear();
 
+    for (auto& [layout, pipeline] : GPipelines)
+    {
+        vkContext.device.destroyPipeline(pipeline);
+        vkContext.device.destroyPipelineLayout(layout);
+    }
+
+    GPipelines.Clear();
+
+    for (vk::ShaderModule& shaderModule : GShaders)
+    {
+        vkContext.device.destroyShaderModule(shaderModule);
+    }
+
+    GShaders.Clear();
+
     GCleanupQueue.Flush();
 
     if (vkContext.allocator)
@@ -513,7 +531,7 @@ DescriptorSetLayoutHandle Zn::RHIDevice::CreateDescriptorSetLayout(const RHI::De
             .binding         = binding.binding,
             .descriptorType  = RHI::TranslateDescriptorType(binding.descriptorType),
             .descriptorCount = binding.descriptorCount,
-            .stageFlags      = TranslateShaderStageFlags(binding.shaderStages),
+            .stageFlags      = TranslateShaderStagesMask(binding.shaderStages),
         });
     }
 
@@ -523,6 +541,221 @@ DescriptorSetLayoutHandle Zn::RHIDevice::CreateDescriptorSetLayout(const RHI::De
     });
 
     return GDescriptorSetLayouts.Add(std::move(layout));
+}
+
+ShaderModuleHandle Zn::RHIDevice::CreateShaderModule(Span<const uint8> shaderBytes_)
+{
+    vk::ShaderModule shader = VulkanContext::Get().device.createShaderModule(vk::ShaderModuleCreateInfo {
+        .codeSize = shaderBytes_.Size(),
+        .pCode    = (const uint32*) shaderBytes_.Data(),
+    });
+
+    return GShaders.Add(std::move(shader));
+}
+
+PipelineHandle Zn::RHIDevice::CreatePipeline(const RHI::PipelineDescription& description_)
+{
+    Vector<vk::DescriptorSetLayout> layouts {};
+    for (const DescriptorSetLayoutHandle& handle : description_.descriptorSetLayouts)
+    {
+        vk::DescriptorSetLayout* layout = GDescriptorSetLayouts[handle];
+        if (!layout)
+        {
+            ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create pipeline. Invalid Descriptor Set Layouts handle.");
+            return PipelineHandle {};
+        }
+
+        layouts.push_back(*layout);
+    }
+
+    Vector<vk::PushConstantRange> pushConstants {};
+    for (const RHI::PushConstantRange& range : description_.pushConstantRanges)
+    {
+        pushConstants.push_back(vk::PushConstantRange {
+            .stageFlags = TranslateShaderStagesMask(range.stageFlags),
+            .offset     = range.offset,
+            .size       = range.size,
+        });
+    }
+
+    Vector<vk::PipelineShaderStageCreateInfo> stages {};
+    for (const RHI::Shader& shader : description_.shaders)
+    {
+        vk::ShaderModule* shaderModule = GShaders[shader.module];
+
+        if (!shaderModule)
+        {
+            ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create shader stages. Invalid shader module handle.");
+            return PipelineHandle {};
+        }
+
+        stages.push_back(vk::PipelineShaderStageCreateInfo {
+            .stage  = TranslateShaderStage(shader.stage),
+            .module = *shaderModule,
+            .pName  = shader.entryPoint,
+        });
+    }
+
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly {
+        .topology               = vk::PrimitiveTopology::eTriangleList,
+        .primitiveRestartEnable = false,
+    };
+
+    Vector<vk::VertexInputBindingDescription> vertexBindings;
+    for (const RHI::VertexInputBinding& vertexInput : description_.vertexInputLayout.vertexInputs)
+    {
+        vertexBindings.push_back(vk::VertexInputBindingDescription {
+            .binding   = vertexInput.binding,
+            .stride    = vertexInput.stride,
+            .inputRate = (vk::VertexInputRate) vertexInput.inputRate,
+        });
+    }
+    Vector<vk::VertexInputAttributeDescription> vertexAttributes;
+    for (const RHI::VertexInputAttribute& vertexAttribute : description_.vertexInputLayout.vertexAttributes)
+    {
+        vertexAttributes.push_back(vk::VertexInputAttributeDescription {
+            .location = vertexAttribute.location,
+            .binding  = vertexAttribute.binding,
+            .format   = TranslateRHIFormat(vertexAttribute.format),
+            .offset   = vertexAttribute.offset,
+        });
+    }
+
+    vk::PipelineVertexInputStateCreateInfo vertexInput {
+        .vertexBindingDescriptionCount   = (uint32) vertexBindings.size(),
+        .pVertexBindingDescriptions      = vertexBindings.data(),
+        .vertexAttributeDescriptionCount = (uint32) vertexAttributes.size(),
+        .pVertexAttributeDescriptions    = vertexAttributes.data(),
+    };
+
+    vk::Viewport viewport {
+        .x        = 0,
+        .y        = 0,
+        .width    = (float) (GSwapChain.extent.width),
+        .height   = (float) (GSwapChain.extent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
+    };
+
+    vk::Rect2D scissors {
+        .offset =
+            {
+                .x = 0,
+                .y = 0,
+            },
+        .extent = GSwapChain.extent,
+    };
+
+    vk::PipelineViewportStateCreateInfo viewportState {
+        .viewportCount = 1,
+        .pViewports    = &viewport,
+        .scissorCount  = 1,
+        .pScissors     = &scissors,
+    };
+
+    vk::PipelineRasterizationStateCreateInfo rasterization {
+        .depthClampEnable        = false,
+        .rasterizerDiscardEnable = false,
+        .polygonMode             = TranslatePolygonMode(description_.polygonMode),
+        .cullMode                = TranslateCullMode(description_.cullMode),
+        .frontFace               = vk::FrontFace::eCounterClockwise,
+        .depthBiasEnable         = false,
+        .depthBiasConstantFactor = 0.0f,
+        .depthBiasClamp          = 0.0f,
+        .depthBiasSlopeFactor    = 0.0f,
+        .lineWidth               = 1.0f,
+    };
+
+    vk::PipelineMultisampleStateCreateInfo msaa {
+        .rasterizationSamples = vk::SampleCountFlagBits::e1,
+        .sampleShadingEnable  = false,
+        .minSampleShading     = 1.f,
+    };
+
+    Vector<vk::PipelineColorBlendAttachmentState> blendAttachments;
+    for (const RHI::BlendAttachment& blendAttachment : description_.colorBlendState.attachments)
+    {
+        blendAttachments.push_back(vk::PipelineColorBlendAttachmentState {
+            .blendEnable         = (vk::Bool32)(blendAttachment.enable),
+            .srcColorBlendFactor = TranslateBlendFactor(blendAttachment.srcColorBlendFactor),
+            .dstColorBlendFactor = TranslateBlendFactor(blendAttachment.dstColorBlendFactor),
+            .colorBlendOp        = TranslateBlendOp(blendAttachment.colorBlendOp),
+            .srcAlphaBlendFactor = TranslateBlendFactor(blendAttachment.srcAlphaBlendFactor),
+            .dstAlphaBlendFactor = TranslateBlendFactor(blendAttachment.dstAlphaBlendFactor),
+            .alphaBlendOp        = TranslateBlendOp(blendAttachment.alphaBlendOp),
+            .colorWriteMask      = TranslateColorComponents(blendAttachment.colorWriteMask),
+        });
+    }
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending {
+        .logicOpEnable   = description_.colorBlendState.enableLogicOp,
+        .logicOp         = TranslateLogicOp(description_.colorBlendState.logicOp),
+        .attachmentCount = (uint32) (blendAttachments.size()),
+        .pAttachments    = blendAttachments.data(),
+    };
+
+    vk::PipelineDepthStencilStateCreateInfo depthStencil {
+        .depthTestEnable  = description_.depthStencilState.enableDepthTest,
+        .depthWriteEnable = description_.depthStencilState.enableDepthWrite,
+        .depthCompareOp = description_.depthStencilState.enableDepthTest ? TranslateCompareOp(description_.depthStencilState.depthCompareOp)
+                                                                         : vk::CompareOp::eAlways,
+        .depthBoundsTestEnable = description_.depthStencilState.enableDepthBoundTest,
+        .stencilTestEnable     = false, // description_.depthStencilState.enableStencilTest,
+        .minDepthBounds        = description_.depthStencilState.minDepthBounds,
+        .maxDepthBounds        = description_.depthStencilState.maxDepthBounds,
+    };
+
+    Span<const vk::DynamicState> dynamicStates({vk::DynamicState::eViewport, vk::DynamicState::eScissor});
+
+    vk::PipelineDynamicStateCreateInfo dynamicState {
+        .dynamicStateCount = (uint32) dynamicStates.Size(),
+        .pDynamicStates    = dynamicStates.Data(),
+    };
+
+    VulkanRenderPass* renderPass = GRenderPasses[description_.renderPass];
+    if (!renderPass)
+    {
+        ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create Graphics Pipeline. Render Pass is invalid");
+        return PipelineHandle {};
+    }
+
+    vk::PipelineLayout pipelineLayout = VulkanContext::Get().device.createPipelineLayout(vk::PipelineLayoutCreateInfo {
+        .setLayoutCount         = (uint32) layouts.size(),
+        .pSetLayouts            = layouts.data(),
+        .pushConstantRangeCount = (uint32) pushConstants.size(),
+        .pPushConstantRanges    = pushConstants.data(),
+    });
+
+    check(pipelineLayout);
+
+    vk::GraphicsPipelineCreateInfo pipelineInfo {
+        .stageCount          = (uint32) stages.size(),
+        .pStages             = stages.data(),
+        .pVertexInputState   = &vertexInput,
+        .pInputAssemblyState = &inputAssembly,
+        .pViewportState      = &viewportState,
+        .pRasterizationState = &rasterization,
+        .pMultisampleState   = &msaa,
+        .pDepthStencilState  = &depthStencil,
+        .pColorBlendState    = &colorBlending,
+        .pDynamicState       = &dynamicState,
+        .layout              = pipelineLayout,
+        .renderPass          = renderPass->renderPass,
+        .subpass             = 0,
+    };
+
+    vk::ResultValue<vk::Pipeline> result = VulkanContext::Get().device.createGraphicsPipeline({}, pipelineInfo);
+
+    if (result.result == vk::Result::eSuccess)
+    {
+        return GPipelines.Add({pipelineLayout, result.value});
+    }
+    else
+    {
+        VulkanContext::Get().device.destroyPipelineLayout(pipelineLayout);
+        ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create Graphics Pipeline. Error: %d", result.result);
+        return PipelineHandle {};
+    }
 }
 
 void Zn::RHIDevice::CreateSwapChain()

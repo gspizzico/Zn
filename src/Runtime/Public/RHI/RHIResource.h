@@ -15,6 +15,8 @@ enum class RHIResourceType
     RenderPass,
     DescriptorPool,
     DescriptorSetLayout,
+    ShaderModule,
+    Pipeline,
 };
 
 enum class RHIResourceUsage
@@ -66,6 +68,8 @@ using IndexBufferHandle         = TResourceHandle<RHIResourceType::IndexBuffer>;
 using RenderPassHandle          = TResourceHandle<RHIResourceType::RenderPass>;
 using DescriptorPoolHandle      = TResourceHandle<RHIResourceType::DescriptorPool>;
 using DescriptorSetLayoutHandle = TResourceHandle<RHIResourceType::DescriptorSetLayout>;
+using ShaderModuleHandle        = TResourceHandle<RHIResourceType::ShaderModule>;
+using PipelineHandle            = TResourceHandle<RHIResourceType::Pipeline>;
 
 template<typename TRHI, typename TNativeRHI>
 struct TResource
