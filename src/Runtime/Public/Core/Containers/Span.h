@@ -145,7 +145,7 @@ class Span
     {
         // check(begin_ < end_ && end_ - begin_ <= size, "Range out of bounds.");
 
-        return Span(Memory::AddOffset(data, sizeof(T) * begin), end_ - begin_);
+        return Span(Memory::AddOffset(data, sizeof(T) * begin_), end_ - begin_);
     }
 
     template<typename U>
