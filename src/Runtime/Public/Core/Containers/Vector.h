@@ -5,8 +5,8 @@
 
 namespace Zn
 {
-template<typename T>
-using Vector = std::vector<T>;
+template<typename T, typename A = std::allocator<T>>
+using Vector = std::vector<T, A>;
 
 template<typename T>
 using ChunkedVector = ankerl::unordered_dense::segmented_vector<T>;
