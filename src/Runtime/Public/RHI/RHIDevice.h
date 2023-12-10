@@ -16,12 +16,16 @@ class RHIDevice
     static void       Destroy();
     static RHIDevice& Get();
 
-    TextureHandle             CreateTexture(const RHITextureDescriptor& descriptor_);
-    RenderPassHandle          CreateRenderPass(const RHIRenderPassDescription& description_);
-    DescriptorPoolHandle      CreateDescriptorPool(const RHI::DescriptorPoolDescription& description_);
-    DescriptorSetLayoutHandle CreateDescriptorSetLayout(const RHI::DescriptorSetLayoutDescription& description_);
-    ShaderModuleHandle        CreateShaderModule(Span<const uint8> shaderBytes_);
-    PipelineHandle            CreatePipeline(const RHI::PipelineDescription& description_);
+    TextureHandle               CreateTexture(const RHITextureDescriptor& descriptor_);
+    RenderPassHandle            CreateRenderPass(const RHIRenderPassDescription& description_);
+    DescriptorPoolHandle        CreateDescriptorPool(const RHI::DescriptorPoolDescription& description_);
+    DescriptorSetLayoutHandle   CreateDescriptorSetLayout(const RHI::DescriptorSetLayoutDescription& description_);
+    ShaderModuleHandle          CreateShaderModule(Span<const uint8> shaderBytes_);
+    PipelineHandle              CreatePipeline(const RHI::PipelineDescription& description_);
+    UBOHandle                   CreateUniformBuffer(uint32 size_, RHIResourceUsage memoryUsage_);
+    void                        DestroyUniformBuffer(UBOHandle handle_);
+    Vector<DescriptorSetHandle> AllocateDescriptorSets(const RHI::DescriptorSetAllocationDescription& description_);
+    void                        UpdateDescriptorSets(Span<const RHI::DescriptorSetUpdateDescription> description_);
 
   private:
     RHIDevice();

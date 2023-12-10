@@ -41,9 +41,9 @@ ENABLE_BITMASK_OPERATORS(DescriptorPoolCreateFlag);
 // TODO: Might want to use different name for *Description structure
 struct DescriptorPoolDescription
 {
-    Span<std::pair<RHI::DescriptorType, uint32>> desc;
-    DescriptorPoolCreateFlag                     flags;
-    uint32                                       maxSets;
+    Span<const std::pair<RHI::DescriptorType, uint32>> desc;
+    DescriptorPoolCreateFlag                           flags;
+    uint32                                             maxSets;
 };
 
 struct DescriptorSetLayoutBinding
@@ -56,6 +56,32 @@ struct DescriptorSetLayoutBinding
 
 struct DescriptorSetLayoutDescription
 {
-    Span<RHI::DescriptorSetLayoutBinding> bindings;
+    Span<const RHI::DescriptorSetLayoutBinding> bindings;
+};
+
+struct DescriptorSetAllocationDescription
+{
+    DescriptorPoolHandle                  descriptorPool;
+    Span<const DescriptorSetLayoutHandle> descriptorSetLayouts;
+};
+
+struct DescriptorBufferInfo
+{
+    union
+    {
+        UBOHandle ubo;
+    };
+
+    uint32 offset;
+    uint32 range;
+};
+
+struct DescriptorSetUpdateDescription
+{
+    DescriptorSetHandle              descriptorSet;
+    uint32                           binding;
+    uint32                           arrayElement;
+    RHI::DescriptorType              descriptorType;
+    Span<const DescriptorBufferInfo> descriptorBufferInfo;
 };
 } // namespace Zn::RHI

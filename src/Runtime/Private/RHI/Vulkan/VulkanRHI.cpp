@@ -18,6 +18,7 @@
 #include <RHI/Vulkan/VulkanRenderPass.h>
 #include <RHI/Vulkan/VulkanPipeline.h>
 #include <Core/Misc/Hash.h>
+#include <Core/Memory/Allocators/StackAllocator.h>
 
 #include <deque>
 
@@ -64,8 +65,10 @@ RHIResourceBuffer<TTextureResource, TextureHandle, u16_max>                     
 RHIResourceBuffer<VulkanRenderPass, RenderPassHandle, u8_max>                           GRenderPasses;
 RHIResourceBuffer<vk::DescriptorPool, DescriptorPoolHandle, u8_max>                     GDescriptorPools;
 RHIResourceBuffer<vk::DescriptorSetLayout, DescriptorSetLayoutHandle, u16_max>          GDescriptorSetLayouts;
+RHIResourceBuffer<vk::DescriptorSet, DescriptorSetHandle, u16_max>                      GDescriptorSets;
 RHIResourceBuffer<vk::ShaderModule, ShaderModuleHandle, u16_max>                        GShaders;
 RHIResourceBuffer<std::pair<vk::PipelineLayout, vk::Pipeline>, PipelineHandle, u16_max> GPipelines;
+RHIResourceBuffer<TBufferResource, UBOHandle, u16_max>                                  GUniformBuffers;
 RenderPassHandle                                                                        GMainRenderPass;
 CleanupQueue                                                                            GCleanupQueue;
 
@@ -132,7 +135,6 @@ TBufferResource CreateBuffer(const RHIBufferDescriptor& descriptor_)
         VulkanBuffer {
             .data   = buffer,
             .memory = allocation,
-
         });
 }
 
@@ -393,6 +395,13 @@ RHIDevice::~RHIDevice()
     }
 
     GTextures.Clear();
+
+    for (TBufferResource& buffer : GUniformBuffers)
+    {
+        vkContext.allocator.destroyBuffer(buffer.payload.data, buffer.payload.memory);
+    }
+
+    GUniformBuffers.Clear();
 
     for (VulkanRenderPass& renderPass : GRenderPasses)
     {
@@ -758,6 +767,128 @@ PipelineHandle Zn::RHIDevice::CreatePipeline(const RHI::PipelineDescription& des
         ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to create Graphics Pipeline. Error: %d", result.result);
         return PipelineHandle {};
     }
+}
+
+UBOHandle Zn::RHIDevice::CreateUniformBuffer(uint32 size_, RHIResourceUsage memoryUsage_)
+{
+    TBufferResource buffer = CreateBuffer(RHIBufferDescriptor {
+        .size        = size_,
+        .bufferUsage = RHIBufferUsage::Uniform,
+        .memoryUsage = memoryUsage_,
+    });
+
+    return GUniformBuffers.Add(std::move(buffer));
+}
+
+void Zn::RHIDevice::DestroyUniformBuffer(UBOHandle handle_)
+{
+    if (TBufferResource* buffer = GUniformBuffers[handle_])
+    {
+        VulkanContext::Get().allocator.destroyBuffer(buffer->payload.data, buffer->payload.memory);
+
+        GUniformBuffers.Evict(handle_);
+    }
+}
+
+Vector<DescriptorSetHandle> Zn::RHIDevice::AllocateDescriptorSets(const RHI::DescriptorSetAllocationDescription& description_)
+{
+    if (vk::DescriptorPool* descriptorPool = GDescriptorPools[description_.descriptorPool])
+    {
+        VulkanContext& vkContext = VulkanContext::Get();
+
+        StackAllocationScope StackScope {};
+
+        Vector<vk::DescriptorSetLayout, TStackAllocator<vk::DescriptorSetLayout>> layouts;
+
+        for (const DescriptorSetLayoutHandle& handle : description_.descriptorSetLayouts)
+        {
+            if (vk::DescriptorSetLayout* layout = GDescriptorSetLayouts[handle])
+            {
+                layouts.push_back(*layout);
+            }
+        }
+
+        if (layouts.size() > 0)
+        {
+            std::vector<vk::DescriptorSet> descriptorSets = vkContext.device.allocateDescriptorSets(vk::DescriptorSetAllocateInfo {
+                .descriptorPool     = *descriptorPool,
+                .descriptorSetCount = (uint32_t) layouts.size(),
+                .pSetLayouts        = &layouts[0],
+            });
+
+            Vector<DescriptorSetHandle> handles;
+            handles.reserve(descriptorSets.size());
+
+            for (const vk::DescriptorSet& descriptorSet : descriptorSets)
+            {
+                handles.emplace_back(GDescriptorSets.Add(descriptorSet));
+            }
+
+            return handles;
+        }
+    }
+
+    return Vector<DescriptorSetHandle> {};
+}
+
+void Zn::RHIDevice::UpdateDescriptorSets(Span<const RHI::DescriptorSetUpdateDescription> description_)
+{
+    StackAllocationScope StackScope {};
+
+    Vector<vk::DescriptorSet, TStackAllocator<vk::DescriptorSet>> descriptorSets;
+
+    for (const RHI::DescriptorSetUpdateDescription& update : description_)
+    {
+        if (vk::DescriptorSet* descriptorSet = GDescriptorSets[update.descriptorSet])
+        {
+            descriptorSets.push_back(*descriptorSet);
+        }
+    }
+
+    Vector<vk::DescriptorBufferInfo, TStackAllocator<vk::DescriptorBufferInfo>> bufferInfo;
+
+    for (const RHI::DescriptorSetUpdateDescription& update : description_)
+    {
+        for (const RHI::DescriptorBufferInfo& info : update.descriptorBufferInfo)
+        {
+            if (update.descriptorType == RHI::DescriptorType::UniformBuffer)
+            {
+                if (TBufferResource* buffer = GUniformBuffers[info.ubo])
+                {
+                    bufferInfo.emplace_back(vk::DescriptorBufferInfo {
+                        .buffer = buffer->payload.data,
+                        .offset = info.offset,
+                        .range  = info.range,
+                    });
+                }
+            }
+            else
+            {
+                check(false); // unsupported yet.
+            }
+        }
+    }
+
+    Vector<vk::WriteDescriptorSet, TStackAllocator<vk::WriteDescriptorSet>> descriptorSetWrites;
+
+    uint32 bufferOffset = 0;
+    for (uint32 index = 0; index < description_.Size(); ++index)
+    {
+        const RHI::DescriptorSetUpdateDescription& update = description_[index];
+
+        descriptorSetWrites.emplace_back(vk::WriteDescriptorSet {
+            .dstSet          = descriptorSets[index],
+            .dstBinding      = update.binding,
+            .dstArrayElement = update.arrayElement,
+            .descriptorCount = (uint32_t) update.descriptorBufferInfo.Size(),
+            .descriptorType  = RHI::TranslateDescriptorType(update.descriptorType),
+            .pBufferInfo     = &bufferInfo[bufferOffset],
+        });
+
+        bufferOffset += (uint32) update.descriptorBufferInfo.Size();
+    }
+
+    VulkanContext::Get().device.updateDescriptorSets(descriptorSetWrites, {});
 }
 
 void Zn::RHIDevice::CreateSwapChain()

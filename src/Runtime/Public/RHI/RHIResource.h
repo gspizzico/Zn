@@ -15,6 +15,7 @@ enum class RHIResourceType
     RenderPass,
     DescriptorPool,
     DescriptorSetLayout,
+    DescriptorSet,
     ShaderModule,
     Pipeline,
 };
@@ -58,6 +59,12 @@ struct TResourceHandle : ResourceHandle
         other_.gen   = kInvalidGen;
         other_.index = 0;
     }
+
+    TResourceHandle(const TResourceHandle& other_)
+    {
+        gen   = other_.gen;
+        index = other_.index;
+    }
 };
 
 using TextureHandle             = TResourceHandle<RHIResourceType::Texture>;
@@ -68,6 +75,7 @@ using IndexBufferHandle         = TResourceHandle<RHIResourceType::IndexBuffer>;
 using RenderPassHandle          = TResourceHandle<RHIResourceType::RenderPass>;
 using DescriptorPoolHandle      = TResourceHandle<RHIResourceType::DescriptorPool>;
 using DescriptorSetLayoutHandle = TResourceHandle<RHIResourceType::DescriptorSetLayout>;
+using DescriptorSetHandle       = TResourceHandle<RHIResourceType::DescriptorSet>;
 using ShaderModuleHandle        = TResourceHandle<RHIResourceType::ShaderModule>;
 using PipelineHandle            = TResourceHandle<RHIResourceType::Pipeline>;
 

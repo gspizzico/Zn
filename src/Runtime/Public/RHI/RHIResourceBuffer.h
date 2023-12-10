@@ -102,6 +102,30 @@ class RHIResourceBuffer
         return H(std::move(handle));
     }
 
+    // TODO: do we need two different functions?
+    H Add(const T& entry_)
+    {
+        IndexType nextFreeSlot = GetNextFreeSlot();
+
+        check(nextFreeSlot < N);
+
+        freeList.Set(nextFreeSlot, 1);
+
+        const GenerationType& gen = generations[nextFreeSlot];
+
+        ResourceHandle handle {
+            .gen   = gen,
+            .index = nextFreeSlot,
+        };
+
+        T& slot = buffer[nextFreeSlot];
+
+        slot = entry_;
+
+        // Construct handle from basic entry type. HandleType concept enforces it.
+        return H(std::move(handle));
+    }
+
     bool Evict(const H& handle_)
     {
         RangeCheck(handle_);
