@@ -364,6 +364,8 @@ RHIDevice::RHIDevice()
 
     // TODO: Create RenderPass object that also contains FrameBuffer.
     GMainRenderPass = CreateRenderPass(renderPassDescription);
+
+    vkContext.mainRenderPass = GRenderPasses[GMainRenderPass]->renderPass;
 }
 
 RHIDevice::~RHIDevice()
@@ -510,7 +512,7 @@ DescriptorPoolHandle Zn::RHIDevice::CreateDescriptorPool(const RHI::DescriptorPo
     }
 
     vk::DescriptorPoolCreateInfo createInfo {
-        .flags   = vk::DescriptorPoolCreateFlags {0},
+        .flags   = RHI::TranslateDescriptorPoolCreateFlags(description_.flags),
         .maxSets = description_.maxSets,
     };
 

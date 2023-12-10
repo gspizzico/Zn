@@ -42,4 +42,20 @@ inline vk::DescriptorType TranslateDescriptorType(RHI::DescriptorType descriptor
 
     return vk::DescriptorType::eSampler;
 }
+
+inline vk::DescriptorPoolCreateFlags TranslateDescriptorPoolCreateFlags(RHI::DescriptorPoolCreateFlag flags_)
+{
+    vk::DescriptorPoolCreateFlags outFlags {0};
+
+    if (EnumHasAll(flags_, RHI::DescriptorPoolCreateFlag::FreeDescriptorSet))
+        outFlags |= vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
+
+    if (EnumHasAll(flags_, RHI::DescriptorPoolCreateFlag::UpdateAfterBind))
+        outFlags |= vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind;
+
+    if (EnumHasAll(flags_, RHI::DescriptorPoolCreateFlag::HostOnly))
+        outFlags |= vk::DescriptorPoolCreateFlagBits::eHostOnlyEXT;
+
+    return outFlags;
+}
 } // namespace Zn::RHI

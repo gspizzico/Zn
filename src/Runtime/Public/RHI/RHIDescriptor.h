@@ -28,10 +28,21 @@ enum class DescriptorType : uint32
     // MutableEXT,
 };
 
+enum class DescriptorPoolCreateFlag : uint32
+{
+    None              = 0,
+    FreeDescriptorSet = 0b1,
+    UpdateAfterBind   = 0b10,
+    HostOnly          = 0b100
+};
+
+ENABLE_BITMASK_OPERATORS(DescriptorPoolCreateFlag);
+
 // TODO: Might want to use different name for *Description structure
 struct DescriptorPoolDescription
 {
     Span<std::pair<RHI::DescriptorType, uint32>> desc;
+    DescriptorPoolCreateFlag                     flags;
     uint32                                       maxSets;
 };
 

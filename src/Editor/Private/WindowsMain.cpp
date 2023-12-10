@@ -2,6 +2,7 @@
 #include <Application/Application.h>
 #include <ImGui/ImGuiApp.h>
 #include <Engine/Engine.h>
+#include <Editor.h>
 #include <RHI/RHIDevice.h>
 
 #include <Core/Time/Time.h>
@@ -16,6 +17,7 @@ int main(int argc_, char* args_[])
     RHIDevice::Create();
     ImGuiApp::Create();
     Engine::Create();
+    Editor::Create();
 
     Application& app = Application::Get();
 
@@ -37,8 +39,10 @@ int main(int argc_, char* args_[])
         }
 
         Engine::Tick(deltaTime);
+        Editor::Tick(deltaTime);
     }
 
+    Editor::Destroy();
     Engine::Destroy();
     ImGuiApp::Destroy();
     RHIDevice::Destroy();

@@ -28,5 +28,6 @@ struct VulkanContext
     VulkanCommandContext<kVkMaxImageCount> graphicsCmdContext;
     VulkanCommandContext<1>                uploadCmdContext;
     vk::Fence                              uploadFence;
+    vk::RenderPass                         mainRenderPass;
 };
 } // namespace Zn
