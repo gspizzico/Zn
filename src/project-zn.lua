@@ -12,7 +12,7 @@ project("ZnEditor")
 kind "ConsoleApp"
 
 dofile("platform-windows.lua")
-dofile("rhi-vulkan.lua")
+dofile("rhi-original.lua")
 dofile("project-core.lua")
 dofile("project-application.lua")
 dofile("project-engine.lua")

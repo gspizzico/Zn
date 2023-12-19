@@ -5,7 +5,8 @@ files {
   "./ThirdParty/wyhash/*",
   "./ThirdParty/delegate/*",
   "./ThirdParty/ankerl_map/*",
-  "./ThirdParty/tracy/TracyClient.cpp"
+  "./ThirdParty/tracy/TracyClient.cpp",
+  "./ThirdParty/glm/**"
 }
 
 -- Includes

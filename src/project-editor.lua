@@ -19,4 +19,7 @@ includedirs {
   "./ThirdParty/",
   "./ThirdParty/imgui/",
   "./ThirdParty/imgui/backends/",
+  "./ThirdParty/stb/",
+  "./ThirdParty/tinygltf/",
+  "./ThirdParty/tinyobj/",
 }

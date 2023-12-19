@@ -24,8 +24,5 @@ class Application
     virtual SharedPtr<struct InputState> GetInputState() const             = 0;
     virtual void                         RequestExit(cstring exitReason_)  = 0;
     virtual bool                         WantsToExit() const               = 0;
-
-  protected:
-    static void SetApplication(Application* application_);
 };
 } // namespace Zn
