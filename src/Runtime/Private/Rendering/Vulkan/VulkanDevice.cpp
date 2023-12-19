@@ -28,19 +28,24 @@ using namespace Zn;
 
 namespace
 {
-static const String         defaultTexturePath    = "assets/texture.jpg";
-static const String         vikingRoomTexturePath = "assets/VulkanTutorial/viking_room.png";
-static const String         vikingRoomMeshPath    = "assets/VulkanTutorial/viking_room.obj";
-static const String         gltfSampleModels      = "assets/glTF-Sample-Models/2.0/";
-static const String         gltfDefaultModel      = "assets/glTF-Sample-Models/2.0/Cube/glTF/Cube.gltf";
-static const String         monkeyMeshPath        = "assets/VulkanGuide/monkey_smooth.obj";
-static const ResourceHandle depthTextureHandle    = ResourceHandle(HashCalculate("__RHIDepthTexture"));
-static const String         triangleMeshName      = "__Triangle";
-static const String         whiteTextureName      = "__WhiteTexture";
-static const String         blackTextureName      = "__BlackTexture";
-static const String         normalTextureName     = "__Normal";
-static const String         uvCheckerTexturePath  = "assets/uv_checker.png";
-static const String         uvCheckerName         = "__UvChecker";
+static const String      defaultTexturePath = "assets/texture.jpg";
+static DefaultPoolHandle defaultTextureHandle {};
+static const String      vikingRoomTexturePath = "assets/VulkanTutorial/viking_room.png";
+static const String      vikingRoomMeshPath    = "assets/VulkanTutorial/viking_room.obj";
+static const String      gltfSampleModels      = "assets/glTF-Sample-Models/2.0/";
+static const String      gltfDefaultModel      = "assets/glTF-Sample-Models/2.0/Cube/glTF/Cube.gltf";
+static const String      monkeyMeshPath        = "assets/VulkanGuide/monkey_smooth.obj";
+static DefaultPoolHandle depthTextureHandle {};
+static const String      triangleMeshName = "__Triangle";
+static const String      whiteTextureName = "__WhiteTexture";
+static DefaultPoolHandle whiteTextureHandle {};
+static const String      blackTextureName = "__BlackTexture";
+static DefaultPoolHandle blackTextureHandle {};
+static const String      normalTextureName = "__Normal";
+static DefaultPoolHandle normalTextureHandle {};
+static const String      uvCheckerTexturePath = "assets/uv_checker.png";
+static const String      uvCheckerName        = "__UvChecker";
+static DefaultPoolHandle uvCheckerTextureHandle {};
 
 static const u32 minInstanceDataBufferSize = 65535;
 
@@ -632,7 +637,7 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
     LoadMeshes();
 
     {
-        CreateTexture(defaultTexturePath);
+        defaultTextureHandle = CreateTexture(defaultTexturePath);
         CreateTexture(vikingRoomTexturePath);
     }
 
@@ -670,18 +675,19 @@ void VulkanDevice::Cleanup()
 
     CleanupSwapChain();
 
-    for (auto& textureKvp : textures)
+    for (auto& texture : textures)
     {
-        device.destroyImageView(textureKvp.second->imageView);
-        allocator.destroyImage(textureKvp.second->image, textureKvp.second->allocation);
+        device.destroyImageView(texture.imageView);
+        allocator.destroyImage(texture.image, texture.allocation);
 
-        if (textureKvp.second->sampler)
+        if (texture.sampler)
         {
-            device.destroySampler(textureKvp.second->sampler);
+            device.destroySampler(texture.sampler);
         }
-
-        delete textureKvp.second;
     }
+
+    textures.Clear();
+    nameToTexture.clear();
 
     for (RHIPrimitiveGPU* gpuPrimitive : gpuPrimitives)
     {
@@ -698,7 +704,7 @@ void VulkanDevice::Cleanup()
 
     gpuPrimitives.clear();
 
-    for (auto& meshKvp : meshes)
+    /*for (auto& meshKvp : meshes)
     {
         allocator.destroyBuffer(meshKvp.second->vertexBuffer.data, meshKvp.second->vertexBuffer.allocation);
 
@@ -708,9 +714,7 @@ void VulkanDevice::Cleanup()
         }
     }
 
-    textures.clear();
-
-    meshes.clear();
+    meshes.clear();*/
 
     for (i32 index = 0; index < kMaxFramesInFlight; ++index)
     {
@@ -1349,43 +1353,44 @@ void Zn::VulkanDevice::CreateImageViews()
 
     // Initialize Depth Buffer
 
-    if (auto result = textures.insert({depthTextureHandle,
-                                       new RHITexture {.width  = static_cast<i32>(swapChainExtent.width),
-                                                       .height = static_cast<i32>(swapChainExtent.height),
-                                                       //	Hardcoding to 32 bit float.
-                                                       //	Most GPUs support this depth format, so it’s fine to use it. You might want to
-                                                       // choose other formats for other uses, or if you use Stencil buffer.
-                                                       .format = vk::Format::eD32Sfloat}});
-        result.second)
-    {
-        RHITexture* depthTexture = result.first->second;
+    depthTextureHandle = textures.Add(RHITexture {
+        .width  = static_cast<i32>(swapChainExtent.width),
+        .height = static_cast<i32>(swapChainExtent.height),
+        //	Hardcoding to 32 bit float.
+        //	Most GPUs support this depth format, so it’s fine to use it. You might want to
+        // choose other formats for other uses, or if you use Stencil buffer.
+        .format = vk::Format::eD32Sfloat,
+    });
 
-        vk::Extent3D depthImageExtent {swapChainExtent.width, swapChainExtent.height, 1};
+    RHITexture* depthTexture = textures[depthTextureHandle];
 
-        //	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-        vk::ImageCreateInfo depthImageCreateInfo =
-            MakeImageCreateInfo(depthTexture->format, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent, 1);
+    check(depthTexture);
 
-        //	Allocate from GPU memory.
+    vk::Extent3D depthImageExtent {swapChainExtent.width, swapChainExtent.height, 1};
 
-        vma::AllocationCreateInfo depthImageAllocInfo {
-            //	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
-            .usage         = vma::MemoryUsage::eGpuOnly,
-            //	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on
-            // required flags.
-            //	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
-            .requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal),
-        };
+    //	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
+    vk::ImageCreateInfo depthImageCreateInfo =
+        MakeImageCreateInfo(depthTexture->format, vk::ImageUsageFlagBits::eDepthStencilAttachment, depthImageExtent, 1);
 
-        ZN_VK_CHECK(
-            allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthTexture->image, &depthTexture->allocation, nullptr));
+    //	Allocate from GPU memory.
 
-        //	VK_IMAGE_ASPECT_DEPTH_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
-        vk::ImageViewCreateInfo depthImageViewCreateInfo =
-            MakeImageViewCreateInfo(depthTexture->format, depthTexture->image, vk::ImageAspectFlagBits::eDepth);
+    vma::AllocationCreateInfo depthImageAllocInfo {
+        //	VMA_MEMORY_USAGE_GPU_ONLY to make sure that the image is allocated on fast VRAM.
+        .usage         = vma::MemoryUsage::eGpuOnly,
+        //	To make absolutely sure that VMA really allocates the image into VRAM, we give it VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT on
+        // required flags.
+        //	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
+        .requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal),
+    };
 
-        depthTexture->imageView = device.createImageView(depthImageViewCreateInfo);
-    }
+    ZN_VK_CHECK(
+        allocator.createImage(&depthImageCreateInfo, &depthImageAllocInfo, &depthTexture->image, &depthTexture->allocation, nullptr));
+
+    //	VK_IMAGE_ASPECT_DEPTH_BIT lets the vulkan driver know that this will be a depth image used for z-testing.
+    vk::ImageViewCreateInfo depthImageViewCreateInfo =
+        MakeImageViewCreateInfo(depthTexture->format, depthTexture->image, vk::ImageAspectFlagBits::eDepth);
+
+    depthTexture->imageView = device.createImageView(depthImageViewCreateInfo);
 }
 
 void Zn::VulkanDevice::CreateFramebuffers()
@@ -1424,9 +1429,7 @@ void Zn::VulkanDevice::CleanupSwapChain()
         device.destroyImageView(depthTexture->imageView);
         allocator.destroyImage(depthTexture->image, depthTexture->allocation);
 
-        delete depthTexture;
-
-        textures.erase(depthTextureHandle);
+        textures.Evict(depthTextureHandle);
     }
 
     device.destroySwapchainKHR(swapChain);
@@ -1518,10 +1521,10 @@ void Zn::VulkanDevice::CopyToGPU(vma::Allocation allocation, const void* src, si
 
 RHIMesh* Zn::VulkanDevice::GetMesh(const String& InName)
 {
-    if (auto it = meshes.find(HashCalculate(InName)); it != meshes.end())
-    {
-        return it->second;
-    }
+    // if (auto it = nameToMesh.find(InName); it != nameToMesh.end())
+    //{
+    //     return meshes[it->second];
+    // }
 
     return nullptr;
 }
@@ -1705,22 +1708,27 @@ void Zn::VulkanDevice::CreateScene()
         Vector<vk::DescriptorImageInfo> descriptorImages;
         descriptorImages.resize(5);
 
-        auto InsertTexture = [&](cstring textureTypeName, ResourceHandle& textureHandle, u32 index, const String& defaultTexture) -> bool
+        auto InsertTexture = [&](cstring                  textureTypeName,
+                                 const String&            textureName_,
+                                 DefaultPoolHandle&       outTextureHandle_,
+                                 u32                      index,
+                                 const DefaultPoolHandle& defaultTextureHandle_) -> bool
         {
-            RHITexture* texture = nullptr;
-            if (auto it = textures.find(textureHandle); textureHandle && it != textures.end())
+            RHITexture* texture = outTextureHandle_ ? textures[outTextureHandle_] : nullptr;
+
+            if (auto it = nameToTexture.find(textureName_); it != std::end(nameToTexture))
             {
-                texture = it->second;
+                texture = textures[it->second];
             }
-            else if (defaultTexture.length() > 0)
+
+            if (texture == nullptr && defaultTextureHandle_)
             {
-                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Missing %s. Replacing with %s", textureTypeName, defaultTexture.c_str());
-                ResourceHandle defaultHandle = ResourceHandle(defaultTexture);
-                auto           it            = textures.find(defaultHandle);
-                if (it != textures.end())
+                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Missing %s. Replacing with default texture.", textureTypeName);
+
+                texture = textures[defaultTextureHandle_];
+                if (texture)
                 {
-                    texture       = it->second;
-                    textureHandle = defaultHandle;
+                    outTextureHandle_ = defaultTextureHandle_;
                 }
             }
 
@@ -1741,11 +1749,33 @@ void Zn::VulkanDevice::CreateScene()
 
         // TODO: We need to create and assign default textures.
 
-        InsertTexture("baseColor", primitive->materialAttributes.baseColorTexture, 0, uvCheckerTexturePath);
-        InsertTexture("metalness", primitive->materialAttributes.metalnessTexture, 1, blackTextureName);
-        InsertTexture("normal", primitive->materialAttributes.normalTexture, 2, normalTextureName);
-        InsertTexture("occlusion", primitive->materialAttributes.occlusionTexture, 3, blackTextureName);
-        InsertTexture("emissive", primitive->materialAttributes.emissiveTexture, 4, blackTextureName);
+        InsertTexture("baseColor",
+                      primitive->materialAttributes.baseColorTexture,
+                      primitive->materialAttributes.baseColorTextureHandle,
+                      0,
+                      uvCheckerTextureHandle);
+
+        InsertTexture("metalness",
+                      primitive->materialAttributes.metalnessTexture,
+                      primitive->materialAttributes.metalnessTextureHandle,
+                      1,
+                      blackTextureHandle);
+
+        InsertTexture("normal",
+                      primitive->materialAttributes.normalTexture,
+                      primitive->materialAttributes.normalTextureHandle,
+                      2,
+                      normalTextureHandle);
+        InsertTexture("occlusion",
+                      primitive->materialAttributes.occlusionTexture,
+                      primitive->materialAttributes.occlusionTextureHandle,
+                      3,
+                      blackTextureHandle);
+        InsertTexture("emissive",
+                      primitive->materialAttributes.emissiveTexture,
+                      primitive->materialAttributes.emissiveTextureHandle,
+                      4,
+                      blackTextureHandle);
 
         vk::WriteDescriptorSet writeOperations[2] = {{
                                                          .dstSet          = perPrimitiveSet,
@@ -1802,9 +1832,10 @@ void Zn::VulkanDevice::CreateScene()
     }
 }
 
-void Zn::VulkanDevice::CreateDefaultTexture(const String& name, const u8 (&color)[4])
+void Zn::VulkanDevice::CreateDefaultTexture(const String& name, TextureHandle& outTextureHandle_, const u8 (&color)[4])
 {
-    RHITexture* defaultTexture = CreateRHITexture(1, 1, vk::Format::eR8G8B8A8Unorm);
+    outTextureHandle_          = CreateRHITexture(1, 1, vk::Format::eR8G8B8A8Unorm);
+    RHITexture* defaultTexture = textures[outTextureHandle_];
 
     RHIBuffer stagingBuffer = CreateBuffer(1 * sizeof(u8) * 4, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
 
@@ -1841,21 +1872,21 @@ void Zn::VulkanDevice::CreateDefaultTexture(const String& name, const u8 (&color
     defaultTexture->sampler = CreateSampler(defaultTextureSampler, 1);
 
     VulkanValidation::SetObjectDebugName(device, name.c_str(), defaultTexture->image);
-
-    textures.insert({ResourceHandle(name), defaultTexture});
 }
 
 void Zn::VulkanDevice::CreateDefaultResources()
 {
     u8 white[4] = {255, 255, 255, 255};
-    CreateDefaultTexture(whiteTextureName, white);
+    CreateDefaultTexture(whiteTextureName, whiteTextureHandle, white);
     u8 black[4] = {0, 0, 0, 255};
-    CreateDefaultTexture(blackTextureName, black);
+    CreateDefaultTexture(blackTextureName, blackTextureHandle, black);
     u8 normal[4] = {128, 128, 255, 255};
-    CreateDefaultTexture(normalTextureName, normal);
+    CreateDefaultTexture(normalTextureName, normalTextureHandle, normal);
 
-    RHITexture* uvChecker = CreateTexture(uvCheckerTexturePath);
-    uvChecker->sampler    = CreateSampler(defaultTextureSampler, 1);
+    uvCheckerTextureHandle = CreateTexture(uvCheckerTexturePath);
+    RHITexture* uvChecker  = textures[uvCheckerTextureHandle];
+    check(uvChecker);
+    uvChecker->sampler = CreateSampler(defaultTextureSampler, 1);
 
     VulkanValidation::SetObjectDebugName(device, uvCheckerName.c_str(), uvChecker->image);
 }
@@ -1880,7 +1911,10 @@ void Zn::VulkanDevice::LoadMeshes()
         // TODO: Create Materials
         for (const auto& it : gltfOutput.textures)
         {
-            RHITexture* texture = CreateTexture(it.first, it.second);
+            auto textureHandle = CreateTexture(it.first, it.second);
+
+            RHITexture* texture = textures[textureHandle];
+            check(texture);
 
             if (auto samplerIt = gltfOutput.samplers.find(it.first); samplerIt != gltfOutput.samplers.end())
             {
@@ -2150,81 +2184,27 @@ void Zn::VulkanDevice::CreateMeshPipeline()
     }
 }
 
-RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
+Zn::VulkanDevice::TextureHandle Zn::VulkanDevice::CreateTexture(const String& path)
 {
-    ResourceHandle textureHandle = HashCalculate(path);
-
-    if (auto it = textures.find(textureHandle); it != std::end(textures))
+    if (auto it = nameToTexture.find(path); it != std::end(nameToTexture))
     {
         return it->second;
     }
 
-    RHIBuffer stagingBuffer {};
-
-    i32 width  = 0;
-    i32 height = 0;
-
     // #TODO_TEXTUREIMPORTER
     if (SharedPtr<TextureSource> sourceTexture = TextureImporter::Import(IO::GetAbsolutePath(path)))
     {
-        width  = sourceTexture->width;
-        height = sourceTexture->height;
-
-        stagingBuffer = CreateBuffer(sourceTexture->data.size(), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
-        CopyToGPU(stagingBuffer.allocation, sourceTexture->data.data(), sourceTexture->data.size());
-    }
-    else
-    {
-        ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Failed to load texture %s", path.c_str());
-        return nullptr;
+        return CreateTexture(path, sourceTexture);
     }
 
-    RHITexture* texture = nullptr;
-
-    if (auto result = textures.insert({textureHandle, CreateRHITexture(width, height, vk::Format::eR8G8B8A8Unorm)}); result.second)
-    {
-        texture = result.first->second;
-    }
-
-    ImmediateSubmit(
-        [=](vk::CommandBuffer cmd)
-        {
-            TransitionImageLayout(
-                cmd, texture->image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-            CopyBufferToImage(cmd, stagingBuffer.data, texture->image, width, height);
-            TransitionImageLayout(cmd,
-                                  texture->image,
-                                  vk::Format::eR8G8B8A8Unorm,
-                                  vk::ImageLayout::eTransferDstOptimal,
-                                  vk::ImageLayout::eShaderReadOnlyOptimal);
-        });
-
-    DestroyBuffer(stagingBuffer);
-
-    vk::ImageViewCreateInfo imageViewInfo {.image            = texture->image,
-                                           .viewType         = vk::ImageViewType::e2D,
-                                           .format           = vk::Format::eR8G8B8A8Unorm,
-                                           .subresourceRange = {
-                                               .aspectMask     = vk::ImageAspectFlagBits::eColor,
-                                               .baseMipLevel   = 0,
-                                               .levelCount     = 1,
-                                               .baseArrayLayer = 0,
-                                               .layerCount     = 1,
-                                           }};
-
-    texture->imageView = device.createImageView(imageViewInfo);
-
-    VulkanValidation::SetObjectDebugName(device, path.c_str(), texture->image);
-
-    return texture;
+    ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Failed to load texture %s", path.c_str());
+    return {};
 }
 
 // #TODO_TEXTUREIMPORTER
-RHITexture* Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<TextureSource> texture)
+Zn::VulkanDevice::TextureHandle Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<TextureSource> texture)
 {
-    ResourceHandle textureHandle = HashCalculate(name);
-
-    if (auto it = textures.find(textureHandle); it != std::end(textures))
+    if (auto it = nameToTexture.find(name); it != std::end(nameToTexture))
     {
         return it->second;
     }
@@ -2235,15 +2215,14 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<Textur
     RHIBuffer stagingBuffer = CreateBuffer(texture->data.size(), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
     CopyToGPU(stagingBuffer.allocation, texture->data.data(), texture->data.size());
 
-    RHITexture* rhiTexture = nullptr;
-
     // TODO: This should be derived from the source maybe?
     const vk::Format textureFormat = vk::Format::eR8G8B8A8Unorm;
 
-    if (auto result = textures.insert({textureHandle, CreateRHITexture(width, height, textureFormat)}); result.second)
-    {
-        rhiTexture = result.first->second;
-    }
+    auto textureHandle = CreateRHITexture(width, height, textureFormat);
+    nameToTexture.insert({name, textureHandle});
+
+    RHITexture* rhiTexture = textures[textureHandle];
+    check(rhiTexture);
 
     ImmediateSubmit(
         [=](vk::CommandBuffer cmd)
@@ -2272,10 +2251,10 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<Textur
 
     VulkanValidation::SetObjectDebugName(device, name.c_str(), rhiTexture->image);
 
-    return rhiTexture;
+    return textureHandle;
 }
 
-RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format format) const
+Zn::VulkanDevice::TextureHandle Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format format)
 {
     vk::ImageCreateInfo createInfo = MakeImageCreateInfo(format,
                                                          vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
@@ -2295,11 +2274,17 @@ RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format
         //	This forces VMA library to allocate the image on VRAM no matter what. (The Memory Usage part is more like a hint)
         .requiredFlags = vk::MemoryPropertyFlags(vk::MemoryPropertyFlagBits::eDeviceLocal)};
 
-    RHITexture* texture = new RHITexture {.width = width, .height = height};
+    auto textureHandle = textures.Add(RHITexture {
+        .width  = width,
+        .height = height,
+    });
+
+    RHITexture* texture = textures[textureHandle];
+    check(texture);
 
     ZN_VK_CHECK(allocator.createImage(&createInfo, &allocationInfo, &texture->image, &texture->allocation, nullptr));
 
-    return texture;
+    return textureHandle;
 }
 
 vk::Sampler Zn::VulkanDevice::CreateSampler(const TextureSampler& sampler, u32 numMips)

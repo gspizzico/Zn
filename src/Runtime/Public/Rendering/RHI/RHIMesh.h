@@ -5,6 +5,7 @@
 #include <Rendering/RHI/RHI.h>
 #include <Rendering/RHI/RHITypes.h>
 #include <Rendering/RHI/RHIVertex.h>
+#include <Core/Containers/StaticPool.h>
 
 namespace Zn
 {
@@ -40,19 +41,26 @@ struct RHIMesh
 // Based on gltf format.
 struct MaterialAttributes
 {
-    glm::vec4      baseColor   = glm::vec4(0.f);
-    f32            metalness   = 0.f;
-    f32            roughness   = 0.f;
-    glm::vec3      emissive    = glm::vec3(0.f);
-    f32            occlusion   = 1.f;
-    f32            alphaCutoff = 0.5f;
-    AlphaMode      alphaMode   = AlphaMode::Opaque;
-    bool           doubleSided = false;
-    ResourceHandle baseColorTexture {};
-    ResourceHandle metalnessTexture {};
-    ResourceHandle normalTexture {};
-    ResourceHandle occlusionTexture {};
-    ResourceHandle emissiveTexture {};
+    glm::vec4 baseColor   = glm::vec4(0.f);
+    f32       metalness   = 0.f;
+    f32       roughness   = 0.f;
+    glm::vec3 emissive    = glm::vec3(0.f);
+    f32       occlusion   = 1.f;
+    f32       alphaCutoff = 0.5f;
+    AlphaMode alphaMode   = AlphaMode::Opaque;
+    bool      doubleSided = false;
+    // TODO: Move texture name outside mat attributes
+    String    baseColorTexture {};
+    String    metalnessTexture {};
+    String    normalTexture {};
+    String    occlusionTexture {};
+    String    emissiveTexture {};
+
+    DefaultPoolHandle baseColorTextureHandle {};
+    DefaultPoolHandle metalnessTextureHandle {};
+    DefaultPoolHandle normalTextureHandle {};
+    DefaultPoolHandle occlusionTextureHandle {};
+    DefaultPoolHandle emissiveTextureHandle {};
 };
 
 struct alignas(16) UBOMaterialAttributes

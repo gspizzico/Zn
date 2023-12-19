@@ -2,6 +2,7 @@
 #include <Importers/TextureImporter.h>
 #include <Rendering/RHI/RHIMesh.h>
 #include <Math/Math.h>
+#include <Core/Containers/StaticPool.h>
 
 #define TINYGLTF_IMPLEMENTATION
 
@@ -157,7 +158,7 @@ TextureSampler CreateTextureSampler(const tinygltf::Sampler& gltfSampler_)
 
     return sampler;
 }
-bool AssignTexture(i32 textureIndex_, const tinygltf::Model& model_, MeshImporterOutput& output_, ResourceHandle& outHandle_)
+bool AssignTexture(i32 textureIndex_, const tinygltf::Model& model_, MeshImporterOutput& output_, String& outTextureName_)
 {
     if (textureIndex_ >= 0 && textureIndex_ < model_.textures.size())
     {
@@ -177,9 +178,7 @@ bool AssignTexture(i32 textureIndex_, const tinygltf::Model& model_, MeshImporte
                 output_.samplers.insert({image.uri, CreateTextureSampler(sampler)});
             }
 
-            // TODO: ResourceHandle should only be the pointer to the GPU resource. Using it here so that we know what to
-            // associate.
-            outHandle_ = ResourceHandle(HashCalculate(image.uri));
+            outTextureName_ = image.uri;
 
             return true;
         }

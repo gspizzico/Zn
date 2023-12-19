@@ -3,7 +3,9 @@
 #include <Core/CoreMinimal.h>
 #include <glm/vec3.hpp>
 #include <Core/Containers/Map.h>
+#include <Core/Containers/StaticPool.h>
 #include <Rendering/RHI/RHITypes.h>
+#include <Rendering/RHI/RHITexture.h>
 #include <Rendering/RHI/Vulkan/Vulkan.h>
 #include <Rendering/Vulkan/VulkanTypes.h>
 #include <Rendering/RendererTypes.h>
@@ -121,6 +123,8 @@ class VulkanDevice
 
     vk::DescriptorPool imguiDescriptorPool;
 
+    static constexpr sizet kMaxResources = 1 << 14;
+
     static const Vector<const char*> kDeviceExtensions;
 
     class DestroyQueue
@@ -152,9 +156,10 @@ class VulkanDevice
 
     // == Scene Management ==
 
-    Vector<RenderObject>          renderables;
-    Map<ResourceHandle, RHIMesh*> meshes;
-    Vector<RHIPrimitiveGPU*>      gpuPrimitives;
+    Vector<RenderObject>     renderables;
+    /*StaticPool<RHIMesh, kMaxResources> meshes;
+    Map<String, DefaultPoolHandle>     nameToMesh;*/
+    Vector<RHIPrimitiveGPU*> gpuPrimitives;
 
     // TODO: JUST A TEST
     Map<RHIPrimitiveGPU*, vk::DescriptorSet> gpuPrimitivesDescriptorSets;
@@ -177,8 +182,9 @@ class VulkanDevice
     RHIBuffer lightingBuffer[kMaxFramesInFlight];
 
     // ==================
+    using TextureHandle = DefaultPoolHandle;
 
-    void CreateDefaultTexture(const String& name, const u8 (&color)[4]);
+    void CreateDefaultTexture(const String& name, TextureHandle& outTextureHandle_, const u8 (&color)[4]);
 
     void CreateDefaultResources();
     void LoadMeshes();
@@ -191,18 +197,20 @@ class VulkanDevice
 
     // == Texture ==
 
-    RHITexture* CreateTexture(const String& texture);
-    // #TODO_TEXTUREIMPORTER
-    RHITexture* CreateTexture(const String& name, SharedPtr<struct TextureSource> texture);
 
-    RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
-    vk::Sampler CreateSampler(const TextureSampler& sampler, u32 numMips);
+    TextureHandle CreateTexture(const String& texture);
+    // #TODO_TEXTUREIMPORTER
+    TextureHandle CreateTexture(const String& name, SharedPtr<struct TextureSource> texture);
+
+    TextureHandle CreateRHITexture(i32 width, i32 height, vk::Format format);
+    vk::Sampler   CreateSampler(const TextureSampler& sampler, u32 numMips);
 
     void TransitionImageLayout(
         vk::CommandBuffer cmd, vk::Image img, vk::Format fmt, vk::ImageLayout prevLayout, vk::ImageLayout newLayout) const;
 
-    // UnorderedMap<String, AllocatedImage> textures;
-    Map<ResourceHandle, RHITexture*> textures;
+    StaticPool<RHITexture, kMaxResources> textures;
+    // TODO: Refactor, we probably need to store this data into a higher-level structure.
+    Map<String, TextureHandle>            nameToTexture;
 
     vk::DescriptorSetLayout singleTextureSetLayout;
 
