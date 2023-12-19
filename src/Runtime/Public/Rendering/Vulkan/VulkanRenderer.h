@@ -10,16 +10,16 @@ namespace Zn
 class VulkanRenderer : public Renderer
 {
   public:
-    virtual bool initialize(RendererInitParams params) override;
-    virtual void shutdown() override;
-    virtual bool begin_frame() override;
-    virtual bool render_frame(float deltaTime, std::function<void(float)> render) override;
-    virtual bool end_frame() override;
-    virtual void on_window_resized() override;
-    virtual void on_window_minimized() override;
-    virtual void on_window_restored() override;
-    virtual void set_camera(const ViewInfo& viewInfo) override;
-    virtual void set_light(glm::vec3 light, float distance, float intensity) override;
+    virtual bool Initialize() override;
+    virtual void Shutdown() override;
+    virtual bool BeginFrame() override;
+    virtual bool Render(float deltaTime, std::function<void(float)> render) override;
+    virtual bool EndFrame() override;
+    virtual void OnWindowResized(uint32 width_, uint32 height_) override;
+    virtual void OnWindowMinimized() override;
+    virtual void OnWindowRestored() override;
+    virtual void SetCamera(const ViewInfo& viewInfo) override;
+    virtual void SetLight(glm::vec3 light, float distance, float intensity) override;
 
   private:
     UniquePtr<VulkanDevice> device;

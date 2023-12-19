@@ -168,10 +168,10 @@ class VulkanDevice
     // ==================
 
     // == Camera ==
-    ViewInfo  cameraView;
-    glm::vec3 light {0, 100, 0};
-    f32       lightDistance  = 100;
-    f32       lightIntensity = 100;
+    ViewInfo  cameraView {};
+    glm::vec3 light {0, 4, 0};
+    f32       lightDistance  = 20;
+    f32       lightIntensity = 80;
 
     RHIBuffer cameraBuffer[kMaxFramesInFlight];
     RHIBuffer lightingBuffer[kMaxFramesInFlight];
@@ -193,7 +193,7 @@ class VulkanDevice
 
     RHITexture* CreateTexture(const String& texture);
     // #TODO_TEXTUREIMPORTER
-    // RHITexture* CreateTexture(const String& name, SharedPtr<struct TextureSource> texture);
+    RHITexture* CreateTexture(const String& name, SharedPtr<struct TextureSource> texture);
 
     RHITexture* CreateRHITexture(i32 width, i32 height, vk::Format format) const;
     vk::Sampler CreateSampler(const TextureSampler& sampler, u32 numMips);

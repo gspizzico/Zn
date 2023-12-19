@@ -8,10 +8,11 @@
 
 using namespace Zn;
 
-bool Zn::VulkanRenderer::initialize(RendererInitParams params)
+bool Zn::VulkanRenderer::Initialize()
 {
     // Get the names of the Vulkan instance extensions needed to create a surface with SDL_Vulkan_CreateSurface
-    SDL_Window* window = SDL_GetWindowFromID(Application::Get().GetWindowHandle().id);
+    const uint32 windowHandle = static_cast<uint32>(Application::Get().GetWindowHandle().id);
+    SDL_Window*  window       = SDL_GetWindowFromID(windowHandle);
 
     device = std::make_unique<VulkanDevice>();
 
@@ -20,25 +21,21 @@ bool Zn::VulkanRenderer::initialize(RendererInitParams params)
     return true;
 }
 
-void Zn::VulkanRenderer::shutdown()
+void Zn::VulkanRenderer::Shutdown()
 {
     device = nullptr;
-
-    // Zn::imgui_shutdown();
 }
 
-bool Zn::VulkanRenderer::begin_frame()
+bool Zn::VulkanRenderer::BeginFrame()
 {
-    // Zn::imgui_begin_frame();
-
     device->BeginFrame();
 
     return true;
 }
 
-bool Zn::VulkanRenderer::render_frame(float deltaTime, std::function<void(float)> render)
+bool Zn::VulkanRenderer::Render(float deltaTime, std::function<void(float)> render)
 {
-    if (!begin_frame())
+    if (!BeginFrame())
     {
         ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to begin_frame.");
         return false;
@@ -51,7 +48,7 @@ bool Zn::VulkanRenderer::render_frame(float deltaTime, std::function<void(float)
 
     device->Draw();
 
-    if (!end_frame())
+    if (!EndFrame())
     {
         ZN_LOG(LogVulkan, ELogVerbosity::Error, "Failed to end_frame.");
     }
@@ -59,16 +56,14 @@ bool Zn::VulkanRenderer::render_frame(float deltaTime, std::function<void(float)
     return true;
 }
 
-bool Zn::VulkanRenderer::end_frame()
+bool Zn::VulkanRenderer::EndFrame()
 {
-    // Zn::imgui_end_frame();
-
     device->EndFrame();
 
     return true;
 }
 
-void Zn::VulkanRenderer::on_window_resized()
+void Zn::VulkanRenderer::OnWindowResized(uint32 width_, uint32 height_)
 {
     if (device != VK_NULL_HANDLE)
     {
@@ -76,7 +71,7 @@ void Zn::VulkanRenderer::on_window_resized()
     }
 }
 
-void Zn::VulkanRenderer::on_window_minimized()
+void Zn::VulkanRenderer::OnWindowMinimized()
 {
     if (device != VK_NULL_HANDLE)
     {
@@ -84,7 +79,7 @@ void Zn::VulkanRenderer::on_window_minimized()
     }
 }
 
-void Zn::VulkanRenderer::on_window_restored()
+void Zn::VulkanRenderer::OnWindowRestored()
 {
     if (device != VK_NULL_HANDLE)
     {
@@ -92,7 +87,7 @@ void Zn::VulkanRenderer::on_window_restored()
     }
 }
 
-void Zn::VulkanRenderer::set_camera(const ViewInfo& viewInfo)
+void Zn::VulkanRenderer::SetCamera(const ViewInfo& viewInfo)
 {
     if (device)
     {
@@ -100,7 +95,7 @@ void Zn::VulkanRenderer::set_camera(const ViewInfo& viewInfo)
     }
 }
 
-void Zn::VulkanRenderer::set_light(glm::vec3 light, float distance, float intensity)
+void Zn::VulkanRenderer::SetLight(glm::vec3 light, float distance, float intensity)
 {
     if (device)
     {

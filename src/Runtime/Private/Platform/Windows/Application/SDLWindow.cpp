@@ -1,5 +1,5 @@
 #include <Windows/Application/SDLWindow.h>
-#include <Application/AppEventHandler.h>
+#include <Application/AppEvents.h>
 #include <sdl/SDL.h>
 #include <sdl/SDL_syswm.h>
 
@@ -65,16 +65,16 @@ bool Zn::SDLWindow::ProcessEvent(SDL_Event event)
                 width  = event.window.data1;
                 height = event.window.data2;
 
-                AppEventHandler::Get().OnWindowSizeChanged(width, height);
+                AppEvents::OnWindowSizeChanged(width, height);
             }
         }
         else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
         {
-            AppEventHandler::Get().OnWindowMinimized();
+            AppEvents::OnWindowMinimized();
         }
         else if (event.window.event == SDL_WINDOWEVENT_RESTORED)
         {
-            AppEventHandler::Get().OnWindowRestored();
+            AppEvents::OnWindowRestored();
         }
     }
 

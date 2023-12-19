@@ -1,6 +1,7 @@
 #include "Rendering/Renderer.h"
 
 #include "Rendering/Vulkan/VulkanRenderer.h"
+#include <Application/AppEvents.h>
 // #include <Engine/Camera.h>
 
 using namespace Zn;
@@ -19,7 +20,7 @@ Renderer& Zn::Renderer::Get()
     return *instance;
 }
 
-bool Zn::Renderer::initialize(RendererBackendType type, RendererInitParams data)
+bool Zn::Renderer::Create(RendererBackendType type)
 {
     ZN_TRACE_QUICKSCOPE();
 
@@ -30,19 +31,27 @@ bool Zn::Renderer::initialize(RendererBackendType type, RendererInitParams data)
     case RendererBackendType::Vulkan:
         instance.reset(new VulkanRenderer());
         break;
-    case RendererBackendType::DX12:
-        // TODO: Implement DX12
         return false;
     }
+
+    AppEvents::OnWindowSizeChanged = cpp::bind<&Renderer::OnWindowResized>(instance.get());
+    AppEvents::OnWindowMinimized   = cpp::bind<&Renderer::OnWindowMinimized>(instance.get());
+    AppEvents::OnWindowRestored    = cpp::bind<&Renderer::OnWindowRestored>(instance.get());
+
+    instance->Initialize();
 
     return true;
 }
 
-bool Zn::Renderer::destroy()
+bool Zn::Renderer::Destroy()
 {
     if (instance)
     {
-        instance->shutdown();
+        instance->Shutdown();
+
+        AppEvents::OnWindowSizeChanged.reset();
+        AppEvents::OnWindowMinimized.reset();
+        AppEvents::OnWindowRestored.reset();
 
         instance = nullptr;
 

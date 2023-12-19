@@ -44,7 +44,6 @@ void ProcessSDLEvent(const SDL_Event* event_)
 EventHandle GProcessSDLEventHandle;
 } // namespace
 
-
 bool GImGuiInitialized = false;
 
 TMulticastEvent<float> ImGuiApp::OnTick {};

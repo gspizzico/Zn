@@ -3,6 +3,7 @@
 #include <ImGui/ImGuiApp.h>
 #include <Engine/Engine.h>
 #include <Editor.h>
+#include <Rendering/Renderer.h>
 
 #include <Core/Time/Time.h>
 
@@ -13,8 +14,8 @@ int main(int argc_, char* args_[])
     CommandLine::Get().Initialize(argc_, args_);
 
     Application::Create();
-    // RHIDevice::Create();
     ImGuiApp::Create();
+    Renderer::Create(RendererBackendType::Vulkan);
     Engine::Create();
     Editor::Create();
 
@@ -39,12 +40,20 @@ int main(int argc_, char* args_[])
 
         Engine::Tick(deltaTime);
         Editor::Tick(deltaTime);
+
+        Renderer::Get().Render(deltaTime,
+                               [](float deltaTime_)
+                               {
+                                   ImGuiApp::BeginFrame();
+                                   ImGuiApp::Tick(deltaTime_);
+                                   ImGuiApp::EndFrame();
+                               });
     }
 
     Editor::Destroy();
     Engine::Destroy();
+    Renderer::Destroy();
     ImGuiApp::Destroy();
-    /*RHIDevice::Destroy();*/
     Application::Destroy();
 
     return 0;

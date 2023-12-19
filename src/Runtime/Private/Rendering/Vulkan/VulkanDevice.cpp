@@ -2,8 +2,8 @@
 #include <Core/IO/IO.h>
 #include <Core/Memory/Memory.h>
 #include <Core/CommandLine.h>
-// #include <Engine/Importer/MeshImporter.h>
-// #include <Engine/Importer/TextureImporter.h>
+#include <Importers/MeshImporter.h>    // #TODO_MESHIMPORTER
+#include <Importers/TextureImporter.h> // #TODO_TEXTUREIMPORTER
 #include <Rendering/Material.h>
 #include <Rendering/RHI/RHI.h>
 #include <Rendering/RHI/RHIInputLayout.h>
@@ -567,8 +567,6 @@ void VulkanDevice::Initialize(SDL_Window* InWindowHandle)
 
     ////// ImGui
     {
-        ImGui_ImplSDL2_InitForVulkan(InWindowHandle);
-
         // 1: create descriptor pool for IMGUI
         // the size of the pool is very oversize, but it's copied from imgui demo itself.
 
@@ -977,7 +975,7 @@ bool VulkanDevice::HasRequiredDeviceExtensions(vk::PhysicalDevice inDevice) cons
 
 vk::PhysicalDevice VulkanDevice::SelectPhysicalDevice(const Vector<vk::PhysicalDevice>& inDevices) const
 {
-    i32 num = inDevices.size();
+    i32 num = static_cast<i32>(inDevices.size());
 
     i32 selectedIndex = std::numeric_limits<i32>::max();
     u32 maxScore      = 0;
@@ -1873,136 +1871,136 @@ void Zn::VulkanDevice::LoadMeshes()
 
     // #TODO_MESHIMPORTER
     //
-    // MeshImporterOutput gltfOutput;
-    // if (MeshImporter::ImportAll(IO::GetAbsolutePath(gltfModelPath), gltfOutput))
-    //{
-    //    ZN_TRACE_QUICKSCOPE();
+    MeshImporterOutput gltfOutput;
+    if (MeshImporter::ImportAll(IO::GetAbsolutePath(gltfModelPath), gltfOutput))
+    {
+        ZN_TRACE_QUICKSCOPE();
 
-    //    // TODO: Create Buffers
-    //    // TODO: Create Materials
-    //    for (const auto& it : gltfOutput.textures)
-    //    {
-    //        RHITexture* texture = CreateTexture(it.first, it.second);
+        // TODO: Create Buffers
+        // TODO: Create Materials
+        for (const auto& it : gltfOutput.textures)
+        {
+            RHITexture* texture = CreateTexture(it.first, it.second);
 
-    //        if (auto samplerIt = gltfOutput.samplers.find(it.first); samplerIt != gltfOutput.samplers.end())
-    //        {
-    //            texture->sampler = CreateSampler(samplerIt->second, CalculateNumMips(texture->width, texture->height));
-    //        }
-    //    }
+            if (auto samplerIt = gltfOutput.samplers.find(it.first); samplerIt != gltfOutput.samplers.end())
+            {
+                texture->sampler = CreateSampler(samplerIt->second, CalculateNumMips(texture->width, texture->height));
+            }
+        }
 
-    //    i32 index = 0;
+        i32 index = 0;
 
-    //    for (const RHIPrimitive& cpuPrimitive : gltfOutput.primitives)
-    //    {
-    //        ZN_TRACE_QUICKSCOPE();
-    //        RHIPrimitiveGPU* gpuPrimitive = new RHIPrimitiveGPU();
+        for (const RHIPrimitive& cpuPrimitive : gltfOutput.primitives)
+        {
+            ZN_TRACE_QUICKSCOPE();
+            RHIPrimitiveGPU* gpuPrimitive = new RHIPrimitiveGPU();
 
-    //        // TODO: Very inefficient to create and submit buffers one by one.
+            // TODO: Very inefficient to create and submit buffers one by one.
 
-    //        gpuPrimitive->matrix      = cpuPrimitive.matrix;
-    //        gpuPrimitive->numVertices = cpuPrimitive.position.size();
-    //        gpuPrimitive->numIndices  = cpuPrimitive.indices.size();
+            gpuPrimitive->matrix      = cpuPrimitive.matrix;
+            gpuPrimitive->numVertices = static_cast<u32>(cpuPrimitive.position.size());
+            gpuPrimitive->numIndices  = static_cast<u32>(cpuPrimitive.indices.size());
 
-    //        gpuPrimitive->position = CreateRHIBuffer(cpuPrimitive.position.data(),
-    //                                                 cpuPrimitive.position.size() * sizeof(glm::vec3),
-    //                                                 vk::BufferUsageFlagBits::eVertexBuffer,
-    //                                                 vma::MemoryUsage::eGpuOnly);
-    //        if (cpuPrimitive.normal.size() > 0)
-    //        {
-    //            gpuPrimitive->normal = CreateRHIBuffer(cpuPrimitive.normal.data(),
-    //                                                   cpuPrimitive.normal.size() * sizeof(glm::vec3),
-    //                                                   vk::BufferUsageFlagBits::eVertexBuffer,
-    //                                                   vma::MemoryUsage::eGpuOnly);
-    //        }
-    //        else
-    //        {
-    //            ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Normal buffer for primitive. Creating default.");
-    //            Vector<glm::vec3> dummy;
-    //            dummy.resize(cpuPrimitive.position.size());
+            gpuPrimitive->position = CreateRHIBuffer(cpuPrimitive.position.data(),
+                                                     cpuPrimitive.position.size() * sizeof(glm::vec3),
+                                                     vk::BufferUsageFlagBits::eVertexBuffer,
+                                                     vma::MemoryUsage::eGpuOnly);
+            if (cpuPrimitive.normal.size() > 0)
+            {
+                gpuPrimitive->normal = CreateRHIBuffer(cpuPrimitive.normal.data(),
+                                                       cpuPrimitive.normal.size() * sizeof(glm::vec3),
+                                                       vk::BufferUsageFlagBits::eVertexBuffer,
+                                                       vma::MemoryUsage::eGpuOnly);
+            }
+            else
+            {
+                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Normal buffer for primitive. Creating default.");
+                Vector<glm::vec3> dummy;
+                dummy.resize(cpuPrimitive.position.size());
 
-    //            memset(dummy.data(), 0, dummy.size() * sizeof(glm::vec3));
+                memset(dummy.data(), 0, dummy.size() * sizeof(glm::vec3));
 
-    //            gpuPrimitive->normal = CreateRHIBuffer(
-    //                dummy.data(), dummy.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
-    //        }
+                gpuPrimitive->normal = CreateRHIBuffer(
+                    dummy.data(), dummy.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+            }
 
-    //        if (cpuPrimitive.tangent.size() > 0)
-    //        {
-    //            gpuPrimitive->tangent = CreateRHIBuffer(cpuPrimitive.tangent.data(),
-    //                                                    cpuPrimitive.tangent.size() * sizeof(glm::vec4),
-    //                                                    vk::BufferUsageFlagBits::eVertexBuffer,
-    //                                                    vma::MemoryUsage::eGpuOnly);
-    //        }
-    //        else
-    //        {
-    //            ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Tangent buffer for primitive. Creating default.");
-    //            Vector<glm::vec4> dummy;
-    //            dummy.resize(cpuPrimitive.position.size());
+            if (cpuPrimitive.tangent.size() > 0)
+            {
+                gpuPrimitive->tangent = CreateRHIBuffer(cpuPrimitive.tangent.data(),
+                                                        cpuPrimitive.tangent.size() * sizeof(glm::vec4),
+                                                        vk::BufferUsageFlagBits::eVertexBuffer,
+                                                        vma::MemoryUsage::eGpuOnly);
+            }
+            else
+            {
+                ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Unable to find Tangent buffer for primitive. Creating default.");
+                Vector<glm::vec4> dummy;
+                dummy.resize(cpuPrimitive.position.size());
 
-    //            memset(dummy.data(), 0, dummy.size() * sizeof(glm::vec4));
+                memset(dummy.data(), 0, dummy.size() * sizeof(glm::vec4));
 
-    //            gpuPrimitive->tangent = CreateRHIBuffer(
-    //                dummy.data(), dummy.size() * sizeof(glm::vec4), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
-    //        }
+                gpuPrimitive->tangent = CreateRHIBuffer(
+                    dummy.data(), dummy.size() * sizeof(glm::vec4), vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly);
+            }
 
-    //        if (cpuPrimitive.uv.size() > 0)
-    //        {
-    //            gpuPrimitive->uv = CreateRHIBuffer(cpuPrimitive.uv.data(),
-    //                                               cpuPrimitive.uv.size() * sizeof(glm::vec2),
-    //                                               vk::BufferUsageFlagBits::eVertexBuffer,
-    //                                               vma::MemoryUsage::eGpuOnly);
-    //        }
+            if (cpuPrimitive.uv.size() > 0)
+            {
+                gpuPrimitive->uv = CreateRHIBuffer(cpuPrimitive.uv.data(),
+                                                   cpuPrimitive.uv.size() * sizeof(glm::vec2),
+                                                   vk::BufferUsageFlagBits::eVertexBuffer,
+                                                   vma::MemoryUsage::eGpuOnly);
+            }
 
-    //        // if (cpuPrimitive.color.size() > 0)
-    //        //{
-    //        //     gpuPrimitive->color = CreateRHIBuffer(cpuPrimitive.color.data(),
-    //        //                                           cpuPrimitive.color.size() * sizeof(glm::vec4),
-    //        //                                           vk::BufferUsageFlagBits::eVertexBuffer,
-    //        //                                           vma::MemoryUsage::eGpuOnly);
-    //        // }
+            // if (cpuPrimitive.color.size() > 0)
+            //{
+            //     gpuPrimitive->color = CreateRHIBuffer(cpuPrimitive.color.data(),
+            //                                           cpuPrimitive.color.size() * sizeof(glm::vec4),
+            //                                           vk::BufferUsageFlagBits::eVertexBuffer,
+            //                                           vma::MemoryUsage::eGpuOnly);
+            // }
 
-    //        if (cpuPrimitive.indices.size() > 0)
-    //        {
-    //            gpuPrimitive->indices = CreateRHIBuffer(cpuPrimitive.indices.data(),
-    //                                                    cpuPrimitive.indices.size() * sizeof(u32),
-    //                                                    vk::BufferUsageFlagBits::eIndexBuffer,
-    //                                                    vma::MemoryUsage::eGpuOnly);
-    //        }
+            if (cpuPrimitive.indices.size() > 0)
+            {
+                gpuPrimitive->indices = CreateRHIBuffer(cpuPrimitive.indices.data(),
+                                                        cpuPrimitive.indices.size() * sizeof(u32),
+                                                        vk::BufferUsageFlagBits::eIndexBuffer,
+                                                        vma::MemoryUsage::eGpuOnly);
+            }
 
-    //        gpuPrimitive->materialAttributes = cpuPrimitive.materialAttributes;
+            gpuPrimitive->materialAttributes = cpuPrimitive.materialAttributes;
 
-    //        gpuPrimitive->uboMaterialAttributes =
-    //            CreateBuffer(sizeof(UBOMaterialAttributes),
-    //                         vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst,
-    //                         vma::MemoryUsage::eGpuOnly);
+            gpuPrimitive->uboMaterialAttributes =
+                CreateBuffer(sizeof(UBOMaterialAttributes),
+                             vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                             vma::MemoryUsage::eGpuOnly);
 
-    //        RHIBuffer stagingBuffer =
-    //            CreateBuffer(sizeof(UBOMaterialAttributes), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+            RHIBuffer stagingBuffer =
+                CreateBuffer(sizeof(UBOMaterialAttributes), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
 
-    //        UBOMaterialAttributes uboMaterialAttributes {
-    //            .baseColor   = gpuPrimitive->materialAttributes.baseColor,
-    //            .metalness   = gpuPrimitive->materialAttributes.metalness,
-    //            .roughness   = gpuPrimitive->materialAttributes.roughness,
-    //            .alphaCutoff = gpuPrimitive->materialAttributes.alphaCutoff,
-    //            .emissive    = gpuPrimitive->materialAttributes.emissive,
-    //            .occlusion   = gpuPrimitive->materialAttributes.occlusion,
-    //        };
+            UBOMaterialAttributes uboMaterialAttributes {
+                .baseColor   = gpuPrimitive->materialAttributes.baseColor,
+                .metalness   = gpuPrimitive->materialAttributes.metalness,
+                .roughness   = gpuPrimitive->materialAttributes.roughness,
+                .alphaCutoff = gpuPrimitive->materialAttributes.alphaCutoff,
+                .emissive    = gpuPrimitive->materialAttributes.emissive,
+                .occlusion   = gpuPrimitive->materialAttributes.occlusion,
+            };
 
-    //        CopyToGPU(stagingBuffer.allocation, &uboMaterialAttributes, sizeof(UBOMaterialAttributes));
+            CopyToGPU(stagingBuffer.allocation, &uboMaterialAttributes, sizeof(UBOMaterialAttributes));
 
-    //        ImmediateSubmit(
-    //            [=](vk::CommandBuffer cmd)
-    //            {
-    //                cmd.copyBuffer(stagingBuffer.data,
-    //                               gpuPrimitive->uboMaterialAttributes.data,
-    //                               {vk::BufferCopy(0, 0, sizeof(UBOMaterialAttributes))});
-    //            });
+            ImmediateSubmit(
+                [=](vk::CommandBuffer cmd)
+                {
+                    cmd.copyBuffer(stagingBuffer.data,
+                                   gpuPrimitive->uboMaterialAttributes.data,
+                                   {vk::BufferCopy(0, 0, sizeof(UBOMaterialAttributes))});
+                });
 
-    //        DestroyBuffer(stagingBuffer);
+            DestroyBuffer(stagingBuffer);
 
-    //        gpuPrimitives.emplace_back(gpuPrimitive);
-    //    }
-    //}
+            gpuPrimitives.emplace_back(gpuPrimitive);
+        }
+    }
 }
 
 RHIBuffer Zn::VulkanDevice::CreateRHIBuffer(const void*          data,
@@ -2167,7 +2165,7 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
     i32 height = 0;
 
     // #TODO_TEXTUREIMPORTER
-    /*if (SharedPtr<TextureSource> sourceTexture = TextureImporter::Import(IO::GetAbsolutePath(path)))
+    if (SharedPtr<TextureSource> sourceTexture = TextureImporter::Import(IO::GetAbsolutePath(path)))
     {
         width  = sourceTexture->width;
         height = sourceTexture->height;
@@ -2175,7 +2173,7 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
         stagingBuffer = CreateBuffer(sourceTexture->data.size(), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
         CopyToGPU(stagingBuffer.allocation, sourceTexture->data.data(), sourceTexture->data.size());
     }
-    else*/
+    else
     {
         ZN_LOG(LogVulkan, ELogVerbosity::Warning, "Failed to load texture %s", path.c_str());
         return nullptr;
@@ -2222,60 +2220,60 @@ RHITexture* Zn::VulkanDevice::CreateTexture(const String& path)
 }
 
 // #TODO_TEXTUREIMPORTER
-// RHITexture* Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<TextureSource> texture)
-//{
-//     ResourceHandle textureHandle = HashCalculate(name);
-//
-//     if (auto it = textures.find(textureHandle); it != std::end(textures))
-//     {
-//         return it->second;
-//     }
-//
-//     i32 width  = texture->width;
-//     i32 height = texture->height;
-//
-//     RHIBuffer stagingBuffer = CreateBuffer(texture->data.size(), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
-//     CopyToGPU(stagingBuffer.allocation, texture->data.data(), texture->data.size());
-//
-//     RHITexture* rhiTexture = nullptr;
-//
-//     // TODO: This should be derived from the source maybe?
-//     const vk::Format textureFormat = vk::Format::eR8G8B8A8Unorm;
-//
-//     if (auto result = textures.insert({textureHandle, CreateRHITexture(width, height, textureFormat)}); result.second)
-//     {
-//         rhiTexture = result.first->second;
-//     }
-//
-//     ImmediateSubmit(
-//         [=](vk::CommandBuffer cmd)
-//         {
-//             TransitionImageLayout(cmd, rhiTexture->image, textureFormat, vk::ImageLayout::eUndefined,
-//             vk::ImageLayout::eTransferDstOptimal); CopyBufferToImage(cmd, stagingBuffer.data, rhiTexture->image, width, height);
-//             TransitionImageLayout(
-//                 cmd, rhiTexture->image, textureFormat, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-//         });
-//
-//     DestroyBuffer(stagingBuffer);
-//
-//     vk::ImageViewCreateInfo imageViewInfo {.image            = rhiTexture->image,
-//                                            .viewType         = vk::ImageViewType::e2D,
-//                                            .format           = textureFormat,
-//                                            .subresourceRange = {
-//                                                .aspectMask     = vk::ImageAspectFlagBits::eColor,
-//                                                .baseMipLevel   = 0,
-//                                                .levelCount     = 1,
-//                                                .baseArrayLayer = 0,
-//                                                .layerCount     = 1,
-//                                            }};
-//
-//     rhiTexture->imageView = device.createImageView(imageViewInfo);
-//     rhiTexture->format    = textureFormat;
-//
-//     VulkanValidation::SetObjectDebugName(device, name.c_str(), rhiTexture->image);
-//
-//     return rhiTexture;
-// }
+RHITexture* Zn::VulkanDevice::CreateTexture(const String& name, SharedPtr<TextureSource> texture)
+{
+    ResourceHandle textureHandle = HashCalculate(name);
+
+    if (auto it = textures.find(textureHandle); it != std::end(textures))
+    {
+        return it->second;
+    }
+
+    i32 width  = texture->width;
+    i32 height = texture->height;
+
+    RHIBuffer stagingBuffer = CreateBuffer(texture->data.size(), vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuOnly);
+    CopyToGPU(stagingBuffer.allocation, texture->data.data(), texture->data.size());
+
+    RHITexture* rhiTexture = nullptr;
+
+    // TODO: This should be derived from the source maybe?
+    const vk::Format textureFormat = vk::Format::eR8G8B8A8Unorm;
+
+    if (auto result = textures.insert({textureHandle, CreateRHITexture(width, height, textureFormat)}); result.second)
+    {
+        rhiTexture = result.first->second;
+    }
+
+    ImmediateSubmit(
+        [=](vk::CommandBuffer cmd)
+        {
+            TransitionImageLayout(cmd, rhiTexture->image, textureFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+            CopyBufferToImage(cmd, stagingBuffer.data, rhiTexture->image, width, height);
+            TransitionImageLayout(
+                cmd, rhiTexture->image, textureFormat, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+        });
+
+    DestroyBuffer(stagingBuffer);
+
+    vk::ImageViewCreateInfo imageViewInfo {.image            = rhiTexture->image,
+                                           .viewType         = vk::ImageViewType::e2D,
+                                           .format           = textureFormat,
+                                           .subresourceRange = {
+                                               .aspectMask     = vk::ImageAspectFlagBits::eColor,
+                                               .baseMipLevel   = 0,
+                                               .levelCount     = 1,
+                                               .baseArrayLayer = 0,
+                                               .layerCount     = 1,
+                                           }};
+
+    rhiTexture->imageView = device.createImageView(imageViewInfo);
+    rhiTexture->format    = textureFormat;
+
+    VulkanValidation::SetObjectDebugName(device, name.c_str(), rhiTexture->image);
+
+    return rhiTexture;
+}
 
 RHITexture* Zn::VulkanDevice::CreateRHITexture(i32 width, i32 height, vk::Format format) const
 {
