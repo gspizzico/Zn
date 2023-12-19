@@ -3,7 +3,6 @@
 #include <ImGui/ImGuiApp.h>
 #include <Engine/Engine.h>
 #include <Editor.h>
-#include <RHI/RHIDevice.h>
 
 #include <Core/Time/Time.h>
 
@@ -14,7 +13,7 @@ int main(int argc_, char* args_[])
     CommandLine::Get().Initialize(argc_, args_);
 
     Application::Create();
-    RHIDevice::Create();
+    // RHIDevice::Create();
     ImGuiApp::Create();
     Engine::Create();
     Editor::Create();
@@ -45,7 +44,7 @@ int main(int argc_, char* args_[])
     Editor::Destroy();
     Engine::Destroy();
     ImGuiApp::Destroy();
-    RHIDevice::Destroy();
+    /*RHIDevice::Destroy();*/
     Application::Destroy();
 
     return 0;

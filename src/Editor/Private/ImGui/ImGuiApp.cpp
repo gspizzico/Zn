@@ -3,7 +3,6 @@
 #include <Core/Memory/Memory.h>
 #include <Core/Log/LogMacros.h>
 #include <Application/Application.h>
-#include <RHI/RHIDevice.h>
 
 #include <imgui/imgui.h>
 
@@ -14,7 +13,6 @@
 
 #if WITH_VULKAN
 #include <imgui/backends/imgui_impl_vulkan.h>
-#include <RHI/Vulkan/VulkanContext.h>
 #endif // WITH_VULKAN
 
 using namespace Zn;
@@ -46,9 +44,6 @@ void ProcessSDLEvent(const SDL_Event* event_)
 EventHandle GProcessSDLEventHandle;
 } // namespace
 
-#if WITH_VULKAN
-vk::DescriptorPool GImGuiDescriptorPool {nullptr};
-#endif
 
 bool GImGuiInitialized = false;
 
@@ -110,60 +105,60 @@ void ImGuiApp::Create()
 #endif // PLATFORM_WINDOWS
 
 #if WITH_VULKAN
-    VulkanContext& vkContext = VulkanContext::Get();
+    // VulkanContext& vkContext = VulkanContext::Get();
 
-    Vector<vk::DescriptorPoolSize> imguiPoolSizes = {{vk::DescriptorType::eSampler, 1000},
-                                                     {vk::DescriptorType::eCombinedImageSampler, 1000},
-                                                     {vk::DescriptorType::eSampledImage, 1000},
-                                                     {vk::DescriptorType::eStorageImage, 1000},
-                                                     {vk::DescriptorType::eUniformTexelBuffer, 1000},
-                                                     {vk::DescriptorType::eStorageTexelBuffer, 1000},
-                                                     {vk::DescriptorType::eUniformBuffer, 1000},
-                                                     {vk::DescriptorType::eStorageBuffer, 1000},
-                                                     {vk::DescriptorType::eUniformBufferDynamic, 1000},
-                                                     {vk::DescriptorType::eStorageBufferDynamic, 1000},
-                                                     {vk::DescriptorType::eInputAttachment, 1000}};
+    // Vector<vk::DescriptorPoolSize> imguiPoolSizes = {{vk::DescriptorType::eSampler, 1000},
+    //                                                  {vk::DescriptorType::eCombinedImageSampler, 1000},
+    //                                                  {vk::DescriptorType::eSampledImage, 1000},
+    //                                                  {vk::DescriptorType::eStorageImage, 1000},
+    //                                                  {vk::DescriptorType::eUniformTexelBuffer, 1000},
+    //                                                  {vk::DescriptorType::eStorageTexelBuffer, 1000},
+    //                                                  {vk::DescriptorType::eUniformBuffer, 1000},
+    //                                                  {vk::DescriptorType::eStorageBuffer, 1000},
+    //                                                  {vk::DescriptorType::eUniformBufferDynamic, 1000},
+    //                                                  {vk::DescriptorType::eStorageBufferDynamic, 1000},
+    //                                                  {vk::DescriptorType::eInputAttachment, 1000}};
 
-    vk::DescriptorPoolCreateInfo imguiPoolCreateInfo {
-        .flags   = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-        .maxSets = 1000,
-    };
+    // vk::DescriptorPoolCreateInfo imguiPoolCreateInfo {
+    //     .flags   = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+    //     .maxSets = 1000,
+    // };
 
-    imguiPoolCreateInfo.setPoolSizes(imguiPoolSizes);
+    // imguiPoolCreateInfo.setPoolSizes(imguiPoolSizes);
 
-    GImGuiDescriptorPool = vkContext.device.createDescriptorPool(imguiPoolCreateInfo);
+    // GImGuiDescriptorPool = vkContext.device.createDescriptorPool(imguiPoolCreateInfo);
 
-    // this initializes imgui for Vulkan
-    ImGui_ImplVulkan_InitInfo imguiInitInfo {.Instance       = vkContext.instance,
-                                             .PhysicalDevice = vkContext.gpu.gpu,
-                                             .Device         = vkContext.device,
-                                             .Queue          = vkContext.graphicsQueue,
-                                             .DescriptorPool = GImGuiDescriptorPool,
-                                             .MinImageCount  = 3,
-                                             .ImageCount     = 3,
-                                             .MSAASamples    = VK_SAMPLE_COUNT_1_BIT};
+    //// this initializes imgui for Vulkan
+    // ImGui_ImplVulkan_InitInfo imguiInitInfo {.Instance       = vkContext.instance,
+    //                                          .PhysicalDevice = vkContext.gpu.gpu,
+    //                                          .Device         = vkContext.device,
+    //                                          .Queue          = vkContext.graphicsQueue,
+    //                                          .DescriptorPool = GImGuiDescriptorPool,
+    //                                          .MinImageCount  = 3,
+    //                                          .ImageCount     = 3,
+    //                                          .MSAASamples    = VK_SAMPLE_COUNT_1_BIT};
 
-    ImGui_ImplVulkan_Init(&imguiInitInfo, vkContext.mainRenderPass);
+    // ImGui_ImplVulkan_Init(&imguiInitInfo, vkContext.mainRenderPass);
 
-    // Upload Fonts
+    //// Upload Fonts
 
-    vk::CommandBuffer& cmdBuffer = vkContext.graphicsCmdContext.commandBuffers[0];
-    cmdBuffer.reset();
+    // vk::CommandBuffer& cmdBuffer = vkContext.graphicsCmdContext.commandBuffers[0];
+    // cmdBuffer.reset();
 
-    cmdBuffer.begin(vk::CommandBufferBeginInfo {.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    // cmdBuffer.begin(vk::CommandBufferBeginInfo {.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
 
-    ImGui_ImplVulkan_CreateFontsTexture(cmdBuffer);
+    // ImGui_ImplVulkan_CreateFontsTexture(cmdBuffer);
 
-    cmdBuffer.end();
+    // cmdBuffer.end();
 
-    vkContext.graphicsQueue.submit(vk::SubmitInfo {
-        .commandBufferCount = 1,
-        .pCommandBuffers    = &cmdBuffer,
-    });
+    // vkContext.graphicsQueue.submit(vk::SubmitInfo {
+    //     .commandBufferCount = 1,
+    //     .pCommandBuffers    = &cmdBuffer,
+    // });
 
-    vkContext.device.waitIdle();
+    // vkContext.device.waitIdle();
 
-    ImGui_ImplVulkan_DestroyFontUploadObjects();
+    // ImGui_ImplVulkan_DestroyFontUploadObjects();
 #endif
 
     GImGuiInitialized = true;
@@ -185,14 +180,14 @@ void ImGuiApp::Destroy()
 #endif
 
 #if WITH_VULKAN
-    if (GImGuiDescriptorPool)
+    /*if (GImGuiDescriptorPool)
     {
         VulkanContext& vkContext = VulkanContext::Get();
 
         vkContext.device.destroyDescriptorPool(GImGuiDescriptorPool);
         GImGuiDescriptorPool = nullptr;
     }
-    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplVulkan_Shutdown();*/
 #endif // WITH_VULKAN
 
     ImGui::DestroyContext();
@@ -205,7 +200,7 @@ void ImGuiApp::BeginFrame()
     if (GImGuiInitialized)
     {
 #if WITH_VULKAN
-        ImGui_ImplVulkan_NewFrame();
+        /*ImGui_ImplVulkan_NewFrame();*/
 #endif
 #if PLATFORM_WINDOWS
         ImGui_ImplSDL2_NewFrame();
